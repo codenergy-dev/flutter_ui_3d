@@ -32,7 +32,7 @@ Semantics3d _segment(Layout3dSurface surface, String label) =>
 /// The panel a segment draws: the one decorated box under its announcement.
 DecoratedBox3d _panelOf(Layout3dSurface surface, String label) {
   final found = <DecoratedBox3d>[];
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is DecoratedBox3d) found.add(box);
     box.visitChildren(walk);
   }
@@ -74,8 +74,8 @@ Widget _holding(
 );
 
 /// Whether [box] is [ancestor] or somewhere under it.
-bool isAtOrBelow(Layout3d box, Layout3d ancestor) {
-  for (Layout3d? walk = box; walk != null; walk = walk.parent) {
+bool isAtOrBelow(RenderObject3d box, RenderObject3d ancestor) {
+  for (RenderObject3d? walk = box; walk != null; walk = walk.parent) {
     if (identical(walk, ancestor)) return true;
   }
   return false;

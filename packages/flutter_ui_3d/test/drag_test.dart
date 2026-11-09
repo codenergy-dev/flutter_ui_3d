@@ -49,7 +49,10 @@ class Recorder extends DragTarget3d<String> {
 /// The session takes a [HitTestResult3d] and asks nothing about where it came
 /// from, which is exactly what makes the state machine testable without a
 /// pointer.
-HitTestResult3d pathOf(List<Layout3d> layouts, {Offset3d at = Offset3d.zero}) {
+HitTestResult3d pathOf(
+  List<RenderObject3d> layouts, {
+  Offset3d at = Offset3d.zero,
+}) {
   final result = HitTestResult3d();
   for (final layout in layouts) {
     result.add(HitTestEntry3d(layout, at));
@@ -124,7 +127,7 @@ class _ScrollFixture {
     );
     final list = ListView3d(
       controller: controller,
-      children: <Layout3d>[
+      children: <RenderObject3d>[
         source,
         TestBox(const Size3d(1, 5, 0), pointable: true),
       ],
@@ -168,10 +171,10 @@ void main() {
       laidOut(target, constraints: Constraints3d.tight(const Size3d(1, 1, 0)));
       final session = Drag3dSession(data: 'photo');
 
-      session.update(pathOf(<Layout3d>[target]));
-      session.update(pathOf(<Layout3d>[target]));
-      session.update(pathOf(const <Layout3d>[]));
-      session.update(pathOf(<Layout3d>[target]));
+      session.update(pathOf(<RenderObject3d>[target]));
+      session.update(pathOf(<RenderObject3d>[target]));
+      session.update(pathOf(const <RenderObject3d>[]));
+      session.update(pathOf(<RenderObject3d>[target]));
 
       expect(log, ['zone enter', 'zone move', 'zone leave', 'zone enter']);
     });
@@ -183,7 +186,7 @@ void main() {
       laidOut(list, constraints: Constraints3d.tight(const Size3d(1, 1, 0)));
       final session = Drag3dSession(data: 'photo');
 
-      session.update(pathOf(<Layout3d>[row, list]));
+      session.update(pathOf(<RenderObject3d>[row, list]));
 
       // The list learns before the row does, the same order hover uses.
       expect(log, ['list enter', 'row enter']);
@@ -195,10 +198,10 @@ void main() {
       final list = Recorder('list', log, child: row);
       laidOut(list, constraints: Constraints3d.tight(const Size3d(1, 1, 0)));
       final session = Drag3dSession(data: 'photo')
-        ..update(pathOf(<Layout3d>[row, list]));
+        ..update(pathOf(<RenderObject3d>[row, list]));
       log.clear();
 
-      session.update(pathOf(const <Layout3d>[]));
+      session.update(pathOf(const <RenderObject3d>[]));
 
       expect(log, ['row leave', 'list leave']);
     });
@@ -209,7 +212,7 @@ void main() {
       final list = Recorder('list', log, child: row);
       laidOut(list, constraints: Constraints3d.tight(const Size3d(1, 1, 0)));
       final session = Drag3dSession(data: 'photo')
-        ..update(pathOf(<Layout3d>[row, list]));
+        ..update(pathOf(<RenderObject3d>[row, list]));
       log.clear();
 
       expect(session.drop(), isTrue);
@@ -234,7 +237,7 @@ void main() {
       final target = Recorder('zone', log, child: solid());
       laidOut(target, constraints: Constraints3d.tight(const Size3d(1, 1, 0)));
       final session = Drag3dSession(data: 'photo')
-        ..update(pathOf(<Layout3d>[target]));
+        ..update(pathOf(<RenderObject3d>[target]));
       log.clear();
 
       session
@@ -258,7 +261,7 @@ void main() {
       );
       final session = Drag3dSession(data: 'photo');
 
-      session.update(pathOf(<Layout3d>[wrongType, rightType]));
+      session.update(pathOf(<RenderObject3d>[wrongType, rightType]));
 
       expect(log, ['string enter']);
       expect(session.target, same(rightType));
@@ -276,15 +279,15 @@ void main() {
       laidOut(target, constraints: Constraints3d.tight(const Size3d(1, 1, 0)));
       final session = Drag3dSession(data: 'photo');
 
-      session.update(pathOf(<Layout3d>[target]));
+      session.update(pathOf(<RenderObject3d>[target]));
       expect(log, isEmpty);
 
       welcome = true;
-      session.update(pathOf(<Layout3d>[target]));
+      session.update(pathOf(<RenderObject3d>[target]));
       expect(log, ['zone enter']);
 
       welcome = false;
-      session.update(pathOf(<Layout3d>[target]));
+      session.update(pathOf(<RenderObject3d>[target]));
       expect(log, ['zone enter', 'zone leave']);
     });
 
@@ -301,7 +304,7 @@ void main() {
       );
 
       session.update(
-        pathOf(<Layout3d>[target], at: const Offset3d(0.1, 0.2, 0)),
+        pathOf(<RenderObject3d>[target], at: const Offset3d(0.1, 0.2, 0)),
       );
 
       expect(seen, isNotNull);
@@ -317,7 +320,7 @@ void main() {
       final session = Drag3dSession(data: 'photo');
 
       expect(target.isCandidate, isFalse);
-      session.update(pathOf(<Layout3d>[target]));
+      session.update(pathOf(<RenderObject3d>[target]));
       expect(target.isCandidate, isTrue);
       expect(target.candidateData, ['photo']);
 
@@ -360,7 +363,7 @@ void main() {
       );
       laidOut(target, constraints: Constraints3d.tight(const Size3d(1, 1, 0)));
       final session = Drag3dSession(data: 'photo')
-        ..update(pathOf(<Layout3d>[target]));
+        ..update(pathOf(<RenderObject3d>[target]));
 
       welcome = true;
       // Nothing moved: the world changed underneath, which is what an
@@ -378,7 +381,7 @@ void main() {
       final source = Recorder('source', log, child: solid());
       final zone = Recorder('zone', log, child: solid());
       final surface = laidOut(
-        Row3d(children: <Layout3d>[source, zone]),
+        Row3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -401,7 +404,7 @@ void main() {
       final source = Recorder('source', log, child: solid());
       final zone = Recorder('zone', log, child: solid());
       final surface = laidOut(
-        Row3d(children: <Layout3d>[source, zone]),
+        Row3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -583,7 +586,7 @@ void main() {
       );
       final zone = Recorder('zone', log, child: solid());
       final surface = laidOut(
-        Row3d(children: <Layout3d>[source, zone]),
+        Row3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -631,7 +634,7 @@ void main() {
         child: solid(),
       );
       final surface = laidOut(
-        Row3d(children: <Layout3d>[source, zone]),
+        Row3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -654,7 +657,7 @@ void main() {
         child: solid(),
       );
       final surface = laidOut(
-        Row3d(children: <Layout3d>[source, zone]),
+        Row3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -673,7 +676,7 @@ void main() {
       final source = Draggable3d<String>(data: 'photo', child: solid());
       final list = ListView3d(
         controller: controller,
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           source,
           TestBox(const Size3d(1, 4, 0), pointable: true),
         ],
@@ -704,7 +707,7 @@ void main() {
       );
       final list = ListView3d(
         controller: controller,
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           source,
           TestBox(const Size3d(1, 4, 0), pointable: true),
         ],
@@ -731,7 +734,7 @@ void main() {
       final source = Draggable3d<String>(data: 'photo', child: solid());
       final zone = Recorder('zone', log, child: solid());
       final surface = laidOut(
-        Row3d(children: <Layout3d>[source, zone]),
+        Row3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -759,7 +762,7 @@ void main() {
         feedbackBuilder: (_) => TestBox(const Size3d(0.4, 0.4, 0)),
         child: solid(),
       );
-      overlay.syncChildren(<Layout3d>[source]);
+      overlay.syncChildren(<RenderObject3d>[source]);
       final surface = laidOut(
         overlay,
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
@@ -785,7 +788,7 @@ void main() {
       // `examples/render_probe` is the render-side half of this claim; it
       // caught the bug by passing once and failing the next run.
       final row = TestBox(const Size3d(1, 1, 0.05), pointable: true);
-      late final Layout3d feedback;
+      late final RenderObject3d feedback;
       final source = Draggable3d<String>(
         data: 'photo',
         dropDuration: Duration.zero,
@@ -795,7 +798,7 @@ void main() {
         child: row,
       );
       final overlay = Overlay3d();
-      overlay.syncChildren(<Layout3d>[source]);
+      overlay.syncChildren(<RenderObject3d>[source]);
       final surface = laidOut(
         overlay,
         constraints: Constraints3d.tight(const Size3d(2, 2, 1)),
@@ -834,14 +837,14 @@ void main() {
 
     test('is moved by nodeOffset and never by sceneOffset', () {
       final overlay = Overlay3d();
-      late final Layout3d feedback;
+      late final RenderObject3d feedback;
       final source = Draggable3d<String>(
         data: 'photo',
         dropDuration: Duration.zero,
         feedbackBuilder: (_) => feedback = TestBox(const Size3d(0.4, 0.4, 0)),
         child: solid(),
       );
-      overlay.syncChildren(<Layout3d>[source]);
+      overlay.syncChildren(<RenderObject3d>[source]);
       final surface = laidOut(
         overlay,
         constraints: Constraints3d.tight(const Size3d(2, 2, 0)),
@@ -867,7 +870,7 @@ void main() {
     });
 
     test('follows the pointer, and starts over the box it came from', () {
-      late final Layout3d feedback;
+      late final RenderObject3d feedback;
       final source = Draggable3d<String>(
         data: 'photo',
         dropDuration: Duration.zero,
@@ -878,7 +881,7 @@ void main() {
       // the overlay would have put it" are different places.
       final overlay = Overlay3d(
         alignment: Alignment3d.topLeft,
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           Padding3d(
             padding: const EdgeInsets3d.only(left: 1.0, top: 0.5),
             child: source,
@@ -918,8 +921,8 @@ void main() {
         feedbackBuilder: (_) => TestBox(const Size3d(0.4, 0.4, 0)),
         child: solid(),
       );
-      overlay.syncChildren(<Layout3d>[
-        Row3d(children: <Layout3d>[source, zone]),
+      overlay.syncChildren(<RenderObject3d>[
+        Row3d(children: <RenderObject3d>[source, zone]),
       ]);
       final surface = laidOut(
         overlay,
@@ -958,7 +961,7 @@ void main() {
           child: solid(),
         );
         final surface = laidOut(
-          Stack3d(children: <Layout3d>[source, overlay]),
+          Stack3d(children: <RenderObject3d>[source, overlay]),
           constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
         );
         final pointer = Layout3dPointer(surface);
@@ -987,7 +990,7 @@ void main() {
         child: solid(),
       );
       final surface = laidOut(
-        Row3d(children: <Layout3d>[source, zone]),
+        Row3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -1076,14 +1079,14 @@ void main() {
       tester,
     ) async {
       final overlay = Overlay3d();
-      late final Layout3d feedback;
+      late final RenderObject3d feedback;
       final source = Draggable3d<String>(
         data: 'photo',
         dropDuration: const Duration(milliseconds: 200),
         feedbackBuilder: (_) => feedback = TestBox(const Size3d(0.4, 0.4, 0)),
         child: solid(),
       );
-      overlay.syncChildren(<Layout3d>[source]);
+      overlay.syncChildren(<RenderObject3d>[source]);
       final surface = laidOut(
         overlay,
         constraints: Constraints3d.tight(const Size3d(2, 2, 0)),
@@ -1139,7 +1142,7 @@ void main() {
       );
 
       await tester.pumpWidget(frame('photo'));
-      final row = controller.surface!.child! as MultiChildLayout3d;
+      final row = controller.surface!.child! as RenderMultiChild3d;
       final source = row.children.first as Draggable3d<String>;
       expect(source.data, 'photo');
       expect(row.children.last, isA<DragTarget3d<String>>());
@@ -1147,7 +1150,7 @@ void main() {
       // A rebuild reconciles onto the same layout objects and writes the new
       // payload through, which is the whole contract of the widget layer.
       await tester.pumpWidget(frame('drawing'));
-      expect(controller.surface!.child! as MultiChildLayout3d, same(row));
+      expect(controller.surface!.child! as RenderMultiChild3d, same(row));
       expect(source.data, 'drawing');
 
       final surface = controller.surface!;
@@ -1189,16 +1192,16 @@ void main() {
       final first = Recorder('first', log, child: solid());
       final second = Recorder('second', log, child: solid());
       laidOut(
-        Row3d(children: <Layout3d>[first, second]),
+        Row3d(children: <RenderObject3d>[first, second]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final session = Drag3dSession(data: 'photo');
-      session.update(pathOf(<Layout3d>[first]));
+      session.update(pathOf(<RenderObject3d>[first]));
       expect(log, ['first enter']);
 
       // What a group installs: the tick asks whoever is responsible for
       // finding this drag's path, not the surface the press happened on.
-      session.pathResolver = () => pathOf(<Layout3d>[second]);
+      session.pathResolver = () => pathOf(<RenderObject3d>[second]);
       session.tick();
 
       expect(log, ['first enter', 'first leave', 'second enter']);
@@ -1209,7 +1212,7 @@ void main() {
       final target = Recorder('zone', log, child: solid());
       laidOut(target, constraints: Constraints3d.tight(const Size3d(1, 1, 0)));
       final session = Drag3dSession(data: 'photo');
-      session.update(pathOf(<Layout3d>[target]));
+      session.update(pathOf(<RenderObject3d>[target]));
 
       expect(session.tick(), isFalse);
       expect(log, ['zone enter', 'zone move']);
@@ -1336,7 +1339,7 @@ void main() {
     // dialog standing over a panel is: the same layout coordinates on both,
     // so a ray aimed at a point reaches whichever surface answers there
     // first. `plate` in `overlay_test.dart` builds them the same way.
-    Layout3dSurface plate(Layout3d child) {
+    Layout3dSurface plate(RenderObject3d child) {
       final surface = laidOut(
         child,
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
@@ -1349,7 +1352,7 @@ void main() {
       final log = <String>[];
       final source = Draggable3d<String>(data: 'photo', child: solid());
       final behind = Recorder('behind', log, child: solid());
-      final panel = plate(Row3d(children: <Layout3d>[source, behind]));
+      final panel = plate(Row3d(children: <RenderObject3d>[source, behind]));
       final front = Recorder('front', log, child: solid());
       final dialog = plate(
         // Nothing in the left half of the dialog answers, so the press at
@@ -1399,7 +1402,7 @@ void main() {
     test('a surface that answers nothing is walked straight past', () {
       final log = <String>[];
       final source = Draggable3d<String>(data: 'photo', child: solid());
-      final panel = plate(Row3d(children: <Layout3d>[source, solid()]));
+      final panel = plate(Row3d(children: <RenderObject3d>[source, solid()]));
       final front = Recorder('front', log, child: solid());
       final dialog = plate(
         Padding3d(padding: const EdgeInsets3d.only(left: 1.0), child: front),
@@ -1428,7 +1431,7 @@ void main() {
     test('a drop over nothing on any surface is not a drop', () {
       var accepts = 0;
       final source = Draggable3d<String>(data: 'photo', child: solid());
-      final panel = plate(Row3d(children: <Layout3d>[source, solid()]));
+      final panel = plate(Row3d(children: <RenderObject3d>[source, solid()]));
       final zone = DragTarget3d<String>(
         onAccept: (_, _) => accepts++,
         child: solid(),
@@ -1460,8 +1463,8 @@ void main() {
         feedbackBuilder: (_) => TestBox(const Size3d(0.4, 0.4, 0)),
         child: solid(),
       );
-      overlay.syncChildren(<Layout3d>[
-        Row3d(children: <Layout3d>[source, solid()]),
+      overlay.syncChildren(<RenderObject3d>[
+        Row3d(children: <RenderObject3d>[source, solid()]),
       ]);
       final panel = plate(overlay);
       final dialog = plate(
@@ -1778,7 +1781,7 @@ void main() {
         );
         final list = ListView3d(
           controller: controller,
-          children: <Layout3d>[
+          children: <RenderObject3d>[
             row,
             TestBox(const Size3d(1, 4, 0), pointable: true),
           ],

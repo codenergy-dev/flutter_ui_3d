@@ -9,13 +9,13 @@ import 'package:vector_math/vector_math.dart' show Matrix4, Vector3;
 import '../debug/screen_projection.dart';
 import '../geometry/offset3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
 import '../overlay/overlay.dart';
+import '../rendering/object.dart';
 import '../semantics.dart';
 import '../surface.dart';
 import '../text/rich_text3d.dart';
 import '../text/text3d.dart';
-import '../widgets/framework.dart' show Layout3dRootRenderBox;
+import '../widgets/framework.dart' show RenderObject3dRootHost;
 import '../widgets/input.dart';
 
 /// A surface found in the widget tree, and the input host it is under.
@@ -68,7 +68,7 @@ class SceneHost3d {
 /// overlay.
 ///
 /// Found through the render tree — every `SceneLayout3d` mounts a
-/// [Layout3dRootRenderBox] — so nothing private to the widget is needed, and
+/// [RenderObject3dRootHost] — so nothing private to the widget is needed, and
 /// a surface registered with a host by hand is added after the ones the tree
 /// holds.
 List<SceneSurface3d> sceneSurfaces3d() {
@@ -99,7 +99,7 @@ List<SceneSurface3d> sceneSurfaces3d() {
     }
     if (element is RenderObjectElement) {
       final renderObject = element.renderObject;
-      if (renderObject is Layout3dRootRenderBox) {
+      if (renderObject is RenderObject3dRootHost) {
         addSurface(renderObject.surface, current);
       }
     }
@@ -119,7 +119,7 @@ List<SceneSurface3d> sceneSurfaces3d() {
 /// Every [Overlay3d] in [surface]'s own tree, outermost first.
 List<Overlay3d> _overlaysIn(Layout3dSurface surface) {
   final overlays = <Overlay3d>[];
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is Overlay3d) overlays.add(box);
     box.visitChildren(walk);
   }
@@ -129,8 +129,8 @@ List<Overlay3d> _overlaysIn(Layout3dSurface surface) {
 }
 
 /// The surface at the root of [box]'s tree.
-Layout3dSurface? rootSurfaceOf(Layout3d box) {
-  Layout3d? node = box;
+Layout3dSurface? rootSurfaceOf(RenderObject3d box) {
+  RenderObject3d? node = box;
   while (node != null) {
     if (node is Layout3dSurface && node.parent == null) return node;
     node = node.parent;
@@ -140,7 +140,7 @@ Layout3dSurface? rootSurfaceOf(Layout3d box) {
 
 /// [box] in a few words for a failure message: its type and identity, and
 /// the label or the text that says which one it is.
-String describeBox3d(Layout3d box) {
+String describeBox3d(RenderObject3d box) {
   final short = box.toStringShort();
   final said = switch (box) {
     Semantics3d() => box.properties.label,
@@ -152,8 +152,8 @@ String describeBox3d(Layout3d box) {
 }
 
 /// Whether [box] is [ancestor] or somewhere below it in the layout tree.
-bool isAtOrBelow(Layout3d box, Layout3d ancestor) {
-  Layout3d? node = box;
+bool isAtOrBelow(RenderObject3d box, RenderObject3d ancestor) {
+  RenderObject3d? node = box;
   while (node != null) {
     if (identical(node, ancestor)) return true;
     node = node.parent;
@@ -166,7 +166,7 @@ class Reach3d {
   Reach3d._(this.box, this.host, this.local, this.paths, this.problem);
 
   /// The box aimed at.
-  final Layout3d box;
+  final RenderObject3d box;
 
   /// The host the press goes through, or null when there is none.
   final SceneHost3d? host;
@@ -223,7 +223,7 @@ class Reach3d {
   }
 
   /// Aims at [box] through [surfaces].
-  static Reach3d of(Layout3d box, List<SceneSurface3d> surfaces) {
+  static Reach3d of(RenderObject3d box, List<SceneSurface3d> surfaces) {
     if (!box.attached || !box.hasSize) {
       return Reach3d._(
         box,
@@ -300,11 +300,11 @@ String _describeOffset(Offset offset) =>
 ///
 /// The box's own nudges — the depth step a `Stack3d` wrote, a node offset, a
 /// node transform — are *kept*: this is where the geometry is, not where
-/// layout put the slot. [Layout3d.worldTransform] undoes all three, so they
-/// are put back on top of it; what stays undone is the box's own local
+/// layout put the slot. [RenderObject3d.worldTransform] undoes all three, so
+/// they are put back on top of it; what stays undone is the box's own local
 /// transform, which is the frame its children sit in rather than the frame it
 /// measures itself in.
-Offset3d drawnCornerIn(Layout3dSurface surface, Layout3d box) {
+Offset3d drawnCornerIn(Layout3dSurface surface, RenderObject3d box) {
   final nudge = box.sceneOffset + box.nodeOffset;
   var drawn = box.worldTransform.multiplied(
     Matrix4.translationValues(nudge.x, nudge.y, nudge.z),

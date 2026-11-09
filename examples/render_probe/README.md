@@ -21,8 +21,8 @@ A smoke test asks a frame one question: did something sane draw? That floor is
 here too — corners clear, coverage in range, geometry not black.
 
 But a layout package can ask something sharper, because **it knows where every
-box ended up**. `Layout3d.screenCenter` projects a laid-out box to a pixel, so
-an assertion reads:
+box ended up**. `RenderObject3d.screenCenter` projects a laid-out box to a
+pixel, so an assertion reads:
 
 ```dart
 expect(frame.coverageAt(capture.centerOf('left'), radius: 10), greaterThan(0.8));
@@ -351,17 +351,17 @@ claim, opposite sign.
 hung on: does the label atlas rasterize an icon-font glyph? It does, so an
 icon is one quad and a screen of icons and labels is one texture.
 
-`card_in_clipped_list` and `divider_rule` belong to the catalogue's surfaces
-and rows, and the first of them is the reason this lane exists. It draws a
-raised card scrolled half out of a clipping window, and asks the frame three
-things at once: the card drew, the half outside the window is gone, and what
-is there instead is the backing rather than nothing. **It failed on its first
-run**, with the card reading the same colour above and below the window's
-edge — which is how it was discovered that the clip contract's *plane* tier
-had never fired anywhere, in any scene, since it was written. Nothing but a
-frame could have said so: `Layout3d.clipRegion` reports the right planes to
-anything that asks after layout, and the block the shader actually gets was
-the unbounded one every box is born with.
+`card_in_clipped_list` and `divider_rule` belong to the catalogue's surfaces and
+rows, and the first of them is the reason this lane exists. It draws a raised
+card scrolled half out of a clipping window, and asks the frame three things at
+once: the card drew, the half outside the window is gone, and what is there
+instead is the backing rather than nothing. **It failed on its first run**, with
+the card reading the same colour above and below the window's edge — which is
+how it was discovered that the clip contract's *plane* tier had never fired
+anywhere, in any scene, since it was written. Nothing but a frame could have
+said so: `RenderObject3d.clipRegion` reports the right planes to anything that
+asks after layout, and the block the shader actually gets was the unbounded one
+every box is born with.
 
 `divider_rule` is the smallest thing this catalogue draws. A 1dp rule is 0.01
 world units at the default rate, so the scene turns the *surface's*

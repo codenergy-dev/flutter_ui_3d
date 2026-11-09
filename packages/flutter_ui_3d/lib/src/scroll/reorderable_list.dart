@@ -8,7 +8,7 @@ import '../built_children.dart';
 import '../geometry/offset3d.dart';
 import '../input/autoscroll.dart';
 import '../input/draggable.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import '../sliver/sliver_reorderable_list.dart';
 import 'box_scroll_view.dart';
 import 'scroll_controller.dart';
@@ -75,9 +75,9 @@ class ReorderableList3d extends BoxScrollView3d<SliverReorderableList3d> {
   // ignore: use_super_parameters
   ReorderableList3d({
     required int itemCount,
-    required Layout3dItemBuilder itemBuilder,
+    required RenderObject3dItemBuilder itemBuilder,
     required Reorder3dCallback onReorder,
-    Layout3dItemBuilder? feedbackBuilder,
+    RenderObject3dItemBuilder? feedbackBuilder,
     Drag3dStartMode startMode = const Drag3dStartMode.longPress(),
     Duration gapDuration = const Duration(milliseconds: 200),
     Curve gapCurve = Curves.easeInOut,
@@ -87,7 +87,7 @@ class ReorderableList3d extends BoxScrollView3d<SliverReorderableList3d> {
     Scroll3dController? controller,
     double spacing = 0.0,
     double? itemExtent,
-    Layout3dPrototypeBuilder? prototypeItem,
+    RenderObject3dPrototypeBuilder? prototypeItem,
     Layout3dContentExtentEstimator? contentExtentEstimator,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.center,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
@@ -126,7 +126,7 @@ class ReorderableList3d extends BoxScrollView3d<SliverReorderableList3d> {
   // ignore: use_super_parameters
   ReorderableList3d.managed({
     required Reorder3dCallback onReorder,
-    required Layout3dItemBuilder feedbackBuilder,
+    required RenderObject3dItemBuilder feedbackBuilder,
     Drag3dStartMode startMode = const Drag3dStartMode.longPress(),
     Duration gapDuration = const Duration(milliseconds: 200),
     Curve gapCurve = Curves.easeInOut,
@@ -136,7 +136,7 @@ class ReorderableList3d extends BoxScrollView3d<SliverReorderableList3d> {
     Scroll3dController? controller,
     double spacing = 0.0,
     double? itemExtent,
-    Layout3dPrototypeBuilder? prototypeItem,
+    RenderObject3dPrototypeBuilder? prototypeItem,
     Layout3dContentExtentEstimator? contentExtentEstimator,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.center,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
@@ -172,9 +172,9 @@ class ReorderableList3d extends BoxScrollView3d<SliverReorderableList3d> {
   /// Builds what is carried under the pointer, given the item's index.
   ///
   /// Null means a second copy of the item itself.
-  Layout3dItemBuilder? get feedbackBuilder => sliver.feedbackBuilder;
+  RenderObject3dItemBuilder? get feedbackBuilder => sliver.feedbackBuilder;
 
-  set feedbackBuilder(Layout3dItemBuilder? value) =>
+  set feedbackBuilder(RenderObject3dItemBuilder? value) =>
       sliver.feedbackBuilder = value;
 
   /// When a press on an item becomes a reorder drag.
@@ -228,9 +228,9 @@ class ReorderableList3d extends BoxScrollView3d<SliverReorderableList3d> {
   set itemExtent(double? value) => sliver.itemExtent = value;
 
   /// An item built once and measured, standing for the extent of them all.
-  Layout3dPrototypeBuilder? get prototypeItem => sliver.prototypeItem;
+  RenderObject3dPrototypeBuilder? get prototypeItem => sliver.prototypeItem;
 
-  set prototypeItem(Layout3dPrototypeBuilder? value) =>
+  set prototypeItem(RenderObject3dPrototypeBuilder? value) =>
       sliver.prototypeItem = value;
 
   /// The total extent along the scroll axis, when the caller knows it.

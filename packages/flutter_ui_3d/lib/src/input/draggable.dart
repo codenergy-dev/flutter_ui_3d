@@ -26,8 +26,8 @@ import 'package:vector_math/vector_math.dart' show Matrix4, Vector3;
 import '../boxes/ignore_pointer.dart';
 import '../geometry/offset3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
 import '../overlay/overlay.dart';
+import '../rendering/object.dart';
 import 'autoscroll.dart';
 import 'drag.dart';
 import 'events.dart';
@@ -38,7 +38,7 @@ import 'listener.dart';
 /// Called once, when the drag is recognized, and the subtree it returns
 /// belongs to the overlay entry that hosts it: it is disposed when the drag
 /// ends, whatever ended it.
-typedef Drag3dFeedbackBuilder = Layout3d Function(Drag3dSession session);
+typedef Drag3dFeedbackBuilder = RenderObject3d Function(Drag3dSession session);
 
 /// Asks whether a target wants a particular payload.
 typedef Drag3dWillAccept<T> = bool Function(T data, Drag3dDetails details);
@@ -105,10 +105,10 @@ class Drag3dStartMode {
 /// ## What it costs per frame
 ///
 /// One matrix write. The feedback is laid out once, when the drag is
-/// recognized, and every move after that writes its [Layout3d.nodeOffset] —
-/// the node tier, which never calls `markNeedsLayout`. Nothing is rebuilt and
-/// no geometry is remade, which is the rule `docs/traps.md` sets for anything
-/// on a per-frame path and a drag is the most per-frame path there is.
+/// recognized, and every move after that writes its [RenderObject3d.nodeOffset]
+/// — the node tier, which never calls `markNeedsLayout`. Nothing is rebuilt
+/// and no geometry is remade, which is the rule `docs/traps.md` sets for
+/// anything on a per-frame path and a drag is the most per-frame path there is.
 ///
 /// Note *which* channel. `ParentData3d.sceneOffset` belongs to the parent and
 /// [Overlay3d] is a [Stack3d], whose `depthStep` rewrites it on every
@@ -126,10 +126,10 @@ class Drag3dStartMode {
 /// and a loud one on screen.
 ///
 /// The feedback is wrapped in an [IgnorePointer3d], and that is mandatory
-/// rather than tidy. Hit testing deliberately ignores [Layout3d.nodeOffset],
-/// so the feedback's *laid-out* position is still hit-testable even though it
-/// is drawn somewhere else, and a [Text3d] inside it would answer a ray on
-/// its own account and steal the drop.
+/// rather than tidy. Hit testing deliberately ignores
+/// [RenderObject3d.nodeOffset], so the feedback's *laid-out* position is still
+/// hit-testable even though it is drawn somewhere else, and a [Text3d] inside
+/// it would answer a ray on its own account and steal the drop.
 ///
 /// ## How it competes for the pointer
 ///
@@ -145,7 +145,7 @@ class Drag3dStartMode {
 /// draggable that is alone in the arena is handed the pointer by default as
 /// soon as the arena closes, a microtask after the press, and starting the
 /// drag there would mean no threshold at all.
-class Draggable3d<T extends Object> extends ProxyLayout3dWithHitTestBehavior
+class Draggable3d<T extends Object> extends RenderProxyBoxWithHitTestBehavior3d
     implements HitTestTarget3d {
   /// Creates a draggable box carrying [data].
   Draggable3d({
@@ -266,7 +266,7 @@ class Draggable3d<T extends Object> extends ProxyLayout3dWithHitTestBehavior
 
   Drag3dSession? _session;
   Overlay3dEntry? _feedbackEntry;
-  Layout3d? _feedback;
+  RenderObject3d? _feedback;
 
   /// Where the feedback has to sit, in its own frame, to cover this box.
   ///
@@ -392,7 +392,7 @@ class Draggable3d<T extends Object> extends ProxyLayout3dWithHitTestBehavior
     feedback.nodeOffset = home + _rotate(rotation, _travel);
   }
 
-  /// The [Layout3d.nodeOffset] that would put [feedback] over [layout].
+  /// The [RenderObject3d.nodeOffset] that would put [feedback] over [layout].
   ///
   /// Both boxes are somewhere under one surface, so the walk between their
   /// frames is exact however either is turned: take [layout]'s centre into
@@ -402,7 +402,7 @@ class Draggable3d<T extends Object> extends ProxyLayout3dWithHitTestBehavior
   ///
   /// Records the rotation between the two frames on the way past, since the
   /// inverse it needs has just been computed.
-  Offset3d? _homeOver(Layout3d layout, Layout3d feedback) {
+  Offset3d? _homeOver(RenderObject3d layout, RenderObject3d feedback) {
     if (!layout.hasSize || !feedback.hasSize) return null;
     final toFeedback = Matrix4.zero();
     if (toFeedback.copyInverse(feedback.worldTransform) == 0.0) return null;
@@ -534,7 +534,7 @@ class Draggable3d<T extends Object> extends ProxyLayout3dWithHitTestBehavior
     super.dispose();
   }
 
-  static Vector3 _centreOf(Layout3d layout) {
+  static Vector3 _centreOf(RenderObject3d layout) {
     final size = layout.size;
     return Vector3(size.width / 2, size.height / 2, size.depth / 2);
   }
@@ -703,7 +703,7 @@ class _Drag3dGesture implements GestureArenaMember {
 ///
 /// The 3D analogue of Flutter's `DragTarget`, and the generic half of
 /// [Drag3dTarget]: the payload type is tested here, inside the target, rather
-/// than in the machinery, which walks a path of bare [Layout3d]s and has
+/// than in the machinery, which walks a path of bare [RenderObject3d]s and has
 /// never heard of `T`.
 ///
 /// ```dart
@@ -741,7 +741,7 @@ class _Drag3dGesture implements GestureArenaMember {
 /// Inherited from Flutter, along with the trap: `data is Object` is true of
 /// every non-null payload. Name a real type, and use [onWillAccept] for the
 /// conditions a type cannot express.
-class DragTarget3d<T extends Object> extends ProxyLayout3dWithHitTestBehavior
+class DragTarget3d<T extends Object> extends RenderProxyBoxWithHitTestBehavior3d
     implements Drag3dTarget {
   /// Creates a drop target for payloads of type [T].
   DragTarget3d({

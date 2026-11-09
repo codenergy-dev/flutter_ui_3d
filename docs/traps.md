@@ -35,13 +35,13 @@ indistinguishably square corner. That mistake cost an hour of debugging a
 shader that turned out to be working perfectly.
 
 The rate itself is `Layout3dMetrics.unitsPerLogicalPixel`, carried on
-`Layout3dOwner.metrics` beside the basis and read inside `performLayout` as
-`Layout3d.metrics` — no `BuildContext` in the way, so the imperative layer has
-it too. `metrics.dp(48)` converts a spec figure; `metrics.sp(14)` a type size;
-`metrics.dpSize(200, 48)` and `metrics.dpInsets(EdgeInsets3d.all(16))` are the
-two shapes a component writes constantly. Bind a surface to the camera and the
-rate stops being a guess: it is derived from the frustum at the distance the
-surface sits.
+`PipelineOwner3d.metrics` beside the basis and read inside `performLayout` as
+`RenderObject3d.metrics` — no `BuildContext` in the way, so the imperative
+layer has it too. `metrics.dp(48)` converts a spec figure; `metrics.sp(14)` a
+type size; `metrics.dpSize(200, 48)` and
+`metrics.dpInsets(EdgeInsets3d.all(16))` are the two shapes a component writes
+constantly. Bind a surface to the camera and the rate stops being a guess: it is
+derived from the frustum at the distance the surface sits.
 
 **A `build` method reads the same contract through the surface**, which
 publishes it as `Layout3dMetricsScope.of(context)`:
@@ -228,20 +228,21 @@ That is not available here, for the reason `Draggable3d` found first: building
 a second copy of a widget-built child lays a render box out, and a flight
 begins in the middle of a route transition. A hero therefore names a
 `flightBuilder`, exactly as a draggable names a `feedbackBuilder`, and it
-returns a `Layout3d` even on the declarative `SceneHero3d` — the flight
+returns a `RenderObject3d` even on the declarative `SceneHero3d` — the flight
 belongs to an overlay entry inserted from inside a transition, where there is
 no element to build a widget into. Write one small function and call it from
 both places. An application that only imports `widgets.dart` needs
 `rendering.dart` as well to have the boxes a flight is made of.
 
 **A flight lands where layout put the far end, not where the route is drawing
-it.** `Layout3d.worldTransform` undoes the node tier, which is what makes a
-flight safe to recompute every frame and correct under a scroll — and it means
-a route that is itself sliding a long way has its hero travel a straight line
-to the resting place rather than riding along with the content. The two finish
-on the same clock, so they agree at the end; in between they are two answers
-to one question. A dialog that grows and fades is no trouble. A sheet that
-rises a whole height, with a hero in it, is worth looking at before shipping.
+it.** `RenderObject3d.worldTransform` undoes the node tier, which is what makes
+a flight safe to recompute every frame and correct under a scroll — and it
+means a route that is itself sliding a long way has its hero travel a straight
+line to the resting place rather than riding along with the content. The two
+finish on the same clock, so they agree at the end; in between they are two
+answers to one question. A dialog that grows and fades is no trouble. A sheet
+that rises a whole height, with a hero in it, is worth looking at before
+shipping.
 
 And the ordering hazard this package keeps producing applies here too: **a
 widget-built route has no subtree at all in the turn that pushed it**, so the
@@ -281,10 +282,11 @@ The layout tree under a `SceneLayout3d` is **mirrored** from Flutter's render
 tree: on every pass, each hosting render box reads the render children Flutter
 reconciled for it and hands that list to its layout. So a box built by a widget
 cannot keep a child of its own making. Create a `DecoratedBox3d` in a box's
-constructor and adopt it, build that box from a `SingleChildLayout3dWidget` or
-a leaf `Layout3dWidget`, and the first pass replaces the child with the widget
-layer's — none — silently: the box lays out at the right size and draws
-nothing, and a test walking the tree finds no child to ask about.
+constructor and adopt it, build that box from a
+`SingleChildRenderObjectWidget3d` or a leaf `MultiChildRenderObjectWidget3d`,
+and the first pass replaces the child with the widget layer's — none —
+silently: the box lays out at the right size and draws nothing, and a test
+walking the tree finds no child to ask about.
 
 The same box built imperatively keeps its child, which is what makes this
 expensive: the code is right, and only the host it is mounted under is wrong.
@@ -403,7 +405,7 @@ after the subtree is hosted. A test that draws a label and reads the frame in
 the same pump reads an empty frame.
 
 **A widget leaving the tree does not dispose the layout under it.** Only a
-lazily built child sets `Layout3dRenderBox.disposeLayoutOnUnmount`; every
+lazily built child sets `RenderObject3dHost.disposeLayoutOnUnmount`; every
 other widget-owned layout is disposed by the surface's own teardown, and a
 layout removed before that is never reached. So a `SceneText3d` taken out of a
 live tree keeps its renderer, and with it whatever that renderer built, until
@@ -716,14 +718,14 @@ other. `Switch3d` and `Slider3d` are both built that way, and
 nothing says so.** This is the sharpest edge on this page, because everything
 about the screen still looks right. Toward the viewer is **negative z**, so a
 slot lifted that way sits outside its parent's own extent — and
-`Layout3d.hitTest` clamps the ray to the stretch inside each box *before* it
-asks that box's children, which is exactly what Flutter's
-`size.contains(position)` gate does in two dimensions. The lifted child is
-never reached. `ParentData3d.sceneOffset`'s own documentation has said this
-from the start — "separating them in the layout would push them out of their
-parent's box, break a `Positioned3d` pin, and take the topmost child out of
-reach of a ray" — which is why `Stack3d.depthStep` is a scene offset rather
-than a position.
+`RenderObject3d.hitTest` clamps the ray to the stretch inside each box *before*
+it asks that box's children, which is exactly what Flutter's
+`size.contains(position)` gate does in two dimensions. The lifted child is never
+reached. `ParentData3d.sceneOffset`'s own documentation has said this from the
+start — "separating them in the layout would push them out of their parent's
+box, break a `Positioned3d` pin, and take the topmost child out of reach of a
+ray" — which is why `Stack3d.depthStep` is a scene offset rather than a
+position.
 
 `Scaffold3d` wrote its depth ordering into `positionChild` instead, and its own
 dartdoc claimed that made layout, intrinsics and hit testing agree. The
@@ -1250,10 +1252,10 @@ remains a reservation of space and `glyphDepth` is the figure that draws.
   `minimumSize: Size3d.zero` so there is one target rather than two nested
   ones disagreeing about where the control is.
 - **An overlay is pressed where it was laid out, not where it is drawn.** An
-  entry's lift is on the node tier, and `Layout3d.worldTransform` discards a
-  `sceneOffset` on purpose, so a ray finds an entry at its *layout* depth while
-  a person presses it where they can see it. The two are the same point in the
-  middle of the view and drift apart toward the edges, in proportion to the
+  entry's lift is on the node tier, and `RenderObject3d.worldTransform` discards
+  a `sceneOffset` on purpose, so a ray finds an entry at its *layout* depth
+  while a person presses it where they can see it. The two are the same point in
+  the middle of the view and drift apart toward the edges, in proportion to the
   lift — which for a catalogue overlay is 60dp. A dialog or a menu near the
   middle of a panel is fine; one hung in the far corner draws in one place and
   answers in another. It cannot be closed by shifting the ray: a box gates its
@@ -1335,15 +1337,15 @@ remains a reservation of space and `glyphDepth` is the figure that draws.
   separation rather than a distance: content thicker than that will still
   fight the feedback carried over it, exactly as the depth-ordering item above
   describes. Ask for a bigger lift when the rows have real thickness.
-- **Nothing anchors anything, and the arithmetic that does is public now.**
-  An `Overlay3dEntry` is placed by the overlay's own `Stack3d.alignment`,
-  which is nowhere near the box that asked for it, and there is no
-  `CompositedTransformTarget` here. `Layout3d.anchorOffsetTo` is the answer:
-  the anchor's point taken into the world through `worldTransform` and back out
-  in the follower's own frame. It answers a **`nodeOffset`**, so anchoring is
-  the node tier and costs one matrix — and it is a *position* rather than a
-  delta, because `worldTransform` reports the frame layout put the box in with
-  the node nudges undone. Assign it; do not add it.
+- **Nothing anchors anything, and the arithmetic that does is public now.** An
+  `Overlay3dEntry` is placed by the overlay's own `Stack3d.alignment`, which is
+  nowhere near the box that asked for it, and there is no
+  `CompositedTransformTarget` here. `RenderObject3d.anchorOffsetTo` is the
+  answer: the anchor's point taken into the world through `worldTransform` and
+  back out in the follower's own frame. It answers a **`nodeOffset`**, so
+  anchoring is the node tier and costs one matrix — and it is a *position*
+  rather than a delta, because `worldTransform` reports the frame layout put the
+  box in with the node nudges undone. Assign it; do not add it.
 - **And `screenPointOf` on an anchored box lies.** The same property that makes
   re-anchoring safe makes the projection disagree with the picture:
   `worldTransform` undoes `nodeOffset`, so `screenCenter` and `screenPointOf`
@@ -1363,13 +1365,13 @@ remains a reservation of space and `glyphDepth` is the figure that draws.
   `CompositedTransformFollower` does with its offset. `PopupMenuButton3d`
   shipped without it, and its test passed by pressing the empty middle of the
   panel; `tester.tap3d` aims where the item is drawn, and failed.
-- **A follower needs more than one hook to follow.** `Layout3d.place` fires on
-  a box that moves and **not** on the boxes below it, so a follower watching
-  its anchor's `place` hears about a row moving inside a list and hears nothing
-  at all about the *ancestor* of its anchor moving — which is what a scroll
-  does, and is the case a first attempt will miss. Watch the follower's own
-  `place`, the anchor's, and a post-frame callback for the rest. The last one
-  schedules no frame of its own, so a still screen costs nothing.
+- **A follower needs more than one hook to follow.** `RenderObject3d.place`
+  fires on a box that moves and **not** on the boxes below it, so a follower
+  watching its anchor's `place` hears about a row moving inside a list and hears
+  nothing at all about the *ancestor* of its anchor moving — which is what a
+  scroll does, and is the case a first attempt will miss. Watch the follower's
+  own `place`, the anchor's, and a post-frame callback for the rest. The last
+  one schedules no frame of its own, so a still screen costs nothing.
 - **A hover listener over an arbitrary child has to be opaque.**
   `InkWell3d`'s is `deferToChild`, correctly: a control is hovered exactly
   where it is pressable. A `Tooltip3d` wraps whatever it is given — a bare
@@ -1512,8 +1514,9 @@ next person will read it as an omission and fix it.
 
 **The rectangle the reader focuses is the box's own extent, not its tap
 target.** `Semantics3d` overrides the component's projected bounds with its
-`Layout3d.size`, which is the right answer — it is what layout produced — and
-it means a 40dp button announces 40dp while answering a finger over 48dp.
+`RenderObject3d.size`, which is the right answer — it is what layout produced
+— and it means a 40dp button announces 40dp while answering a finger over
+48dp.
 
 ## Clipping
 
@@ -1535,7 +1538,7 @@ page's width outside the panel, with the cards around them cut cleanly — see
 **And a scroll view does not clip on its own**: the window is a `ClipBox3d`
 around it — a `Scaffold3d`'s body is one, and a `TabBarView3d` puts one round
 its pages — so a bare list or page view in front of nothing cuts nothing.
-The seam is `Layout3d.clipRegion` → `Decoration3dPaintRequest.clip` →
+The seam is `RenderObject3d.clipRegion` → `Decoration3dPaintRequest.clip` →
 `toPlaneBlock()`, and it is live: a row half under a pinned
 `SliverPersistentHeader3d`, or half out of a scrolling window, is genuinely
 cut at the edge.
@@ -1544,9 +1547,9 @@ cut at the edge.
 so.** This is the failure shape to remember, because any tier like it can fail
 the same way and no arithmetic test can see it. A box publishes its clip block
 from `repaint()`, at the end of its own `performLayout`, and
-`Layout3d.clipRegion` goes on answering correctly to anything that asks after
-the pass — so the block a shader is actually handed and the region the code
-reports are two different things, and only the first one cuts anything.
+`RenderObject3d.clipRegion` goes on answering correctly to anything that asks
+after the pass — so the block a shader is actually handed and the region the
+code reports are two different things, and only the first one cuts anything.
 
 - **A `ClipBox3d` has no extent while its subtree lays out** — it is a proxy
   that takes its size from its child — so every panel under it was born with
@@ -1561,13 +1564,13 @@ reports are two different things, and only the first one cuts anything.
 
 The general rule underneath both: **a clip that is discovered after the boxes
 under it have painted has to be republished, and nothing warns you.**
-`Layout3d.refreshClipRegion` is the hook and `Layout3d.refreshClipSubtree` the
-bulk form; `ClipBox3d` calls it once it has a size, `Layout3d.place` calls it
-down whatever it just moved, and `CustomScrollView3d` calls it on every sliver
-a header covers once the layout has settled. `test/clip_test.dart` and
-`test/persistent_header_test.dart` pin all three with a painter that records
-the clip it was handed, which is the only way to see a shader uniform without
-a shader.
+`RenderObject3d.refreshClipRegion` is the hook and
+`RenderObject3d.refreshClipSubtree` the bulk form; `ClipBox3d` calls it once it
+has a size, `RenderObject3d.place` calls it down whatever it just moved, and
+`CustomScrollView3d` calls it on every sliver a header covers once the layout
+has settled. `test/clip_test.dart` and `test/persistent_header_test.dart` pin
+all three with a painter that records the clip it was handed, which is the only
+way to see a shader uniform without a shader.
 
 **And a full-width opaque bar makes the clip invisible**, which is why the
 second failure lasted so long. The bar covers exactly what the clip would cut.

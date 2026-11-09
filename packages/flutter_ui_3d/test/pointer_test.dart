@@ -17,7 +17,7 @@ Listener3d recorder(
   String label,
   List<String> log, {
   HitTestBehavior3d behavior = HitTestBehavior3d.deferToChild,
-  Layout3d? child,
+  RenderObject3d? child,
 }) => Listener3d(
   behavior: behavior,
   onPointerDown: (_) => log.add('$label down'),
@@ -491,7 +491,7 @@ void main() {
       final margin = panel.surface.hitTestAt(const Offset3d(0.3, 0.5, 0));
       expect(
         margin.path.map((entry) => entry.layout),
-        containsAll(<Layout3d>[panel.icon, panel.target]),
+        containsAll(<RenderObject3d>[panel.icon, panel.target]),
         reason: 'the reach delivers the press to the content, not to itself',
       );
       expect(

@@ -16,7 +16,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart';
 import 'package:flutter_ui_3d/widgets.dart';
 
-Layout3d rootOf(Layout3dController controller) => controller.surface!.child!;
+RenderObject3d rootOf(Layout3dController controller) =>
+    controller.surface!.child!;
 
 /// A child with state, so a rebuild driven by new constraints can be told
 /// apart from a child thrown away and made again.

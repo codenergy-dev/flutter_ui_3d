@@ -9,7 +9,7 @@ import 'support.dart';
 /// A box that takes every bit of room it is offered, the way a bar's
 /// background does, and that answers a ray on its own account so a hit test
 /// has something to land on.
-class FillBox extends Layout3d {
+class FillBox extends RenderObject3d {
   FillBox({super.name});
 
   /// How many times this box has been laid out.
@@ -59,7 +59,7 @@ class ProbeHeader3dDelegate extends SliverPersistentHeader3dDelegate {
   final List<bool> overlaps = <bool>[];
 
   @override
-  Layout3d build(double shrinkOffset, {required bool overlapsContent}) {
+  RenderObject3d build(double shrinkOffset, {required bool overlapsContent}) {
     shrinkOffsets.add(shrinkOffset);
     overlaps.add(overlapsContent);
     return content;
@@ -612,7 +612,7 @@ void main() {
           ),
       ];
       final list = SliverList3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           for (final row in rows) SizedBox3d(width: 4, height: 2, child: row),
         ],
       );
@@ -688,7 +688,9 @@ void main() {
         decoration: const BoxDecoration3d(color: Color(0xFFFFFFFF)),
       );
       final list = SliverList3d(
-        children: <Layout3d>[SizedBox3d(width: 4, height: 2, child: panel)],
+        children: <RenderObject3d>[
+          SizedBox3d(width: 4, height: 2, child: panel),
+        ],
       );
       final view = CustomScrollView3d(slivers: <Sliver3d>[list]);
       viewportOf(view);
@@ -713,7 +715,7 @@ class HeaderClipRecorder extends Decoration3dPainter {
   }
 
   /// The last block [box] was handed, or null if it has never painted.
-  static Clip3dRegion? lastFor(Layout3d box) => byNode[box.node];
+  static Clip3dRegion? lastFor(RenderObject3d box) => byNode[box.node];
 
   @override
   void paint(Decoration3dPaintRequest request) {

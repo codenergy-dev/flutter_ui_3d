@@ -2,7 +2,7 @@ import 'package:vector_math/vector_math.dart' show Matrix4, Vector3;
 
 import 'geometry/alignment3d.dart';
 import 'geometry/offset3d.dart';
-import 'layout3d.dart';
+import 'rendering/object.dart';
 
 /// Putting one box over another when neither is the other's parent.
 ///
@@ -15,15 +15,15 @@ import 'layout3d.dart';
 /// analogue here.
 ///
 /// The arithmetic is a change of frame. Both boxes know where they are in the
-/// world — [Layout3d.worldTransform] is exactly that — so the offset from one
-/// to the other is the anchor's point taken into the world and back out
-/// again in the follower's own frame.
+/// world — [RenderObject3d.worldTransform] is exactly that — so the offset
+/// from one to the other is the anchor's point taken into the world and back
+/// out again in the follower's own frame.
 ///
 /// [localPointFrom] is that change of frame on its own, for the case where the
 /// point is not an alignment: where a finger landed, where a model was struck,
 /// where a label should be pinned. [anchorOffsetTo] is written in terms of it,
 /// so there is one piece of arithmetic here and two ways in.
-extension Layout3dAnchoring on Layout3d {
+extension Layout3dAnchoring on RenderObject3d {
   /// [point], given in [source]'s own frame, expressed in this box's frame.
   ///
   /// Both frames have their origin at the box's corner, which is the frame
@@ -41,7 +41,7 @@ extension Layout3dAnchoring on Layout3d {
   /// *layout* put this box in, with [nodeOffset], [sceneOffset] and
   /// [nodeTransform] undone — which is the frame a decoration's shader draws
   /// in, and the frame a clip is stated in.
-  Offset3d? localPointFrom(Layout3d source, Offset3d point) {
+  Offset3d? localPointFrom(RenderObject3d source, Offset3d point) {
     if (!hasSize || !source.hasSize) return null;
     final intoSelf = Matrix4.zero();
     if (intoSelf.copyInverse(worldTransform) == 0.0) return null;
@@ -100,7 +100,7 @@ extension Layout3dAnchoring on Layout3d {
   /// caller here wants, since a follower rotated relative to its anchor is
   /// not following it.
   Offset3d? anchorOffsetTo(
-    Layout3d anchor, {
+    RenderObject3d anchor, {
     Alignment3d self = Alignment3d.center,
     Alignment3d target = Alignment3d.center,
     bool includeDepth = false,

@@ -29,7 +29,7 @@ import 'package:flutter/widgets.dart'
 
 import '../geometry/offset3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import '../scroll/scrollable.dart';
 import 'focus.dart';
 
@@ -78,7 +78,7 @@ import 'focus.dart';
 /// own root and does not pass through the panel that opened it: a
 /// `Shortcuts3d` around a screen does not reach a dialog floating in front of
 /// that screen.
-class Shortcuts3d extends ProxyLayout3d {
+class Shortcuts3d extends RenderProxyBox3d {
   /// Creates a box that maps [shortcuts] for its subtree.
   Shortcuts3d({
     Map<ShortcutActivator, Intent> shortcuts =
@@ -198,7 +198,7 @@ class Shortcuts3d extends ProxyLayout3d {
 /// A nearer binding that is disabled is not skipped over, which is Flutter's
 /// rule too: the key goes on up the focus walk instead, as though nothing had
 /// mapped it.
-class Actions3d extends ProxyLayout3d {
+class Actions3d extends RenderProxyBox3d {
   /// Creates a box that binds [actions] for its subtree.
   Actions3d({
     Map<Type, Action<Intent>> actions = const <Type, Action<Intent>>{},
@@ -240,9 +240,9 @@ class Actions3d extends ProxyLayout3d {
   };
 
   /// The action bound to [intent]'s type nearest [from], or null.
-  static Action<Intent>? maybeFind(Layout3d from, Intent intent) {
+  static Action<Intent>? maybeFind(RenderObject3d from, Intent intent) {
     final type = intent.runtimeType;
-    Layout3d? node = from;
+    RenderObject3d? node = from;
     while (node != null) {
       if (node is Actions3d) {
         final action = node._actions[type];
@@ -260,7 +260,7 @@ class Actions3d extends ProxyLayout3d {
   /// invoking, so an action's listeners hear about it exactly as they would
   /// in a widget tree. The way a gamepad handler or a menu of commands fires
   /// an intent without a key behind it.
-  static (bool, Object?) maybeInvoke(Layout3d from, Intent intent) {
+  static (bool, Object?) maybeInvoke(RenderObject3d from, Intent intent) {
     final action = maybeFind(from, intent);
     if (action == null) return (false, null);
     return const ActionDispatcher().invokeActionIfEnabled(action, intent);
@@ -283,8 +283,8 @@ class Actions3d extends ProxyLayout3d {
   /// After the root, [Shortcuts3d.defaults] has the same chance. [from]'s own
   /// `onKeyEvent` is not called here: it is the caller, and has already had
   /// the key.
-  static KeyEventResult handleKeyEvent(Layout3d from, KeyEvent event) {
-    Layout3d? node = from;
+  static KeyEventResult handleKeyEvent(RenderObject3d from, KeyEvent event) {
+    RenderObject3d? node = from;
     while (node != null) {
       if (node is Focus3d && !identical(node, from)) {
         final result = node.onKeyEvent?.call(node.focusNode, event);
@@ -299,7 +299,7 @@ class Actions3d extends ProxyLayout3d {
     return _invokeFor(from, Shortcuts3d._find(Shortcuts3d.defaults, event));
   }
 
-  static KeyEventResult _invokeFor(Layout3d from, Intent? intent) {
+  static KeyEventResult _invokeFor(RenderObject3d from, Intent? intent) {
     if (intent == null) return KeyEventResult.ignored;
     final action = maybeFind(from, intent);
     if (action == null) return KeyEventResult.ignored;
@@ -335,7 +335,7 @@ class Actions3d extends ProxyLayout3d {
 /// Flutter's default actions read `primaryFocus` rather than being handed a
 /// context, and these do the same, which is what keeps them invokable from
 /// [Actions3d.maybeInvoke] with no key behind the call.
-Layout3d? _focusedLayout() {
+RenderObject3d? _focusedLayout() {
   final node = FocusManager.instance.primaryFocus;
   return node == null ? null : Focus3d.layoutFor(node);
 }
@@ -373,7 +373,11 @@ class _TraverseAction<T extends Intent> extends Action<T> {
   }
 
   /// Whether a step from [current] would wrap round [root]'s boxes.
-  bool _atEdge(Focus3dTraversal traversal, Layout3d root, Focus3d? current) {
+  bool _atEdge(
+    Focus3dTraversal traversal,
+    RenderObject3d root,
+    Focus3d? current,
+  ) {
     final candidates = traversal.focusableDescendants(root);
     if (candidates.isEmpty) return true;
     if (current == null) return false;
@@ -442,7 +446,7 @@ class _ScrollAction extends Action<ScrollIntent> {
       AxisDirection.up || AxisDirection.down => Axis3d.vertical,
       AxisDirection.left || AxisDirection.right => Axis3d.horizontal,
     };
-    Layout3d? node = _focusedLayout();
+    RenderObject3d? node = _focusedLayout();
     while (node != null) {
       if (node is Scrollable3d) {
         final view = node as Scrollable3d;

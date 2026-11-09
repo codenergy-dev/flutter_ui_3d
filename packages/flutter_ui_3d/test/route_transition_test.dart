@@ -36,10 +36,10 @@ class _Vsync implements TickerProvider {
 }
 
 /// Where [layout]'s geometry ends up, in the frame its parent lays out in.
-Offset3d placedAt(Layout3d layout) => translationOf(layout);
+Offset3d placedAt(RenderObject3d layout) => translationOf(layout);
 
 /// The first box of type [T] at or below [root].
-T? findIn<T extends Layout3d>(Layout3d root) {
+T? findIn<T extends RenderObject3d>(RenderObject3d root) {
   if (root is T) return root;
   T? found;
   root.visitChildren((child) => found ??= findIn<T>(child));
@@ -236,7 +236,9 @@ void main() {
   group('the clock a route carries', () {
     ({Layout3dSurface surface, Overlay3d overlay}) panel() {
       final overlay = Overlay3d(
-        children: <Layout3d>[TestBox(const Size3d(4, 3, 0), pointable: true)],
+        children: <RenderObject3d>[
+          TestBox(const Size3d(4, 3, 0), pointable: true),
+        ],
       );
       final surface = laidOut(
         overlay,
@@ -463,7 +465,9 @@ void main() {
   group('a route that carries its own clock', () {
     ({Layout3dSurface surface, Overlay3d overlay}) panel() {
       final overlay = Overlay3d(
-        children: <Layout3d>[TestBox(const Size3d(4, 3, 0), pointable: true)],
+        children: <RenderObject3d>[
+          TestBox(const Size3d(4, 3, 0), pointable: true),
+        ],
       );
       final surface = laidOut(
         overlay,

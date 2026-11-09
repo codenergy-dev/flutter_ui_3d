@@ -943,7 +943,7 @@ void main() {
 /// *nothing*, so any box moving is a failure and which one hardly matters.
 int layoutCountOf(Layout3dSurface surface) {
   var total = 0;
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is TestBox) total += box.layoutCount;
     box.visitChildren(walk);
   }
@@ -970,14 +970,14 @@ class _TogglingState extends State<_Toggling> {
 
 /// The x and y scale a box's node transform draws it at, or one each for
 /// none.
-(double, double) scaleOf(Layout3d box) {
+(double, double) scaleOf(RenderObject3d box) {
   final transform = box.nodeTransform;
   if (transform == null) return (1.0, 1.0);
   return (transform.entry(0, 0), transform.entry(1, 1));
 }
 
 /// Whether [box]'s node transform leaves the centre of the box where it was.
-bool centreStays(Layout3d box) {
+bool centreStays(RenderObject3d box) {
   final transform = box.nodeTransform;
   if (transform == null) return true;
   final c = box.size.center;

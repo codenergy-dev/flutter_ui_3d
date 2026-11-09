@@ -19,7 +19,7 @@ import 'package:vector_math/vector_math.dart' show Aabb3, Matrix4;
 import '../geometry/alignment3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// How a [NodeBox3d] scales its content to the room it is given, the 3D
 /// analogue of [BoxFit].
@@ -54,7 +54,7 @@ enum BoxFit3d {
 /// basis so the model keeps its own upright orientation. Content that needs
 /// an offset of its own should be wrapped in a plain [Node] and handed over
 /// as that.
-class NodeBox3d extends Layout3d {
+class NodeBox3d extends RenderObject3d {
   /// Puts [content] into the layout.
   NodeBox3d({
     required Node content,
@@ -280,7 +280,8 @@ class NodeBox3d extends Layout3d {
   ///
   /// The package's only honest answer for geometry it did not build. See
   /// [onFade] for what a caller does with it, and
-  /// [Layout3d.inheritedOpacity] for why it is coverage rather than alpha.
+  /// [RenderObject3d.inheritedOpacity] for why it is coverage rather than
+  /// alpha.
   @override
   void refreshOpacity() {
     final opacity = inheritedOpacity;

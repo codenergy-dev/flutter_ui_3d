@@ -43,7 +43,7 @@ Text3d childOf(Layout3dController controller) =>
     (controller.surface!.child! as Align3d).child! as Text3d;
 
 Layout3dSurface panel(
-  Layout3d child, {
+  RenderObject3d child, {
   Size3d size = const Size3d(4, 3, 0.5),
   Layout3dMetrics metrics = Layout3dMetrics.standard,
 }) => laidOut(child, constraints: Constraints3d.tight(size), metrics: metrics);
@@ -221,7 +221,7 @@ void main() {
           child: IntrinsicWidth3d(
             child: Column3d(
               crossAxisAlignment: CrossAxisAlignment3d.stretch,
-              children: <Layout3d>[short, long],
+              children: <RenderObject3d>[short, long],
             ),
           ),
         ),
@@ -254,7 +254,7 @@ void main() {
         Center3d(
           child: Row3d(
             crossAxisAlignment: CrossAxisAlignment3d.baseline,
-            children: <Layout3d>[small, large],
+            children: <RenderObject3d>[small, large],
           ),
         ),
       );

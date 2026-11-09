@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart'
     show DiagnosticPropertiesBuilder, DiagnosticsProperty;
 
-import 'layout3d.dart';
+import 'rendering/object.dart';
 
-/// A typed key for one piece of tree-wide state on a [Layout3dOwner].
+/// A typed key for one piece of tree-wide state on a [PipelineOwner3d].
 ///
-/// [Layout3dOwner] already carries `basis`, `metrics`, `painters` and
+/// [PipelineOwner3d] already carries `basis`, `metrics`, `painters` and
 /// `focusScope` for one stated reason: they are state both layers need and
 /// the imperative one has no `BuildContext` to read an inherited widget with.
 /// A theme has exactly that shape — and a *theme* must not be a field on this
@@ -94,7 +94,7 @@ class Layout3dSlot<T extends Object> {
 /// overwrites the first, and whichever detaches last leaves the slot empty.
 /// Tree-wide state is what the owner is for, and a per-subtree value is a
 /// constructor argument or an `InheritedWidget`, not this.
-class SlotProvider3d<T extends Object> extends ProxyLayout3d {
+class SlotProvider3d<T extends Object> extends RenderProxyBox3d {
   /// Creates a box that provides [value] under [slot].
   SlotProvider3d({
     required Layout3dSlot<T> slot,
@@ -128,7 +128,7 @@ class SlotProvider3d<T extends Object> extends ProxyLayout3d {
   bool _write() => owner?.setSlot(_slot, _value) ?? false;
 
   @override
-  void attach(Layout3dOwner owner) {
+  void attach(PipelineOwner3d owner) {
     super.attach(owner);
     _write();
   }

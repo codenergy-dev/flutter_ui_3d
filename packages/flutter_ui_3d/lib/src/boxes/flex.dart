@@ -13,7 +13,7 @@ import '../debug/overflow.dart';
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// How a [Flex3d] distributes leftover room along its main axis, the 3D
 /// analogue of [MainAxisAlignment].
@@ -91,7 +91,7 @@ enum FlexFit3d {
 /// Unlike Flutter's, this is a real layout rather than a parent-data widget:
 /// it sits in the tree, sizes itself to its child, and the enclosing [Flex3d]
 /// reads [flex] and [fit] off it.
-class Flexible3d extends ProxyLayout3d {
+class Flexible3d extends RenderProxyBox3d {
   /// Creates a flexible child.
   Flexible3d({
     int flex = 1,
@@ -149,7 +149,7 @@ class Spacer3d extends Flexible3d {
     : super(fit: FlexFit3d.tight, child: _EmptyBox3d());
 }
 
-class _EmptyBox3d extends Layout3d {
+class _EmptyBox3d extends RenderObject3d {
   @override
   bool get sizedByParent => true;
 
@@ -204,8 +204,8 @@ class _EmptyBox3d extends Layout3d {
 /// instead; a line here has always been allowed to say nothing, and the
 /// widget forms fill the direction in from the ambient `Directionality`, the
 /// way Flutter's `Flex` widget does.
-class Flex3d extends MultiChildLayout3d<ParentData3d>
-    with Layout3dOverflowReportingMixin {
+class Flex3d extends RenderMultiChild3d<ParentData3d>
+    with RenderOverflowReportingMixin3d {
   /// Creates a flex line along [direction].
   Flex3d({
     required Axis3d direction,
@@ -354,9 +354,10 @@ class Flex3d extends MultiChildLayout3d<ParentData3d>
   /// The two axes that are not [direction], in canonical order.
   (Axis3d, Axis3d) get crossAxes => _direction.others;
 
-  static int _flexOf(Layout3d child) => child is Flexible3d ? child.flex : 0;
+  static int _flexOf(RenderObject3d child) =>
+      child is Flexible3d ? child.flex : 0;
 
-  static FlexFit3d _fitOf(Layout3d child) =>
+  static FlexFit3d _fitOf(RenderObject3d child) =>
       child is Flexible3d ? child.fit : FlexFit3d.tight;
 
   CrossAxisAlignment3d _alignmentFor(Axis3d axis) {
@@ -400,7 +401,7 @@ class Flex3d extends MultiChildLayout3d<ParentData3d>
       : defaultComputeDistanceToHighestActualBaseline(axis);
 
   double _childIntrinsic(
-    Layout3d child,
+    RenderObject3d child,
     Axis3d axis,
     Size3d limits, {
     required bool min,
@@ -510,7 +511,7 @@ class Flex3d extends MultiChildLayout3d<ParentData3d>
     final aboveBaseline = <Axis3d, double>{};
     final belowBaseline = <Axis3d, double>{};
 
-    void measureCross(Layout3d child) {
+    void measureCross(RenderObject3d child) {
       final childSize = child.size;
       for (final axis in <Axis3d>[firstCross, secondCross]) {
         var extent = childSize.alongAxis(axis);
@@ -642,7 +643,7 @@ class Flex3d extends MultiChildLayout3d<ParentData3d>
       }(),
     };
 
-    double crossOffsetFor(Layout3d child, Axis3d axis, double extent) {
+    double crossOffsetFor(RenderObject3d child, Axis3d axis, double extent) {
       final alignment = _alignmentFor(axis);
       if (alignment == CrossAxisAlignment3d.baseline) {
         // Every child is pushed down by the difference between its own

@@ -137,7 +137,7 @@ material {
     { type: float, name: image_opacity, default: 0.0 },
 
     // **How much of this box survives, from 0 to 1** — the opacity in force,
-    // from `Layout3d.inheritedOpacity`, written by
+    // from `RenderObject3d.inheritedOpacity`, written by
     // `BoxDecoration3dUniforms.applyTo`.
     //
     // It is **coverage, not alpha**, and that is the whole design of fading

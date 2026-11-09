@@ -184,7 +184,7 @@ void main() {
         children: List.generate(6, (_) => solid(const Size3d(1, 1, 0))),
       );
       final outer = ListView3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           SizedBox3d(width: 2, height: 1, child: carousel),
           ...List.generate(6, (_) => solid(const Size3d(2, 1, 0))),
         ],
@@ -218,7 +218,7 @@ void main() {
         children: List.generate(4, (_) => solid(const Size3d(2, 1, 0))),
       );
       final outer = ListView3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           SizedBox3d(width: 2, height: 1, child: inner),
           ...List.generate(6, (_) => solid(const Size3d(2, 1, 0))),
         ],

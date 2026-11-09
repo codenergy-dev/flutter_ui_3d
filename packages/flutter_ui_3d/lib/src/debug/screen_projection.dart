@@ -4,7 +4,7 @@ import 'package:flutter_scene/scene.dart' show Camera;
 import 'package:vector_math/vector_math.dart' show Vector3;
 
 import '../geometry/offset3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// Where a laid-out box ended up on screen.
 ///
@@ -18,9 +18,9 @@ import '../layout3d.dart';
 /// rectangle, or a tooltip anchored to a box in the scene.
 ///
 /// Everything here needs the box to be **mounted in a scene and laid out**;
-/// [Layout3d.worldTransform] is meaningless before that. A projection is only
-/// as current as the last flush, so read it after one, not before.
-extension Layout3dScreenProjection on Layout3d {
+/// [RenderObject3d.worldTransform] is meaningless before that. A projection is
+/// only as current as the last flush, so read it after one, not before.
+extension Layout3dScreenProjection on RenderObject3d {
   /// The box's centre, projected to a pixel in a view of [viewSize].
   ///
   /// Null when the centre is at or behind the camera plane, where it has no

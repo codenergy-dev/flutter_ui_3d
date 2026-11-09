@@ -76,7 +76,7 @@ abstract class GlyphMaterial3d {
   void tint(Color color);
 
   /// How much of the label survives, from 0 to 1: the opacity in force on the
-  /// box, from [Layout3d.inheritedOpacity].
+  /// box, from [RenderObject3d.inheritedOpacity].
   ///
   /// **Do not implement this by scaling the tint's alpha.** The compiled
   /// material discards a fragment whose coverage falls below `alpha_cutoff`,

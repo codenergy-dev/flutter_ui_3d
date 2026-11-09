@@ -14,7 +14,7 @@ import '../geometry/alignment3d.dart';
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// A box that caps an axis only when nothing else has, the 3D analogue of
 /// [LimitedBox].
@@ -34,8 +34,8 @@ import '../layout3d.dart';
 /// A limit on an axis the parent already bounded is ignored outright, which
 /// is what separates this from a [ConstrainedBox3d]. Use that one to impose a
 /// cap that always applies.
-class LimitedBox3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+class LimitedBox3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a box that limits its child's unbounded axes.
   LimitedBox3d({
     double maxWidth = double.infinity,
@@ -173,8 +173,8 @@ class LimitedBox3d extends SingleChildLayout3d
 /// keeping depth bounded — `constrainedAxes: {Axis3d.depth}` — is the common
 /// case here: a panel may overflow across the surface without poking through
 /// it.
-class UnconstrainedBox3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin, Layout3dOverflowReportingMixin {
+class UnconstrainedBox3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d, RenderOverflowReportingMixin3d {
   /// Creates a box that frees its child's constraints.
   UnconstrainedBox3d({
     AlignmentGeometry3d alignment = Alignment3d.center,
@@ -313,8 +313,8 @@ class UnconstrainedBox3d extends SingleChildLayout3d
 /// // A ripple that spreads past the button it belongs to.
 /// OverflowBox3d(maxWidth: 4, maxHeight: 4, child: ripple)
 /// ```
-class OverflowBox3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+class OverflowBox3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a box that overrides the bounds given, per axis.
   OverflowBox3d({
     double? minWidth,
@@ -498,8 +498,8 @@ class OverflowBox3d extends SingleChildLayout3d
 /// left to the child and says so in debug mode. Give the box bounded room —
 /// a `SizedBox3d` around it, or a surface with a size — rather than expecting
 /// a fraction of infinity.
-class FractionallySizedBox3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+class FractionallySizedBox3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a box sizing its child to a fraction of its own room.
   FractionallySizedBox3d({
     double? widthFactor,

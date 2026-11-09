@@ -258,7 +258,7 @@ class MenuItem3d extends StatelessWidget {
 /// An overlay entry is placed by the overlay's own `Stack3d.alignment`, which
 /// is in the middle of the panel and nowhere near the button. There is no
 /// `CompositedTransformTarget` here. What there is, since phase 6, is
-/// `Layout3d.anchorOffsetTo`: the button's corner taken into world space
+/// `RenderObject3d.anchorOffsetTo`: the button's corner taken into world space
 /// through `worldTransform` and back out again in the menu's own frame, which
 /// is the `nodeOffset` that puts the menu's top-left on the button's
 /// bottom-left.

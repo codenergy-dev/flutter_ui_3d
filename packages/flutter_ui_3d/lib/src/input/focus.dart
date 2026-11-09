@@ -19,7 +19,7 @@ import 'package:vector_math/vector_math.dart' show Matrix4, Vector3;
 
 import '../geometry/size3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'events.dart';
 import 'shortcuts.dart';
 
@@ -53,13 +53,13 @@ import 'shortcuts.dart';
 /// `TestWidgetsFlutterBinding.ensureInitialized()` in a test.
 ///
 /// The nodes hang under a [FocusScopeNode] of the surface's own —
-/// [Layout3dOwner.focusScope] — which is parented under the application's
+/// [PipelineOwner3d.focusScope] — which is parented under the application's
 /// root scope the first time something on the surface asks for focus. That
 /// scope skips Flutter's traversal deliberately: a `Tab` in the surrounding
 /// widget tree should not walk into a scene, because Flutter's traversal
 /// policies reason about a `Rect` from a `RenderObject`, and a box on a plane
 /// has neither. Traversal inside the surface is [Focus3dTraversal]'s job.
-class Focus3d extends ProxyLayout3d implements HitTestTarget3d {
+class Focus3d extends RenderProxyBox3d implements HitTestTarget3d {
   /// Creates a focusable box.
   ///
   /// [focusNode] is optional: without one this box makes a node and owns it,
@@ -108,12 +108,12 @@ class Focus3d extends ProxyLayout3d implements HitTestTarget3d {
   /// The box a focus node stands for, or null when it stands for none.
   ///
   /// Every [Focus3d] and [FocusScope3d] is findable from its node, and so is
-  /// the scope of a surface ([Layout3dOwner.focusScope]), which stands for
+  /// the scope of a surface ([PipelineOwner3d.focusScope]), which stands for
   /// the surface. The lookup Flutter's own actions do with
   /// `primaryFocus.context`, for a node that has no context: the default
   /// traversal and scroll actions start from
   /// `Focus3d.layoutFor(FocusManager.instance.primaryFocus!)`.
-  static Layout3d? layoutFor(FocusNode node) => focusNodeLayouts[node];
+  static RenderObject3d? layoutFor(FocusNode node) => focusNodeLayouts[node];
 
   void _attachNode(FocusNode node) {
     _node = node;
@@ -239,7 +239,7 @@ class Focus3d extends ProxyLayout3d implements HitTestTarget3d {
   /// The scope this box's focus belongs to.
   ///
   /// The nearest [FocusScope3d] above it, and the surface's own scope
-  /// ([Layout3dOwner.focusScope]) when there is none. That walk is the whole
+  /// ([PipelineOwner3d.focusScope]) when there is none. That walk is the whole
   /// of what focus trapping is: a modal wraps its content in a scope, so
   /// everything inside it asks that scope for focus instead of the
   /// surface's, and focus cannot leak out of the dialog by a control simply
@@ -248,7 +248,7 @@ class Focus3d extends ProxyLayout3d implements HitTestTarget3d {
   /// Only meaningful once this box is attached; reading it before that throws
   /// on the null owner.
   FocusScopeNode get enclosingScope {
-    Layout3d? node = parent;
+    RenderObject3d? node = parent;
     while (node != null) {
       if (node is FocusScope3d) return node.scopeNode;
       node = node.parent;
@@ -264,8 +264,8 @@ class Focus3d extends ProxyLayout3d implements HitTestTarget3d {
   /// The walk a control uses to focus itself without being handed a node: a
   /// gesture detector deep inside a component can find the box that stands
   /// for the whole of it.
-  static Focus3d? of(Layout3d layout) {
-    Layout3d? node = layout;
+  static Focus3d? of(RenderObject3d layout) {
+    RenderObject3d? node = layout;
     while (node != null) {
       if (node is Focus3d) return node;
       node = node.parent;
@@ -289,7 +289,7 @@ class Focus3d extends ProxyLayout3d implements HitTestTarget3d {
   }
 
   @override
-  void attach(Layout3dOwner owner) {
+  void attach(PipelineOwner3d owner) {
     super.attach(owner);
     if (_autofocus) requestFocus();
   }
@@ -342,9 +342,9 @@ class Focus3d extends ProxyLayout3d implements HitTestTarget3d {
 ///
 /// Scopes nest the way Flutter's do: this one parents under the nearest
 /// enclosing [FocusScope3d], or under the surface's own scope
-/// ([Layout3dOwner.focusScope]) when there is none, at the moment the box
+/// ([PipelineOwner3d.focusScope]) when there is none, at the moment the box
 /// joins an attached tree.
-class FocusScope3d extends ProxyLayout3d {
+class FocusScope3d extends RenderProxyBox3d {
   /// Creates a scope around [child].
   ///
   /// [node] is optional and follows the rule [Focus3d] keeps for its node:
@@ -410,7 +410,7 @@ class FocusScope3d extends ProxyLayout3d {
   bool get hasFocus => _scope.hasFocus;
 
   @override
-  void attach(Layout3dOwner owner) {
+  void attach(PipelineOwner3d owner) {
     super.attach(owner);
     _parentUnderEnclosingScope(owner);
     if (autofocus) _scope.requestFocus();
@@ -422,8 +422,8 @@ class FocusScope3d extends ProxyLayout3d {
   /// child scope and names it the one focus goes to when the parent is asked.
   /// That second half is what a dialog wants — the scope that just appeared
   /// is where focus should land.
-  void _parentUnderEnclosingScope(Layout3dOwner owner) {
-    Layout3d? node = parent;
+  void _parentUnderEnclosingScope(PipelineOwner3d owner) {
+    RenderObject3d? node = parent;
     while (node != null) {
       if (node is FocusScope3d) {
         node.scopeNode.setFirstFocus(_scope);
@@ -478,7 +478,7 @@ class FocusScope3d extends ProxyLayout3d {
 /// being a property of the plane and becomes a property of the viewer.
 /// Traversal *between* surfaces is not answered here: this class knows one
 /// tree. When Tab runs off the end of it, the default traversal action asks
-/// [Layout3dOwner.onFocusTraversalEdge] before wrapping, and `SceneInput3d`
+/// [PipelineOwner3d.onFocusTraversalEdge] before wrapping, and `SceneInput3d`
 /// answers that with the next surface in the scene, or the widgets around it.
 class Focus3dTraversal {
   /// Creates a traversal policy. Subclass it to change the order.
@@ -497,8 +497,8 @@ class Focus3dTraversal {
   /// final root = Focus3dTraversal.traversalRootFor(current ?? surface);
   /// const Focus3dTraversal().next(root, current)?.requestFocus();
   /// ```
-  static Layout3d traversalRootFor(Layout3d layout) {
-    Layout3d? node = layout;
+  static RenderObject3d traversalRootFor(RenderObject3d layout) {
+    RenderObject3d? node = layout;
     var root = layout;
     while (node != null) {
       if (node is FocusScope3d) return node;
@@ -513,9 +513,9 @@ class Focus3dTraversal {
   /// Skips what cannot be focused and what cannot be seen: a box whose node
   /// is hidden, or that has not been laid out, is not a candidate, so what a
   /// list has culled out of its window is not somewhere focus can land.
-  List<Focus3d> focusableDescendants(Layout3d root) {
+  List<Focus3d> focusableDescendants(RenderObject3d root) {
     final found = <Focus3d>[];
-    void visit(Layout3d layout) {
+    void visit(RenderObject3d layout) {
       layout.visitChildren((child) {
         if (!child.node.visible) return;
         if (child is Focus3d && child.canRequestFocus && child.hasSize) {
@@ -530,26 +530,30 @@ class Focus3dTraversal {
   }
 
   /// The box focus should start on.
-  Focus3d? firstFocus(Layout3d root) {
+  Focus3d? firstFocus(RenderObject3d root) {
     final candidates = focusableDescendants(root);
     return candidates.isEmpty ? null : candidates.first;
   }
 
   /// The box focus should start on when arriving backwards, with Shift-Tab.
-  Focus3d? lastFocus(Layout3d root) {
+  Focus3d? lastFocus(RenderObject3d root) {
     final candidates = focusableDescendants(root);
     return candidates.isEmpty ? null : candidates.last;
   }
 
   /// The box after [current] in tree order, wrapping around at the end.
-  Focus3d? next(Layout3d root, Focus3d? current) =>
+  Focus3d? next(RenderObject3d root, Focus3d? current) =>
       _step(root, current, forward: true);
 
   /// The box before [current] in tree order, wrapping around at the start.
-  Focus3d? previous(Layout3d root, Focus3d? current) =>
+  Focus3d? previous(RenderObject3d root, Focus3d? current) =>
       _step(root, current, forward: false);
 
-  Focus3d? _step(Layout3d root, Focus3d? current, {required bool forward}) {
+  Focus3d? _step(
+    RenderObject3d root,
+    Focus3d? current, {
+    required bool forward,
+  }) {
     final candidates = focusableDescendants(root);
     if (candidates.isEmpty) return null;
     if (current == null) {
@@ -568,7 +572,7 @@ class Focus3dTraversal {
   /// over one that does not, because that is what "directly below" means to a
   /// reader, and among equals the nearest one wins.
   Focus3d? inDirection(
-    Layout3d root,
+    RenderObject3d root,
     Focus3d from,
     TraversalDirection direction,
   ) {
@@ -605,7 +609,7 @@ class Focus3dTraversal {
   /// Moves focus [direction] from whatever holds it now, and reports whether
   /// anything moved.
   bool moveInDirection(
-    Layout3d root,
+    RenderObject3d root,
     Focus3d from,
     TraversalDirection direction,
   ) {
@@ -622,7 +626,7 @@ class Focus3dTraversal {
   /// the box and the root and the bounding rectangle of what comes out is
   /// taken, so a box inside a `Transform3d` is judged by where it *appears*
   /// on the plane rather than by where it was measured.
-  static Rect? projectedRect(Layout3d box) {
+  static Rect? projectedRect(RenderObject3d box) {
     if (!box.hasSize) return null;
     var root = box;
     while (root.parent != null) {

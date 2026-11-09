@@ -8,7 +8,7 @@ import 'package:flutter/painting.dart' show ImageConfiguration;
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
 import '../geometry/offset3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'decoration.dart';
 
 /// A box that makes itself visible.
@@ -49,8 +49,8 @@ import 'decoration.dart';
 /// **Elevation lifts the geometry, not the box.** A raised panel's mesh moves
 /// toward the viewer; its layout box, its intrinsics and what a ray reaches
 /// stay exactly where layout put them. See [BoxDecoration3d.elevation].
-class DecoratedBox3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+class DecoratedBox3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a decorated box.
   DecoratedBox3d({
     required Decoration3d decoration,
@@ -196,7 +196,7 @@ class DecoratedBox3d extends SingleChildLayout3d
   /// One `fade` uniform, written by [repaint]. It is the whole cost of a
   /// frame of a fade over this box: nothing is laid out, no geometry is
   /// rebuilt, and no colour on the decoration is touched. See
-  /// [Layout3d.inheritedOpacity].
+  /// [RenderObject3d.inheritedOpacity].
   @override
   void refreshOpacity() {
     if (!hasSize) return;

@@ -7,7 +7,7 @@ import 'package:vector_math/vector_math.dart' show Ray, Vector3;
 
 /// A leaf that asks for [preferred] and settles for what the constraints
 /// allow, standing in for real content.
-class TestBox extends Layout3d {
+class TestBox extends RenderObject3d {
   TestBox(this._preferred, {this.pointable = false, this.minimum, super.name});
 
   /// Whether this box answers hit tests on its own account, the way a
@@ -70,9 +70,9 @@ class TestBox extends Layout3d {
 /// in the catalogue will.
 ///
 /// The point of it is that the size is not a constant: it is read back out of
-/// the tree's [Layout3d.metrics] on every layout, so a change to the unit
+/// the tree's [RenderObject3d.metrics] on every layout, so a change to the unit
 /// contract shows up as a different box.
-class DpBox extends Layout3d {
+class DpBox extends RenderObject3d {
   DpBox(this.widthDp, this.heightDp, {this.depthDp = 0.0, super.name});
 
   /// The width this box asks for, in logical pixels.
@@ -97,7 +97,7 @@ class DpBox extends Layout3d {
 }
 
 /// The translation a layout's own node carries, in layout space.
-Offset3d translationOf(Layout3d layout) {
+Offset3d translationOf(RenderObject3d layout) {
   final translation = layout.node.localTransform.getTranslation();
   return Offset3d(translation.x, translation.y, translation.z);
 }
@@ -107,7 +107,7 @@ Vector3 scenePositionOf(Node node) => node.globalTransform.getTranslation();
 
 /// A surface holding [child], already laid out.
 Layout3dSurface laidOut(
-  Layout3d child, {
+  RenderObject3d child, {
   Constraints3d constraints = const Constraints3d(),
   LayoutBasis3d? basis,
   Layout3dMetrics metrics = Layout3dMetrics.standard,

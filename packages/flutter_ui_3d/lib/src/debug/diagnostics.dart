@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart'
     show DiagnosticLevel, DiagnosticsTreeStyle, debugPrint;
 
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// Prints the layout tree under [root], the 3D analogue of
 /// `debugDumpRenderTree`.
@@ -14,7 +14,7 @@ import '../layout3d.dart';
 ///
 /// ```dart
 /// surface.flush();
-/// debugDumpLayout3dTree(surface);
+/// debugDumpRenderObject3dTree(surface);
 /// ```
 ///
 /// ```
@@ -32,8 +32,8 @@ import '../layout3d.dart';
 /// of. [minLevel] raises or lowers how much each box says about itself;
 /// [DiagnosticLevel.fine] adds the relayout boundary and the `sizedByParent`
 /// flag, which is what to reach for when a change is not showing up at all.
-void debugDumpLayout3dTree(
-  Layout3d root, {
+void debugDumpRenderObject3dTree(
+  RenderObject3d root, {
   DiagnosticLevel minLevel = DiagnosticLevel.debug,
 }) {
   debugPrint(root.toStringDeep(minLevel: minLevel));
@@ -41,15 +41,15 @@ void debugDumpLayout3dTree(
 
 /// The layout tree under [root] as a string, without printing it.
 ///
-/// What [debugDumpLayout3dTree] prints. Useful in a test — a golden tree is a
-/// far better assertion than a size comparison, because it says what went
-/// wrong rather than only that something did — and in an error message that
-/// wants to quote a subtree.
+/// What [debugDumpRenderObject3dTree] prints. Useful in a test — a golden
+/// tree is a far better assertion than a size comparison, because it says what
+/// went wrong rather than only that something did — and in an error message
+/// that wants to quote a subtree.
 ///
 /// Wrap the expectation in `equalsIgnoringHashCodes` from `flutter_test`: the
 /// object identities in the dump differ between runs, and nothing else does.
-String debugDescribeLayout3dTree(
-  Layout3d root, {
+String debugDescribeRenderObject3dTree(
+  RenderObject3d root, {
   DiagnosticLevel minLevel = DiagnosticLevel.debug,
 }) => root.toStringDeep(minLevel: minLevel);
 
@@ -59,9 +59,9 @@ String debugDescribeLayout3dTree(
 /// that came out wrong was made wrong by something above it, and this is the
 /// list of suspects. Each entry is described shallowly (its own properties,
 /// none of its children), which is what makes the chain readable at all.
-String debugDescribeLayout3dAncestry(Layout3d box) {
+String debugDescribeRenderObject3dAncestry(RenderObject3d box) {
   final buffer = StringBuffer();
-  Layout3d? node = box;
+  RenderObject3d? node = box;
   var depth = 0;
   while (node != null) {
     buffer.writeln('${'  ' * depth}${node.toStringShallow(joiner: ', ')}');

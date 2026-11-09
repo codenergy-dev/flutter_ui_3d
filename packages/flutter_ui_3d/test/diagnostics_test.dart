@@ -56,7 +56,7 @@ void main() {
         constraints: Constraints3d.tight(const Size3d(4, 3, 1)),
         child: Column3d(
           mainAxisAlignment: MainAxisAlignment3d.center,
-          children: <Layout3d>[
+          children: <RenderObject3d>[
             Padding3d(
               padding: const EdgeInsets3d.all(0.5),
               child: SizedBox3d(width: 1, height: 1, depth: 1),
@@ -135,17 +135,17 @@ void main() {
         ),
       );
       addTearDown(surface.dispose);
-      final chain = debugDescribeLayout3dAncestry(inner);
+      final chain = debugDescribeRenderObject3dAncestry(inner);
       expect(chain, contains('TestBox'));
       expect(chain, contains('Padding3d'));
       expect(chain, contains('Center3d'));
       expect(chain, contains('Layout3dSurface'));
     });
 
-    test('debugDescribeLayout3dTree is what the dump prints', () {
+    test('debugDescribeRenderObject3dTree is what the dump prints', () {
       final surface = laidOut(TestBox(const Size3d(1, 1, 1)));
       addTearDown(surface.dispose);
-      expect(debugDescribeLayout3dTree(surface), surface.toStringDeep());
+      expect(debugDescribeRenderObject3dTree(surface), surface.toStringDeep());
     });
   });
 
@@ -227,7 +227,7 @@ void main() {
 
     test('a row wider than its room reports once, with the amount', () {
       final row = Row3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           TestBox(const Size3d(3, 1, 0)),
           TestBox(const Size3d(3, 1, 0)),
         ],
@@ -258,7 +258,7 @@ void main() {
       // out of the front of the panel, and nothing about that reads as a
       // layout mistake until something says the word "overflow".
       final line = Depth3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           TestBox(const Size3d(1, 1, 2)),
           TestBox(const Size3d(1, 1, 2)),
         ],
@@ -279,7 +279,7 @@ void main() {
 
     test('a row that fits reports nothing, and clears a previous report', () {
       final child = TestBox(const Size3d(6, 1, 0));
-      final row = Row3d(children: <Layout3d>[child]);
+      final row = Row3d(children: <RenderObject3d>[child]);
       final surface = laidOut(
         row,
         constraints: Constraints3d.tight(const Size3d(4, 2, 0)),
@@ -318,7 +318,7 @@ void main() {
       final previous = FlutterError.onError;
       FlutterError.onError = errors.add;
       final surface = laidOut(
-        Row3d(children: <Layout3d>[TestBox(const Size3d(9, 1, 0))]),
+        Row3d(children: <RenderObject3d>[TestBox(const Size3d(9, 1, 0))]),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
       );
       FlutterError.onError = previous;
@@ -517,7 +517,7 @@ void main() {
         properties: const SemanticsProperties(label: 'second'),
         child: TestBox(const Size3d(1, 1, 0)),
       );
-      final column = Column3d(children: <Layout3d>[first, second]);
+      final column = Column3d(children: <RenderObject3d>[first, second]);
       final surface = laidOut(column);
       addTearDown(surface.dispose);
 
@@ -535,7 +535,7 @@ void main() {
         child: Focus3d(child: TestBox(const Size3d(1, 1, 0))),
       );
       final surface = laidOut(
-        Column3d(children: <Layout3d>[bare, spoken]),
+        Column3d(children: <RenderObject3d>[bare, spoken]),
         constraints: Constraints3d.tight(const Size3d(4, 4, 0)),
       );
       addTearDown(surface.dispose);

@@ -57,21 +57,22 @@ Widget _barOverPages(TabController controller, List<Widget> pages) =>
     );
 
 /// The tab bar's own box.
-MultiChildLayout3d _barBox(Layout3dSurface surface) =>
-    namedBox(surface, 'TabBar3d') as MultiChildLayout3d;
+RenderMultiChild3d _barBox(Layout3dSurface surface) =>
+    namedBox(surface, 'TabBar3d') as RenderMultiChild3d;
 
 /// The indicator: the third child of the bar's box.
-Layout3d _indicator(Layout3dSurface surface) => _barBox(surface).childAt(2);
+RenderObject3d _indicator(Layout3dSurface surface) =>
+    _barBox(surface).childAt(2);
 
 /// The box a label measured, by its index.
-Layout3d _label(Layout3dSurface surface, int index) =>
+RenderObject3d _label(Layout3dSurface surface, int index) =>
     namedBox(surface, 'TabBar3d label $index');
 
-Layout3d _slot(Layout3dSurface surface, int index) =>
+RenderObject3d _slot(Layout3dSurface surface, int index) =>
     namedBox(surface, 'TabBar3d tab $index');
 
 /// [box]'s left edge in the bar's frame.
-double _xInBar(Layout3dSurface surface, Layout3d box) {
+double _xInBar(Layout3dSurface surface, RenderObject3d box) {
   final bar = _barBox(surface);
   var x = 0.0;
   for (var walk = box; !identical(walk, bar); walk = walk.parent!) {
@@ -95,7 +96,7 @@ Semantics3d _announced(Layout3dSurface surface, String label) =>
       surface,
     ).firstWhere((box) => box.properties.label == label);
 
-Future<void> _pressAt(PumpedSurface pumped, Layout3d box) async {
+Future<void> _pressAt(PumpedSurface pumped, RenderObject3d box) async {
   pumped.pointer.down(
     rayAt(pumped.surface, box.drawnOffsetInSurface + box.size.center),
   );
@@ -169,7 +170,7 @@ void main() {
       final scheme = _theme.colorScheme;
       Color colourOf(int index) {
         final found = <Text3d>[];
-        void walk(Layout3d box) {
+        void walk(RenderObject3d box) {
           if (box is Text3d) found.add(box);
           box.visitChildren(walk);
         }

@@ -10,8 +10,8 @@ import '../boxes/sized.dart';
 import '../geometry/alignment3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
 import '../overlay/overlay.dart';
+import '../rendering/object.dart';
 import '../widgets/framework.dart';
 
 /// Which way a flight is going.
@@ -94,7 +94,7 @@ class Hero3dFlight {
 /// Called once, when the flight starts, and the subtree it returns belongs to
 /// the overlay entry that hosts it: it is disposed when the flight ends,
 /// whatever ended it.
-typedef Hero3dFlightBuilder = Layout3d Function(Hero3dFlight flight);
+typedef Hero3dFlightBuilder = RenderObject3d Function(Hero3dFlight flight);
 
 /// A box whose content appears to fly to the matching box on another route.
 ///
@@ -107,7 +107,7 @@ typedef Hero3dFlightBuilder = Layout3d Function(Hero3dFlight flight);
 /// feedback is:
 ///
 /// ```dart
-/// Layout3d avatar() => Image3d(image: photo, fit: BoxFit3d.cover);
+/// RenderObject3d avatar() => Image3d(image: photo, fit: BoxFit3d.cover);
 ///
 /// Hero3d(
 ///   tag: photo.id,
@@ -132,8 +132,8 @@ typedef Hero3dFlightBuilder = Layout3d Function(Hero3dFlight flight);
 /// ## What it costs per frame
 ///
 /// One offset and one matrix, per flight. The flight is laid out once, when
-/// it starts, and every frame after that writes [Layout3d.nodeOffset] and
-/// [Layout3d.nodeTransform] — the node tier, which never calls
+/// it starts, and every frame after that writes [RenderObject3d.nodeOffset] and
+/// [RenderObject3d.nodeTransform] — the node tier, which never calls
 /// `markNeedsLayout`. A size that changed every frame would be a relayout
 /// every frame, which is why the size change is a scale; see [Hero3dFit].
 ///
@@ -146,14 +146,14 @@ typedef Hero3dFlightBuilder = Layout3d Function(Hero3dFlight flight);
 /// ## A route motion moves the other end out from under it
 ///
 /// A flight lands where *layout* put the far end, because
-/// [Layout3d.worldTransform] undoes the node tier — which is what makes it
-/// safe to recompute every frame. A route whose content is sliding in has its
-/// heroes at their resting places while the content is drawn somewhere else,
-/// so the flight lands correctly and the thing it hands over to is still in
-/// transit. The two are answers to the same question and the flight is the
-/// better one: give a route carrying heroes `Motion3d.fade()`, or no motion
-/// at all.
-class Hero3d extends ProxyLayout3d {
+/// [RenderObject3d.worldTransform] undoes the node tier — which is what makes
+/// it safe to recompute every frame. A route whose content is sliding in has
+/// its heroes at their resting places while the content is drawn somewhere
+/// else, so the flight lands correctly and the thing it hands over to is still
+/// in transit. The two are answers to the same question and the flight is the
+/// better one: give a route carrying heroes `Motion3d.fade()`, or no motion at
+/// all.
+class Hero3d extends RenderProxyBox3d {
   /// Creates a hero that flies to the box carrying the same [tag].
   Hero3d({
     required this.tag,
@@ -220,9 +220,9 @@ class Hero3d extends ProxyLayout3d {
 /// descend into a hero it has found: a hero inside a hero is pathological,
 /// and the outer one is the flight.
 void collectHero3ds(
-  Layout3d root,
+  RenderObject3d root,
   Map<Object, Hero3d> into, {
-  Set<Layout3d> stopAt = const <Layout3d>{},
+  Set<RenderObject3d> stopAt = const <RenderObject3d>{},
 }) {
   if (stopAt.contains(root)) return;
   if (root is Hero3d) {
@@ -289,7 +289,7 @@ Overlay3dEntry buildHero3dFlightEntry({
 ///
 /// Public so that a test can find one; built by [buildHero3dFlightEntry] and
 /// not usefully constructed by hand.
-class Hero3dFlightBox extends ProxyLayout3d {
+class Hero3dFlightBox extends RenderProxyBox3d {
   /// Creates a flight between [aSide] and [bSide].
   Hero3dFlightBox({
     required Animation<double> animation,
@@ -422,11 +422,11 @@ class Hero3dFlightBox extends ProxyLayout3d {
 /// ```
 ///
 /// The flight itself is *not* built from the widget layer, and cannot be: it
-/// belongs to an overlay entry that is inserted from inside a route
-/// transition, where there is no element to build into. So
-/// [flightBuilder] returns a [Layout3d] here as it does on [Hero3d] — the
-/// same seam `Draggable3d.feedbackBuilder` has, for the same reason.
-class SceneHero3d extends SingleChildLayout3dWidget {
+/// belongs to an overlay entry that is inserted from inside a route transition,
+/// where there is no element to build into. So [flightBuilder] returns a
+/// [RenderObject3d] here as it does on [Hero3d] — the same seam
+/// `Draggable3d.feedbackBuilder` has, for the same reason.
+class SceneHero3d extends SingleChildRenderObjectWidget3d {
   /// Creates a hero that flies to the box carrying the same [tag].
   const SceneHero3d({
     super.key,

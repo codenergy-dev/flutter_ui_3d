@@ -2,7 +2,7 @@ import 'package:vector_math/vector_math.dart' show Matrix4;
 
 import 'geometry/offset3d.dart';
 import 'geometry/size3d.dart';
-import 'layout3d.dart';
+import 'rendering/object.dart';
 
 /// A ray through layout space, what a 3D hit test walks with.
 ///
@@ -125,7 +125,7 @@ class HitTestEntry3d {
   const HitTestEntry3d(this.layout, this.localPosition);
 
   /// The layout that was hit.
-  final Layout3d layout;
+  final RenderObject3d layout;
 
   /// Where the ray entered, in [layout]'s own space.
   ///
@@ -159,13 +159,13 @@ class HitTestResult3d {
   bool get isNotEmpty => _path.isNotEmpty;
 
   /// The deepest layout hit, or null.
-  Layout3d? get target => _path.isEmpty ? null : _path.first.layout;
+  RenderObject3d? get target => _path.isEmpty ? null : _path.first.layout;
 
   /// The entry for the deepest layout hit, or null.
   HitTestEntry3d? get targetEntry => _path.isEmpty ? null : _path.first;
 
-  /// Records that a layout was hit. Called by [Layout3d.hitTest] on the way
-  /// back up, so the deepest box lands first.
+  /// Records that a layout was hit. Called by [RenderObject3d.hitTest] on the
+  /// way back up, so the deepest box lands first.
   void add(HitTestEntry3d entry) => _path.add(entry);
 
   /// The entry for the deepest layout that is a [T], or null.

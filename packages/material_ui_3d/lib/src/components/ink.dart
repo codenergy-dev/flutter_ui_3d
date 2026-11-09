@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart' show BuildContext, InheritedWidget;
 import 'package:flutter_ui_3d/rendering.dart'
     show
         DecoratedBox3d,
-        Layout3d,
+        RenderObject3d,
         Layout3dAnchoring,
         Offset3d,
         Ripple3d,
@@ -64,12 +64,12 @@ abstract class InkController3d {
   /// exactly what `PointerEvent3d.localPosition` reports — the box that
   /// recognizes a press and the box that draws the wash are never the same
   /// box, so the controller does the change of frame with
-  /// `Layout3d.localPointFrom`.
+  /// `RenderObject3d.localPointFrom`.
   ///
   /// Call it on the pointer *down*. The ripple itself does not start until the
   /// press is reported, which is later and arena-resolved; a point noted for a
   /// press that never happens is simply overwritten by the next one.
-  void noteRipplePoint(Layout3d source, Offset3d point);
+  void noteRipplePoint(RenderObject3d source, Offset3d point);
 
   /// The controller published by the nearest [Material3d] above [context], or
   /// null when there is none.
@@ -278,7 +278,7 @@ class MutableInkController3d implements InkController3d {
   }
 
   @override
-  void noteRipplePoint(Layout3d source, Offset3d point) {
+  void noteRipplePoint(RenderObject3d source, Offset3d point) {
     _pressPoint = _box?.localPointFrom(source, point);
   }
 

@@ -25,7 +25,7 @@ import 'package:flutter_ui_3d/rendering.dart'
         EdgeInsets3d,
         EdgeInsetsGeometry3d,
         MainAxisSize3d,
-        ProxyLayout3d;
+        RenderProxyBox3d;
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
@@ -35,7 +35,7 @@ import 'package:flutter_ui_3d/widgets.dart'
         ScenePadding3d,
         SceneSizedBox3d,
         SceneText3d,
-        SingleChildLayout3dWidget;
+        SingleChildRenderObjectWidget3d;
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
 import '../theme/theme.dart';
@@ -517,7 +517,7 @@ class _Reveal3d extends Align3d {
   }
 }
 
-class _SceneReveal3d extends SingleChildLayout3dWidget {
+class _SceneReveal3d extends SingleChildRenderObjectWidget3d {
   const _SceneReveal3d({
     required this.animation,
     required this.alignment,
@@ -541,7 +541,7 @@ class _SceneReveal3d extends SingleChildLayout3dWidget {
 
 /// The box that turns the chevron: half a turn about its own centre, on the
 /// node tier, as the clock runs.
-class _Turn3d extends ProxyLayout3d {
+class _Turn3d extends RenderProxyBox3d {
   _Turn3d({required Animation<double> animation})
     : _animation = animation,
       super(name: ExpansionTile3d.chevronName) {
@@ -586,7 +586,7 @@ class _Turn3d extends ProxyLayout3d {
   }
 }
 
-class _SceneTurn3d extends SingleChildLayout3dWidget {
+class _SceneTurn3d extends SingleChildRenderObjectWidget3d {
   const _SceneTurn3d({required this.animation, super.child});
 
   final Animation<double> animation;

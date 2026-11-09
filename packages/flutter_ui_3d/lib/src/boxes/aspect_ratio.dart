@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart'
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// A box that holds two of its axes in a fixed ratio, the 3D analogue of
 /// [AspectRatio].
@@ -51,8 +51,8 @@ import '../layout3d.dart';
 /// result back inside the constraints if it landed outside them. An [axis]
 /// with no upper bound is derived from [relativeTo] instead; with neither
 /// bounded there is nothing to be a ratio of, and the box says so.
-class AspectRatio3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+class AspectRatio3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a box with a fixed ratio between [axis] and [relativeTo].
   AspectRatio3d({
     required double aspectRatio,

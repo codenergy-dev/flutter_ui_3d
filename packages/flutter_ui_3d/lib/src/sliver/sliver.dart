@@ -6,8 +6,8 @@ import 'package:flutter/foundation.dart'
 import '../built_children.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
 import '../layout_pass.dart';
+import '../rendering/object.dart';
 import 'sliver_constraints.dart';
 
 /// A layout that answers the sliver protocol rather than the box one, the 3D
@@ -19,12 +19,12 @@ import 'sliver_constraints.dart';
 /// a `CustomScrollView3d` put several sections on one scroll position, and a
 /// long section describe itself without laying out all of it.
 ///
-/// A sliver is still a [Layout3d]: it owns a scene node, it is placed by its
-/// parent, and it is hit-tested like anything else. Its [size] is derived from
-/// the geometry it reported — the visible extent along the scroll axis, the
-/// room given across the other two — so the volume it occupies in the scene is
-/// the volume the viewer can actually see.
-abstract class Sliver3d extends Layout3d {
+/// A sliver is still a [RenderObject3d]: it owns a scene node, it is placed by
+/// its parent, and it is hit-tested like anything else. Its [size] is derived
+/// from the geometry it reported — the visible extent along the scroll axis,
+/// the room given across the other two — so the volume it occupies in the
+/// scene is the volume the viewer can actually see.
+abstract class Sliver3d extends RenderObject3d {
   /// Creates a sliver.
   Sliver3d({super.name});
 
@@ -123,9 +123,9 @@ abstract class Sliver3d extends Layout3d {
 /// box, and this is how a box takes its turn in a `CustomScrollView3d`
 /// alongside the lists and grids. The child is laid out once, at its natural
 /// extent along the scroll axis, and scrolls as one piece.
-class SliverToBoxAdapter3d extends Sliver3d with Layout3dWithChildMixin {
+class SliverToBoxAdapter3d extends Sliver3d with RenderObjectWithChildMixin3d {
   /// Creates an adapter around [child].
-  SliverToBoxAdapter3d({Layout3d? child, super.name}) {
+  SliverToBoxAdapter3d({RenderObject3d? child, super.name}) {
     this.child = child;
   }
 
@@ -163,9 +163,9 @@ class SliverToBoxAdapter3d extends Sliver3d with Layout3dWithChildMixin {
 /// holds.
 abstract class SliverMultiBoxAdaptor3d extends Sliver3d
     with
-        Layout3dWithChildrenMixin<ParentData3d>,
-        Layout3dLayoutPassMixin,
-        Layout3dBuiltChildrenMixin<ParentData3d> {
+        ContainerRenderObjectMixin3d<ParentData3d>,
+        RenderLayoutPassMixin3d,
+        RenderBuiltChildrenMixin3d<ParentData3d> {
   /// Creates a sliver over a child list.
   SliverMultiBoxAdaptor3d({super.name});
 }

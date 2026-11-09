@@ -15,17 +15,18 @@ import 'package:flutter_ui_3d/rendering.dart'
         HitTestResult3d,
         Layout3dAnchoring,
         Offset3d,
-        ProxyLayout3d,
+        RenderProxyBox3d,
         Ray3d;
-import 'package:flutter_ui_3d/widgets.dart' show SingleChildLayout3dWidget;
+import 'package:flutter_ui_3d/widgets.dart'
+    show SingleChildRenderObjectWidget3d;
 
 // Anchoring one overlay to a box somewhere else in the tree.
 //
 // Two components need it — a menu at its button, a tooltip under the control
 // it describes — and neither could have it before phase 6, because an overlay
 // entry is placed by the overlay's own alignment and nothing in the stack
-// anchored anything. `Layout3d.anchorOffsetTo` in the layout package is the
-// arithmetic; these two boxes are what drive it.
+// anchored anything. `RenderObject3d.anchorOffsetTo` in the layout package is
+// the arithmetic; these two boxes are what drive it.
 
 /// The box an overlay is anchored to: whatever a `PopupMenuButton3d` or a
 /// `Tooltip3d` wraps.
@@ -34,7 +35,7 @@ import 'package:flutter_ui_3d/widgets.dart' show SingleChildLayout3dWidget;
 /// hooks a follower needs. A scrolling view places its rows rather than
 /// relaying them out, so a follower watching only for a relayout would never
 /// hear about a scroll.
-class Anchor3d extends ProxyLayout3d {
+class Anchor3d extends RenderProxyBox3d {
   /// Creates an anchor.
   Anchor3d({super.name = 'Anchor3d'});
 
@@ -49,7 +50,7 @@ class Anchor3d extends ProxyLayout3d {
 }
 
 /// Hands the [Anchor3d] it creates back to whoever asked for it.
-class Anchor3dWidget extends SingleChildLayout3dWidget {
+class Anchor3dWidget extends SingleChildRenderObjectWidget3d {
   /// Creates an anchor around [child].
   const Anchor3dWidget({
     super.key,
@@ -86,7 +87,7 @@ class Anchor3dWidget extends SingleChildLayout3dWidget {
 /// `CompositedTransformFollower` does with its own offset. A menu item used
 /// to answer in the empty middle of the panel while a press on the item, at
 /// its button, reached the barrier and closed the menu.
-class Follower3d extends ProxyLayout3d {
+class Follower3d extends RenderProxyBox3d {
   /// Creates a follower for [anchor].
   Follower3d({
     required Anchor3d anchor,
@@ -249,7 +250,7 @@ class _Follower3dWidgetState extends State<Follower3dWidget> {
   );
 }
 
-class _Follower3dHost extends SingleChildLayout3dWidget {
+class _Follower3dHost extends SingleChildRenderObjectWidget3d {
   const _Follower3dHost({
     required this.anchor,
     required this.self,

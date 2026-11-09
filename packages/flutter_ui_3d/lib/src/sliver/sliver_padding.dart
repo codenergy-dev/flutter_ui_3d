@@ -6,7 +6,7 @@ import 'package:flutter/painting.dart' show TextDirection;
 
 import '../geometry/edge_insets3d.dart';
 import '../geometry/offset3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'sliver.dart';
 import 'sliver_constraints.dart';
 
@@ -42,7 +42,7 @@ import 'sliver_constraints.dart';
 ///   ],
 /// )
 /// ```
-class SliverPadding3d extends Sliver3d with Layout3dWithChildMixin {
+class SliverPadding3d extends Sliver3d with RenderObjectWithChildMixin3d {
   /// Creates a sliver that insets [sliver].
   SliverPadding3d({
     EdgeInsetsGeometry3d padding = EdgeInsets3d.zero,
@@ -90,7 +90,7 @@ class SliverPadding3d extends Sliver3d with Layout3dWithChildMixin {
   set sliver(Sliver3d? value) => child = value;
 
   @override
-  set child(Layout3d? value) {
+  set child(RenderObject3d? value) {
     assert(
       value == null || value is Sliver3d,
       'SliverPadding3d insets a sliver. Wrap a box in a SliverToBoxAdapter3d '

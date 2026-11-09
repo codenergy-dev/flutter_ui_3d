@@ -362,7 +362,7 @@ void main() {
 }
 
 /// A leaf that counts how often it is told the opacity changed.
-class _CountingBox extends Layout3d {
+class _CountingBox extends RenderObject3d {
   _CountingBox(this._onRefresh, {this.onRefresh});
 
   final void Function()? _onRefresh;

@@ -25,9 +25,9 @@ import 'package:material_ui_3d/material_ui_3d.dart';
 ///
 /// Not named `allOf`: `package:matcher` exports one, and the collision is a
 /// compile error in every test that imports both.
-List<T> boxesOf<T extends Layout3d>(Layout3dSurface surface) {
+List<T> boxesOf<T extends RenderObject3d>(Layout3dSurface surface) {
   final found = <T>[];
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is T) found.add(box);
     box.visitChildren(walk);
   }
@@ -38,7 +38,7 @@ List<T> boxesOf<T extends Layout3d>(Layout3dSurface surface) {
 }
 
 /// The one box of type [T] in [surface].
-T oneOf<T extends Layout3d>(Layout3dSurface surface) {
+T oneOf<T extends RenderObject3d>(Layout3dSurface surface) {
   final found = boxesOf<T>(surface);
   if (found.length != 1) {
     throw StateError('expected one $T, found ${found.length}');
@@ -47,7 +47,7 @@ T oneOf<T extends Layout3d>(Layout3dSurface surface) {
 }
 
 /// The outermost box of type [T] in [surface].
-T outermostOf<T extends Layout3d>(Layout3dSurface surface) =>
+T outermostOf<T extends RenderObject3d>(Layout3dSurface surface) =>
     boxesOf<T>(surface).first;
 
 /// The node-tier shifts a component built itself, in tree order.
@@ -76,8 +76,8 @@ NodeShift3d oneComponentShift(Layout3dSurface surface) {
 ///
 /// How a test reaches a box a component built privately — a switch's thumb,
 /// a progress bar's span — which has no type a test can name.
-Layout3d namedBox(Layout3dSurface surface, String name) {
-  final found = boxesOf<Layout3d>(
+RenderObject3d namedBox(Layout3dSurface surface, String name) {
+  final found = boxesOf<RenderObject3d>(
     surface,
   ).where((box) => box.node.name == name).toList();
   if (found.length != 1) {

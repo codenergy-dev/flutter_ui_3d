@@ -170,14 +170,14 @@ class PreparedText3d {
   /// The width of the widest thing that cannot be broken, in logical pixels.
   ///
   /// The narrowest a box can be without a word standing outside it, and so
-  /// the answer to [Layout3d.getMinIntrinsicExtent] along the horizontal.
+  /// the answer to [RenderObject3d.getMinIntrinsicExtent] along the horizontal.
   final double minIntrinsicWidth;
 
   /// The width the text would take on one line per hard break, in logical
   /// pixels.
   ///
   /// The widest a box can usefully be, and so the answer to
-  /// [Layout3d.getMaxIntrinsicExtent] along the horizontal.
+  /// [RenderObject3d.getMaxIntrinsicExtent] along the horizontal.
   final double maxIntrinsicWidth;
 
   /// How many lines the text has before any wrapping, counting hard breaks.

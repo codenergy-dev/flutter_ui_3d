@@ -903,16 +903,16 @@ the room it was given, and without a window its rows draw over the bars rather
 than ending at them. The window clips the **face and not the depth**, so a
 raised card in the body still stands proud of the screen.
 
-**Where that lift is written matters more than the figure.** It goes on the
-node tier — each slot is *positioned* at z zero and its geometry is moved
-forward by a `NodeShift3d` — and not into the position the arrangement gives
-the slot, which is what it used to be. Toward the viewer is negative z, so a
-slot lifted by its position sits outside its parent's own extent, and
-`Layout3d.hitTest` clamps the ray to the stretch inside each box before it asks
-that box's children. A screen lifted that way drew perfectly and **could not be
-pressed anywhere**: the scaffold's own backing answered every hit. The node
-tier draws identically and keeps the boxes where layout put them, which is what
-a ray looks for. `Stack3d.depthStep` has always separated its children that
+**Where that lift is written matters more than the figure.** It goes on the node
+tier — each slot is *positioned* at z zero and its geometry is moved forward
+by a `NodeShift3d` — and not into the position the arrangement gives the slot,
+which is what it used to be. Toward the viewer is negative z, so a slot lifted
+by its position sits outside its parent's own extent, and
+`RenderObject3d.hitTest` clamps the ray to the stretch inside each box before it
+asks that box's children. A screen lifted that way drew perfectly and **could
+not be pressed anywhere**: the scaffold's own backing answered every hit. The
+node tier draws identically and keeps the boxes where layout put them, which is
+what a ray looks for. `Stack3d.depthStep` has always separated its children that
 way, for the same reason, and `ParentData3d.sceneOffset` says so in as many
 words.
 
@@ -961,10 +961,10 @@ pixel separates two decals, not two slabs.
 That clip is the claim this package's plans had made twice and nobody had
 photographed. When phase 5 finally did, it was **not happening** — a viewport
 works out what a pinned header is sitting on after its rows have been laid out,
-so every row published an unbounded clip block while `Layout3d.clipRegion` went
-on answering correctly to anything that asked afterwards. It is fixed in the
-layout package under
-[its own plan](../flutter_ui_3d/plans/2026_09_08_the_declarative_side_of_a_pinned_bar.md),
+so every row published an unbounded clip block while `RenderObject3d.clipRegion`
+went on answering correctly to anything that asked afterwards. It is fixed in
+the layout package under [its own
+plan](../flutter_ui_3d/plans/2026_09_08_the_declarative_side_of_a_pinned_bar.md),
 and `examples/render_probe`'s `sliver_app_bar_clip` scene is the picture.
 
 Two things Flutter's `SliverAppBar` does that this one deliberately does not.
@@ -1275,10 +1275,10 @@ overlays with it.
 
 An overlay entry is placed by the overlay's own alignment, which is in the
 middle of the panel and nowhere near the button that asked for a menu. There is
-no `CompositedTransformTarget` here; there is `Layout3d.anchorOffsetTo`, which
-this package drives through `Anchor3d` (around the trigger) and `Follower3d`
-(around the menu). It answers a `nodeOffset`, so anchoring is the node tier:
-one matrix, no relayout, and re-anchoring every frame costs nothing.
+no `CompositedTransformTarget` here; there is `RenderObject3d.anchorOffsetTo`,
+which this package drives through `Anchor3d` (around the trigger) and
+`Follower3d` (around the menu). It answers a `nodeOffset`, so anchoring is the
+node tier: one matrix, no relayout, and re-anchoring every frame costs nothing.
 
 It **follows** rather than closing. Three hooks, because the ways a button can
 move are not one kind of event: the follower re-anchors when it is placed, when
@@ -1747,7 +1747,7 @@ not state one.
 
 `SceneTheme3d` installs both halves of the theme channel at once, and both are
 needed. The widget layer reads `Theme3d.of(context)`, like any inherited
-widget. The imperative layer cannot: a `Layout3d` is not a widget and
+widget. The imperative layer cannot: a `RenderObject3d` is not a widget and
 `performLayout` is not a build, so there is no `BuildContext` anywhere near
 the code that decides a size. That half reads the theme out of the layout
 surface's owner slot, which is what `Layout3dSlot` was added to
@@ -1801,12 +1801,12 @@ the thickness through the surface's unit contract, and the painter converts
 the radius and the elevation at paint time.
 
 A component of your own reads the theme the same way. `Theme3d.of(context)`
-in the widget layer, and — because a `Layout3d` is not a widget and
+in the widget layer, and — because a `RenderObject3d` is not a widget and
 `performLayout` is not a build — the `theme3d` extension in the imperative
 one:
 
 ```dart
-class ThemedSlab extends Layout3d {
+class ThemedSlab extends RenderObject3d {
   @override
   void performLayout() {
     // The theme names a figure in logical pixels; the metrics says what a
@@ -1838,8 +1838,8 @@ equality, and a `const` map key needs primitive equality.)
 
 With no theme published, both `Theme3d.of` and `theme3d` return
 `Theme3dData.light` rather than throwing, for the same reason
-`Layout3d.metrics` falls back to a standard unit contract: a component drawn
-in the wrong-but-valid baseline is visible and diagnosable, while a layout
+`RenderObject3d.metrics` falls back to a standard unit contract: a component
+drawn in the wrong-but-valid baseline is visible and diagnosable, while a layout
 pass that threw over a missing default is neither. `Theme3d.maybeOf` and
 `hasTheme3d` answer the question directly when the difference matters.
 

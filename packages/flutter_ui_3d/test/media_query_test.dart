@@ -78,7 +78,7 @@ Widget view(MediaQueryData data, Widget child) => MediaQuery(
 );
 
 /// The one box the surface holds.
-T childOf<T extends Layout3d>(Layout3dController controller) =>
+T childOf<T extends RenderObject3d>(Layout3dController controller) =>
     controller.surface!.child! as T;
 
 /// The label under a centring box on [controller]'s surface.

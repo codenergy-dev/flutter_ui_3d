@@ -7,8 +7,8 @@ import '../clip.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
 import '../layout_pass.dart';
+import '../rendering/object.dart';
 import '../scroll/scroll_controller.dart';
 import '../scroll/scrollable.dart';
 import 'sliver.dart';
@@ -41,8 +41,8 @@ import 'sliver_constraints.dart';
 /// slivers are given to span. Along the scroll axis it need not be: with no
 /// edge to fill, the view shrink-wraps to however long its slivers came out,
 /// the way Flutter's `ShrinkWrappingViewport` does.
-class CustomScrollView3d extends MultiChildLayout3d<ParentData3d>
-    with Layout3dLayoutPassMixin, Scroll3dHolderMixin {
+class CustomScrollView3d extends RenderMultiChild3d<ParentData3d>
+    with RenderLayoutPassMixin3d, Scroll3dHolderMixin {
   /// Creates a viewport over [slivers].
   CustomScrollView3d({
     Axis3d scrollDirection = Axis3d.vertical,
@@ -90,13 +90,13 @@ class CustomScrollView3d extends MultiChildLayout3d<ParentData3d>
   /// Rejects a child that is not a [Sliver3d], where the caller can still see
   /// what it did.
   ///
-  /// The constructor is typed, but [add], [insert] and [syncChildren] come
-  /// from the child-list mixin and take any [Layout3d], and the declarative
+  /// The constructor is typed, but [add], [insert] and [syncChildren] come from
+  /// the child-list mixin and take any [RenderObject3d], and the declarative
   /// layer hands over plain widgets. Without this the mistake surfaces as a
   /// cast failure in the middle of [performLayout], naming neither the child
   /// nor the fix.
   @override
-  void setupParentData(Layout3d child) {
+  void setupParentData(RenderObject3d child) {
     assert(
       child is Sliver3d,
       '$runtimeType takes slivers, but was given a '
@@ -120,7 +120,7 @@ class CustomScrollView3d extends MultiChildLayout3d<ParentData3d>
   bool hitTestSelf(Offset3d position) => true;
 
   /// Tests slivers in scroll order, first one first, which is the reverse of
-  /// what a [MultiChildLayout3d] does by default.
+  /// what a [RenderMultiChild3d] does by default.
   ///
   /// A viewport's children do not sit side by side the way a `Stack3d`'s do:
   /// the leading ones are in *front*. A pinned header holds the leading edge
@@ -145,7 +145,7 @@ class CustomScrollView3d extends MultiChildLayout3d<ParentData3d>
   /// child rather than kept in parent data because it is a property of one
   /// pass over a list that is otherwise plain [ParentData3d]; a sliver that
   /// is not in here is not covered by anything.
-  final Map<Layout3d, double> _obstructedTo = <Layout3d, double>{};
+  final Map<RenderObject3d, double> _obstructedTo = <RenderObject3d, double>{};
 
   /// What [_obstructedTo] held the last time the clips were published.
   ///
@@ -153,7 +153,8 @@ class CustomScrollView3d extends MultiChildLayout3d<ParentData3d>
   /// back to the top and the bar is no longer sitting on anything — is told
   /// to republish once, rather than keeping the band it was cut with
   /// forever.
-  final Map<Layout3d, double> _publishedObstruction = <Layout3d, double>{};
+  final Map<RenderObject3d, double> _publishedObstruction =
+      <RenderObject3d, double>{};
 
   /// The clip a sliver inherits, cut at the trailing edge of whatever pinned
   /// sliver is sitting on top of it.
@@ -174,7 +175,7 @@ class CustomScrollView3d extends MultiChildLayout3d<ParentData3d>
   /// [BoxDecoration3d] hands it to its shader, and a leaf holding an
   /// application's own material ignores it.
   @override
-  Clip3dRegion clipRegionForChild(Layout3d child) {
+  Clip3dRegion clipRegionForChild(RenderObject3d child) {
     final base = super.clipRegionForChild(child);
     final obstructed = _obstructedTo[child];
     if (obstructed == null || obstructed <= 0.0) return base;
@@ -280,7 +281,7 @@ class CustomScrollView3d extends MultiChildLayout3d<ParentData3d>
   /// what is covering what: [_obstructedTo] is cleared at the top of every
   /// pass and filled in as each sliver is placed, so a row asking for its
   /// clip at that moment is told, correctly for that instant and uselessly,
-  /// that nothing covers it. `Layout3d.clipRegion` answers correctly
+  /// that nothing covers it. `RenderObject3d.clipRegion` answers correctly
   /// afterwards — which is why every headless test of the band passed while
   /// no frame was ever cut.
   ///

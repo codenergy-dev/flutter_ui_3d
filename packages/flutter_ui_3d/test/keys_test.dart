@@ -73,7 +73,7 @@ class Recording<T extends Intent> extends Action<T> {
 
 /// Lays [child] out on a surface of [size], disposed at the end of the test.
 Layout3dSurface surfaceOf(
-  Layout3d child, {
+  RenderObject3d child, {
   Size3d size = const Size3d(3, 3, 0),
 }) {
   final surface = laidOut(child, constraints: Constraints3d.tight(size));
@@ -321,7 +321,7 @@ void main() {
       final a = box(name: 'a');
       final b = box(name: 'b');
       final c = box(name: 'c');
-      surfaceOf(Row3d(children: <Layout3d>[a, b, c]));
+      surfaceOf(Row3d(children: <RenderObject3d>[a, b, c]));
       a.requestFocus();
       settleFocus();
 
@@ -345,9 +345,9 @@ void main() {
       final c = box(name: 'c');
       surfaceOf(
         Column3d(
-          children: <Layout3d>[
-            Row3d(children: <Layout3d>[a, b]),
-            Row3d(children: <Layout3d>[c]),
+          children: <RenderObject3d>[
+            Row3d(children: <RenderObject3d>[a, b]),
+            Row3d(children: <RenderObject3d>[c]),
           ],
         ),
         size: const Size3d(2, 2, 0),
@@ -371,9 +371,9 @@ void main() {
       final d = box(name: 'd');
       final surface = surfaceOf(
         Column3d(
-          children: <Layout3d>[
+          children: <RenderObject3d>[
             a,
-            FocusScope3d(child: Row3d(children: <Layout3d>[c, d])),
+            FocusScope3d(child: Row3d(children: <RenderObject3d>[c, d])),
             b,
           ],
         ),
@@ -414,7 +414,7 @@ void main() {
       // tree: the scope above it, with nothing focused inside.
       final a = box(name: 'a');
       final b = box(name: 'b');
-      final surface = surfaceOf(Row3d(children: <Layout3d>[a, b]));
+      final surface = surfaceOf(Row3d(children: <RenderObject3d>[a, b]));
       surface.owner!.focusScope.requestFocus();
       settleFocus();
       expect(
@@ -465,7 +465,7 @@ void main() {
   group('a modal entry', () {
     ({Layout3dSurface surface, Overlay3d overlay, Focus3d opener}) page() {
       final opener = box(name: 'opener');
-      final overlay = Overlay3d(children: <Layout3d>[opener]);
+      final overlay = Overlay3d(children: <RenderObject3d>[opener]);
       final surface = surfaceOf(overlay, size: const Size3d(4, 3, 0));
       opener.requestFocus();
       settleFocus();

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart'
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// Guarantees the pointer a minimum area to aim at, without changing what
 /// layout measured.
@@ -79,12 +79,13 @@ import '../layout3d.dart';
 ///   ),
 /// )
 /// ```
-class TapTarget3d extends ProxyLayout3d {
+class TapTarget3d extends RenderProxyBox3d {
   /// Creates a target at least [minimumSize] across.
   ///
   /// A null [minimumSize] means the Material minimum, 48dp square, resolved
-  /// through the tree's [Layout3d.metrics] at the time of the hit test — so a
-  /// surface bound to a camera keeps its targets 48dp as the view changes.
+  /// through the tree's [RenderObject3d.metrics] at the time of the hit test
+  /// — so a surface bound to a camera keeps its targets 48dp as the view
+  /// changes.
   TapTarget3d({Size3d? minimumSize, super.child, super.name})
     : _minimumSize = minimumSize;
 

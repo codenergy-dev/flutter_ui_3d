@@ -2,7 +2,7 @@ import 'package:flutter/animation.dart' show Animation;
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
 import '../geometry/offset3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// A box that moves its subtree's geometry without the layout ever hearing
 /// about it: the node-only animation path.
@@ -20,9 +20,9 @@ import '../layout3d.dart';
 /// three dimensions. A dirty box is re-measured, and a re-measured box may ask
 /// a [Text3d] to shape a string or a decorated box to re-derive a shader's
 /// uniforms. Nothing on this path can reach any of that, by construction:
-/// [Layout3d.nodeOffset] and [Layout3d.nodeTransform] are plain setters that
-/// rewrite a transform and ask the host for a frame. Use it for every
-/// animation that does not change a size, and reach for
+/// [RenderObject3d.nodeOffset] and [RenderObject3d.nodeTransform] are plain
+/// setters that rewrite a transform and ask the host for a frame. Use it for
+/// every animation that does not change a size, and reach for
 /// [ImplicitlyAnimatedLayout3dWidget] only for the ones that do.
 ///
 /// ## What it is not
@@ -50,9 +50,9 @@ import '../layout3d.dart';
 /// ```
 ///
 /// A value that is not animated at all needs none of this: every box has
-/// [Layout3d.nodeOffset], so a static nudge is a single assignment on the box
-/// itself.
-class NodeTransform3d extends ProxyLayout3d {
+/// [RenderObject3d.nodeOffset], so a static nudge is a single assignment on the
+/// box itself.
+class NodeTransform3d extends RenderProxyBox3d {
   /// Creates a node-only animation box driven by [offset] and [transform].
   NodeTransform3d({
     Animation<Offset3d>? offsetAnimation,
@@ -69,11 +69,11 @@ class NodeTransform3d extends ProxyLayout3d {
 
   Animation<Offset3d>? _offset;
 
-  /// The animation driving [Layout3d.nodeOffset], or null.
+  /// The animation driving [RenderObject3d.nodeOffset], or null.
   ///
-  /// Named for the animation rather than the value because [Layout3d.offset]
-  /// is already taken, and means something quite different: where the parent
-  /// put this box.
+  /// Named for the animation rather than the value because
+  /// [RenderObject3d.offset] is already taken, and means something quite
+  /// different: where the parent put this box.
   Animation<Offset3d>? get offsetAnimation => _offset;
 
   set offsetAnimation(Animation<Offset3d>? value) {
@@ -85,7 +85,7 @@ class NodeTransform3d extends ProxyLayout3d {
 
   Animation<Matrix4>? _transform;
 
-  /// The animation driving [Layout3d.nodeTransform], or null.
+  /// The animation driving [RenderObject3d.nodeTransform], or null.
   Animation<Matrix4>? get transformAnimation => _transform;
 
   set transformAnimation(Animation<Matrix4>? value) {

@@ -64,7 +64,7 @@ void main() {
 
     test('a box that was measured pushes its dirt past its own boundary', () {
       Column3d makeColumn() =>
-          Column3d(children: <Layout3d>[TestBox(const Size3d(2, 2, 2))]);
+          Column3d(children: <RenderObject3d>[TestBox(const Size3d(2, 2, 2))]);
 
       // Tight constraints make the column its own relayout boundary, so a
       // change inside it normally stops there.
@@ -165,7 +165,7 @@ void main() {
     test('a line adds up along its axis and overlaps across it', () {
       final column = Column3d(
         spacing: 1,
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           TestBox(const Size3d(2, 3, 4)),
           TestBox(const Size3d(5, 1, 2)),
         ],
@@ -177,7 +177,7 @@ void main() {
 
     test('a flexible child sets the pace for the whole line', () {
       final column = Column3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           TestBox(const Size3d(2, 3, 4)),
           Expanded3d(flex: 2, child: TestBox(const Size3d(2, 4, 4))),
         ],
@@ -189,7 +189,7 @@ void main() {
 
     test('a stack is as big as its largest unpositioned child', () {
       final stack = Stack3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           TestBox(const Size3d(2, 2, 2)),
           Positioned3d(left: 0, child: TestBox(const Size3d(9, 9, 9))),
         ],
@@ -200,7 +200,7 @@ void main() {
     test('a wrap wants one run and can live with its widest child', () {
       final wrap = Wrap3d(
         spacing: 1,
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           TestBox(const Size3d(2, 1, 1)),
           TestBox(const Size3d(3, 1, 1)),
         ],
@@ -212,7 +212,7 @@ void main() {
 
     test('a scrolling view refuses the question', () {
       final list = ListView3d(
-        children: <Layout3d>[TestBox(const Size3d(2, 2, 2))],
+        children: <RenderObject3d>[TestBox(const Size3d(2, 2, 2))],
       );
       expect(
         () => list.getMaxIntrinsicExtent(Axis3d.vertical),
@@ -223,7 +223,7 @@ void main() {
 
   group('IntrinsicExtent3d', () {
     test('sizes a column to its widest child', () {
-      final children = <Layout3d>[
+      final children = <RenderObject3d>[
         TestBox(const Size3d(2, 1, 1)),
         TestBox(const Size3d(5, 1, 1)),
       ];
@@ -254,7 +254,7 @@ void main() {
     });
 
     test('depth is an axis like any other', () {
-      final children = <Layout3d>[
+      final children = <RenderObject3d>[
         TestBox(const Size3d(1, 1, 2)),
         TestBox(const Size3d(1, 1, 5)),
       ];
@@ -276,7 +276,7 @@ void main() {
     });
 
     test('a measured child that changes is measured again', () {
-      final children = <Layout3d>[
+      final children = <RenderObject3d>[
         TestBox(const Size3d(2, 1, 1)),
         TestBox(const Size3d(5, 1, 1)),
       ];
@@ -328,7 +328,7 @@ void main() {
 
     test('a stack hangs from the highest baseline among its children', () {
       final stack = Stack3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           Baseline3d(baseline: 3, child: TestBox(const Size3d(2, 3, 1))),
           Baseline3d(baseline: 1, child: TestBox(const Size3d(2, 1, 1))),
         ],
@@ -339,7 +339,7 @@ void main() {
 
     test('a column takes the baseline of its first child', () {
       final column = Column3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           Baseline3d(baseline: 4, child: TestBox(const Size3d(1, 3, 1))),
           Baseline3d(baseline: 1, child: TestBox(const Size3d(1, 1, 1))),
         ],
@@ -361,7 +361,7 @@ void main() {
       );
       final row = Row3d(
         crossAxisAlignment: CrossAxisAlignment3d.baseline,
-        children: <Layout3d>[tall, short],
+        children: <RenderObject3d>[tall, short],
       );
       laidOut(row);
       expect(tall.offset.y, 0);
@@ -387,7 +387,7 @@ void main() {
       );
       final row = Row3d(
         crossAxisAlignment: CrossAxisAlignment3d.baseline,
-        children: <Layout3d>[above, below],
+        children: <RenderObject3d>[above, below],
       );
       laidOut(row);
       expect(above.size.height, 4);
@@ -406,7 +406,7 @@ void main() {
       final plain = TestBox(const Size3d(1, 6, 1));
       final row = Row3d(
         crossAxisAlignment: CrossAxisAlignment3d.baseline,
-        children: <Layout3d>[onLine, plain],
+        children: <RenderObject3d>[onLine, plain],
       );
       laidOut(row);
       expect(onLine.offset.y, 0);
@@ -427,7 +427,7 @@ void main() {
       );
       final row = Row3d(
         depthAxisAlignment: CrossAxisAlignment3d.baseline,
-        children: <Layout3d>[near, far],
+        children: <RenderObject3d>[near, far],
       );
       laidOut(row);
       expect(near.offset.z, 0);
@@ -441,7 +441,7 @@ void main() {
       final child = TestBox(const Size3d(2, 1, 1));
       final column = Column3d(
         crossAxisAlignment: CrossAxisAlignment3d.stretch,
-        children: <Layout3d>[child, TestBox(const Size3d(5, 1, 1))],
+        children: <RenderObject3d>[child, TestBox(const Size3d(5, 1, 1))],
       );
       laidOut(IntrinsicWidth3d(child: column));
       expect(child.node.localTransform, isA<Matrix4>());

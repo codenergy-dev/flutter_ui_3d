@@ -1,9 +1,9 @@
 import '../geometry/offset3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'scene.dart';
 
 /// Where a box is, asked the way a test asks it.
-extension Layout3dTestGeometry on Layout3d {
+extension Layout3dTestGeometry on RenderObject3d {
   /// Where this box's front, top, left corner is **drawn**, in the layout
   /// frame of the surface at the root of its tree.
   ///

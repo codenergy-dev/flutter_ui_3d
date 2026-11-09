@@ -15,7 +15,7 @@ import 'package:flutter/painting.dart'
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'break_rules.dart';
 import 'prepared_text.dart';
 import 'text_layout.dart';
@@ -66,7 +66,7 @@ import 'text_renderer.dart';
 /// labels wants one each rather than one shared: hand each box a
 /// [rendererFactory], or, from the widget layer, put a
 /// `DefaultTextRenderer3d` above them and let `SceneText3d` do it.
-class Text3d extends Layout3d {
+class Text3d extends RenderObject3d {
   /// Creates a text box over [data].
   Text3d(
     String data, {
@@ -493,7 +493,7 @@ class Text3d extends Layout3d {
   /// the same atlas, and a different opacity in it. Nothing is laid out and no
   /// string is re-shaped: the line breaking is already cached against these
   /// constraints, so this costs the two uniform writes the renderer spends on
-  /// a glyph's faces and its wall. See [Layout3d.inheritedOpacity].
+  /// a glyph's faces and its wall. See [RenderObject3d.inheritedOpacity].
   @override
   void refreshOpacity() {
     if (!hasSize || _renderer == null) return;
@@ -527,8 +527,9 @@ class Text3d extends Layout3d {
   /// *wholly* out and still drawn because the box it belongs to is not — a
   /// page of a page view half across its window carries every label on it a
   /// page's width outside the panel, where the panels around them are already
-  /// cut away. [Layout3d.place] republishes the clip down whatever it moved,
-  /// so this runs on every frame of a scroll without anything laying out.
+  /// cut away. [RenderObject3d.place] republishes the clip down whatever it
+  /// moved, so this runs on every frame of a scroll without anything laying
+  /// out.
   ///
   /// Only a node this label hid is shown again, for the reason [ClipBox3d]
   /// restores only what it culled: a list hides its items, and a label that

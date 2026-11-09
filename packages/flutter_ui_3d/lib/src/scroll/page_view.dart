@@ -5,7 +5,7 @@ import 'package:flutter/scheduler.dart' show TickerProvider;
 
 import '../boxes/flex.dart' show CrossAxisAlignment3d;
 import '../geometry/offset3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import '../sliver/sliver_list.dart';
 import 'box_scroll_view.dart';
 import 'scroll_controller.dart';
@@ -48,7 +48,7 @@ class PageView3d extends BoxScrollView3d<SliverList3d> {
     Scroll3dController? controller,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.stretch,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
-    List<Layout3d> children = const <Layout3d>[],
+    List<RenderObject3d> children = const <RenderObject3d>[],
     String? name,
   }) : this._(
          SliverList3d(
@@ -68,7 +68,7 @@ class PageView3d extends BoxScrollView3d<SliverList3d> {
   /// here than in a list of rows.
   PageView3d.builder({
     required int itemCount,
-    required Layout3dItemBuilder itemBuilder,
+    required RenderObject3dItemBuilder itemBuilder,
     Axis3d scrollDirection = Axis3d.horizontal,
     Scroll3dController? controller,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.stretch,

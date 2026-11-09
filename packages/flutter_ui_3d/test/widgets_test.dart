@@ -15,15 +15,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart';
 import 'package:flutter_ui_3d/widgets.dart';
 
-List<Layout3d> childrenOf(Layout3d layout) =>
-    (layout as MultiChildLayout3d).children;
+List<RenderObject3d> childrenOf(RenderObject3d layout) =>
+    (layout as RenderMultiChild3d).children;
 
-Layout3d rootOf(Layout3dController controller) => controller.surface!.child!;
+RenderObject3d rootOf(Layout3dController controller) =>
+    controller.surface!.child!;
 
 /// The one child of a single-child layout, for the tests that put a box under
 /// a [Center3d] so that it is loosely constrained rather than sized by the
 /// surface.
-Layout3d childOf(Layout3d layout) => (layout as Layout3dWithChildMixin).child!;
+RenderObject3d childOf(RenderObject3d layout) =>
+    (layout as RenderObjectWithChildMixin3d).child!;
 
 void main() {
   testWidgets('a const single-child widget is const, and skips its rebuild', (
@@ -492,8 +494,8 @@ void main() {
       ),
     );
 
-    final padding = rootOf(controller) as SingleChildLayout3d;
-    final row = padding.child! as MultiChildLayout3d;
+    final padding = rootOf(controller) as RenderSingleChild3d;
+    final row = padding.child! as RenderMultiChild3d;
     expect(row.size.width, 8);
     expect(row.children[0].size.width, 6);
     expect(row.children[1].offset.x, 6);

@@ -43,7 +43,7 @@ Widget cardFor(
 /// in phase 5, and it is recorded as a gap in the phase-4 plan notes rather
 /// than fixed here, because a new widget in the layout package wants a plan
 /// of its own.
-class SceneClipBox3d extends SingleChildLayout3dWidget {
+class SceneClipBox3d extends SingleChildRenderObjectWidget3d {
   const SceneClipBox3d({super.key, this.clipDepth = false, super.child});
 
   final bool clipDepth;
@@ -160,7 +160,7 @@ void main() {
       final padding = outermostOf<Padding3d>(it.surface);
       var sawPadding = false;
       var panelIsInside = false;
-      void walk(Layout3d box) {
+      void walk(RenderObject3d box) {
         if (identical(box, padding)) sawPadding = true;
         if (box is DecoratedBox3d && sawPadding) panelIsInside = true;
         box.visitChildren(walk);
@@ -256,7 +256,7 @@ void main() {
       );
       var sawTarget = false;
       var semanticsIsInside = false;
-      void walk(Layout3d box) {
+      void walk(RenderObject3d box) {
         if (box is TapTarget3d) sawTarget = true;
         if (box is Semantics3d && sawTarget) semanticsIsInside = true;
         box.visitChildren(walk);

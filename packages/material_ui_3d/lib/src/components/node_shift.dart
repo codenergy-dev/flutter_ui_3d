@@ -1,7 +1,8 @@
 import 'package:flutter/widgets.dart' show BuildContext;
-import 'package:flutter_ui_3d/rendering.dart' show Offset3d, ProxyLayout3d;
+import 'package:flutter_ui_3d/rendering.dart' show Offset3d, RenderProxyBox3d;
 import 'package:vector_math/vector_math.dart' show Matrix4;
-import 'package:flutter_ui_3d/widgets.dart' show SingleChildLayout3dWidget;
+import 'package:flutter_ui_3d/widgets.dart'
+    show SingleChildRenderObjectWidget3d;
 
 /// Moves and stretches what it holds **without laying anything out**.
 ///
@@ -12,8 +13,8 @@ import 'package:flutter_ui_3d/widgets.dart' show SingleChildLayout3dWidget;
 /// the second tier: the geometry moves and no box changes size, so there is
 /// nothing for the layout protocol to redo.
 ///
-/// Two channels, and they compose the way `Layout3d`'s own do — the node
-/// carries `T(offset + sceneOffset + shift) * scale`:
+/// Two channels, and they compose the way `RenderObject3d`'s own do — the
+/// node carries `T(offset + sceneOffset + shift) * scale`:
 ///
 ///  * [shift] is a `nodeOffset`: a translation in the box's own layout axes,
 ///    in **world units**.
@@ -30,7 +31,7 @@ import 'package:flutter_ui_3d/widgets.dart' show SingleChildLayout3dWidget;
 /// the laid-out position rather than the drawn one, and a render probe of
 /// anything moved this way has to take its oracle from a box that did not
 /// move — a slider's *track*, not its thumb.
-class NodeShift3d extends ProxyLayout3d {
+class NodeShift3d extends RenderProxyBox3d {
   /// Creates a shift, at rest.
   NodeShift3d({
     Offset3d shift = Offset3d.zero,
@@ -75,7 +76,7 @@ class NodeShift3d extends ProxyLayout3d {
 /// Rebuilding this widget writes a matrix and marks **nothing** dirty for
 /// layout, which is the whole point: a switch that is toggled, or a slider
 /// dragged from a `setState`, rebuilds its own subtree and lays nothing out.
-class SceneNodeShift3d extends SingleChildLayout3dWidget {
+class SceneNodeShift3d extends SingleChildRenderObjectWidget3d {
   /// Creates a shifted subtree.
   const SceneNodeShift3d({
     super.key,

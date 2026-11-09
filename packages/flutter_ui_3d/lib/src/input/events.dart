@@ -10,7 +10,7 @@ import 'package:flutter/gestures.dart'
 
 import '../geometry/offset3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'drag.dart';
 
 /// A box that can be handed the events a hit test found it for.
@@ -193,7 +193,7 @@ class PointerEvent3d {
   ///
   /// The conversion between [localPosition] and [PointerEvent.localPosition],
   /// carried along so a target can move between the two frames without
-  /// reaching for its own [Layout3d.metrics].
+  /// reaching for its own [RenderObject3d.metrics].
   final double metricsScale;
 
   /// The sequence this event belongs to, or null for a synthesized event
@@ -201,7 +201,7 @@ class PointerEvent3d {
   final PointerSequence3d? sequence;
 
   /// The box this event was delivered to.
-  Layout3d get layout => entry.layout;
+  RenderObject3d get layout => entry.layout;
 
   /// The pointer id, in Flutter's arena.
   int get pointer => event.pointer;

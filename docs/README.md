@@ -114,7 +114,7 @@ The entry points:
   ripple, is done as well, and its half of the layout package is
   [where a press landed](../packages/flutter_ui_3d/plans/2026_09_09_where_a_press_landed.md):
   two shader parameters, a `Ripple3d` on `StateLayer3d`, and
-  `Layout3d.localPointFrom` — `anchorOffsetTo`'s own change of frame,
+  `RenderObject3d.localPointFrom` — `anchorOffsetTo`'s own change of frame,
   generalized off an alignment, because a finger is not an alignment. Phase 9
   is the gallery, and it is the phase that most repays reading: four of the
   five things it found were defects that a full green suite had been standing

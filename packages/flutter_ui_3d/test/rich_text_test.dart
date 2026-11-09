@@ -32,7 +32,7 @@ TextSpan span(String text, [TextStyle textStyle = style]) =>
     TextSpan(text: text, style: textStyle);
 
 Layout3dSurface panel(
-  Layout3d child, {
+  RenderObject3d child, {
   Size3d size = const Size3d(4, 3, 0.5),
   Layout3dMetrics metrics = Layout3dMetrics.standard,
 }) => laidOut(child, constraints: Constraints3d.tight(size), metrics: metrics);
@@ -243,7 +243,7 @@ void main() {
       panel(
         Row3d(
           crossAxisAlignment: CrossAxisAlignment3d.baseline,
-          children: <Layout3d>[small, large],
+          children: <RenderObject3d>[small, large],
         ),
       );
       expect(

@@ -650,11 +650,12 @@ class SegmentedTextMeasurement3d extends TextMeasurement3d {
 /// connected script (Arabic, Devanagari, Thai), and text whose measurements
 /// have to agree with a Flutter `Text` to the pixel.
 ///
-/// The cost is the thing the two-phase design exists to avoid, so reach for
-/// it per box rather than globally: a `Text3d` on a scrolling list re-lays out
-/// whenever its room changes, and each of those is a shaping pass. The
-/// handle from [prepare] still caches the intrinsics and the line box, so
-/// [Layout3d.getMinIntrinsicExtent] and the baseline stay free either way.
+/// The cost is the thing the two-phase design exists to avoid, so reach for it
+/// per box rather than globally: a `Text3d` on a scrolling list re-lays out
+/// whenever its room changes, and each of those is a shaping pass. The handle
+/// from [prepare] still caches the intrinsics and the line box, so
+/// [RenderObject3d.getMinIntrinsicExtent] and the baseline stay free either
+/// way.
 class ParagraphTextMeasurement3d extends TextMeasurement3d {
   /// Creates an exact measurement.
   const ParagraphTextMeasurement3d();

@@ -1,5 +1,38 @@
 ## Unreleased
 
+- **The render object is called a render object, and its family is called
+  what Flutter calls it.** `Layout3d` is `RenderObject3d` now, in
+  `src/rendering/object.dart`, which is Flutter's file name for that class. It
+  is Flutter's `RenderObject` and `RenderBox` folded into one — tree, owner and
+  dirty tracking from the first; size, constraints, intrinsics and baselines
+  from the second — and it took the wider of the two names because `Sliver3d`
+  extends it, and a sliver is not a box. Pulling a `RenderBox3d` out of it would
+  be a change of design, and this changes only names. The rule for the rest is
+  the name Flutter uses, then `3d`: `Layout3dOwner` is `PipelineOwner3d`, `SingleChildLayout3d` and
+  `MultiChildLayout3d` are `RenderSingleChild3d` and `RenderMultiChild3d`,
+  `ProxyLayout3d` is `RenderProxyBox3d`, `ProxyLayout3dWithHitTestBehavior` is
+  `RenderProxyBoxWithHitTestBehavior3d`, `ShiftedLayout3d` is
+  `RenderShiftedBox3d`, and the `Layout3d…Mixin`s are
+  `RenderObjectWithChildMixin3d`, `ContainerRenderObjectMixin3d` and the
+  `Render…Mixin3d` set beside them. In the widget layer `Layout3dWidget` is
+  `MultiChildRenderObjectWidget3d`, `SingleChildLayout3dWidget` is
+  `SingleChildRenderObjectWidget3d`, `LazyLayout3dWidget` and
+  `Layout3dLazyElement` are `LazyRenderObjectWidget3d` and
+  `LazyRenderObjectElement3d`, and the three hosting boxes are
+  `RenderObject3dHost`, `RenderObject3dRootHost` and `RenderObject3dLazyHost`
+  — named for what they hold, because they are Flutter `RenderBox`es and not
+  render objects of this package. The callbacks are `RenderObject3dBuilder`,
+  `RenderObject3dItemBuilder` and `RenderObject3dPrototypeBuilder`, the lazy
+  seam is `RenderObject3dChildManager`, the test finders are
+  `RenderObjectFinder3d` and `CommonRenderObjectFinders3d`, and the tree dumps
+  are `debugDumpRenderObject3dTree`, `debugDescribeRenderObject3dTree` and
+  `debugDescribeRenderObject3dAncestry`. Nothing changes in behaviour, and the
+  barrels export what they did under the new names; a debug string that quoted
+  one of these classes quotes the new name. `Layout3dMetrics`,
+  `Layout3dPointer`, `Layout3dController` and the other names that do not stand
+  for a render object stay as they were, and `Layout3dSurface` moves with the
+  widgets, in the change that gives them Flutter's plain names.
+
 - **This package is `flutter_ui_3d` now, because what it is matters more than
   where it began.** `flutter_scene_layout3d` was named after the engine it
   started inside; it is the protocols a Flutter developer already knows, in

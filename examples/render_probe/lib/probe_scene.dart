@@ -23,14 +23,14 @@ final GlobalKey probeBoundaryKey = GlobalKey(debugLabel: 'probeBoundary');
 class ProbeSceneContent {
   ProbeSceneContent({
     required this.surfaces,
-    this.probes = const <String, Layout3d>{},
+    this.probes = const <String, RenderObject3d>{},
   });
 
   /// The laid-out surfaces, in the order they are added to the scene.
   final List<Layout3dSurface> surfaces;
 
   /// Boxes this scene wants its test to be able to locate on screen.
-  final Map<String, Layout3d> probes;
+  final Map<String, RenderObject3d> probes;
 }
 
 /// A named, deterministic scene the render test can draw and probe.

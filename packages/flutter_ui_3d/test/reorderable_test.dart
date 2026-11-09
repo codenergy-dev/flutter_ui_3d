@@ -53,7 +53,7 @@ class Fixture {
       },
       onReorder: (oldIndex, newIndex) => reorders.add((oldIndex, newIndex)),
     );
-    this.overlay = overlay ? Overlay3d(children: <Layout3d>[list]) : null;
+    this.overlay = overlay ? Overlay3d(children: <RenderObject3d>[list]) : null;
     surface = laidOut(
       this.overlay ?? list,
       constraints: Constraints3d.tight(Size3d(1, viewportExtent, 0)),
@@ -109,7 +109,7 @@ class Fixture {
 
   bool visibilityOf(int index) => _childAt(index).node.visible;
 
-  Layout3d _childAt(int index) {
+  RenderObject3d _childAt(int index) {
     final ordered = sliver.activeIndices.toList()..sort();
     return sliver.childAt(ordered.indexOf(index));
   }

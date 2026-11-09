@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart'
 
 import '../boxes/flex.dart' show CrossAxisAlignment3d;
 import '../geometry/offset3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import '../sliver/sliver_grid.dart';
 import 'box_scroll_view.dart';
 import 'grid_delegate.dart';
@@ -11,10 +11,10 @@ import 'scroll_controller.dart';
 
 /// Builds the layout for one cell of a [GridView3d.builder].
 @Deprecated(
-  'Use Layout3dItemBuilder, which every builder in the package shares. '
+  'Use RenderObject3dItemBuilder, which every builder in the package shares. '
   'This alias will be removed in a future release.',
 )
-typedef Grid3dItemBuilder = Layout3dItemBuilder;
+typedef Grid3dItemBuilder = RenderObject3dItemBuilder;
 
 /// A scrollable grid of equal cells, the 3D analogue of [GridView].
 ///
@@ -40,7 +40,7 @@ class GridView3d extends BoxScrollView3d<SliverGrid3d> {
     Scroll3dController? controller,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
     double cacheExtent = 0.0,
-    List<Layout3d> children = const <Layout3d>[],
+    List<RenderObject3d> children = const <RenderObject3d>[],
     String? name,
   }) : this._(
          SliverGrid3d(
@@ -58,7 +58,7 @@ class GridView3d extends BoxScrollView3d<SliverGrid3d> {
   GridView3d.builder({
     required Grid3dDelegate gridDelegate,
     required int itemCount,
-    required Layout3dItemBuilder itemBuilder,
+    required RenderObject3dItemBuilder itemBuilder,
     Axis3d scrollDirection = Axis3d.vertical,
     Scroll3dController? controller,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,

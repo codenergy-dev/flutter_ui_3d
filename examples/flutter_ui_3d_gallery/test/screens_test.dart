@@ -222,7 +222,7 @@ void main() {
     // the dialog it dims, so aiming a press there presses the dialog. That
     // the scrim closes a dialog is the catalogue's own test to make.
     final navigator = Navigator3d.of(
-      tester.layout3d<Layout3d>(find3d.bySubtype<ModalBarrier3d>()),
+      tester.layout3d<RenderObject3d>(find3d.bySubtype<ModalBarrier3d>()),
     );
     expect(navigator!.pop(), isTrue);
     await tester.pumpAndSettle();
@@ -237,7 +237,7 @@ void main() {
     // as one object moving is a question only the window answers.
     final surface = await pumpScreen(tester, const MaterialScreen());
     final rows = <Hero3d>{};
-    void collect(Layout3d box) {
+    void collect(RenderObject3d box) {
       if (box is Hero3d) rows.add(box);
       box.visitChildren(collect);
     }
@@ -332,7 +332,7 @@ void main() {
   group('phase 5 of the components a screen still needs', () {
     /// How far down the inbox the card announcing [name] is.
     double down(WidgetTester tester, String name) => tester
-        .layout3d<Layout3d>(find3d.bySemanticsLabel(name))
+        .layout3d<RenderObject3d>(find3d.bySemanticsLabel(name))
         .drawnOffsetInSurface
         .y;
 
@@ -369,7 +369,7 @@ void main() {
     /// Every label on [surface], in tree order.
     List<String> labels(Layout3dSurface surface) {
       final found = <String>[];
-      void walk(Layout3d box) {
+      void walk(RenderObject3d box) {
         if (box is Text3d) found.add(box.data);
         box.visitChildren(walk);
       }
@@ -387,7 +387,7 @@ void main() {
       await tester.tap3d(find3d.bySemanticsLabel('Ada Lovelace'));
       await tester.pumpAndSettle();
       Navigator3d.of(
-        tester.layout3d<Layout3d>(find3d.bySubtype<ModalBarrier3d>()),
+        tester.layout3d<RenderObject3d>(find3d.bySubtype<ModalBarrier3d>()),
       )!.pop();
       await tester.pumpAndSettle();
       expect(labels(surface), contains('4'));

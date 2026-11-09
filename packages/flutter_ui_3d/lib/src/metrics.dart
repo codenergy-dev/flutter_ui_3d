@@ -117,10 +117,10 @@ class VisualDensity3d {
 /// Everything in this package measures in world units, because that is what a
 /// scene is made of. Everything a *component* library is specified in is
 /// measured in logical pixels: a Material touch target is 48dp, a card corner
-/// is 12dp, a body label is 14sp. [unitsPerLogicalPixel] is the one number
-/// that joins the two, and it is carried on [Layout3dOwner] beside the basis
-/// so both the imperative and the declarative layer see it — a `Layout3d`
-/// reads it as [Layout3d.metrics], with no `BuildContext` in the way.
+/// is 12dp, a body label is 14sp. [unitsPerLogicalPixel] is the one number that
+/// joins the two, and it is carried on [PipelineOwner3d] beside the basis so
+/// both the imperative and the declarative layer see it — a `RenderObject3d`
+/// reads it as [RenderObject3d.metrics], with no `BuildContext` in the way.
 ///
 /// ```dart
 /// // A Material touch target, on the plane, at whatever density is in force.

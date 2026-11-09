@@ -24,20 +24,20 @@ import 'package:flutter_ui_3d/rendering.dart'
         Axis3d,
         Constraints3d,
         EdgeInsets3d,
-        Layout3d,
+        RenderObject3d,
         MainAxisAlignment3d,
         MainAxisSize3d,
-        MultiChildLayout3d,
+        RenderMultiChild3d,
         Offset3d,
         PageScroll3dPhysics,
         ParentData3d,
-        ProxyLayout3d,
+        RenderProxyBox3d,
         Scroll3dController,
         Size3d;
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        Layout3dWidget,
+        MultiChildRenderObjectWidget3d,
         SceneAlign3d,
         SceneClipBox3d,
         SceneColumn3d,
@@ -51,7 +51,7 @@ import 'package:flutter_ui_3d/widgets.dart'
         SceneSizedBox3d,
         SceneTapTarget3d,
         SceneText3d,
-        SingleChildLayout3dWidget;
+        SingleChildRenderObjectWidget3d;
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
 import '../theme/theme.dart';
@@ -483,8 +483,8 @@ class _TabBar3dState extends State<TabBar3d> {
 /// read by [_TabBarLayout3d] once the row of tabs has been laid out — so it
 /// holds boxes, not numbers, and the numbers are always this pass's.
 class _TabGeometry3d {
-  final List<Layout3d?> _slots = <Layout3d?>[];
-  final List<Layout3d?> _labels = <Layout3d?>[];
+  final List<RenderObject3d?> _slots = <RenderObject3d?>[];
+  final List<RenderObject3d?> _labels = <RenderObject3d?>[];
 
   set length(int value) {
     while (_slots.length < value) {
@@ -497,12 +497,12 @@ class _TabGeometry3d {
 
   int get length => _slots.length;
 
-  void put(int index, Layout3d box, {required bool label}) {
+  void put(int index, RenderObject3d box, {required bool label}) {
     if (index >= length) length = index + 1;
     (label ? _labels : _slots)[index] = box;
   }
 
-  void release(Layout3d box) {
+  void release(RenderObject3d box) {
     for (var i = 0; i < length; i++) {
       if (identical(_slots[i], box)) _slots[i] = null;
       if (identical(_labels[i], box)) _labels[i] = null;
@@ -511,7 +511,10 @@ class _TabGeometry3d {
 
   /// Each tab's left and right edges, in [row]'s frame, or as wide as its
   /// label when [labelSized]: null until every one of them has a size.
-  List<(double, double)>? spansIn(Layout3d row, {required bool labelSized}) {
+  List<(double, double)>? spansIn(
+    RenderObject3d row, {
+    required bool labelSized,
+  }) {
     final spans = <(double, double)>[];
     for (var i = 0; i < length; i++) {
       final box = (labelSized ? _labels : _slots)[i];
@@ -526,9 +529,9 @@ class _TabGeometry3d {
   /// Where [box]'s left edge is in [ancestor]'s frame, summing the layout
   /// offsets between them — never the node tier, which is the indicator's
   /// own to write.
-  static double? _xIn(Layout3d box, Layout3d ancestor) {
+  static double? _xIn(RenderObject3d box, RenderObject3d ancestor) {
     var x = 0.0;
-    for (Layout3d? walk = box; walk != null; walk = walk.parent) {
+    for (RenderObject3d? walk = box; walk != null; walk = walk.parent) {
       if (identical(walk, ancestor)) return x;
       x += walk.offset.x;
     }
@@ -537,7 +540,7 @@ class _TabGeometry3d {
 }
 
 /// Records a tab's box, or its label's, in a [_TabGeometry3d].
-class _TabMeasure3d extends ProxyLayout3d {
+class _TabMeasure3d extends RenderProxyBox3d {
   _TabMeasure3d({
     required _TabGeometry3d geometry,
     required int index,
@@ -568,7 +571,7 @@ class _TabMeasure3d extends ProxyLayout3d {
   }
 }
 
-class _SceneTabMeasure3d extends SingleChildLayout3dWidget {
+class _SceneTabMeasure3d extends SingleChildRenderObjectWidget3d {
   const _SceneTabMeasure3d({
     required this.geometry,
     required this.index,
@@ -599,7 +602,7 @@ class _SceneTabMeasure3d extends SingleChildLayout3dWidget {
 /// that width changes. Everything between two resting places is the node
 /// tier: [_applyNode] writes a translation and a stretch on every tick of the
 /// controller's animation and marks nothing for layout.
-class _TabBarLayout3d extends MultiChildLayout3d<ParentData3d> {
+class _TabBarLayout3d extends RenderMultiChild3d<ParentData3d> {
   _TabBarLayout3d({
     required TabController controller,
     required this.geometry,
@@ -666,7 +669,7 @@ class _TabBarLayout3d extends MultiChildLayout3d<ParentData3d> {
     super.dispose();
   }
 
-  Layout3d? get _row => childCount > 0 ? childAt(0) : null;
+  RenderObject3d? get _row => childCount > 0 ? childAt(0) : null;
 
   @override
   double computeMinIntrinsicExtent(Axis3d axis, Size3d limits) =>
@@ -777,7 +780,7 @@ class _TabBarLayout3d extends MultiChildLayout3d<ParentData3d> {
   }
 }
 
-class _SceneTabBarLayout3d extends Layout3dWidget {
+class _SceneTabBarLayout3d extends MultiChildRenderObjectWidget3d {
   const _SceneTabBarLayout3d({
     required this.controller,
     required this.geometry,

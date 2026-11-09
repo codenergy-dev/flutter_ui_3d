@@ -16,8 +16,8 @@ import 'geometry/offset3d.dart';
 import 'geometry/size3d.dart';
 import 'hit_test.dart';
 import 'input/shortcuts.dart';
-import 'layout3d.dart';
 import 'metrics.dart';
+import 'rendering/object.dart';
 import 'slot.dart';
 
 /// The root of a 3D layout: the plane its children are arranged on.
@@ -44,7 +44,7 @@ import 'slot.dart';
 /// surface.plane.rotation = Quaternion.axisAngle(Vector3(0, 1, 0), 0.4);
 /// surface.flush();
 /// ```
-class Layout3dSurface extends SingleChildLayout3d {
+class Layout3dSurface extends RenderSingleChild3d {
   /// Creates a layout surface.
   ///
   /// [constraints] is what the root child is laid out against; a tight one
@@ -76,7 +76,7 @@ class Layout3dSurface extends SingleChildLayout3d {
     applyNodeTransform();
   }
 
-  final Layout3dOwner _owner = Layout3dOwner();
+  final PipelineOwner3d _owner = PipelineOwner3d();
 
   late final ValueNotifier<Layout3dMetrics> _metrics = ValueNotifier(
     _owner.metrics,
@@ -140,8 +140,8 @@ class Layout3dSurface extends SingleChildLayout3d {
   /// it.
   ///
   /// The root owns it and every box below reads it through
-  /// [Layout3d.metrics]. Set it by hand for a panel whose scale is authored,
-  /// or let a [Layout3dCameraBinding] derive it from the view.
+  /// [RenderObject3d.metrics]. Set it by hand for a panel whose scale is
+  /// authored, or let a [Layout3dCameraBinding] derive it from the view.
   ///
   /// Changing it relayouts the whole subtree, for the same reason changing
   /// the [basis] does: content measured at one density reports a different
@@ -172,7 +172,7 @@ class Layout3dSurface extends SingleChildLayout3d {
   /// What [key] holds on this surface, or null when nothing has written it.
   T? slotValue<T extends Object>(Layout3dSlot<T> key) => _owner.slot(key);
 
-  /// Writes tree-wide state every box below can read as [Layout3d.slot].
+  /// Writes tree-wide state every box below can read as [RenderObject3d.slot].
   ///
   /// The seam a component library's theme travels on. This package declares
   /// no themes — Material vocabulary does not belong here — so the library

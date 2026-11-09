@@ -29,8 +29,8 @@ import 'package:flutter_ui_3d/rendering.dart'
         Constraints3d,
         DecoratedBox3d,
         Offset3d,
-        ProxyLayout3d,
-        SingleChildLayout3d,
+        RenderProxyBox3d,
+        RenderSingleChild3d,
         Size3d,
         StackFit3d;
 import 'package:flutter_ui_3d/widgets.dart'
@@ -38,9 +38,9 @@ import 'package:flutter_ui_3d/widgets.dart'
         Layout3dMetricsScope,
         SceneSemantics3d,
         SceneSizedBox3d,
-        Layout3dWidget,
+        MultiChildRenderObjectWidget3d,
         SceneStack3d,
-        SingleChildLayout3dWidget;
+        SingleChildRenderObjectWidget3d;
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
 import '../theme/theme.dart';
@@ -527,7 +527,7 @@ typedef _SpanAt = (double, double) Function(double t);
 /// they change and whenever it is laid out — the second because the width is
 /// not known until then. The transform pivots on the box's origin corner, so
 /// the span's left end is `x₀` of the way across.
-class _ProgressSpan3d extends ProxyLayout3d {
+class _ProgressSpan3d extends RenderProxyBox3d {
   _ProgressSpan3d({
     double start = 0.0,
     double end = 1.0,
@@ -615,7 +615,7 @@ class _ProgressSpan3d extends ProxyLayout3d {
   }
 }
 
-class _SceneProgressSpan3d extends SingleChildLayout3dWidget {
+class _SceneProgressSpan3d extends SingleChildRenderObjectWidget3d {
   const _SceneProgressSpan3d({
     this.start = 0.0,
     this.end = 1.0,
@@ -661,7 +661,7 @@ class _SceneProgressSpan3d extends SingleChildLayout3dWidget {
 /// the [_RingPanel3d] — is laid out as the box's shorter side plus one stroke
 /// across and placed over the box's centre. That is Flutter's geometry, whose
 /// stroke is centred on the circle the box inscribes.
-class _RingFrame3d extends SingleChildLayout3d {
+class _RingFrame3d extends RenderSingleChild3d {
   _RingFrame3d({required double strokeWidth, required double thickness})
     : _strokeWidth = strokeWidth,
       _thickness = thickness,
@@ -701,7 +701,7 @@ class _RingFrame3d extends SingleChildLayout3d {
   }
 }
 
-class _SceneRingFrame3d extends SingleChildLayout3dWidget {
+class _SceneRingFrame3d extends SingleChildRenderObjectWidget3d {
   const _SceneRingFrame3d({
     required this.strokeWidth,
     required this.thickness,
@@ -856,7 +856,7 @@ class _RingPanel3d extends DecoratedBox3d {
 
 /// A leaf as far as the widget layer knows: the panel draws everything it
 /// needs itself.
-class _SceneRingPanel3d extends Layout3dWidget {
+class _SceneRingPanel3d extends MultiChildRenderObjectWidget3d {
   const _SceneRingPanel3d({
     required this.base,
     required this.color,

@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart'
 import '../boxes/flex.dart' show CrossAxisAlignment3d;
 import '../built_children.dart';
 import '../geometry/offset3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import '../sliver/sliver_list.dart';
 import 'box_scroll_view.dart';
 import 'scroll_controller.dart';
@@ -46,12 +46,12 @@ class ListView3d extends BoxScrollView3d<SliverList3d> {
     Scroll3dController? controller,
     double spacing = 0.0,
     double? itemExtent,
-    Layout3dPrototypeBuilder? prototypeItem,
+    RenderObject3dPrototypeBuilder? prototypeItem,
     Layout3dContentExtentEstimator? contentExtentEstimator,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.center,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
     double cacheExtent = 0.0,
-    List<Layout3d> children = const <Layout3d>[],
+    List<RenderObject3d> children = const <RenderObject3d>[],
     String? name,
   }) : this._(
          SliverList3d(
@@ -72,12 +72,12 @@ class ListView3d extends BoxScrollView3d<SliverList3d> {
   /// Creates a list that builds its items on demand.
   ListView3d.builder({
     required int itemCount,
-    required Layout3dItemBuilder itemBuilder,
+    required RenderObject3dItemBuilder itemBuilder,
     Axis3d scrollDirection = Axis3d.vertical,
     Scroll3dController? controller,
     double spacing = 0.0,
     double? itemExtent,
-    Layout3dPrototypeBuilder? prototypeItem,
+    RenderObject3dPrototypeBuilder? prototypeItem,
     Layout3dContentExtentEstimator? contentExtentEstimator,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.center,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
@@ -133,15 +133,15 @@ class ListView3d extends BoxScrollView3d<SliverList3d> {
 
   /// An item built once and measured, standing for the extent of them all.
   ///
-  /// See [Layout3dMeasuredChildrenMixin.prototypeItem].
-  Layout3dPrototypeBuilder? get prototypeItem => sliver.prototypeItem;
+  /// See [RenderMeasuredChildrenMixin3d.prototypeItem].
+  RenderObject3dPrototypeBuilder? get prototypeItem => sliver.prototypeItem;
 
-  set prototypeItem(Layout3dPrototypeBuilder? value) =>
+  set prototypeItem(RenderObject3dPrototypeBuilder? value) =>
       sliver.prototypeItem = value;
 
   /// The total extent along the scroll axis, when the caller knows it.
   ///
-  /// See [Layout3dMeasuredChildrenMixin.contentExtentEstimator].
+  /// See [RenderMeasuredChildrenMixin3d.contentExtentEstimator].
   Layout3dContentExtentEstimator? get contentExtentEstimator =>
       sliver.contentExtentEstimator;
 

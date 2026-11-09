@@ -400,10 +400,10 @@ class Scaffold3d extends StatelessWidget {
   /// backing answers every hit and no bar, tile or button below it is ever
   /// reached.
   ///
-  /// So the depth ordering goes on the node tier, where `Stack3d.depthStep`
-  /// has always put it: the geometry moves, the box stays where layout put
-  /// it, and [Layout3d.worldTransform] undoes the shift so a ray still finds
-  /// it. Drawing is unaffected — the slabs are the same distance apart in the
+  /// So the depth ordering goes on the node tier, where `Stack3d.depthStep` has
+  /// always put it: the geometry moves, the box stays where layout put it, and
+  /// [RenderObject3d.worldTransform] undoes the shift so a ray still finds it.
+  /// Drawing is unaffected — the slabs are the same distance apart in the
   /// scene — and the guarantee is the same one, stated in the tier that can
   /// keep it.
   static Widget _lifted(Scaffold3dSlot slot, double step, Widget child) =>

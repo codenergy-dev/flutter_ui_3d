@@ -43,9 +43,9 @@ Future<Pumped> pumpOverlay(
 }
 
 /// Every box of type [T] in [surface].
-List<T> boxesOf<T extends Layout3d>(Layout3dSurface surface) {
+List<T> boxesOf<T extends RenderObject3d>(Layout3dSurface surface) {
   final found = <T>[];
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is T) found.add(box);
     box.visitChildren(walk);
   }
@@ -111,7 +111,7 @@ Future<String?> pushWidgetRoute(
   ),
 );
 
-void anchorAMenu(Layout3d menu, Layout3d button) {
+void anchorAMenu(RenderObject3d menu, RenderObject3d button) {
   final placed = menu.anchorOffsetTo(
     button,
     self: Alignment3d.topLeft,
@@ -160,8 +160,8 @@ void main() {
 
       // Walking up from the box the widget made reaches the entry's content
       // root, which is what "in front of everything" means here.
-      Layout3d? node = entry.contentSlot!.child;
-      final ancestors = <Layout3d>[];
+      RenderObject3d? node = entry.contentSlot!.child;
+      final ancestors = <RenderObject3d>[];
       while (node != null) {
         ancestors.add(node);
         node = node.parent;
@@ -332,9 +332,8 @@ void main() {
     /// An overlay with a 2 x 2 box pinned to its top-left corner, and a
     /// centred entry holding a 2-cube. The anchor's centre is at (1, 1) and
     /// the entry's at (5, 5).
-    Future<(Layout3d anchor, Overlay3dContentSlot3d follower)> pumpAnchored(
-      WidgetTester tester,
-    ) async {
+    Future<(RenderObject3d anchor, Overlay3dContentSlot3d follower)>
+    pumpAnchored(WidgetTester tester) async {
       final pumped = await pumpOverlay(
         tester,
         child: const ScenePositioned3d(

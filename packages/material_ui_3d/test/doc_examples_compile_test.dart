@@ -220,7 +220,7 @@ Widget imperativelyThemed(Node parent, Widget screen) => SceneLayout3d(
   child: screen,
 );
 
-class ThemedSlab extends Layout3d {
+class ThemedSlab extends RenderObject3d {
   @override
   void performLayout() {
     // The theme names a figure in logical pixels; the metrics says what a

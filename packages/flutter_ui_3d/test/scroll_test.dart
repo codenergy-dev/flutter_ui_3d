@@ -596,7 +596,10 @@ void main() {
   // controller in force says.
   group('controller ownership', () {
     final views =
-        <String, Scroll3dHolderMixin Function(Scroll3dController?, Layout3d)>{
+        <
+          String,
+          Scroll3dHolderMixin Function(Scroll3dController?, RenderObject3d)
+        >{
           'Viewport3d': (controller, probe) =>
               Viewport3d(controller: controller, child: probe),
           'ListView3d': (controller, probe) =>

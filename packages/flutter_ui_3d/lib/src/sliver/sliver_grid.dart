@@ -7,7 +7,7 @@ import '../boxes/flex.dart' show CrossAxisAlignment3d;
 import '../built_children.dart';
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import '../scroll/grid_delegate.dart' show Grid3dDelegate, Grid3dLayout;
 import 'sliver.dart';
 import 'sliver_constraints.dart';
@@ -24,7 +24,7 @@ class SliverGrid3d extends SliverMultiBoxAdaptor3d {
   SliverGrid3d({
     required Grid3dDelegate gridDelegate,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
-    List<Layout3d> children = const <Layout3d>[],
+    List<RenderObject3d> children = const <RenderObject3d>[],
     super.name,
   }) : _gridDelegate = gridDelegate,
        _depthAxisAlignment = depthAxisAlignment,
@@ -36,7 +36,7 @@ class SliverGrid3d extends SliverMultiBoxAdaptor3d {
   SliverGrid3d.builder({
     required Grid3dDelegate gridDelegate,
     required int itemCount,
-    required Layout3dItemBuilder itemBuilder,
+    required RenderObject3dItemBuilder itemBuilder,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
     super.name,
   }) : _gridDelegate = gridDelegate,
@@ -71,10 +71,10 @@ class SliverGrid3d extends SliverMultiBoxAdaptor3d {
     markNeedsLayout();
   }
 
-  final Layout3dItemBuilder? _builder;
+  final RenderObject3dItemBuilder? _builder;
 
   @override
-  Layout3dItemBuilder? get itemBuilder => _builder;
+  RenderObject3dItemBuilder? get itemBuilder => _builder;
 
   @override
   String get itemNoun => 'cells';

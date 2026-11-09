@@ -29,7 +29,7 @@ import 'tweens.dart';
 ///   child: const SceneContainer3d(width: 1, height: 1),
 /// )
 /// ```
-class SceneNodeTransform3d extends SingleChildLayout3dWidget {
+class SceneNodeTransform3d extends SingleChildRenderObjectWidget3d {
   /// Creates a node-only animation box.
   const SceneNodeTransform3d({
     super.key,
@@ -179,7 +179,7 @@ class _SceneAnimatedSlide3dState extends State<SceneAnimatedSlide3d>
 /// one of these, so this is for the content that wants the box somewhere
 /// other than around the whole page — inside a scrim rather than around it,
 /// which is exactly where a catalogue's own modal frame puts it.
-class SceneMotionTransition3d extends SingleChildLayout3dWidget {
+class SceneMotionTransition3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that moves [child] from [motion] to rest.
   const SceneMotionTransition3d({
     super.key,

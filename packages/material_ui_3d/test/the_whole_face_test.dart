@@ -23,9 +23,9 @@ import 'support.dart';
 import 'surfaces_support.dart';
 
 /// Where [box]'s origin is on the surface.
-Offset3d _origin(Layout3d box) {
+Offset3d _origin(RenderObject3d box) {
   var at = Offset3d.zero;
-  Layout3d? walk = box;
+  RenderObject3d? walk = box;
   while (walk != null) {
     at += walk.offset;
     walk = walk.parent;
@@ -38,10 +38,10 @@ Offset3d _origin(Layout3d box) {
 typedef _Case = ({
   Widget Function(void Function() pressed) build,
   bool centred,
-  Layout3d Function(Layout3dSurface surface)? face,
+  RenderObject3d Function(Layout3dSurface surface)? face,
 });
 
-Layout3d _labelled(Layout3dSurface surface, String label) =>
+RenderObject3d _labelled(Layout3dSurface surface, String label) =>
     boxesOf<Semantics3d>(
       surface,
     ).firstWhere((box) => box.properties.label == label);

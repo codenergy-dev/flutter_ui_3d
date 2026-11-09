@@ -7,16 +7,16 @@ import '../boxes/flex.dart' show CrossAxisAlignment3d;
 import '../built_children.dart';
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'sliver.dart';
 import 'sliver_constraints.dart';
 
 /// Builds the layout for one item of a [SliverList3d.builder].
 @Deprecated(
-  'Use Layout3dItemBuilder, which every builder in the package shares. '
+  'Use RenderObject3dItemBuilder, which every builder in the package shares. '
   'This alias will be removed in a future release.',
 )
-typedef Sliver3dItemBuilder = Layout3dItemBuilder;
+typedef Sliver3dItemBuilder = RenderObject3dItemBuilder;
 
 /// A run of items in a sliver world, the 3D analogue of [SliverList].
 ///
@@ -54,16 +54,16 @@ typedef Sliver3dItemBuilder = Layout3dItemBuilder;
 /// [contentExtentEstimator] leaves the offsets measured and steadies the total
 /// alone.
 class SliverList3d extends SliverMultiBoxAdaptor3d
-    with Layout3dMeasuredChildrenMixin<ParentData3d> {
+    with RenderMeasuredChildrenMixin3d<ParentData3d> {
   /// Creates a list over an explicit set of children.
   SliverList3d({
     double spacing = 0.0,
     double? itemExtent,
-    Layout3dPrototypeBuilder? prototypeItem,
+    RenderObject3dPrototypeBuilder? prototypeItem,
     Layout3dContentExtentEstimator? contentExtentEstimator,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.center,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
-    List<Layout3d> children = const <Layout3d>[],
+    List<RenderObject3d> children = const <RenderObject3d>[],
     super.name,
   }) : _spacing = spacing,
        _crossAxisAlignment = crossAxisAlignment,
@@ -80,10 +80,10 @@ class SliverList3d extends SliverMultiBoxAdaptor3d
   /// Creates a list that builds its items on demand.
   SliverList3d.builder({
     required int itemCount,
-    required Layout3dItemBuilder itemBuilder,
+    required RenderObject3dItemBuilder itemBuilder,
     double spacing = 0.0,
     double? itemExtent,
-    Layout3dPrototypeBuilder? prototypeItem,
+    RenderObject3dPrototypeBuilder? prototypeItem,
     Layout3dContentExtentEstimator? contentExtentEstimator,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.center,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
@@ -139,10 +139,10 @@ class SliverList3d extends SliverMultiBoxAdaptor3d
     markNeedsLayout();
   }
 
-  final Layout3dItemBuilder? _builder;
+  final RenderObject3dItemBuilder? _builder;
 
   @override
-  Layout3dItemBuilder? get itemBuilder => _builder;
+  RenderObject3dItemBuilder? get itemBuilder => _builder;
 
   /// What an item is offered: [mainExtent] along the scroll axis when the
   /// list has one to impose, the sliver's own room across the other two.

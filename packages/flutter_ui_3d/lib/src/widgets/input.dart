@@ -38,12 +38,12 @@ import 'package:flutter_scene/scene.dart' show Camera;
 import 'package:vector_math/vector_math.dart' show Ray;
 
 import '../hit_test.dart';
-import '../layout3d.dart';
 import '../input/focus.dart';
 import '../input/pointer.dart';
 import '../input/pointer_group.dart';
 import '../input/shortcuts.dart';
 import '../overlay/overlay.dart';
+import '../rendering/object.dart';
 import '../surface.dart';
 
 /// What an event was doing when it found something.
@@ -363,11 +363,11 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
   /// Which surface owns which layout tree, so an overlay can be placed in
   /// front of the panel it belongs to.
   ///
-  /// A `Layout3d` knows its [Layout3dOwner] and not the surface above it,
-  /// and every surface attaches its tree to an owner of its own — so this
+  /// A `RenderObject3d` knows its [PipelineOwner3d] and not the surface above
+  /// it, and every surface attaches its tree to an owner of its own — so this
   /// map, filled in as surfaces register, is what turns one into the other.
-  final Map<Layout3dOwner, Layout3dSurface> _surfacesByOwner =
-      <Layout3dOwner, Layout3dSurface>{};
+  final Map<PipelineOwner3d, Layout3dSurface> _surfacesByOwner =
+      <PipelineOwner3d, Layout3dSurface>{};
 
   /// Every registered surface, in the order it registered, with its z-order.
   ///

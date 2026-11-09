@@ -12,22 +12,22 @@ import '../geometry/alignment3d.dart';
 import '../geometry/edge_insets3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// A layout that sizes and positions a single child somewhere inside itself.
 ///
 /// The shared base of [Padding3d] and [Align3d], mirroring
 /// `RenderShiftedBox`.
-abstract class ShiftedLayout3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+abstract class RenderShiftedBox3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a shifting layout around [child].
-  ShiftedLayout3d({super.child, super.name});
+  RenderShiftedBox3d({super.child, super.name});
 }
 
 /// Insets its child by [padding], the 3D analogue of [Padding].
 ///
 /// With no child, the padding collapses to a box of its own thickness.
-class Padding3d extends ShiftedLayout3d {
+class Padding3d extends RenderShiftedBox3d {
   /// Creates a padded box.
   Padding3d({
     EdgeInsetsGeometry3d padding = EdgeInsets3d.zero,
@@ -129,7 +129,7 @@ class Padding3d extends ShiftedLayout3d {
 /// axis; bounded, it expands to fill, which is what makes
 /// `Align3d(alignment: Alignment3d.topLeft)` push a child to a corner of the
 /// space it was given.
-class Align3d extends ShiftedLayout3d {
+class Align3d extends RenderShiftedBox3d {
   /// Creates an aligning box.
   Align3d({
     AlignmentGeometry3d alignment = Alignment3d.center,

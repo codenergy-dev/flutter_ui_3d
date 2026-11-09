@@ -16,12 +16,13 @@ import 'support.dart';
 
 const TextStyle style = TextStyle(fontSize: 10);
 
-Layout3d rootOf(Layout3dController controller) => controller.surface!.child!;
+RenderObject3d rootOf(Layout3dController controller) =>
+    controller.surface!.child!;
 
 /// The box under a `SceneCenter3d` at the root, which is how a widget test
 /// gives an animated box room to be a size of its own: the surface hands its
 /// root child tight constraints.
-Layout3d centredOf(Layout3dController controller) =>
+RenderObject3d centredOf(Layout3dController controller) =>
     (rootOf(controller) as Align3d).child!;
 
 /// A viewport over five stacked boxes: content 10 long, window 4, so six

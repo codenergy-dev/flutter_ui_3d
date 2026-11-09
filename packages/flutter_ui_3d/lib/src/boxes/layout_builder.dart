@@ -5,15 +5,16 @@ import '../built_children.dart';
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
 import '../layout_pass.dart';
+import '../rendering/object.dart';
 
 /// Builds a subtree from the constraints it is given.
 ///
 /// The imperative half of [LayoutBuilder3d]. The declarative half is a
-/// widget builder, and goes through the layout's [Layout3dChildManager]
+/// widget builder, and goes through the layout's [RenderObject3dChildManager]
 /// instead.
-typedef Layout3dBuilder = Layout3d Function(Constraints3d constraints);
+typedef RenderObject3dBuilder =
+    RenderObject3d Function(Constraints3d constraints);
 
 /// A box that builds its child from the room it was given, the 3D analogue of
 /// [LayoutBuilder].
@@ -35,15 +36,15 @@ typedef Layout3dBuilder = Layout3d Function(Constraints3d constraints);
 ///
 /// ## Building inside a layout
 ///
-/// The child is built during [performLayout], which is the one thing that
-/// makes this box different from every other. In the declarative layer that
-/// means inflating a widget while Flutter is already laying the tree out, and
-/// it is legal for exactly the reason it is legal for a lazily built list:
-/// the surface's pass runs inside a Flutter layout callback opened by the box
-/// at the root of the surface, and inserting render objects below such a box
-/// is what that callback permits. So this box takes the same seam the lists
-/// take — a [Layout3dChildManager] that is the element — rather than a second
-/// mechanism of its own.
+/// The child is built during [performLayout], which is the one thing that makes
+/// this box different from every other. In the declarative layer that means
+/// inflating a widget while Flutter is already laying the tree out, and it is
+/// legal for exactly the reason it is legal for a lazily built list: the
+/// surface's pass runs inside a Flutter layout callback opened by the box at
+/// the root of the surface, and inserting render objects below such a box is
+/// what that callback permits. So this box takes the same seam the lists take
+/// — a [RenderObject3dChildManager] that is the element — rather than a
+/// second mechanism of its own.
 ///
 /// The rule that comes with it is the usual one: **a builder must not have
 /// side effects on the tree above it**. Calling `setState` on an ancestor, or
@@ -64,21 +65,22 @@ typedef Layout3dBuilder = Layout3d Function(Constraints3d constraints);
 /// of replacing the child that *is* laid out. Flutter refuses for the same
 /// reason. Put a [SizedBox3d] or an [AspectRatio3d] around the builder when
 /// something above it needs an intrinsic answer.
-class LayoutBuilder3d extends MultiChildLayout3d<ParentData3d>
-    with Layout3dLayoutPassMixin, Layout3dBuiltChildrenMixin<ParentData3d> {
+class LayoutBuilder3d extends RenderMultiChild3d<ParentData3d>
+    with RenderLayoutPassMixin3d, RenderBuiltChildrenMixin3d<ParentData3d> {
   /// Creates a box that builds its child from its constraints.
   ///
   /// [builder] is the imperative form; leave it out in the declarative layer,
   /// where `SceneLayoutBuilder3d`'s element is the child manager.
-  LayoutBuilder3d({Layout3dBuilder? builder, super.name}) : _builder = builder;
+  LayoutBuilder3d({RenderObject3dBuilder? builder, super.name})
+    : _builder = builder;
 
-  Layout3dBuilder? _builder;
+  RenderObject3dBuilder? _builder;
 
   /// Builds the child from the constraints, or null when a child manager is
   /// doing that instead.
-  Layout3dBuilder? get builder => _builder;
+  RenderObject3dBuilder? get builder => _builder;
 
-  set builder(Layout3dBuilder? value) {
+  set builder(RenderObject3dBuilder? value) {
     if (identical(_builder, value)) return;
     assert(
       value == null || childManager == null,
@@ -93,7 +95,7 @@ class LayoutBuilder3d extends MultiChildLayout3d<ParentData3d>
   /// Never index-based: this box has one child, and it is a function of the
   /// constraints rather than of an index.
   @override
-  Layout3dItemBuilder? get itemBuilder => null;
+  RenderObject3dItemBuilder? get itemBuilder => null;
 
   @override
   String get itemNoun => 'children';
@@ -108,7 +110,7 @@ class LayoutBuilder3d extends MultiChildLayout3d<ParentData3d>
   Constraints3d? get builtConstraints => _builtConstraints;
 
   /// The child currently built, or null before the first layout.
-  Layout3d? get built => childCount == 0 ? null : childAt(0);
+  RenderObject3d? get built => childCount == 0 ? null : childAt(0);
 
   /// Asks for the child to be built again on the next layout, even though the
   /// constraints have not changed.
@@ -125,7 +127,7 @@ class LayoutBuilder3d extends MultiChildLayout3d<ParentData3d>
   /// Rebuilds the child on the next layout even if the constraints have not
   /// changed.
   ///
-  /// The counterpart of `Layout3dBuiltChildrenMixin.refresh` for a box whose
+  /// The counterpart of `RenderBuiltChildrenMixin3d.refresh` for a box whose
   /// builder reads something this package cannot see change.
   @override
   void refresh() {

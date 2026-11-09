@@ -30,10 +30,10 @@ class FakeRenderer extends Text3dRenderer {
 }
 
 /// The layout under a `SceneText3d`, found by walking the tree.
-Text3d textIn(Layout3d root) {
+Text3d textIn(RenderObject3d root) {
   if (root is Text3d) return root;
-  if (root is Layout3dWithChildrenMixin) {
-    for (final child in (root as MultiChildLayout3d).children) {
+  if (root is ContainerRenderObjectMixin3d) {
+    for (final child in (root as RenderMultiChild3d).children) {
       final found = _maybeTextIn(child);
       if (found != null) return found;
     }
@@ -43,13 +43,13 @@ Text3d textIn(Layout3d root) {
   throw StateError('no Text3d under $root');
 }
 
-Text3d? _maybeTextIn(Layout3d layout) {
+Text3d? _maybeTextIn(RenderObject3d layout) {
   if (layout is Text3d) return layout;
-  if (layout is Layout3dWithChildMixin) {
-    final child = (layout as SingleChildLayout3d).child;
+  if (layout is RenderObjectWithChildMixin3d) {
+    final child = (layout as RenderSingleChild3d).child;
     return child == null ? null : _maybeTextIn(child);
   }
-  if (layout is MultiChildLayout3d) {
+  if (layout is RenderMultiChild3d) {
     for (final child in layout.children) {
       final found = _maybeTextIn(child);
       if (found != null) return found;
@@ -220,7 +220,7 @@ void main() {
     final removed = Text3d('removed', rendererFactory: FakeRenderer.new);
     final surface = Layout3dSurface(
       constraints: Constraints3d.loose(const Size3d(10, 10, 1)),
-      child: Column3d(children: <Layout3d>[kept, removed]),
+      child: Column3d(children: <RenderObject3d>[kept, removed]),
     )..flush();
     expect(FakeRenderer.made, hasLength(2));
     final keptRenderer = kept.renderer! as FakeRenderer;
@@ -243,11 +243,11 @@ void main() {
   ) async {
     // Recording behaviour rather than blessing it. An ordinary widget-owned
     // layout is disposed by the surface's teardown, not when its widget is
-    // unmounted — `Layout3dRenderBox.disposeLayoutOnUnmount` is true only for
-    // a lazily built child — so a label removed from a live tree keeps its
-    // renderer, and with it whatever that renderer built. It is a small leak
-    // and it predates the inherited default; this test is here so that fixing
-    // it is noticed rather than silent.
+    // unmounted — `RenderObject3dHost.disposeLayoutOnUnmount` is true only
+    // for a lazily built child — so a label removed from a live tree keeps
+    // its renderer, and with it whatever that renderer built. It is a small
+    // leak and it predates the inherited default; this test is here so that
+    // fixing it is noticed rather than silent.
     final controller = Layout3dController();
 
     Widget frame({required bool bothLabels}) => DefaultTextRenderer3d(

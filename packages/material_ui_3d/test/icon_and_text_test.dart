@@ -19,7 +19,7 @@ import 'package:material_ui_3d/material_ui_3d.dart';
 /// The one [Text3d] in [surface].
 Text3d textIn(Layout3dSurface surface) {
   final found = <Text3d>[];
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is Text3d) found.add(box);
     box.visitChildren(walk);
   }
@@ -94,7 +94,7 @@ void main() {
 
     testWidgets('announces nothing unless it is given a label', (tester) async {
       var found = 0;
-      void count(Layout3d box) {
+      void count(RenderObject3d box) {
         if (box is Semantics3d) found++;
         box.visitChildren(count);
       }

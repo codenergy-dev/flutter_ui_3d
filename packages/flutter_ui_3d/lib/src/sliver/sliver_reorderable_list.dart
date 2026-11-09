@@ -11,7 +11,7 @@ import '../geometry/offset3d.dart';
 import '../input/autoscroll.dart';
 import '../input/drag.dart';
 import '../input/draggable.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'sliver_list.dart';
 
 /// Told that an item moved from [oldIndex] to [newIndex].
@@ -53,13 +53,13 @@ typedef Reorder3dCallback = void Function(int oldIndex, int newIndex);
 ///
 /// ## Nothing is reordered until the drop
 ///
-/// This is the whole design, and both of the hard requirements fall out of
-/// it. During a drag the dragged item **stays exactly where it is in the
-/// list**, hidden with `node.visible = false` — the trick [IndexedStack3d]
-/// and the scrolling views already use, which costs no layout — so its extent
-/// stays in the flow and *is* the gap. Every other item near it is pushed
-/// forward or back by that extent with [Layout3d.nodeOffset], the node tier,
-/// which writes one matrix and never calls `markNeedsLayout`.
+/// This is the whole design, and both of the hard requirements fall out of it.
+/// During a drag the dragged item **stays exactly where it is in the list**,
+/// hidden with `node.visible = false` — the trick [IndexedStack3d] and the
+/// scrolling views already use, which costs no layout — so its extent stays
+/// in the flow and *is* the gap. Every other item near it is pushed forward or
+/// back by that extent with [RenderObject3d.nodeOffset], the node tier, which
+/// writes one matrix and never calls `markNeedsLayout`.
 ///
 /// So:
 ///
@@ -102,7 +102,7 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
   // ignore: use_super_parameters
   SliverReorderableList3d({
     required int itemCount,
-    required Layout3dItemBuilder itemBuilder,
+    required RenderObject3dItemBuilder itemBuilder,
     required this.onReorder,
     this.feedbackBuilder,
     Drag3dStartMode startMode = const Drag3dStartMode.longPress(),
@@ -112,7 +112,7 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
     this.vsync,
     double spacing = 0.0,
     double? itemExtent,
-    Layout3dPrototypeBuilder? prototypeItem,
+    RenderObject3dPrototypeBuilder? prototypeItem,
     Layout3dContentExtentEstimator? contentExtentEstimator,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.center,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
@@ -148,7 +148,7 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
   // ignore: use_super_parameters
   SliverReorderableList3d.managed({
     required this.onReorder,
-    required Layout3dItemBuilder this.feedbackBuilder,
+    required RenderObject3dItemBuilder this.feedbackBuilder,
     Drag3dStartMode startMode = const Drag3dStartMode.longPress(),
     this.gapDuration = const Duration(milliseconds: 200),
     this.gapCurve = Curves.easeInOut,
@@ -156,7 +156,7 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
     this.vsync,
     double spacing = 0.0,
     double? itemExtent,
-    Layout3dPrototypeBuilder? prototypeItem,
+    RenderObject3dPrototypeBuilder? prototypeItem,
     Layout3dContentExtentEstimator? contentExtentEstimator,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.center,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
@@ -187,28 +187,29 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
   /// Kept because the feedback is a second copy of the item, built straight
   /// from here rather than through the view's index-to-child map: asking the
   /// map would hand back the item that is already in the list.
-  final Layout3dItemBuilder? _rawBuilder;
+  final RenderObject3dItemBuilder? _rawBuilder;
 
   /// Puts every item inside a [Draggable3d] carrying a token only this list
   /// accepts, which is how a press on an item becomes a reorder without the
   /// caller having to build a drag handle.
   ///
   /// The wrapping is here rather than around [itemBuilder] so that it happens
-  /// on both paths. A widget item is built by a [Layout3dChildManager] that
-  /// never consults `itemBuilder` at all, and a list that wrapped there could
-  /// not be reached from a `build` method; `SceneSliverReorderableList3d` is
-  /// what this makes possible.
+  /// on both paths. A widget item is built by a [RenderObject3dChildManager]
+  /// that never consults `itemBuilder` at all, and a list that wrapped there
+  /// could not be reached from a `build` method; `SceneSliverReorderableList3d`
+  /// is what this makes possible.
   @override
-  Layout3d wrapBuiltChild(int index, Layout3d built) => _Reorder3dHandle(
-    list: this,
-    buildIndex: index,
-    startMode: _startMode,
-    child: built,
-  );
+  RenderObject3d wrapBuiltChild(int index, RenderObject3d built) =>
+      _Reorder3dHandle(
+        list: this,
+        buildIndex: index,
+        startMode: _startMode,
+        child: built,
+      );
 
   /// The item inside the handle this list wrapped around it.
   @override
-  Layout3d builtChildOf(Layout3d adopted) =>
+  RenderObject3d builtChildOf(RenderObject3d adopted) =>
       adopted is _Reorder3dHandle ? adopted.child! : adopted;
 
   /// Builds what is carried under the pointer, given the item's index.
@@ -218,7 +219,7 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
   /// build per drag rather than one per frame. Name a builder to carry
   /// something else: a flattened row, a card with a shadow, a proxy that is
   /// not the item at all.
-  Layout3dItemBuilder? feedbackBuilder;
+  RenderObject3dItemBuilder? feedbackBuilder;
 
   Drag3dStartMode _startMode;
 
@@ -333,9 +334,10 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
   ///
   /// Items are placed at `start - scrollOffset`, so adding the scroll offset
   /// back is the whole conversion. Hit testing deliberately ignores
-  /// [Layout3d.nodeOffset], so the point that arrives here is measured against
-  /// the items where layout put them rather than where the gap animation has
-  /// slid them — which is exactly the frame [insertIndexAt] reasons in.
+  /// [RenderObject3d.nodeOffset], so the point that arrives here is measured
+  /// against the items where layout put them rather than where the gap
+  /// animation has slid them — which is exactly the frame [insertIndexAt]
+  /// reasons in.
   double scrollOffsetOf(Offset3d localPosition) =>
       localPosition.alongAxis(sliverConstraints.axis) +
       sliverConstraints.scrollOffset;
@@ -430,7 +432,7 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
     return 0.0;
   }
 
-  int? _indexOf(Layout3d child) {
+  int? _indexOf(RenderObject3d child) {
     for (final (index, candidate) in positionedChildren()) {
       if (identical(candidate, child)) return index;
     }
@@ -612,7 +614,7 @@ class _Reorder3dHandle extends Draggable3d<Object> {
     required this.list,
     required this.buildIndex,
     required Drag3dStartMode startMode,
-    required Layout3d child,
+    required RenderObject3d child,
   }) : super(
          startMode: startMode,
          child: child,
@@ -649,7 +651,7 @@ class _Reorder3dHandle extends Draggable3d<Object> {
   /// still in the list; [SliverReorderableList3d._indexOf] is the truth.
   final int buildIndex;
 
-  Layout3d _buildFeedback(Drag3dSession session) {
+  RenderObject3d _buildFeedback(Drag3dSession session) {
     final index = list._indexOf(this) ?? buildIndex;
     final builder = list.feedbackBuilder ?? list._rawBuilder;
     assert(

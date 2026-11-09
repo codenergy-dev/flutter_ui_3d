@@ -10,7 +10,7 @@ import '../geometry/constraints3d.dart';
 import '../geometry/edge_insets3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// A convenience box combining margin, constraints, padding, alignment, and a
 /// transform, the 3D analogue of [Container].
@@ -26,14 +26,14 @@ import '../layout3d.dart';
 /// engine content in the tree with a `NodeBox3d`.
 ///
 /// The separation is deliberate, and it is not only about drawing. Flutter's
-/// `Container` can afford a decoration because it is a *composition*: it
-/// builds a small tree and `DecoratedBox` stays the single implementation of
-/// what a decoration is. There is no composition here — a `Container3d` is
-/// one [Layout3d] — so a decoration on it would be a second implementation of
-/// the painter lifecycle, and it would have to be painted inside the [margin]
-/// and around the [padding] rather than at the box's own size, which is a
-/// rectangle [Decoration3dPaintRequest] cannot currently describe. Composing
-/// the two boxes says which rectangle is the panel:
+/// `Container` can afford a decoration because it is a *composition*: it builds
+/// a small tree and `DecoratedBox` stays the single implementation of what a
+/// decoration is. There is no composition here — a `Container3d` is one
+/// [RenderObject3d] — so a decoration on it would be a second implementation
+/// of the painter lifecycle, and it would have to be painted inside the
+/// [margin] and around the [padding] rather than at the box's own size, which
+/// is a rectangle [Decoration3dPaintRequest] cannot currently describe.
+/// Composing the two boxes says which rectangle is the panel:
 ///
 /// ```dart
 /// // A panel with space inside it.
@@ -41,8 +41,8 @@ import '../layout3d.dart';
 /// // A panel with space around it.
 /// Container3d(margin: m, child: DecoratedBox3d(decoration: d, child: c));
 /// ```
-class Container3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+class Container3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a container.
   Container3d({
     AlignmentGeometry3d? alignment,

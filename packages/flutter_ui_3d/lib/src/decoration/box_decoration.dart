@@ -538,7 +538,7 @@ class BoxDecoration3dUniforms {
   /// picture's opacity — all of them, correctly, or a faded panel keeps its
   /// border at full strength — and would still leave a partly transparent
   /// slab writing depth over what is behind it. See
-  /// [Layout3d.inheritedOpacity].
+  /// [RenderObject3d.inheritedOpacity].
   final double opacity;
 
   /// The gradient filling the slab or painting its border — see

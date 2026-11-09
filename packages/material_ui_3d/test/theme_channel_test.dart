@@ -1,5 +1,5 @@
-// Both halves of the theme channel: the owner slot a Layout3d reads inside
-// performLayout, and the inherited widget the declarative layer reads.
+// Both halves of the theme channel: the owner slot a RenderObject3d reads
+// inside performLayout, and the inherited widget the declarative layer reads.
 //
 // The slot half is the one that could not exist before phase 0 of the
 // catalogue plan, and it is the half a component actually needs: a token
@@ -35,8 +35,8 @@ void main() {
 
   group('a box reading the slot', () {
     test('sees the baseline when nothing published a theme', () {
-      // Falling back rather than throwing, the way Layout3d.metrics does: a
-      // component drawn in the wrong-but-valid baseline is visible and
+      // Falling back rather than throwing, the way RenderObject3d.metrics does:
+      // a component drawn in the wrong-but-valid baseline is visible and
       // diagnosable, and a layout pass that threw over a missing default is
       // neither.
       final box = ThemedBox();
@@ -354,13 +354,13 @@ void main() {
 }
 
 /// Hosts a [ThemedBox] in the widget tree.
-class _SceneThemedBox extends Layout3dWidget {
+class _SceneThemedBox extends MultiChildRenderObjectWidget3d {
   const _SceneThemedBox(this.sink);
 
   final void Function(ThemedBox) sink;
 
   @override
-  Layout3d createLayout(BuildContext context) {
+  RenderObject3d createLayout(BuildContext context) {
     final box = ThemedBox();
     sink(box);
     return box;

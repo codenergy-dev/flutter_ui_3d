@@ -9,7 +9,7 @@ import 'package:flutter/scheduler.dart'
 import '../animation/hero.dart';
 import '../animation/motion.dart';
 import '../geometry/alignment3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'overlay.dart';
 
 /// What happens while a route comes in or goes out.
@@ -298,7 +298,7 @@ class PageRoute3d<T> extends Route3d<T> {
   });
 
   /// Builds the route's content.
-  final Layout3d Function(PageRoute3d<T> route) builder;
+  final RenderObject3d Function(PageRoute3d<T> route) builder;
 
   /// Where the content stands before it has arrived, or null for no movement.
   ///
@@ -323,7 +323,7 @@ class PageRoute3d<T> extends Route3d<T> {
   final bool barrierDismissible;
 
   /// Builds the scrim geometry inside the barrier, if any.
-  final Layout3d Function(PageRoute3d<T> route)? scrimBuilder;
+  final RenderObject3d Function(PageRoute3d<T> route)? scrimBuilder;
 
   /// How deep the barrier's slab is, in world units.
   final double scrimThickness;
@@ -445,7 +445,7 @@ class Navigator3d {
   /// The walk a control deep inside a dialog uses to pop it without being
   /// handed a navigator. It crosses out of a detached entry, because
   /// [Overlay3d.of] does.
-  static Navigator3d? of(Layout3d layout) {
+  static Navigator3d? of(RenderObject3d layout) {
     final overlay = Overlay3d.of(layout);
     return overlay == null ? null : _navigators[overlay];
   }
@@ -585,7 +585,7 @@ class Navigator3d {
       collectHero3ds(
         overlay,
         aSide,
-        stopAt: <Layout3d>{
+        stopAt: <RenderObject3d>{
           for (final entry in overlay.entries)
             if (entry.content case final content?) content,
         },
@@ -646,10 +646,10 @@ class Navigator3d {
 ///
 /// Shared by [PageRoute3d] and `WidgetPageRoute3d`, which differ in what they
 /// build and not in how it arrives.
-Layout3d wrapRoute3dMotion(
+RenderObject3d wrapRoute3dMotion(
   Route3d<Object?> route,
   Motion3d? motion,
-  Layout3d content,
+  RenderObject3d content,
 ) => motion == null
     ? content
     : MotionTransition3d(

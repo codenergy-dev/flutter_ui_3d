@@ -18,7 +18,7 @@ const Theme3dData _theme = Theme3dData.light;
 
 /// The middle of [box], in the surface's own frame, which is where
 /// [rayAt] aims.
-Offset3d _middleOf(Layout3d box) {
+Offset3d _middleOf(RenderObject3d box) {
   final at = box.drawnOffsetInSurface;
   return Offset3d(at.x + box.size.width / 2, at.y + box.size.height / 2, 0);
 }

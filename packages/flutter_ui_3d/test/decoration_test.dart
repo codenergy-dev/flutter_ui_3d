@@ -122,7 +122,7 @@ void main() {
       final a = DecoratedBox3d(decoration: const TestDecoration3d('panel'));
       final b = DecoratedBox3d(decoration: const TestDecoration3d('panel'));
       final c = DecoratedBox3d(decoration: const TestDecoration3d('pill'));
-      laidOut(Column3d(children: <Layout3d>[a, b, c]));
+      laidOut(Column3d(children: <RenderObject3d>[a, b, c]));
 
       expect(RecordingPainter.created, hasLength(2));
       expect(a.painter, same(b.painter));
@@ -132,7 +132,7 @@ void main() {
     test('the cache disposes a painter when the last box lets go', () {
       final a = DecoratedBox3d(decoration: const TestDecoration3d('panel'));
       final b = DecoratedBox3d(decoration: const TestDecoration3d('panel'));
-      laidOut(Column3d(children: <Layout3d>[a, b]));
+      laidOut(Column3d(children: <RenderObject3d>[a, b]));
       final painter = RecordingPainter.created.single;
 
       a.decoration = const TestDecoration3d('pill');
@@ -286,7 +286,7 @@ void main() {
           elevation: 3,
         ),
       );
-      laidOut(Column3d(children: <Layout3d>[a, b]));
+      laidOut(Column3d(children: <RenderObject3d>[a, b]));
       expect(RecordingPainter.created, hasLength(1));
       expect(a.painter, same(b.painter));
     });
@@ -699,7 +699,7 @@ void main() {
     test('takes its space out of the row it is in', () {
       final visible = TestBox(const Size3d(1, 1, 0));
       final column = Column3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           Offstage3d(child: TestBox(const Size3d(1, 5, 0))),
           visible,
         ],

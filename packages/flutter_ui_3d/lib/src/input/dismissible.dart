@@ -25,7 +25,7 @@ import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'events.dart';
 import 'velocity.dart';
 
@@ -80,7 +80,7 @@ typedef Dismiss3dConfirmCallback =
 /// tiers of `docs/traps.md`:
 ///
 ///  * **Following the finger, and settling back or flying out** is
-///    [Layout3d.nodeOffset] on the child. One matrix write a frame, no
+///    [RenderObject3d.nodeOffset] on the child. One matrix write a frame, no
 ///    relayout, exactly as a [Draggable3d]'s feedback tracks the pointer.
 ///  * **The resize that follows a confirmed dismiss** is a real layout
 ///    animation, and deliberately so: the row is *gone*, the rows below it
@@ -128,13 +128,13 @@ typedef Dismiss3dConfirmCallback =
 /// member, which is what lets a horizontally dismissible row live inside a
 /// vertically scrolling list: each claims on its own axis, and the finger
 /// decides.
-class Dismissible3d extends MultiChildLayout3d<ParentData3d>
+class Dismissible3d extends RenderMultiChild3d<ParentData3d>
     implements HitTestTarget3d {
   /// Creates a box that can be swiped away.
   Dismissible3d({
-    Layout3d? child,
-    Layout3d? background,
-    Layout3d? secondaryBackground,
+    RenderObject3d? child,
+    RenderObject3d? background,
+    RenderObject3d? secondaryBackground,
     this.axis = Axis3d.horizontal,
     Dismiss3dDirection direction = Dismiss3dDirection.both,
     this.dismissThreshold = 0.4,
@@ -155,10 +155,10 @@ class Dismissible3d extends MultiChildLayout3d<ParentData3d>
        super(children: _slots(child, background, secondaryBackground));
 
   /// The slots as the ordered child list they are stored in.
-  static List<Layout3d> _slots(
-    Layout3d? child,
-    Layout3d? background,
-    Layout3d? secondaryBackground,
+  static List<RenderObject3d> _slots(
+    RenderObject3d? child,
+    RenderObject3d? background,
+    RenderObject3d? secondaryBackground,
   ) {
     assert(
       child != null || (background == null && secondaryBackground == null),
@@ -169,7 +169,7 @@ class Dismissible3d extends MultiChildLayout3d<ParentData3d>
       'Dismissible3d.secondaryBackground needs a background beside it, the '
       'same rule Flutter\'s Dismissible has.',
     );
-    return <Layout3d>[
+    return <RenderObject3d>[
       if (child != null) child,
       if (background != null) background,
       if (secondaryBackground != null) secondaryBackground,
@@ -177,26 +177,26 @@ class Dismissible3d extends MultiChildLayout3d<ParentData3d>
   }
 
   /// What is swiped.
-  Layout3d? get child => childCount > 0 ? childAt(0) : null;
+  RenderObject3d? get child => childCount > 0 ? childAt(0) : null;
 
-  set child(Layout3d? value) {
+  set child(RenderObject3d? value) {
     if (identical(child, value)) return;
     syncChildren(_slots(value, background, secondaryBackground));
   }
 
   /// What shows behind a [Dismiss3dDirection.forward] swipe.
-  Layout3d? get background => childCount > 1 ? childAt(1) : null;
+  RenderObject3d? get background => childCount > 1 ? childAt(1) : null;
 
-  set background(Layout3d? value) {
+  set background(RenderObject3d? value) {
     if (identical(background, value)) return;
     syncChildren(_slots(child, value, secondaryBackground));
   }
 
   /// What shows behind a [Dismiss3dDirection.reverse] swipe, or null to use
   /// [background] for both.
-  Layout3d? get secondaryBackground => childCount > 2 ? childAt(2) : null;
+  RenderObject3d? get secondaryBackground => childCount > 2 ? childAt(2) : null;
 
-  set secondaryBackground(Layout3d? value) {
+  set secondaryBackground(RenderObject3d? value) {
     if (identical(secondaryBackground, value)) return;
     syncChildren(_slots(child, background, value));
   }
@@ -295,7 +295,7 @@ class Dismissible3d extends MultiChildLayout3d<ParentData3d>
 
   /// How far the child has been carried along [axis], in world units.
   ///
-  /// Not [Layout3d.offset], which is where this box's parent put it.
+  /// Not [RenderObject3d.offset], which is where this box's parent put it.
   double get swipeOffset => _offset;
 
   /// [swipeOffset] as a fraction of the extent along [axis], signed.
@@ -593,7 +593,7 @@ class Dismissible3d extends MultiChildLayout3d<ParentData3d>
     child.place(Offset3d.zero);
     _applyOffset();
     final backgroundConstraints = Constraints3d.tight(full);
-    for (final slot in <Layout3d?>[background, secondaryBackground]) {
+    for (final slot in <RenderObject3d?>[background, secondaryBackground]) {
       if (slot == null) continue;
       slot.layout(backgroundConstraints);
       slot.parentData?.sceneOffset = Offset3d.zero.withAxis(
@@ -616,10 +616,10 @@ class Dismissible3d extends MultiChildLayout3d<ParentData3d>
     return child != null && hitTestChild(result, child, ray: ray);
   }
 
-  /// The same walk [ProxyLayout3dWithHitTestBehavior] does, for the same
+  /// The same walk [RenderProxyBoxWithHitTestBehavior3d] does, for the same
   /// reason: there is no way to say "add me anyway" through
-  /// [Layout3d.hitTest], so [HitTestBehavior3d.translucent] has to be spelled
-  /// out here.
+  /// [RenderObject3d.hitTest], so [HitTestBehavior3d.translucent] has to be
+  /// spelled out here.
   @override
   bool hitTest(HitTestResult3d result, {required Ray3d ray}) {
     if (!hasSize) return false;

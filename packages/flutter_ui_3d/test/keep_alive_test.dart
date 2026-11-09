@@ -18,7 +18,8 @@ import 'package:vector_math/vector_math.dart' show Ray;
 
 import 'support.dart';
 
-Layout3d rootOf(Layout3dController controller) => controller.surface!.child!;
+RenderObject3d rootOf(Layout3dController controller) =>
+    controller.surface!.child!;
 
 /// An item with something to lose: a counter only its own state knows, and a
 /// log of when it was made and unmade.

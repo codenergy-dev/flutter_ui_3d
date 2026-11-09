@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart'
     show FinderBase, MatchFinderMixin, Plurality;
 
 import '../input/focus.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import '../semantics.dart';
 import '../text/rich_text3d.dart';
 import '../text/text3d.dart';
@@ -17,7 +17,7 @@ import 'scene.dart';
 /// expect(find3d.bySemanticsLabel('Compose'), findsOne);
 /// await tester.tap3d(find3d.bySemanticsLabel('Settings'));
 /// ```
-const CommonLayout3dFinders find3d = CommonLayout3dFinders._();
+const CommonRenderObjectFinders3d find3d = CommonRenderObjectFinders3d._();
 
 /// The finders [find3d] offers.
 ///
@@ -26,8 +26,8 @@ const CommonLayout3dFinders find3d = CommonLayout3dFinders._();
 /// after the surface the overlay is on — so a dialog on a surface of its own
 /// is found without the test knowing where it is. The surfaces themselves are
 /// candidates too.
-class CommonLayout3dFinders {
-  const CommonLayout3dFinders._();
+class CommonRenderObjectFinders3d {
+  const CommonRenderObjectFinders3d._();
 
   /// The [Semantics3d] boxes whose label matches [label].
   ///
@@ -35,7 +35,7 @@ class CommonLayout3dFinders {
   /// anywhere in. This is the finder to reach for first: a component in a
   /// catalogue publishes its label here, and it is what a person reads, so a
   /// test written with it survives a change to how the component is built.
-  Layout3dFinder bySemanticsLabel(Pattern label) => _PredicateFinder(
+  RenderObjectFinder3d bySemanticsLabel(Pattern label) => _PredicateFinder(
     (box) =>
         box is Semantics3d &&
         switch (box.properties.label) {
@@ -46,39 +46,40 @@ class CommonLayout3dFinders {
   );
 
   /// The [Text3d] and [RichText3d] boxes whose whole text is [text].
-  Layout3dFinder text(String text) =>
+  RenderObjectFinder3d text(String text) =>
       _PredicateFinder((box) => _textOf(box) == text, 'text "$text"');
 
   /// The [Text3d] and [RichText3d] boxes whose text contains [pattern].
-  Layout3dFinder textContaining(Pattern pattern) => _PredicateFinder((box) {
-    final text = _textOf(box);
-    return text != null && _contains(pattern, text);
-  }, 'text containing ${_describePattern(pattern)}');
+  RenderObjectFinder3d textContaining(Pattern pattern) =>
+      _PredicateFinder((box) {
+        final text = _textOf(box);
+        return text != null && _contains(pattern, text);
+      }, 'text containing ${_describePattern(pattern)}');
 
   /// The boxes whose runtime type is exactly [type].
-  Layout3dFinder byType(Type type) =>
+  RenderObjectFinder3d byType(Type type) =>
       _PredicateFinder((box) => box.runtimeType == type, 'type "$type"');
 
   /// The boxes that are a [T], subtypes included.
-  Layout3dFinder bySubtype<T extends Layout3d>() =>
+  RenderObjectFinder3d bySubtype<T extends RenderObject3d>() =>
       _PredicateFinder((box) => box is T, 'type "$T" or a subtype');
 
   /// The boxes whose scene node is named [name].
   ///
   /// A box built imperatively takes a `name`; one built by a widget is named
   /// after its runtime type.
-  Layout3dFinder byName(String name) =>
+  RenderObjectFinder3d byName(String name) =>
       _PredicateFinder((box) => box.node.name == name, 'node name "$name"');
 
   /// [layout] itself, when it is mounted.
-  Layout3dFinder byLayout(Layout3d layout) => _PredicateFinder(
+  RenderObjectFinder3d byLayout(RenderObject3d layout) => _PredicateFinder(
     (box) => identical(box, layout),
     'the given box (${describeBox3d(layout)})',
   );
 
   /// The boxes [predicate] accepts.
-  Layout3dFinder byPredicate(
-    bool Function(Layout3d box) predicate, {
+  RenderObjectFinder3d byPredicate(
+    bool Function(RenderObject3d box) predicate, {
     String? description,
   }) => _PredicateFinder(predicate, description ?? 'box matching predicate');
 
@@ -87,7 +88,7 @@ class CommonLayout3dFinders {
   /// A focus scope that holds the focus itself — a dialog that has just
   /// opened with nothing inside it asking — is found as the box the scope
   /// stands for.
-  Layout3dFinder focused() => _PredicateFinder((box) {
+  RenderObjectFinder3d focused() => _PredicateFinder((box) {
     final primary = FocusManager.instance.primaryFocus;
     return primary != null && identical(Focus3d.layoutFor(primary), box);
   }, 'keyboard focus');
@@ -97,18 +98,18 @@ class CommonLayout3dFinders {
   /// Below means in the layout tree: a dialog opened from a button is not
   /// below the button, because it is on a surface of its own. With
   /// [matchRoot] the boxes [of] finds are candidates too.
-  Layout3dFinder descendant({
-    required FinderBase<Layout3d> of,
-    required FinderBase<Layout3d> matching,
+  RenderObjectFinder3d descendant({
+    required FinderBase<RenderObject3d> of,
+    required FinderBase<RenderObject3d> matching,
     bool matchRoot = false,
   }) => _DescendantFinder(of, matching, matchRoot: matchRoot);
 
   /// The boxes [matching] finds above a box [of] finds, nearest first.
   ///
   /// With [matchRoot] the boxes [of] finds are candidates too.
-  Layout3dFinder ancestor({
-    required FinderBase<Layout3d> of,
-    required FinderBase<Layout3d> matching,
+  RenderObjectFinder3d ancestor({
+    required FinderBase<RenderObject3d> of,
+    required FinderBase<RenderObject3d> matching,
     bool matchRoot = false,
   }) => _AncestorFinder(of, matching, matchRoot: matchRoot);
 }
@@ -118,10 +119,10 @@ class CommonLayout3dFinders {
 /// Built on `flutter_test`'s own [FinderBase], so `findsOne`, `findsNothing`,
 /// `findsExactly`, `first`, `last` and `at` all work, and a failure describes
 /// what was searched for the way a widget finder's does.
-abstract class Layout3dFinder extends FinderBase<Layout3d> {
+abstract class RenderObjectFinder3d extends FinderBase<RenderObject3d> {
   /// Every box on every surface in the widget tree, in tree order.
   @override
-  Iterable<Layout3d> get allCandidates => _everyBox();
+  Iterable<RenderObject3d> get allCandidates => _everyBox();
 
   /// What a matching box is, as a noun phrase, for [describeMatch].
   String get description;
@@ -133,23 +134,24 @@ abstract class Layout3dFinder extends FinderBase<Layout3d> {
   };
 }
 
-class _PredicateFinder extends Layout3dFinder with MatchFinderMixin<Layout3d> {
+class _PredicateFinder extends RenderObjectFinder3d
+    with MatchFinderMixin<RenderObject3d> {
   _PredicateFinder(this._predicate, this.description);
 
-  final bool Function(Layout3d box) _predicate;
+  final bool Function(RenderObject3d box) _predicate;
 
   @override
   final String description;
 
   @override
-  bool matches(Layout3d candidate) => _predicate(candidate);
+  bool matches(RenderObject3d candidate) => _predicate(candidate);
 }
 
-class _DescendantFinder extends Layout3dFinder {
+class _DescendantFinder extends RenderObjectFinder3d {
   _DescendantFinder(this.of, this.matching, {required this.matchRoot});
 
-  final FinderBase<Layout3d> of;
-  final FinderBase<Layout3d> matching;
+  final FinderBase<RenderObject3d> of;
+  final FinderBase<RenderObject3d> matching;
   final bool matchRoot;
 
   @override
@@ -163,11 +165,11 @@ class _DescendantFinder extends Layout3dFinder {
       '${of.describeMatch(Plurality.one)}';
 
   @override
-  Iterable<Layout3d> get allCandidates {
-    final seen = <Layout3d>{};
-    final boxes = <Layout3d>[];
+  Iterable<RenderObject3d> get allCandidates {
+    final seen = <RenderObject3d>{};
+    final boxes = <RenderObject3d>[];
     for (final root in of.evaluate()) {
-      void walk(Layout3d box) {
+      void walk(RenderObject3d box) {
         if ((matchRoot || !identical(box, root)) && seen.add(box)) {
           boxes.add(box);
         }
@@ -180,15 +182,16 @@ class _DescendantFinder extends Layout3dFinder {
   }
 
   @override
-  Iterable<Layout3d> findInCandidates(Iterable<Layout3d> candidates) =>
-      matching.findInCandidates(candidates);
+  Iterable<RenderObject3d> findInCandidates(
+    Iterable<RenderObject3d> candidates,
+  ) => matching.findInCandidates(candidates);
 }
 
-class _AncestorFinder extends Layout3dFinder {
+class _AncestorFinder extends RenderObjectFinder3d {
   _AncestorFinder(this.of, this.matching, {required this.matchRoot});
 
-  final FinderBase<Layout3d> of;
-  final FinderBase<Layout3d> matching;
+  final FinderBase<RenderObject3d> of;
+  final FinderBase<RenderObject3d> matching;
   final bool matchRoot;
 
   @override
@@ -202,11 +205,11 @@ class _AncestorFinder extends Layout3dFinder {
       '${of.describeMatch(Plurality.one)}';
 
   @override
-  Iterable<Layout3d> get allCandidates {
-    final seen = <Layout3d>{};
-    final boxes = <Layout3d>[];
+  Iterable<RenderObject3d> get allCandidates {
+    final seen = <RenderObject3d>{};
+    final boxes = <RenderObject3d>[];
     for (final leaf in of.evaluate()) {
-      Layout3d? box = matchRoot ? leaf : leaf.parent;
+      RenderObject3d? box = matchRoot ? leaf : leaf.parent;
       while (box != null) {
         if (seen.add(box)) boxes.add(box);
         box = box.parent;
@@ -216,14 +219,15 @@ class _AncestorFinder extends Layout3dFinder {
   }
 
   @override
-  Iterable<Layout3d> findInCandidates(Iterable<Layout3d> candidates) =>
-      matching.findInCandidates(candidates);
+  Iterable<RenderObject3d> findInCandidates(
+    Iterable<RenderObject3d> candidates,
+  ) => matching.findInCandidates(candidates);
 }
 
-Iterable<Layout3d> _everyBox() sync* {
+Iterable<RenderObject3d> _everyBox() sync* {
   for (final record in sceneSurfaces3d()) {
-    final boxes = <Layout3d>[];
-    void walk(Layout3d box) {
+    final boxes = <RenderObject3d>[];
+    void walk(RenderObject3d box) {
       boxes.add(box);
       box.visitChildren(walk);
     }
@@ -233,7 +237,7 @@ Iterable<Layout3d> _everyBox() sync* {
   }
 }
 
-String? _textOf(Layout3d box) => switch (box) {
+String? _textOf(RenderObject3d box) => switch (box) {
   Text3d() => box.data,
   RichText3d() => box.text.toPlainText(),
   _ => null,

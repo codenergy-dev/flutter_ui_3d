@@ -12,7 +12,7 @@ import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
 import '../hit_test.dart';
 import '../input/events.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// The slab in front of everything a modal covers: it fills the space it is
 /// given, swallows every ray that reaches it, and reports the tap that ought
@@ -58,7 +58,7 @@ import '../layout3d.dart';
 /// [thickness] defaults to zero, so a barrier is a plane rather than a box:
 /// a ray still reaches it (a zero-extent slab is intersected on both faces),
 /// and nothing behind it is displaced.
-class ModalBarrier3d extends SingleChildLayout3d implements HitTestTarget3d {
+class ModalBarrier3d extends RenderSingleChild3d implements HitTestTarget3d {
   /// Creates a barrier that fills what it is given.
   ModalBarrier3d({
     this.onDismiss,

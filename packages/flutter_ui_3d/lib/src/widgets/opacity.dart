@@ -33,7 +33,7 @@ import 'framework.dart';
 /// subscribes to the animation and rebuilds nothing at all — or
 /// [SceneAnimatedOpacity3d] when what you have is a target rather than a
 /// controller.
-class SceneOpacity3d extends SingleChildLayout3dWidget {
+class SceneOpacity3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that draws [child] at [opacity].
   const SceneOpacity3d({super.key, required this.opacity, super.child});
 
@@ -69,7 +69,7 @@ class SceneOpacity3d extends SingleChildLayout3dWidget {
 /// somewhere other than around the whole page — over the dialog but not over
 /// the scrim that dims behind it, which is exactly where a catalogue's modal
 /// frame puts it.
-class SceneFadeTransition3d extends SingleChildLayout3dWidget {
+class SceneFadeTransition3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that draws [child] at whatever [opacity] currently says.
   const SceneFadeTransition3d({super.key, this.opacity, super.child});
 

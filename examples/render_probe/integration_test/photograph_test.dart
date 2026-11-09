@@ -16,7 +16,7 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart'
-    show GlyphAtlasCache3d, Layout3d, ModalBarrier3d, Navigator3d;
+    show GlyphAtlasCache3d, RenderObject3d, ModalBarrier3d, Navigator3d;
 import 'package:flutter_ui_3d/testing.dart';
 import 'package:flutter_ui_3d_gallery/main.dart' show Gallery3dApp;
 import 'package:integration_test/integration_test.dart';
@@ -146,7 +146,7 @@ void main() {
     // against Flutter says the numbers are right; only these two frames say
     // whether the result is a theme a person would ship.
     final navigator = Navigator3d.of(
-      tester.layout3d<Layout3d>(find3d.bySubtype<ModalBarrier3d>()),
+      tester.layout3d<RenderObject3d>(find3d.bySubtype<ModalBarrier3d>()),
     );
     navigator!.pop();
     await pumpFrames(tester, 40);

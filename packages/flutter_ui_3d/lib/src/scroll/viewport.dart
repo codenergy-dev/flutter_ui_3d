@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart'
 
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
 import '../layout_pass.dart';
+import '../rendering/object.dart';
 import 'scroll_controller.dart';
 import 'scrollable.dart';
 
@@ -17,8 +17,8 @@ import 'scrollable.dart';
 /// slice at [controller]'s offset. Nothing is culled and nothing is clipped:
 /// the child keeps its geometry, it simply slides. For long lists, prefer
 /// [ListView3d], which only builds what is near the window.
-class Viewport3d extends SingleChildLayout3d
-    with Layout3dLayoutPassMixin, Scroll3dHolderMixin {
+class Viewport3d extends RenderSingleChild3d
+    with RenderLayoutPassMixin3d, Scroll3dHolderMixin {
   /// Creates a scrolling window along [axis].
   Viewport3d({
     Axis3d axis = Axis3d.vertical,

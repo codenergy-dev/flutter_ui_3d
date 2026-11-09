@@ -349,7 +349,7 @@ class Decoration3dPaintRequest {
   final LayoutBasis3d basis;
 
   /// How much of this box is drawn, from 0 to 1, from
-  /// [Layout3d.inheritedOpacity].
+  /// [RenderObject3d.inheritedOpacity].
   ///
   /// One unless an [Opacity3d] is above the box. **It is coverage rather
   /// than alpha**: a painter honours it by discarding that share of its
@@ -436,7 +436,7 @@ abstract class Decoration3dPainter {
 /// parameter set per box. Reference counted, so the last box to let go of a
 /// shape is what disposes it.
 ///
-/// Lives on [Layout3dOwner], which is per-surface, for the same reason the
+/// Lives on [PipelineOwner3d], which is per-surface, for the same reason the
 /// basis and the metrics do: it is tree-wide state that both the imperative
 /// and the declarative layer have to reach without a `BuildContext`.
 class Decoration3dPainterCache {

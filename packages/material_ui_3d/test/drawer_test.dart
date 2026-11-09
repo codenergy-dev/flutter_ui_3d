@@ -17,9 +17,9 @@ const Theme3dData _theme = Theme3dData.light;
 const double _dp = 0.01;
 
 /// Where [box]'s origin is on the surface.
-Offset3d _origin(Layout3d box) {
+Offset3d _origin(RenderObject3d box) {
   var at = Offset3d.zero;
-  Layout3d? walk = box;
+  RenderObject3d? walk = box;
   while (walk != null) {
     at += walk.offset;
     walk = walk.parent;
@@ -43,7 +43,7 @@ Semantics3d _labelled(Layout3dSurface surface, String label) =>
 /// The panel a destination draws: the one under its announcement.
 DecoratedBox3d _destinationPanel(Layout3dSurface surface, String label) {
   final found = <DecoratedBox3d>[];
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is DecoratedBox3d) found.add(box);
     box.visitChildren(walk);
   }

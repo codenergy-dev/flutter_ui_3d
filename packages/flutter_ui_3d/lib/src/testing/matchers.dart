@@ -10,7 +10,7 @@ import 'package:flutter_test/flutter_test.dart'
 
 import '../decoration/decorated_box.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'scene.dart';
 
 /// Matches when a press at the centre of every box found would reach it.
@@ -69,7 +69,7 @@ Matcher _hasSizeWhere({
   Matcher? height,
   Matcher? depth,
   required String unit,
-  required double Function(Layout3d box, double units) toUnit,
+  required double Function(RenderObject3d box, double units) toUnit,
 }) {
   final axes = <(String, Matcher, double Function(Size3d))>[
     if (width != null) ('width', width, (size) => size.width),
@@ -117,15 +117,15 @@ const Matcher standsOnItsPanel3d = _EveryBoxMatcher(
   'not laid out behind the front face of its panel',
 );
 
-String? _reachable(Layout3d box, List<SceneSurface3d> surfaces) {
+String? _reachable(RenderObject3d box, List<SceneSurface3d> surfaces) {
   final reach = Reach3d.of(box, surfaces);
   return reach.reaches ? null : reach.describeMiss();
 }
 
-String? _standsOnItsPanel(Layout3d box, List<SceneSurface3d> surfaces) {
+String? _standsOnItsPanel(RenderObject3d box, List<SceneSurface3d> surfaces) {
   final surface = rootSurfaceOf(box);
   if (surface == null || !box.hasSize) return 'it is not laid out';
-  Layout3d? panel = box.parent;
+  RenderObject3d? panel = box.parent;
   while (panel != null && panel is! DecoratedBox3d) {
     panel = panel.parent;
   }
@@ -155,7 +155,8 @@ String _figure(double value) {
 class _EveryBoxMatcher extends Matcher {
   const _EveryBoxMatcher(this._check, this._description);
 
-  final String? Function(Layout3d box, List<SceneSurface3d> surfaces) _check;
+  final String? Function(RenderObject3d box, List<SceneSurface3d> surfaces)
+  _check;
   final String _description;
 
   static const _failuresKey = 'layout3d.failures';
@@ -166,14 +167,14 @@ class _EveryBoxMatcher extends Matcher {
 
   @override
   bool matches(Object? item, Map<Object?, Object?> matchState) {
-    final List<Layout3d> boxes;
-    if (item is Layout3d) {
-      boxes = <Layout3d>[item];
-    } else if (item is FinderBase<Layout3d>) {
+    final List<RenderObject3d> boxes;
+    if (item is RenderObject3d) {
+      boxes = <RenderObject3d>[item];
+    } else if (item is FinderBase<RenderObject3d>) {
       boxes = item.evaluate().toList();
     } else {
       matchState[_failuresKey] = <String>[
-        'is not a Layout3d or a finder over them',
+        'is not a RenderObject3d or a finder over them',
       ];
       return false;
     }
@@ -199,7 +200,7 @@ class _EveryBoxMatcher extends Matcher {
     bool verbose,
   ) {
     final failures = matchState[_failuresKey] as List<String>? ?? const [];
-    if (item is FinderBase<Layout3d>) {
+    if (item is FinderBase<RenderObject3d>) {
       mismatchDescription.add(
         'searched for ${item.describeMatch(Plurality.many)}, and ',
       );

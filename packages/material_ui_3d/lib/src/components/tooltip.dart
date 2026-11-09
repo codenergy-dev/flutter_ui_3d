@@ -67,11 +67,11 @@ import 'reading_direction.dart';
 ///
 /// ## Where it appears
 ///
-/// Under the child, [TooltipStyle3d.verticalOffset] below it, anchored with
-/// the same machinery a menu uses: an [Anchor3d] around the child and a
-/// [Follower3d] around the label, driven by `Layout3d.anchorOffsetTo` on the
-/// node tier. It follows the child if the child moves, and it goes away with
-/// it.
+/// Under the child, [TooltipStyle3d.verticalOffset] below it, anchored with the
+/// same machinery a menu uses: an [Anchor3d] around the child and a
+/// [Follower3d] around the label, driven by `RenderObject3d.anchorOffsetTo` on
+/// the node tier. It follows the child if the child moves, and it goes away
+/// with it.
 ///
 /// **It absorbs no pointer.** The label is wrapped in an `IgnorePointer3d`
 /// and the entry has no barrier, because a tooltip that took the ray would

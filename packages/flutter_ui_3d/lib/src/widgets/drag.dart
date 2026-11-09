@@ -30,7 +30,8 @@ import 'framework.dart';
 /// while a drag is being recognized — outside any build phase. It is the same
 /// arrangement [SceneOverlay3d] uses for its entries, and for the same
 /// reason.
-class SceneDraggable3d<T extends Object> extends SingleChildLayout3dWidget {
+class SceneDraggable3d<T extends Object>
+    extends SingleChildRenderObjectWidget3d {
   /// Creates a draggable box carrying [data].
   const SceneDraggable3d({
     super.key,
@@ -157,7 +158,8 @@ class SceneDraggable3d<T extends Object> extends SingleChildLayout3dWidget {
 /// [onEnter] and [onLeave] should write a decoration or a state layer rather
 /// than call `setState`, because a rebuild during a drag is exactly what the
 /// node tier exists to avoid.
-class SceneDragTarget3d<T extends Object> extends SingleChildLayout3dWidget {
+class SceneDragTarget3d<T extends Object>
+    extends SingleChildRenderObjectWidget3d {
   /// Creates a drop target for payloads of type [T].
   const SceneDragTarget3d({
     super.key,
@@ -229,7 +231,7 @@ class SceneDragTarget3d<T extends Object> extends SingleChildLayout3dWidget {
 /// and taking the item out of the list is a rebuild by definition. [onUpdate]
 /// runs every frame of the swipe — write a decoration or a state layer from
 /// it, never a rebuild.
-class SceneDismissible3d extends Layout3dWidget {
+class SceneDismissible3d extends MultiChildRenderObjectWidget3d {
   /// Creates a box that can be swiped away.
   const SceneDismissible3d({
     super.key,

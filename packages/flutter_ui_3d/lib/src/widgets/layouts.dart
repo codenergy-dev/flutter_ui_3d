@@ -88,7 +88,7 @@ import '../input/gesture_detector.dart';
 import '../input/listener.dart';
 import '../input/shortcuts.dart';
 import '../input/tap_target.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import '../scroll/grid_delegate.dart';
 import '../scroll/grid_view.dart';
 import '../scroll/list_view.dart';
@@ -120,7 +120,7 @@ import 'text_scaling.dart';
 ///
 /// The [content] node is app-owned: this widget positions and scales it, and
 /// detaches it when the widget goes away, but never disposes it.
-class SceneNodeBox3d extends Layout3dWidget {
+class SceneNodeBox3d extends MultiChildRenderObjectWidget3d {
   /// Creates a box around [content].
   const SceneNodeBox3d({
     super.key,
@@ -169,7 +169,7 @@ class SceneNodeBox3d extends Layout3dWidget {
 }
 
 /// Insets its child, the widget form of [Padding3d].
-class ScenePadding3d extends SingleChildLayout3dWidget {
+class ScenePadding3d extends SingleChildRenderObjectWidget3d {
   /// Creates a padded box.
   const ScenePadding3d({
     super.key,
@@ -195,7 +195,7 @@ class ScenePadding3d extends SingleChildLayout3dWidget {
 }
 
 /// Aligns its child, the widget form of [Align3d].
-class SceneAlign3d extends SingleChildLayout3dWidget {
+class SceneAlign3d extends SingleChildRenderObjectWidget3d {
   /// Creates an aligning box.
   const SceneAlign3d({
     super.key,
@@ -251,7 +251,7 @@ class SceneCenter3d extends SceneAlign3d {
 }
 
 /// A box with a fixed size, the widget form of [SizedBox3d].
-class SceneSizedBox3d extends SingleChildLayout3dWidget {
+class SceneSizedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box fixed on the axes given.
   const SceneSizedBox3d({
     super.key,
@@ -290,7 +290,7 @@ class SceneSizedBox3d extends SingleChildLayout3dWidget {
 }
 
 /// Hides its subtree from hit testing, the widget form of [IgnorePointer3d].
-class SceneIgnorePointer3d extends SingleChildLayout3dWidget {
+class SceneIgnorePointer3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that hides [child] from hit tests while [ignoring].
   const SceneIgnorePointer3d({super.key, this.ignoring = true, super.child});
 
@@ -309,7 +309,7 @@ class SceneIgnorePointer3d extends SingleChildLayout3dWidget {
 
 /// Takes the hits its subtree would have taken, the widget form of
 /// [AbsorbPointer3d].
-class SceneAbsorbPointer3d extends SingleChildLayout3dWidget {
+class SceneAbsorbPointer3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that answers hits for [child] while [absorbing].
   const SceneAbsorbPointer3d({super.key, this.absorbing = true, super.child});
 
@@ -332,7 +332,7 @@ class SceneAbsorbPointer3d extends SingleChildLayout3dWidget {
 /// The space stays reserved and nothing above moves; a hidden box is neither
 /// drawn nor reachable by a ray. Use [SceneOffstage3d] to take the space back
 /// as well.
-class SceneVisibility3d extends SingleChildLayout3dWidget {
+class SceneVisibility3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box showing or hiding [child].
   const SceneVisibility3d({super.key, this.visible = true, super.child});
 
@@ -354,7 +354,7 @@ class SceneVisibility3d extends SingleChildLayout3dWidget {
 ///
 /// The child is still laid out, so flipping [offstage] back shows something
 /// that is already measured rather than something that appears a frame later.
-class SceneOffstage3d extends SingleChildLayout3dWidget {
+class SceneOffstage3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that can take [child] out of the layout.
   const SceneOffstage3d({super.key, this.offstage = true, super.child});
 
@@ -393,7 +393,7 @@ class SceneOffstage3d extends SingleChildLayout3dWidget {
 /// Flutter's `AutomaticKeepAlive` listening for a notification from deeper in.
 /// A kept item stays in memory for as long as the view does, so keep the ones
 /// with something to lose and let the rest go.
-class SceneKeepAlive3d extends SingleChildLayout3dWidget {
+class SceneKeepAlive3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box asking for [child] to be kept.
   const SceneKeepAlive3d({super.key, this.keepAlive = true, super.child});
 
@@ -430,7 +430,7 @@ class SceneKeepAlive3d extends SingleChildLayout3dWidget {
 ///   child: SceneGestureDetector3d(onTap: play, child: playButton),
 /// )
 /// ```
-class SceneSemantics3d extends SingleChildLayout3dWidget {
+class SceneSemantics3d extends SingleChildRenderObjectWidget3d {
   /// Creates a semantics box over [child].
   const SceneSemantics3d({
     super.key,
@@ -467,7 +467,7 @@ class SceneSemantics3d extends SingleChildLayout3dWidget {
 
 /// Claims a region of the plane for the pointer, the widget form of
 /// [HitTestArea3d].
-class SceneHitTestArea3d extends SingleChildLayout3dWidget {
+class SceneHitTestArea3d extends SingleChildRenderObjectWidget3d {
   /// Creates a hit-test region, opaque by default.
   const SceneHitTestArea3d({
     super.key,
@@ -490,7 +490,7 @@ class SceneHitTestArea3d extends SingleChildLayout3dWidget {
 
 /// Guarantees the pointer a minimum area to aim at, the widget form of
 /// [TapTarget3d].
-class SceneTapTarget3d extends SingleChildLayout3dWidget {
+class SceneTapTarget3d extends SingleChildRenderObjectWidget3d {
   /// Creates a target at least [minimumSize] across, or 48dp square by
   /// default.
   const SceneTapTarget3d({super.key, this.minimumSize, super.child});
@@ -509,7 +509,7 @@ class SceneTapTarget3d extends SingleChildLayout3dWidget {
 }
 
 /// Reports the pointer events inside it, the widget form of [Listener3d].
-class SceneListener3d extends SingleChildLayout3dWidget {
+class SceneListener3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that reports the pointer events it is handed.
   const SceneListener3d({
     super.key,
@@ -575,7 +575,7 @@ class SceneListener3d extends SingleChildLayout3dWidget {
 }
 
 /// Recognizes gestures on the plane, the widget form of [GestureDetector3d].
-class SceneGestureDetector3d extends SingleChildLayout3dWidget {
+class SceneGestureDetector3d extends SingleChildRenderObjectWidget3d {
   /// Creates a gesture detector.
   const SceneGestureDetector3d({
     super.key,
@@ -663,7 +663,7 @@ class SceneGestureDetector3d extends SingleChildLayout3dWidget {
 /// Pass a [focusNode] to drive it from a `Focus` widget above, or leave it
 /// null and let the box own one; dropping the node between rebuilds gives the
 /// box a fresh one rather than leaving it tied to the old.
-class SceneFocus3d extends SingleChildLayout3dWidget {
+class SceneFocus3d extends SingleChildRenderObjectWidget3d {
   /// Creates a focusable box.
   const SceneFocus3d({
     super.key,
@@ -747,7 +747,7 @@ class SceneFocus3d extends SingleChildLayout3dWidget {
 /// A Flutter `Shortcuts` widget above the `SceneView` does not reach a box on
 /// a plane — see [Shortcuts3d] for why — so the binding goes here, inside the
 /// surface.
-class SceneShortcuts3d extends SingleChildLayout3dWidget {
+class SceneShortcuts3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that maps [shortcuts] for its subtree.
   const SceneShortcuts3d({super.key, required this.shortcuts, super.child});
 
@@ -769,7 +769,7 @@ class SceneShortcuts3d extends SingleChildLayout3dWidget {
 ///
 /// A focused control finds the nearest binding for an intent's type above
 /// it. A Flutter `Actions` widget above the `SceneView` is not consulted.
-class SceneActions3d extends SingleChildLayout3dWidget {
+class SceneActions3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that binds [actions] for its subtree.
   const SceneActions3d({super.key, required this.actions, super.child});
 
@@ -787,7 +787,7 @@ class SceneActions3d extends SingleChildLayout3dWidget {
 
 /// Imposes extra constraints on its child, the widget form of
 /// [ConstrainedBox3d].
-class SceneConstrainedBox3d extends SingleChildLayout3dWidget {
+class SceneConstrainedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a constraining box.
   const SceneConstrainedBox3d({
     super.key,
@@ -816,7 +816,7 @@ class SceneConstrainedBox3d extends SingleChildLayout3dWidget {
 /// case where the axis is decided at runtime. It is expensive either way —
 /// answering the question walks the whole subtree, and then the subtree is
 /// laid out again for real.
-class SceneIntrinsicExtent3d extends SingleChildLayout3dWidget {
+class SceneIntrinsicExtent3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box sizing [child] to its intrinsic extent along [axis].
   const SceneIntrinsicExtent3d({
     super.key,
@@ -845,7 +845,7 @@ class SceneIntrinsicExtent3d extends SingleChildLayout3dWidget {
 
 /// Sizes its child to the child's own preferred width, the widget form of
 /// [IntrinsicWidth3d].
-class SceneIntrinsicWidth3d extends SingleChildLayout3dWidget {
+class SceneIntrinsicWidth3d extends SingleChildRenderObjectWidget3d {
   /// Creates a width-shrinking box.
   const SceneIntrinsicWidth3d({super.key, this.step, super.child});
 
@@ -864,7 +864,7 @@ class SceneIntrinsicWidth3d extends SingleChildLayout3dWidget {
 
 /// Sizes its child to the child's own preferred height, the widget form of
 /// [IntrinsicHeight3d].
-class SceneIntrinsicHeight3d extends SingleChildLayout3dWidget {
+class SceneIntrinsicHeight3d extends SingleChildRenderObjectWidget3d {
   /// Creates a height-shrinking box.
   const SceneIntrinsicHeight3d({super.key, this.step, super.child});
 
@@ -883,7 +883,7 @@ class SceneIntrinsicHeight3d extends SingleChildLayout3dWidget {
 
 /// Sizes its child to the child's own preferred depth, the widget form of
 /// [IntrinsicDepth3d].
-class SceneIntrinsicDepth3d extends SingleChildLayout3dWidget {
+class SceneIntrinsicDepth3d extends SingleChildRenderObjectWidget3d {
   /// Creates a depth-shrinking box.
   const SceneIntrinsicDepth3d({super.key, this.step, super.child});
 
@@ -902,7 +902,7 @@ class SceneIntrinsicDepth3d extends SingleChildLayout3dWidget {
 
 /// Puts its child's baseline at a fixed distance, the widget form of
 /// [Baseline3d].
-class SceneBaseline3d extends SingleChildLayout3dWidget {
+class SceneBaseline3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that declares where its child's baseline sits.
   const SceneBaseline3d({
     super.key,
@@ -931,7 +931,7 @@ class SceneBaseline3d extends SingleChildLayout3dWidget {
 
 /// Transforms its child without affecting layout, the widget form of
 /// [Transform3d].
-class SceneTransform3d extends SingleChildLayout3dWidget {
+class SceneTransform3d extends SingleChildRenderObjectWidget3d {
   /// Creates a transformed box.
   const SceneTransform3d({
     super.key,
@@ -994,7 +994,8 @@ class SceneTransform3d extends SingleChildLayout3dWidget {
 ///
 /// [SceneLayout3d.slots] is the same write, stated on the surface itself, for
 /// an application that knows its slots at the root.
-class SceneSlotProvider3d<T extends Object> extends SingleChildLayout3dWidget {
+class SceneSlotProvider3d<T extends Object>
+    extends SingleChildRenderObjectWidget3d {
   /// Creates a provider writing [value] under [slot].
   const SceneSlotProvider3d({
     super.key,
@@ -1064,7 +1065,7 @@ class SceneSlotProvider3d<T extends Object> extends SingleChildLayout3dWidget {
 /// [BoxDecoration3d.painterFactory] is null by default, because building
 /// geometry needs a GPU context that `flutter test` does not have. See the
 /// package README under *Making a box visible*.
-class SceneDecoratedBox3d extends SingleChildLayout3dWidget {
+class SceneDecoratedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a decorated box.
   const SceneDecoratedBox3d({
     super.key,
@@ -1131,7 +1132,7 @@ class SceneDecoratedBox3d extends SingleChildLayout3dWidget {
 /// with loose constraints is empty for a frame or two and then pushes its
 /// neighbours aside once. Wrap it in a [SceneSizedBox3d] when the layout must
 /// not move.
-class SceneImage3d extends Layout3dWidget {
+class SceneImage3d extends MultiChildRenderObjectWidget3d {
   /// Creates a box drawing [image].
   const SceneImage3d({
     super.key,
@@ -1259,12 +1260,12 @@ class SceneImage3d extends Layout3dWidget {
 /// ```
 ///
 /// Layout is untouched — the box takes its child's size, exactly as a proxy
-/// does. What changes is what the subtree below is allowed to be seen
-/// through, and it changes on two tiers: every descendant's
-/// [Layout3d.clipRegion] reports this box's extent, so a decoration painter
-/// that honours clip planes cuts a box that is *half* inside; and, with
-/// [cullNodes], a descendant entirely outside has its scene node hidden,
-/// which also puts it out of reach of a ray.
+/// does. What changes is what the subtree below is allowed to be seen through,
+/// and it changes on two tiers: every descendant's [RenderObject3d.clipRegion]
+/// reports this box's extent, so a decoration painter that honours clip planes
+/// cuts a box that is *half* inside; and, with [cullNodes], a descendant
+/// entirely outside has its scene node hidden, which also puts it out of reach
+/// of a ray.
 ///
 /// **Only a material that reads the plane block honours the first tier.**
 /// [BoxDecoration3d] does; a [SceneNodeBox3d] holding an application's own
@@ -1275,7 +1276,7 @@ class SceneImage3d extends Layout3dWidget {
 /// half-spaces, so it is convex, and a corner radius cannot be expressed as
 /// one. A child overflowing a rounded card is not clipped to the card's
 /// shape.
-class SceneClipBox3d extends SingleChildLayout3dWidget {
+class SceneClipBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box clipping its child to its own extent.
   const SceneClipBox3d({
     super.key,
@@ -1317,7 +1318,7 @@ class SceneClipBox3d extends SingleChildLayout3dWidget {
 /// Unlike Flutter's `Container` it has no `decoration`, for the reason
 /// [Container3d]'s own doc gives: wrap it in a [SceneDecoratedBox3d], which
 /// makes the order of margin and panel explicit instead of implied.
-class SceneContainer3d extends SingleChildLayout3dWidget {
+class SceneContainer3d extends SingleChildRenderObjectWidget3d {
   /// Creates a container.
   const SceneContainer3d({
     super.key,
@@ -1393,7 +1394,7 @@ class SceneContainer3d extends SingleChildLayout3dWidget {
 }
 
 /// Lays children out in a line, the widget form of [Flex3d].
-abstract class SceneFlex3d extends Layout3dWidget {
+abstract class SceneFlex3d extends MultiChildRenderObjectWidget3d {
   /// Creates a flex line.
   const SceneFlex3d({
     super.key,
@@ -1527,7 +1528,7 @@ class SceneDepth3d extends SceneFlex3d {
 
 /// Gives a child of a [SceneFlex3d] a share of the leftover space, the widget
 /// form of [Flexible3d].
-class SceneFlexible3d extends SingleChildLayout3dWidget {
+class SceneFlexible3d extends SingleChildRenderObjectWidget3d {
   /// Creates a flexible child.
   const SceneFlexible3d({
     super.key,
@@ -1562,7 +1563,7 @@ class SceneExpanded3d extends SceneFlexible3d {
 }
 
 /// Empty flexible space, the widget form of [Spacer3d].
-class SceneSpacer3d extends Layout3dWidget {
+class SceneSpacer3d extends MultiChildRenderObjectWidget3d {
   /// Creates a flexible gap.
   const SceneSpacer3d({super.key, this.flex = 1});
 
@@ -1579,7 +1580,7 @@ class SceneSpacer3d extends Layout3dWidget {
 }
 
 /// Overlays its children, the widget form of [Stack3d].
-class SceneStack3d extends Layout3dWidget {
+class SceneStack3d extends MultiChildRenderObjectWidget3d {
   /// Creates a stack.
   const SceneStack3d({
     super.key,
@@ -1625,7 +1626,7 @@ class SceneStack3d extends Layout3dWidget {
 
 /// Pins a child of a [SceneStack3d] to the stack's faces, the widget form of
 /// [Positioned3d].
-class ScenePositioned3d extends SingleChildLayout3dWidget {
+class ScenePositioned3d extends SingleChildRenderObjectWidget3d {
   /// Creates a positioned child.
   const ScenePositioned3d({
     super.key,
@@ -1702,7 +1703,7 @@ class ScenePositioned3d extends SingleChildLayout3dWidget {
 ///
 /// [start] is the left in a left-to-right application and the right in a
 /// right-to-left one, read from the ambient `Directionality`.
-class ScenePositionedDirectional3d extends SingleChildLayout3dWidget {
+class ScenePositionedDirectional3d extends SingleChildRenderObjectWidget3d {
   /// Creates a positioned child.
   const ScenePositionedDirectional3d({
     super.key,
@@ -1779,7 +1780,7 @@ class ScenePositionedDirectional3d extends SingleChildLayout3dWidget {
 }
 
 /// A scrolling window onto a taller child, the widget form of [Viewport3d].
-class SceneViewport3d extends SingleChildLayout3dWidget {
+class SceneViewport3d extends SingleChildRenderObjectWidget3d {
   /// Creates a scrolling window.
   const SceneViewport3d({
     super.key,
@@ -1838,7 +1839,7 @@ class SceneViewport3d extends SingleChildLayout3dWidget {
 /// `prototypeItem` for the same reason; there is no widget form of that,
 /// because a prototype is measured rather than mounted and a widget cannot be
 /// laid out without being in the tree.
-class SceneListView3d extends LazyLayout3dWidget {
+class SceneListView3d extends LazyRenderObjectWidget3d {
   /// Creates a scrollable list over an explicit set of children.
   const SceneListView3d({
     super.key,
@@ -1955,7 +1956,7 @@ class SceneListView3d extends LazyLayout3dWidget {
 /// An item is picked up with a long press by default, so an ordinary drag is
 /// still free to scroll the list. Set [startMode] to
 /// [Drag3dStartMode.immediate] for a list of drag handles.
-class SceneReorderableList3d extends LazyLayout3dWidget {
+class SceneReorderableList3d extends LazyRenderObjectWidget3d {
   /// Creates a reorderable list that builds its items as it reaches them.
   const SceneReorderableList3d({
     super.key,
@@ -1981,7 +1982,7 @@ class SceneReorderableList3d extends LazyLayout3dWidget {
   final Reorder3dCallback onReorder;
 
   /// Builds what is carried under the pointer, given the item's index.
-  final Layout3dItemBuilder feedbackBuilder;
+  final RenderObject3dItemBuilder feedbackBuilder;
 
   /// When a press on an item becomes a reorder drag.
   final Drag3dStartMode startMode;
@@ -2060,7 +2061,7 @@ class SceneReorderableList3d extends LazyLayout3dWidget {
 }
 
 /// Lays children out in runs, the widget form of [Wrap3d].
-class SceneWrap3d extends Layout3dWidget {
+class SceneWrap3d extends MultiChildRenderObjectWidget3d {
   /// Creates a wrapping box.
   const SceneWrap3d({
     super.key,
@@ -2140,7 +2141,7 @@ class SceneWrap3d extends Layout3dWidget {
 /// or an [itemBuilder] and a count. A grid knows where every cell goes by
 /// arithmetic, so a built grid is exactly lazy — only the cells the window
 /// covers are ever built, however deep the scroll offset is.
-class SceneGridView3d extends LazyLayout3dWidget {
+class SceneGridView3d extends LazyRenderObjectWidget3d {
   /// Creates a grid over an explicit set of children.
   const SceneGridView3d({
     super.key,
@@ -2204,7 +2205,7 @@ class SceneGridView3d extends LazyLayout3dWidget {
 ///
 /// The children must be slivers ([SceneSliverList3d], [SceneSliverGrid3d],
 /// [SceneSliverToBoxAdapter3d]); ordinary boxes go in an adapter.
-class SceneCustomScrollView3d extends Layout3dWidget {
+class SceneCustomScrollView3d extends MultiChildRenderObjectWidget3d {
   /// Creates a viewport over slivers.
   const SceneCustomScrollView3d({
     super.key,
@@ -2242,7 +2243,7 @@ class SceneCustomScrollView3d extends Layout3dWidget {
 
 /// Puts one box in a sliver world, the widget form of
 /// [SliverToBoxAdapter3d].
-class SceneSliverToBoxAdapter3d extends SingleChildLayout3dWidget {
+class SceneSliverToBoxAdapter3d extends SingleChildRenderObjectWidget3d {
   /// Creates an adapter around [child].
   const SceneSliverToBoxAdapter3d({super.key, super.child});
 
@@ -2260,7 +2261,7 @@ class SceneSliverToBoxAdapter3d extends SingleChildLayout3dWidget {
 /// item is an ordinary widget, it is released once the window and its cache
 /// have left it unless a [SceneKeepAlive3d] asks otherwise, and an [itemExtent]
 /// is what stops a long list from measuring its way to a deep offset.
-class SceneSliverList3d extends LazyLayout3dWidget {
+class SceneSliverList3d extends LazyRenderObjectWidget3d {
   /// Creates a sliver list over an explicit set of children.
   const SceneSliverList3d({
     super.key,
@@ -2337,7 +2338,7 @@ class SceneSliverList3d extends LazyLayout3dWidget {
 /// this widget rebuilds, which is what puts the reordered data on the plane.
 /// There is no [ReorderableList3d.refresh] to call, because a rebuild of the
 /// list is the refresh.
-class SceneSliverReorderableList3d extends LazyLayout3dWidget {
+class SceneSliverReorderableList3d extends LazyRenderObjectWidget3d {
   /// Creates a reorderable sliver that builds its items as it reaches them.
   const SceneSliverReorderableList3d({
     super.key,
@@ -2360,7 +2361,7 @@ class SceneSliverReorderableList3d extends LazyLayout3dWidget {
   final Reorder3dCallback onReorder;
 
   /// Builds what is carried under the pointer, given the item's index.
-  final Layout3dItemBuilder feedbackBuilder;
+  final RenderObject3dItemBuilder feedbackBuilder;
 
   /// When a press on an item becomes a reorder drag.
   final Drag3dStartMode startMode;
@@ -2427,7 +2428,7 @@ class SceneSliverReorderableList3d extends LazyLayout3dWidget {
 ///
 /// The same two shapes [SceneGridView3d] has, and lazy in the same exact way:
 /// cell offsets are arithmetic, so only what the window covers is built.
-class SceneSliverGrid3d extends LazyLayout3dWidget {
+class SceneSliverGrid3d extends LazyRenderObjectWidget3d {
   /// Creates a sliver grid over an explicit set of children.
   const SceneSliverGrid3d({
     super.key,
@@ -2473,7 +2474,7 @@ class SceneSliverGrid3d extends LazyLayout3dWidget {
 /// tree the scene is hosted in, not from anything in the scene. A style
 /// passed here is merged onto the inherited one, so a `SceneText3d` under a
 /// `DefaultTextStyle` only has to say what differs.
-class SceneText3d extends Layout3dWidget {
+class SceneText3d extends MultiChildRenderObjectWidget3d {
   /// Creates a text box over [data].
   const SceneText3d(
     this.data, {
@@ -2627,7 +2628,7 @@ class SceneText3d extends Layout3dWidget {
 /// style is drawn in Flutter's default, not in yours. And [glyphDepth], not
 /// [depth], is what gives the letters a side to them: `depth` reserves room in
 /// the layout and draws nothing.
-class SceneRichText3d extends Layout3dWidget {
+class SceneRichText3d extends MultiChildRenderObjectWidget3d {
   /// Creates a paragraph box over [text].
   const SceneRichText3d({
     super.key,
@@ -2747,7 +2748,7 @@ class SceneRichText3d extends Layout3dWidget {
 }
 
 /// Caps an unbounded axis, the widget form of [LimitedBox3d].
-class SceneLimitedBox3d extends SingleChildLayout3dWidget {
+class SceneLimitedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that limits its child's unbounded axes.
   const SceneLimitedBox3d({
     super.key,
@@ -2783,7 +2784,7 @@ class SceneLimitedBox3d extends SingleChildLayout3dWidget {
 }
 
 /// Frees its child's constraints, the widget form of [UnconstrainedBox3d].
-class SceneUnconstrainedBox3d extends SingleChildLayout3dWidget {
+class SceneUnconstrainedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that hands its child unbounded room.
   const SceneUnconstrainedBox3d({
     super.key,
@@ -2816,7 +2817,7 @@ class SceneUnconstrainedBox3d extends SingleChildLayout3dWidget {
 
 /// Lets its child spill out of the size it reports, the widget form of
 /// [OverflowBox3d].
-class SceneOverflowBox3d extends SingleChildLayout3dWidget {
+class SceneOverflowBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that overrides the bounds given, per axis.
   const SceneOverflowBox3d({
     super.key,
@@ -2879,7 +2880,7 @@ class SceneOverflowBox3d extends SingleChildLayout3dWidget {
 
 /// Sizes its child to a fraction of the room available, the widget form of
 /// [FractionallySizedBox3d].
-class SceneFractionallySizedBox3d extends SingleChildLayout3dWidget {
+class SceneFractionallySizedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box sizing its child to a fraction of its own room.
   const SceneFractionallySizedBox3d({
     super.key,
@@ -2927,7 +2928,7 @@ class SceneFractionallySizedBox3d extends SingleChildLayout3dWidget {
 ///
 /// Every child keeps its state and its place while it is hidden, so this is
 /// how a tab body or a wizard step is built.
-class SceneIndexedStack3d extends Layout3dWidget {
+class SceneIndexedStack3d extends MultiChildRenderObjectWidget3d {
   /// Creates a stack showing the child at [index].
   const SceneIndexedStack3d({
     super.key,
@@ -2978,7 +2979,7 @@ class SceneIndexedStack3d extends Layout3dWidget {
 }
 
 /// Holds two of its axes in a fixed ratio, the widget form of [AspectRatio3d].
-class SceneAspectRatio3d extends SingleChildLayout3dWidget {
+class SceneAspectRatio3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box with a fixed ratio between [axis] and [relativeTo].
   const SceneAspectRatio3d({
     super.key,
@@ -3015,7 +3016,7 @@ class SceneAspectRatio3d extends SingleChildLayout3dWidget {
 
 /// Scales its child into the room available, the widget form of
 /// [FittedBox3d].
-class SceneFittedBox3d extends SingleChildLayout3dWidget {
+class SceneFittedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that scales its child.
   const SceneFittedBox3d({
     super.key,
@@ -3048,7 +3049,7 @@ class SceneFittedBox3d extends SingleChildLayout3dWidget {
 
 /// A grid of cells whose columns are negotiated across every row, the widget
 /// form of [Table3d].
-class SceneTable3d extends Layout3dWidget {
+class SceneTable3d extends MultiChildRenderObjectWidget3d {
   /// Creates a table of [columnCount] columns from cells in row-major order.
   const SceneTable3d({
     super.key,
@@ -3118,7 +3119,7 @@ class SceneTable3d extends Layout3dWidget {
 
 /// Tags a child of a [SceneCustomMultiChildLayout3d], the widget form of
 /// [LayoutId3d].
-class SceneLayoutId3d extends SingleChildLayout3dWidget {
+class SceneLayoutId3d extends SingleChildRenderObjectWidget3d {
   /// Tags [child] with [id].
   const SceneLayoutId3d({super.key, required this.id, super.child});
 
@@ -3138,7 +3139,7 @@ class SceneLayoutId3d extends SingleChildLayout3dWidget {
 /// [CustomMultiChildLayout3d].
 ///
 /// Every child is a [SceneLayoutId3d].
-class SceneCustomMultiChildLayout3d extends Layout3dWidget {
+class SceneCustomMultiChildLayout3d extends MultiChildRenderObjectWidget3d {
   /// Creates a box arranged by [delegate].
   const SceneCustomMultiChildLayout3d({
     super.key,
@@ -3161,7 +3162,7 @@ class SceneCustomMultiChildLayout3d extends Layout3dWidget {
 
 /// Arranges its children by moving their geometry, the widget form of
 /// [Flow3d].
-class SceneFlow3d extends Layout3dWidget {
+class SceneFlow3d extends MultiChildRenderObjectWidget3d {
   /// Creates a flow arranged by [delegate].
   const SceneFlow3d({super.key, required this.delegate, super.children});
 
@@ -3222,7 +3223,7 @@ class SceneFlow3d extends Layout3dWidget {
 /// its default of one logical pixel is a depth-buffer separation rather than
 /// a distance: a bar covering slabs with real thickness wants a step from the
 /// same scale the slabs came from.
-class SceneSliverPersistentHeader3d extends SingleChildLayout3dWidget {
+class SceneSliverPersistentHeader3d extends SingleChildRenderObjectWidget3d {
   /// Creates a header that holds the leading edge.
   const SceneSliverPersistentHeader3d({
     super.key,
@@ -3283,7 +3284,7 @@ class SceneSliverPersistentHeader3d extends SingleChildLayout3dWidget {
 }
 
 /// Insets a sliver, the widget form of [SliverPadding3d].
-class SceneSliverPadding3d extends SingleChildLayout3dWidget {
+class SceneSliverPadding3d extends SingleChildRenderObjectWidget3d {
   /// Creates a sliver that insets [sliver].
   const SceneSliverPadding3d({
     super.key,
@@ -3332,7 +3333,7 @@ typedef Layout3dWidgetBuilder =
 /// so state below survives a resize. It must not have side effects on the
 /// tree above it — no `setState` on an ancestor from inside it — because the
 /// pass it runs in has already been past that point. See [LayoutBuilder3d].
-class SceneLayoutBuilder3d extends LazyLayout3dWidget {
+class SceneLayoutBuilder3d extends LazyRenderObjectWidget3d {
   /// Creates a box that builds its child from its constraints.
   const SceneLayoutBuilder3d({super.key, required this.builder})
     : super(itemCount: 1);
@@ -3371,7 +3372,7 @@ class SceneLayoutBuilder3d extends LazyLayout3dWidget {
 /// The same two shapes [SceneListView3d] has. The position snaps to a page
 /// boundary unless a [controller] of your own says otherwise; see
 /// [PageScroll3dPhysics].
-class ScenePageView3d extends LazyLayout3dWidget {
+class ScenePageView3d extends LazyRenderObjectWidget3d {
   /// Creates a page view over an explicit set of pages.
   const ScenePageView3d({
     super.key,

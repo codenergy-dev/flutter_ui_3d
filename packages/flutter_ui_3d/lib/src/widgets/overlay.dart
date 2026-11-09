@@ -22,10 +22,10 @@ import '../animation/motion.dart';
 import '../animation/node_widgets.dart';
 import '../boxes/stack.dart';
 import '../geometry/alignment3d.dart';
-import '../layout3d.dart';
 import '../overlay/modal_barrier.dart';
 import '../overlay/navigator.dart';
 import '../overlay/overlay.dart';
+import '../rendering/object.dart';
 import '../view.dart';
 import 'framework.dart';
 import 'input.dart';
@@ -70,11 +70,11 @@ class Overlay3dController {
 /// overlay.insertEntry(entry);
 /// ```
 ///
-/// An entry's content is a [Layout3d] rather than a widget, which is the one
-/// place this differs from Flutter's `Overlay`. The layout objects are the
-/// same ones the widgets drive, so nothing is out of reach; what an entry
-/// does not get is reconciliation, so a component that rebuilds its dialog
-/// calls [Overlay3dEntry.markNeedsBuild].
+/// An entry's content is a [RenderObject3d] rather than a widget, which is the
+/// one place this differs from Flutter's `Overlay`. The layout objects are the
+/// same ones the widgets drive, so nothing is out of reach; what an entry does
+/// not get is reconciliation, so a component that rebuilds its dialog calls
+/// [Overlay3dEntry.markNeedsBuild].
 class SceneOverlay3d extends StatefulWidget {
   /// Creates an overlay over [child].
   const SceneOverlay3d({
@@ -337,7 +337,7 @@ class _Overlay3dScope extends InheritedWidget {
 /// The layout is made by the state rather than by [createLayout], because
 /// [SceneOverlay3d.of] has to hand it to descendants that are built *inside*
 /// this widget: the handle has to exist before the subtree it serves does.
-class _Overlay3dWidget extends Layout3dWidget {
+class _Overlay3dWidget extends MultiChildRenderObjectWidget3d {
   const _Overlay3dWidget({
     required this.overlay,
     required this.alignment,
@@ -370,7 +370,7 @@ class _Overlay3dWidget extends Layout3dWidget {
 ///
 /// [Overlay3dEntry.modal] puts one in for you; this is for a barrier that is
 /// part of a layout described in widgets.
-class SceneModalBarrier3d extends SingleChildLayout3dWidget {
+class SceneModalBarrier3d extends SingleChildRenderObjectWidget3d {
   /// Creates a barrier.
   const SceneModalBarrier3d({
     super.key,
@@ -407,8 +407,8 @@ class SceneModalBarrier3d extends SingleChildLayout3dWidget {
 
 /// Where a widget-built [Overlay3dEntry]'s subtree hangs.
 ///
-/// An entry's content is a [Layout3d] — [Overlay3dEntry.builder] returns one
-/// — because giving entries widget subtrees would mean a second
+/// An entry's content is a [RenderObject3d] — [Overlay3dEntry.builder]
+/// returns one — because giving entries widget subtrees would mean a second
 /// reconciliation path through the element tree. A [WidgetOverlay3dEntry]
 /// builds one of these instead: an empty proxy, inserted at once, that the
 /// widget layer fills in on the frame after the entry goes in.
@@ -419,7 +419,7 @@ class SceneModalBarrier3d extends SingleChildLayout3dWidget {
 /// subtree the element tree is still driving. So removing an entry releases
 /// the content rather than disposing it, and the hosting box that built it
 /// disposes it when it leaves the tree.
-class Overlay3dContentSlot3d extends ProxyLayout3d {
+class Overlay3dContentSlot3d extends RenderProxyBox3d {
   /// Creates an empty slot.
   Overlay3dContentSlot3d({super.name = 'Overlay3dEntry.slot'});
 
@@ -493,7 +493,7 @@ class WidgetOverlay3dEntry extends Overlay3dEntry {
   /// is inserted.
   Overlay3dContentSlot3d? get contentSlot => _slot;
 
-  static Layout3d _makeSlot(Overlay3dEntry entry) {
+  static RenderObject3d _makeSlot(Overlay3dEntry entry) {
     final self = entry as WidgetOverlay3dEntry;
     return self._slot = Overlay3dContentSlot3d(
       name: self.debugLabel ?? 'Overlay3dEntry.slot',
@@ -503,22 +503,24 @@ class WidgetOverlay3dEntry extends Overlay3dEntry {
 
 /// Hosts one [WidgetOverlay3dEntry]'s subtree and hands it to the entry.
 ///
-/// A [Layout3dWidget] that does not mirror its children onto its own layout.
-/// Its layout is a zero-sized anchor, which the overlay adopts as an ordinary
-/// base child and which occupies nothing and answers no ray; the subtree
-/// underneath goes into the entry's [Overlay3dContentSlot3d] instead, which
-/// is under the entry's host, behind its barrier and inside its focus scope.
-class _Overlay3dEntryContent extends Layout3dWidget {
+/// A [MultiChildRenderObjectWidget3d] that does not mirror its children onto
+/// its own layout. Its layout is a zero-sized anchor, which the overlay adopts
+/// as an ordinary base child and which occupies nothing and answers no ray; the
+/// subtree underneath goes into the entry's [Overlay3dContentSlot3d] instead,
+/// which is under the entry's host, behind its barrier and inside its focus
+/// scope.
+class _Overlay3dEntryContent extends MultiChildRenderObjectWidget3d {
   _Overlay3dEntryContent({required super.key, required this.entry})
     : super(children: <Widget>[_Overlay3dEntryBuilder(entry: entry)]);
 
   final WidgetOverlay3dEntry entry;
 
   @override
-  Layout3d createLayout(BuildContext context) => _Overlay3dContentAnchor();
+  RenderObject3d createLayout(BuildContext context) =>
+      _Overlay3dContentAnchor();
 
   @override
-  void updateLayout(BuildContext context, Layout3d layout) {}
+  void updateLayout(BuildContext context, RenderObject3d layout) {}
 
   @override
   RenderObject createRenderObject(BuildContext context) =>
@@ -539,10 +541,10 @@ class _Overlay3dEntryBuilder extends StatelessWidget {
 /// The zero-sized box a widget-built entry leaves among the overlay's base
 /// children.
 ///
-/// It exists because every [Layout3dRenderBox] carries a layout and this one's
+/// It exists because every [RenderObject3dHost] carries a layout and this one's
 /// real output is somewhere else. It takes the smallest size it is offered,
 /// which in a [Stack3d] is nothing, and a zero-extent box answers no ray.
-class _Overlay3dContentAnchor extends Layout3d {
+class _Overlay3dContentAnchor extends RenderObject3d {
   _Overlay3dContentAnchor() : super(name: 'Overlay3dEntry.anchor');
 
   @override
@@ -555,10 +557,10 @@ class _Overlay3dContentAnchor extends Layout3d {
 /// own layout.
 ///
 /// The one place the declarative layer reparents: everywhere else
-/// [Layout3dRenderBox.layoutChildBoxes] hands its children to its own layout,
+/// [RenderObject3dHost.layoutChildBoxes] hands its children to its own layout,
 /// and here they go to a layout in a different part of the tree — under the
 /// entry's host, which is where "in front of everything" lives.
-class _Overlay3dContentRenderBox extends Layout3dRenderBox {
+class _Overlay3dContentRenderBox extends RenderObject3dHost {
   _Overlay3dContentRenderBox(this.entry, super.layout3d) {
     // The anchor is this box's own and nothing else holds it.
     disposeLayoutOnUnmount = true;
@@ -566,15 +568,15 @@ class _Overlay3dContentRenderBox extends Layout3dRenderBox {
 
   final WidgetOverlay3dEntry entry;
 
-  Layout3d? _content;
+  RenderObject3d? _content;
 
   @override
   void layoutChildBoxes() {
-    Layout3d? content;
+    RenderObject3d? content;
     var child = firstChild;
     while (child != null) {
-      child.layout(Layout3dRenderBox.hostConstraints);
-      if (child is Layout3dRenderBox) {
+      child.layout(RenderObject3dHost.hostConstraints);
+      if (child is RenderObject3dHost) {
         content ??= child.layout3d;
       } else {
         assert(debugCheckNoInterposedRenderObject(child));
@@ -610,7 +612,7 @@ class _Overlay3dContentRenderBox extends Layout3dRenderBox {
 
 /// A [Route3d] whose content is a widget subtree.
 ///
-/// [PageRoute3d] with a `Widget` where its `Layout3d` is, and the route a
+/// [PageRoute3d] with a `Widget` where its `RenderObject3d` is, and the route a
 /// declarative application actually pushes:
 ///
 /// ```dart
@@ -666,12 +668,12 @@ class WidgetPageRoute3d<T> extends Route3d<T> {
 
   /// Builds the scrim geometry inside the barrier, if any.
   ///
-  /// A [Layout3d], not a widget: it is the barrier's child, and the barrier
-  /// is built by the entry rather than by the element tree. A component that
-  /// wants a scrim described in widgets puts its own [SceneModalBarrier3d]
+  /// A [RenderObject3d], not a widget: it is the barrier's child, and the
+  /// barrier is built by the entry rather than by the element tree. A component
+  /// that wants a scrim described in widgets puts its own [SceneModalBarrier3d]
   /// inside [builder] and leaves [modal] false, which is also the only way to
   /// choose the depth step between the scrim and the content.
-  final Layout3d Function(WidgetPageRoute3d<T> route)? scrimBuilder;
+  final RenderObject3d Function(WidgetPageRoute3d<T> route)? scrimBuilder;
 
   /// How deep the barrier's slab is, in world units.
   final double scrimThickness;

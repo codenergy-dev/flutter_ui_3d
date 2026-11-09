@@ -25,8 +25,8 @@ import '../geometry/basis3d.dart';
 import '../geometry/constraints3d.dart';
 import '../geometry/edge_insets3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
 import '../metrics.dart';
+import '../rendering/object.dart';
 import '../slot.dart';
 import '../surface.dart';
 import '../view.dart';
@@ -129,7 +129,7 @@ class SceneLayout3d extends StatefulWidget {
   /// The authored answer, for a panel that is not standing in for a screen —
   /// one on a wall, one on a table, one turned to face the viewer by
   /// [Layout3dCameraBinding.billboard]. Everything below reads it as
-  /// [Layout3d.metrics], and a `build` method reads it as
+  /// [RenderObject3d.metrics], and a `build` method reads it as
   /// [Layout3dMetricsScope.of].
   ///
   /// Null means [Layout3dMetrics.standard], not "leave the last one alone":
@@ -233,7 +233,8 @@ class SceneLayout3d extends StatefulWidget {
   /// the world behind it — a readout floating over the scene, say.
   final bool absorbsPointer;
 
-  /// Tree-wide state every box on this surface can read as [Layout3d.slot].
+  /// Tree-wide state every box on this surface can read as
+  /// [RenderObject3d.slot].
   ///
   /// The declarative form of [Layout3dSurface.setSlot], for an application
   /// that knows its slots at the root:
@@ -678,7 +679,7 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
       mount = SceneSubtree(parent: parent, children: [mount]);
     }
     final child = widget.child;
-    return _Layout3dRoot(
+    return _RenderObject3dRoot(
       surface: _surface,
       children: <Widget>[
         if (child != null)
@@ -696,7 +697,7 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
 ///
 /// Everything this package lays out is measured in world units; everything a
 /// component library is *specified* in is measured in logical pixels. A
-/// `Layout3d` joins the two inside `performLayout`, where the owner's
+/// `RenderObject3d` joins the two inside `performLayout`, where the owner's
 /// [Layout3dMetrics] is one getter away. A widget cannot reach that, so
 /// [SceneLayout3d] publishes the same value here and a build method converts
 /// its own figures before they ever reach a box:
@@ -782,19 +783,19 @@ class Layout3dMetricsScope extends InheritedWidget {
   }
 }
 
-class _Layout3dRoot extends MultiChildRenderObjectWidget {
-  const _Layout3dRoot({required this.surface, required super.children});
+class _RenderObject3dRoot extends MultiChildRenderObjectWidget {
+  const _RenderObject3dRoot({required this.surface, required super.children});
 
   final Layout3dSurface surface;
 
   @override
   RenderObject createRenderObject(BuildContext context) =>
-      Layout3dRootRenderBox(surface);
+      RenderObject3dRootHost(surface);
 
   @override
   void updateRenderObject(
     BuildContext context,
-    covariant Layout3dRootRenderBox renderObject,
+    covariant RenderObject3dRootHost renderObject,
   ) {
     assert(identical(renderObject.surface, surface));
   }

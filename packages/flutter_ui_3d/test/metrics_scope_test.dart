@@ -26,7 +26,7 @@ PerspectiveCamera frontCamera() => PerspectiveCamera(
 ///
 /// It never reads the scope, which is the point of it: a metrics change has to
 /// relayout this box too, and no rebuild would ever tell it so.
-class RecorderBox extends Layout3d {
+class RecorderBox extends RenderObject3d {
   RecorderBox(this.log);
 
   final List<String> log;
@@ -42,7 +42,7 @@ class RecorderBox extends Layout3d {
 }
 
 /// The widget form of [RecorderBox].
-class SceneRecorder3d extends Layout3dWidget {
+class SceneRecorder3d extends MultiChildRenderObjectWidget3d {
   const SceneRecorder3d(this.log, {super.key});
 
   final List<String> log;
@@ -62,7 +62,7 @@ class SceneRecorder3d extends Layout3dWidget {
 /// The shape `Overlay3d` has when it pushes the host's metrics onto a detached
 /// entry's surface: a write from inside a layout pass, which no rebuild can be
 /// scheduled for.
-class WriterBox extends Layout3d {
+class WriterBox extends RenderObject3d {
   WriterBox(this.write);
 
   final void Function() write;
@@ -80,7 +80,7 @@ class WriterBox extends Layout3d {
 }
 
 /// The widget form of [WriterBox].
-class SceneWriter3d extends Layout3dWidget {
+class SceneWriter3d extends MultiChildRenderObjectWidget3d {
   const SceneWriter3d(this.write, {super.key});
 
   final void Function() write;

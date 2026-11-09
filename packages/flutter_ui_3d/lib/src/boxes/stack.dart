@@ -12,7 +12,7 @@ import '../geometry/alignment3d.dart';
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// How a [Stack3d] sizes its non-positioned children, the 3D analogue of
 /// [StackFit].
@@ -34,7 +34,7 @@ enum StackFit3d {
 /// face, an inset from the high face, and a fixed extent. Two of them fix
 /// both the position and the size; one leaves the other to the child and the
 /// stack's alignment.
-class Positioned3d extends ProxyLayout3d {
+class Positioned3d extends RenderProxyBox3d {
   /// Creates a positioned child.
   Positioned3d({
     double? left,
@@ -89,7 +89,7 @@ class Positioned3d extends ProxyLayout3d {
     double? width,
     double? height,
     double? depth,
-    Layout3d? child,
+    RenderObject3d? child,
     String? name,
   }) {
     final rtl = textDirection == TextDirection.rtl;
@@ -266,7 +266,7 @@ class Positioned3d extends ProxyLayout3d {
 /// It changes nothing about the layout: not the stack's size, not where a
 /// child's box sits, not what a [Positioned3d] pin means, and not what a ray
 /// reaches. See [depthStep].
-class Stack3d extends MultiChildLayout3d<ParentData3d> {
+class Stack3d extends RenderMultiChild3d<ParentData3d> {
   /// Creates a stack of overlaid children.
   Stack3d({
     AlignmentGeometry3d alignment = Alignment3d.topLeftFront,

@@ -21,7 +21,10 @@ import 'package:flutter_ui_3d/rendering.dart'
         EdgeInsetsGeometry3d,
         Offset3d;
 import 'package:flutter_ui_3d/widgets.dart'
-    show Layout3dMetricsScope, SceneContainer3d, SingleChildLayout3dWidget;
+    show
+        Layout3dMetricsScope,
+        SceneContainer3d,
+        SingleChildRenderObjectWidget3d;
 
 import '../theme/theme.dart';
 import '../theme/theme_data.dart';
@@ -355,7 +358,7 @@ class _Material3dState extends State<Material3d>
 /// the tree and the wash comes sideways, from the controller, and a rebuild
 /// re-applies whatever the controller currently holds rather than clobbering
 /// it with a stale value.
-class _Material3dSurface extends SingleChildLayout3dWidget {
+class _Material3dSurface extends SingleChildRenderObjectWidget3d {
   const _Material3dSurface({
     required this.ink,
     required this.decoration,

@@ -619,8 +619,8 @@ void main() {
           : Directionality(textDirection: direction, child: surface);
     }
 
-    List<Layout3d> childrenOf(Layout3dController controller) =>
-        (controller.surface!.child! as MultiChildLayout3d).children;
+    List<RenderObject3d> childrenOf(Layout3dController controller) =>
+        (controller.surface!.child! as RenderMultiChild3d).children;
 
     testWidgets('a row reads the ambient direction, and follows it', (
       tester,
@@ -767,7 +767,8 @@ void main() {
       );
 
       await tester.pumpWidget(container(const EdgeInsets3d.only(left: 4)));
-      Layout3d child() => (controller.surface!.child! as Container3d).child!;
+      RenderObject3d child() =>
+          (controller.surface!.child! as Container3d).child!;
       expect(child().offset.x, 4);
 
       await tester.pumpWidget(

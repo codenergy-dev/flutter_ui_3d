@@ -3,16 +3,16 @@ import 'package:flutter/foundation.dart'
 
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'shifted.dart';
 
 /// Sizes its child to the child's own preferred extent along one axis, the 3D
 /// analogue of [IntrinsicWidth] and [IntrinsicHeight].
 ///
-/// The box asks its child [Layout3d.getMaxIntrinsicExtent] along [axis] and
-/// then hands the child that extent, tightly. Every child of a
-/// [Column3d] inside an [IntrinsicWidth3d] is therefore as wide as the widest
-/// of them, which is the classic reason to reach for one.
+/// The box asks its child [RenderObject3d.getMaxIntrinsicExtent] along [axis]
+/// and then hands the child that extent, tightly. Every child of a [Column3d]
+/// inside an [IntrinsicWidth3d] is therefore as wide as the widest of them,
+/// which is the classic reason to reach for one.
 ///
 /// It is expensive, and for the same reason as in Flutter: answering the
 /// question walks the whole subtree, and then the subtree is laid out again
@@ -22,8 +22,8 @@ import 'shifted.dart';
 /// The axis is a constructor argument here rather than three separate render
 /// objects, because a box has three of them; [IntrinsicWidth3d],
 /// [IntrinsicHeight3d] and [IntrinsicDepth3d] are the names to reach for.
-class IntrinsicExtent3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+class IntrinsicExtent3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a box that sizes its child to its intrinsic extent along [axis].
   IntrinsicExtent3d({
     required Axis3d axis,
@@ -171,7 +171,7 @@ class IntrinsicDepth3d extends IntrinsicExtent3d {
 ///
 /// Line something up with it by asking for
 /// [CrossAxisAlignment3d.baseline] on the enclosing flex.
-class Baseline3d extends ShiftedLayout3d {
+class Baseline3d extends RenderShiftedBox3d {
   /// Creates a box that puts its child's baseline at [baseline].
   Baseline3d({
     required double baseline,

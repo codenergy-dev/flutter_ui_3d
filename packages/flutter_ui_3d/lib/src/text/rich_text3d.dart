@@ -46,7 +46,7 @@ import 'package:vector_math/vector_math.dart' show Matrix4, Vector2, Vector3;
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'atlas_text_renderer.dart' show AtlasText3dRenderer;
 import 'glyph_material.dart' show GlyphMaterial3d, GlyphWallMaterial3d;
 import 'glyph_outline.dart';
@@ -105,7 +105,7 @@ import 'text_geometry.dart' show GlyphWallSegment3d;
 /// lets each segment's colour be **sampled out of it**, so one wall carries a
 /// span's several colours. [glyphDepth] is the dial; [depth] is a different
 /// thing and does not draw.
-class RichText3d extends Layout3d {
+class RichText3d extends RenderObject3d {
   /// Creates a box over [text].
   RichText3d(
     InlineSpan text, {
@@ -587,7 +587,7 @@ class RichText3d extends Layout3d {
   /// Two uniforms — the captured quad's and its wall's — and nothing else. A
   /// paragraph is the expensive box in this package: it rasterizes a real
   /// `RichText` through a widget component and traces its silhouette, and
-  /// none of that is touched here. See [Layout3d.inheritedOpacity].
+  /// none of that is touched here. See [RenderObject3d.inheritedOpacity].
   @override
   void refreshOpacity() {
     final opacity = inheritedOpacity;

@@ -1571,11 +1571,11 @@ void main() {
       tester,
     ) async {
       // The claim two plans had made and nothing had checked. It came back
-      // false the first time it was asked: a viewport works out what a
-      // pinned header is sitting on *after* its rows have been laid out and
-      // placed, so every row published the unbounded clip block while
-      // `Layout3d.clipRegion` went on answering correctly to anything that
-      // asked afterwards — the same failure shape phase 4 found in
+      // false the first time it was asked: a viewport works out what a pinned
+      // header is sitting on *after* its rows have been laid out and placed, so
+      // every row published the unbounded clip block while
+      // `RenderObject3d.clipRegion` went on answering correctly to anything
+      // that asked afterwards — the same failure shape phase 4 found in
       // `ClipBox3d`, in a second place.
       //
       // The bar is half the viewport's width, and that is what makes the
@@ -2022,7 +2022,7 @@ void main() {
 
     testWidgets('an anchored menu is drawn at its button', (tester) async {
       // The half of the anchoring that no headless test can reach.
-      // `Layout3d.worldTransform` undoes `nodeOffset` by design, so
+      // `RenderObject3d.worldTransform` undoes `nodeOffset` by design, so
       // `screenPointOf` on the menu answers with where *layout* put it — the
       // middle of the panel — while the picture has it at the button. The
       // button is therefore the oracle, and the question is what is drawn

@@ -19,8 +19,8 @@ import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../input/focus.dart';
 import '../input/shortcuts.dart';
-import '../layout3d.dart';
 import '../metrics.dart';
+import '../rendering/object.dart';
 import '../surface.dart';
 import '../view.dart';
 import 'modal_barrier.dart';
@@ -30,7 +30,7 @@ import 'modal_barrier.dart';
 /// Called once when the entry is inserted, and again for each
 /// [Overlay3dEntry.markNeedsBuild]; the layout it returns belongs to the
 /// entry, which disposes it when it is removed.
-typedef Overlay3dBuilder = Layout3d Function(Overlay3dEntry entry);
+typedef Overlay3dBuilder = RenderObject3d Function(Overlay3dEntry entry);
 
 /// Which surface an [Overlay3dEntry] lives on, and how far in front it sits.
 ///
@@ -284,7 +284,7 @@ class Overlay3dEntry {
 
   Overlay3d? _overlay;
   _Overlay3dEntryHost? _host;
-  Layout3d? _content;
+  RenderObject3d? _content;
   FocusScope3d? _scope;
   FocusNode? _restoreTo;
   FocusNode? _pendingRestore;
@@ -311,7 +311,7 @@ class Overlay3dEntry {
   ///
   /// Null before insertion. For a detached entry this is the child of
   /// [surface], not a descendant of the overlay.
-  Layout3d? get content => _content;
+  RenderObject3d? get content => _content;
 
   /// The focus scope this entry traps focus in, when [trapFocus] is set.
   FocusScope3d? get focusScope => _scope;
@@ -360,7 +360,7 @@ class Overlay3dEntry {
       root = Stack3d(
         alignment: alignment ?? overlay.alignment,
         name: 'Overlay3dEntry.modal',
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           ModalBarrier3d(
             dismissible: dismissible,
             onDismiss: onDismiss,
@@ -523,10 +523,10 @@ class _DismissEntryAction extends DismissAction {
 /// panel turns.
 ///
 /// The lift is applied here rather than by the overlay's [performLayout],
-/// through [Layout3d.sceneOffset], so it moves the geometry and nothing else:
-/// the box stays where the stack put it, a [Positioned3d] inside the entry
-/// still pins to the face it named, and a ray still finds the entry by its
-/// place in the stack rather than by how far it was lifted.
+/// through [RenderObject3d.sceneOffset], so it moves the geometry and nothing
+/// else: the box stays where the stack put it, a [Positioned3d] inside the
+/// entry still pins to the face it named, and a ray still finds the entry by
+/// its place in the stack rather than by how far it was lifted.
 ///
 /// ## Why it pins itself to the front face
 ///
@@ -661,9 +661,9 @@ class Overlay3d extends Stack3d {
   /// reordering.
   ///
   /// What the declarative layer listens to. An entry's content is a
-  /// [Layout3d] built by [Overlay3dEntry.builder], but a *widget*-built entry
-  /// needs its subtree to exist in the element tree, and only a rebuild of
-  /// the widget that owns the overlay can put it there. [SceneOverlay3d]
+  /// [RenderObject3d] built by [Overlay3dEntry.builder], but a *widget*-built
+  /// entry needs its subtree to exist in the element tree, and only a rebuild
+  /// of the widget that owns the overlay can put it there. [SceneOverlay3d]
   /// listens here and rebuilds; nothing else has to.
   ///
   /// **Fired synchronously, from inside the insertion.** A listener that
@@ -691,8 +691,8 @@ class Overlay3d extends Stack3d {
   /// handed a handle. It crosses out of a detached entry: a box inside one
   /// finds the overlay that entry belongs to, not nothing, even though the
   /// layout tree it is in ends at the entry's own surface.
-  static Overlay3d? of(Layout3d layout) {
-    Layout3d? node = layout;
+  static Overlay3d? of(RenderObject3d layout) {
+    RenderObject3d? node = layout;
     while (node != null) {
       if (node is Overlay3d) return node;
       if (node is Layout3dSurface) {
@@ -793,7 +793,7 @@ class Overlay3d extends Stack3d {
     _entriesChanged.notify();
   }
 
-  List<Layout3d> _baseChildren() => <Layout3d>[
+  List<RenderObject3d> _baseChildren() => <RenderObject3d>[
     for (final child in heldChildren)
       if (child is! _Overlay3dEntryHost) child,
   ];
@@ -806,8 +806,8 @@ class Overlay3d extends Stack3d {
   /// asked. Appending them here is what keeps the two sources of children
   /// from fighting.
   @override
-  void syncChildren(List<Layout3d> children) {
-    super.syncChildren(<Layout3d>[
+  void syncChildren(List<RenderObject3d> children) {
+    super.syncChildren(<RenderObject3d>[
       for (final child in children)
         if (child is! _Overlay3dEntryHost) child,
       for (final entry in _entries)
@@ -953,9 +953,9 @@ class Overlay3d extends Stack3d {
 
 /// Carries [Overlay3d.entriesChanged].
 ///
-/// A field rather than a mixin on [Overlay3d] itself: a [Layout3d] already
-/// has a `dispose`, and folding [ChangeNotifier]'s into it would make the two
-/// lifecycles one thing that has to be got right in both directions.
+/// A field rather than a mixin on [Overlay3d] itself: a [RenderObject3d]
+/// already has a `dispose`, and folding [ChangeNotifier]'s into it would make
+/// the two lifecycles one thing that has to be got right in both directions.
 class _Overlay3dEntriesNotifier extends ChangeNotifier {
   void notify() => notifyListeners();
 }

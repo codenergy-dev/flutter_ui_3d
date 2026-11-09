@@ -49,7 +49,10 @@ void main() {
     Alignment3d alignment = Alignment3d.center,
   }) {
     final page = TestBox(size, pointable: true, name: 'page');
-    final overlay = Overlay3d(alignment: alignment, children: <Layout3d>[page]);
+    final overlay = Overlay3d(
+      alignment: alignment,
+      children: <RenderObject3d>[page],
+    );
     final surface = laidOut(overlay, constraints: Constraints3d.tight(size));
     addTearDown(surface.dispose);
     return (surface: surface, overlay: overlay, page: page);
@@ -116,7 +119,7 @@ void main() {
       expect(host.overlay.children.length, 2);
 
       host.overlay.removeEntry(entry);
-      expect(host.overlay.children, <Layout3d>[host.page]);
+      expect(host.overlay.children, <RenderObject3d>[host.page]);
     });
 
     test('removing an entry disposes what it built', () {
@@ -207,7 +210,7 @@ void main() {
       Offset3d liftedIn(Alignment3d alignment) {
         final overlay = Overlay3d(
           alignment: alignment,
-          children: <Layout3d>[TestBox(const Size3d(4, 3, 0.5))],
+          children: <RenderObject3d>[TestBox(const Size3d(4, 3, 0.5))],
         );
         final surface = laidOut(
           overlay,
@@ -248,7 +251,7 @@ void main() {
       late final Stack3d inner;
       final entry = Overlay3dEntry(
         builder: (_) => inner = Stack3d(
-          children: <Layout3d>[
+          children: <RenderObject3d>[
             Positioned3d(right: 0, bottom: 0, child: pinned),
           ],
         ),
@@ -509,7 +512,7 @@ void main() {
     test('dirt inside a detached entry reaches the host flush', () {
       var updates = 0;
       final page = TestBox(const Size3d(4, 3, 0.5));
-      final overlay = Overlay3d(children: <Layout3d>[page]);
+      final overlay = Overlay3d(children: <RenderObject3d>[page]);
       final surface = Layout3dSurface(
         constraints: Constraints3d.tight(const Size3d(4, 3, 0.5)),
         onNeedVisualUpdate: () => updates++,
@@ -643,7 +646,7 @@ void main() {
       // The walk still reaches the back surface — it is on the list of paths a
       // press is dispatched to — but the answer is the front one's, which is
       // what `down` and `hover` have always put in `lastHit`.
-      expect(group.hitTestAll(ray).map((path) => path.target), <Layout3d>[
+      expect(group.hitTestAll(ray).map((path) => path.target), <RenderObject3d>[
         front.content,
         back.content,
       ]);
@@ -740,7 +743,7 @@ void main() {
       final second = Focus3d(child: TestBox(const Size3d(1, 1, 0)));
       final entry = Overlay3dEntry(
         modal: true,
-        builder: (_) => Column3d(children: <Layout3d>[first, second]),
+        builder: (_) => Column3d(children: <RenderObject3d>[first, second]),
       );
       host.overlay.insertEntry(entry);
       host.surface.flush();
@@ -909,7 +912,7 @@ void main() {
   group('teardown', () {
     test('disposing the surface takes the entries with it', () {
       final page = TestBox(const Size3d(4, 3, 0.5));
-      final overlay = Overlay3d(children: <Layout3d>[page]);
+      final overlay = Overlay3d(children: <RenderObject3d>[page]);
       final surface = Layout3dSurface(
         constraints: Constraints3d.tight(const Size3d(4, 3, 0.5)),
         child: overlay,

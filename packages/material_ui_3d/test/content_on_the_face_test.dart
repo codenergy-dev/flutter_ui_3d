@@ -36,7 +36,7 @@ import 'surfaces_support.dart';
 /// being asked here is where the *geometry* ends up.
 List<(String, double, double)> labelsAgainstTheirSlab(Layout3dSurface surface) {
   final found = <(String, double, double)>[];
-  void walk(Layout3d box, double face) {
+  void walk(RenderObject3d box, double face) {
     final z = box.node.globalTransform.getTranslation().z;
     final slab = box is DecoratedBox3d ? z : face;
     if (box is Text3d && box.data.isNotEmpty) found.add((box.data, z, slab));
@@ -83,7 +83,7 @@ typedef Panel3dFace = ({double face, double left, double top, Size3d size});
 /// which is the frame a size is stated in.
 List<Panel3dFace> opaquePanels(Layout3dSurface surface) {
   final found = <Panel3dFace>[];
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is DecoratedBox3d) {
       final decoration = box.decoration;
       final ink = decoration is BoxDecoration3d ? decoration.color.a : 0.0;

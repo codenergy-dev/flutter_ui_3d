@@ -24,7 +24,7 @@ import 'package:flutter/widgets.dart'
         TickerProviderStateMixin,
         Widget;
 import 'package:flutter_ui_3d/rendering.dart'
-    show Alignment3d, Offset3d, ProxyLayout3d, Size3d;
+    show Alignment3d, Offset3d, RenderProxyBox3d, Size3d;
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
@@ -33,7 +33,7 @@ import 'package:flutter_ui_3d/widgets.dart'
         SceneSizedBox3d,
         SceneStack3d,
         SceneTapTarget3d,
-        SingleChildLayout3dWidget;
+        SingleChildRenderObjectWidget3d;
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
 import '../theme/theme.dart';
@@ -810,11 +810,11 @@ class _Switch3dState extends State<Switch3d> with TickerProviderStateMixin {
 ///
 /// Laid out as its child is — the thumb at its full size, centred on the
 /// track — and never laid out again by any of this: a tick writes
-/// [Layout3d.nodeOffset] for where the thumb is along the track and
-/// [Layout3d.nodeTransform] for how big it is drawn, scaled about its own
+/// [RenderObject3d.nodeOffset] for where the thumb is along the track and
+/// [RenderObject3d.nodeTransform] for how big it is drawn, scaled about its own
 /// centre. Every figure it is given is in logical pixels, converted through
 /// the surface's metrics when it is written.
-class _SwitchThumb3d extends ProxyLayout3d {
+class _SwitchThumb3d extends RenderProxyBox3d {
   _SwitchThumb3d({
     required Animation<double> slide,
     required AnimationController position,
@@ -918,7 +918,7 @@ class _SwitchThumb3d extends ProxyLayout3d {
   }
 }
 
-class _SceneSwitchThumb3d extends SingleChildLayout3dWidget {
+class _SceneSwitchThumb3d extends SingleChildRenderObjectWidget3d {
   const _SceneSwitchThumb3d({
     required this.slide,
     required this.position,

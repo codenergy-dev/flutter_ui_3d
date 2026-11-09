@@ -36,9 +36,13 @@ PerspectiveCamera _raisedCamera() => PerspectiveCamera(
 );
 
 /// A surface mounted under a root node and laid out, the way a real scene has
-/// it: [Layout3d.worldTransform] reads the node's global transform, so nothing
-/// here means anything until the surface hangs off something.
-Layout3dSurface _mounted(Layout3d child, {LayoutBasis3d? basis, Size3d? size}) {
+/// it: [RenderObject3d.worldTransform] reads the node's global transform, so
+/// nothing here means anything until the surface hangs off something.
+Layout3dSurface _mounted(
+  RenderObject3d child, {
+  LayoutBasis3d? basis,
+  Size3d? size,
+}) {
   final surface = Layout3dSurface(
     basis: basis,
     constraints: Constraints3d.tight(size ?? const Size3d(4, 3, 1)),

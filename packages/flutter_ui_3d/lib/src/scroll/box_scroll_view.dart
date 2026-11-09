@@ -7,7 +7,7 @@ import 'package:flutter/foundation.dart'
         protected;
 
 import '../built_children.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import '../sliver/custom_scroll_view.dart';
 import '../sliver/sliver.dart';
 
@@ -32,7 +32,7 @@ import '../sliver/sliver.dart';
 /// on the way out is this view.
 abstract class BoxScrollView3d<SliverType extends SliverMultiBoxAdaptor3d>
     extends CustomScrollView3d
-    implements Layout3dBuiltChildrenHost {
+    implements RenderObject3dBuiltChildrenHost {
   /// Creates a view over [sliver], which holds the children.
   BoxScrollView3d({
     required this.sliver,
@@ -57,7 +57,7 @@ abstract class BoxScrollView3d<SliverType extends SliverMultiBoxAdaptor3d>
   /// `SceneListView3d.builder` without knowing that a list is a window with a
   /// sliver in it.
   @override
-  Layout3dBuiltChildrenMixin get builtChildren => sliver;
+  RenderBuiltChildrenMixin3d get builtChildren => sliver;
 
   /// What this view calls its children in an assertion message: "items" for a
   /// list, "cells" for a grid.
@@ -77,25 +77,25 @@ abstract class BoxScrollView3d<SliverType extends SliverMultiBoxAdaptor3d>
   // --------------------------------------------------- the children, forwarded
 
   @override
-  List<Layout3d> get children => sliver.children;
+  List<RenderObject3d> get children => sliver.children;
 
   @override
   int get childCount => sliver.childCount;
 
   @override
-  Layout3d childAt(int index) => sliver.childAt(index);
+  RenderObject3d childAt(int index) => sliver.childAt(index);
 
   @override
-  void add(Layout3d child) => insert(child);
+  void add(RenderObject3d child) => insert(child);
 
   @override
-  void insert(Layout3d child, {int? index}) {
+  void insert(RenderObject3d child, {int? index}) {
     _assertNotBuilt('insert');
     sliver.insert(child, index: index);
   }
 
   @override
-  void remove(Layout3d child) {
+  void remove(RenderObject3d child) {
     _assertNotBuilt('remove');
     sliver.remove(child);
   }
@@ -107,7 +107,7 @@ abstract class BoxScrollView3d<SliverType extends SliverMultiBoxAdaptor3d>
   }
 
   @override
-  void syncChildren(List<Layout3d> children) {
+  void syncChildren(List<RenderObject3d> children) {
     _assertNotBuilt('syncChildren');
     sliver.syncChildren(children);
   }

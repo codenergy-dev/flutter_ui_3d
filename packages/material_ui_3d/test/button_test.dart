@@ -19,9 +19,9 @@ import 'package:material_ui_3d/material_ui_3d.dart';
 import 'support.dart';
 
 /// The one box of type [T] in [surface].
-T only<T extends Layout3d>(Layout3dSurface surface) {
+T only<T extends RenderObject3d>(Layout3dSurface surface) {
   final found = <T>[];
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is T) found.add(box);
     box.visitChildren(walk);
   }
@@ -34,9 +34,9 @@ T only<T extends Layout3d>(Layout3dSurface surface) {
 }
 
 /// The outermost of the boxes of type [T] in [surface].
-T outermost<T extends Layout3d>(Layout3dSurface surface) {
+T outermost<T extends RenderObject3d>(Layout3dSurface surface) {
   T? found;
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (found != null) return;
     if (box is T) {
       found = box;
@@ -493,7 +493,7 @@ void main() {
       final it = await pump(tester, ButtonVariant3d.filled, onPressed: () {});
       var sawTarget = false;
       var semanticsIsInside = false;
-      void walk(Layout3d box) {
+      void walk(RenderObject3d box) {
         if (box is TapTarget3d) sawTarget = true;
         if (box is Semantics3d && sawTarget) semanticsIsInside = true;
         box.visitChildren(walk);

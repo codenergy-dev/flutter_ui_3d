@@ -418,9 +418,9 @@ void main() {
 
     /// The frontmost face of any opaque panel on [screen], which is what a
     /// scrim has to be in front of to dim all of it.
-    double frontmostPanel(Layout3d screen) {
+    double frontmostPanel(RenderObject3d screen) {
       var front = double.infinity;
-      void walk(Layout3d box) {
+      void walk(RenderObject3d box) {
         if (box is DecoratedBox3d) {
           final decoration = box.decoration;
           if (decoration is BoxDecoration3d && decoration.color.a == 1.0) {
@@ -467,7 +467,7 @@ void main() {
       // The screen is the overlay's first child; the dialog is an entry after
       // it. Looked for in the whole tree, a "translucent panel" finds a
       // navigation bar's own pill long before it finds the scrim.
-      final children = <Layout3d>[];
+      final children = <RenderObject3d>[];
       pumped.overlay.visitChildren(children.add);
       final screen = frontmostPanel(children.first);
       final scrim = scrimOf(pumped.surface)!.drawnOffsetInSurface.z;

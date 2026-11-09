@@ -10,9 +10,9 @@ import 'package:flutter_ui_3d/rendering.dart'
         AlignmentGeometry3d,
         Constraints3d,
         EdgeInsets3d,
-        Layout3dChildIntrinsicsMixin,
+        RenderChildIntrinsicsMixin3d,
         Offset3d,
-        SingleChildLayout3d,
+        RenderSingleChild3d,
         Size3d;
 import 'package:flutter_ui_3d/widgets.dart'
     show
@@ -24,7 +24,7 @@ import 'package:flutter_ui_3d/widgets.dart'
         SceneSizedBox3d,
         SceneStack3d,
         SceneText3d,
-        SingleChildLayout3dWidget;
+        SingleChildRenderObjectWidget3d;
 
 import '../theme/theme.dart';
 import 'badge_style.dart';
@@ -266,7 +266,7 @@ class Badge3d extends StatelessWidget {
 /// wide as its label rather than as wide as the icon. Then it places it by
 /// Flutter's arithmetic: [alignment] along the box less [widthOffset], plus
 /// [offset], and a labelled badge up by half its height.
-class _BadgePlacement3d extends SingleChildLayout3d {
+class _BadgePlacement3d extends RenderSingleChild3d {
   _BadgePlacement3d({
     required AlignmentGeometry3d alignment,
     required TextDirection? textDirection,
@@ -339,7 +339,7 @@ class _BadgePlacement3d extends SingleChildLayout3d {
   }
 }
 
-class _SceneBadgePlacement3d extends SingleChildLayout3dWidget {
+class _SceneBadgePlacement3d extends SingleChildRenderObjectWidget3d {
   const _SceneBadgePlacement3d({
     required this.alignment,
     required this.offset,
@@ -380,8 +380,8 @@ class _SceneBadgePlacement3d extends SingleChildLayout3dWidget {
 /// Here it is two layouts of the child when the first comes out taller than
 /// it is wide — a single digit at a large type setting — and one otherwise.
 /// The label's measurement is cached, so the second is arithmetic.
-class _BadgeStadium3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+class _BadgeStadium3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   _BadgeStadium3d({required double minExtent})
     : _minExtent = minExtent,
       super(name: 'Badge3d stadium');
@@ -418,7 +418,7 @@ class _BadgeStadium3d extends SingleChildLayout3d
   }
 }
 
-class _SceneBadgeStadium3d extends SingleChildLayout3dWidget {
+class _SceneBadgeStadium3d extends SingleChildRenderObjectWidget3d {
   const _SceneBadgeStadium3d({required this.minExtent, super.child});
 
   final double minExtent;

@@ -25,7 +25,7 @@ import 'package:vector_math/vector_math_64.dart' as vm64 show Matrix4;
 
 import '../geometry/offset3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import '../scroll/scrollable.dart';
 import '../surface.dart';
 import 'drag.dart';
@@ -227,9 +227,9 @@ class Layout3dPointer {
   ///
   /// Empty for a pointer that is not hovering, which is every pointer until
   /// [hover] is called.
-  List<Layout3d> hoveredFor(int pointer) =>
+  List<RenderObject3d> hoveredFor(int pointer) =>
       _hovers[pointer]?.path.map((entry) => entry.layout).toList() ??
-      const <Layout3d>[];
+      const <RenderObject3d>[];
 
   Ray? _lastRay;
 
@@ -577,7 +577,7 @@ class Layout3dPointer {
     );
   }
 
-  static bool _holds(List<HitTestEntry3d> path, Layout3d layout) {
+  static bool _holds(List<HitTestEntry3d> path, RenderObject3d layout) {
     for (final entry in path) {
       if (identical(entry.layout, layout)) return true;
     }
@@ -586,7 +586,7 @@ class Layout3dPointer {
 
   /// [worldRay] in [layout]'s own frame, or null when the box's transform
   /// cannot be inverted (a subtree scaled to nothing).
-  static Ray3d? localRayFor(Layout3d layout, Ray worldRay) {
+  static Ray3d? localRayFor(RenderObject3d layout, Ray worldRay) {
     final toLayout = Matrix4.zero();
     if (toLayout.copyInverse(layout.worldTransform) == 0.0) return null;
     final origin = toLayout.transformed3(Vector3.copy(worldRay.origin));
@@ -744,11 +744,11 @@ class _Sequence implements PointerSequence3d, GestureArenaMember {
   ///
   /// One per entry on the path, and the plane every later position for that
   /// box is measured on.
-  final Map<Layout3d, double> _depths = <Layout3d, double>{};
+  final Map<RenderObject3d, double> _depths = <RenderObject3d, double>{};
 
   /// Where the pointer was on each target last time, so an event with no ray
   /// behind it reports the last position rather than the press.
-  final Map<Layout3d, Offset3d> _lastLocal = <Layout3d, Offset3d>{};
+  final Map<RenderObject3d, Offset3d> _lastLocal = <RenderObject3d, Offset3d>{};
 
   double _surfaceDepth = 0.0;
   Offset _global = Offset.zero;
@@ -756,7 +756,7 @@ class _Sequence implements PointerSequence3d, GestureArenaMember {
   // ------------------------------------------------------------- the drag
 
   Scrollable3d? _scrollable;
-  Layout3d? _scrollLayout;
+  RenderObject3d? _scrollLayout;
   Axis3d _dragAxis = Axis3d.vertical;
   double _dragDepth = 0.0;
   double _lastAlong = 0.0;

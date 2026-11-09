@@ -29,7 +29,7 @@
 library;
 
 export 'src/testing/finders.dart'
-    show CommonLayout3dFinders, Layout3dFinder, find3d;
+    show CommonRenderObjectFinders3d, RenderObjectFinder3d, find3d;
 export 'src/testing/geometry.dart' show Layout3dTestGeometry;
 export 'src/testing/matchers.dart'
     show hasSize3d, hasSizeDp, isReachable3d, standsOnItsPanel3d;

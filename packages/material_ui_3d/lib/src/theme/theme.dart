@@ -9,11 +9,11 @@ import 'theme_data.dart';
 /// The widget-layer half of the theme: `Theme3d.of(context)`.
 ///
 /// An ordinary inherited widget, spelled the way Flutter's `Theme` is, so a
-/// widget that builds a component reads the tokens the way it always has.
-/// It is only half the channel — a `Layout3d` has no `BuildContext` — and
-/// [SceneTheme3d] is what installs both halves at once. Use this class
-/// directly only to theme a widget subtree that has no layout in it, or to
-/// read the theme.
+/// widget that builds a component reads the tokens the way it always has. It is
+/// only half the channel — a `RenderObject3d` has no `BuildContext` — and
+/// [SceneTheme3d] is what installs both halves at once. Use this class directly
+/// only to theme a widget subtree that has no layout in it, or to read the
+/// theme.
 class Theme3d extends InheritedWidget {
   /// Publishes [data] to the widgets below.
   const Theme3d({super.key, required this.data, required super.child});
@@ -25,12 +25,12 @@ class Theme3d extends InheritedWidget {
   /// none.
   ///
   /// **It does not throw.** A missing theme yields the baseline light theme,
-  /// matching what a `Layout3d` sees through `theme3d` and what
-  /// `Layout3d.metrics` does with a missing unit contract. The reasoning is
-  /// that a component rendered in the wrong-but-valid baseline is visible and
-  /// diagnosable — you can see that it is not your theme — whereas a throw
-  /// during a build over a missing default costs more than it explains. Use
-  /// [maybeOf] when the difference matters to you.
+  /// matching what a `RenderObject3d` sees through `theme3d` and what
+  /// `RenderObject3d.metrics` does with a missing unit contract. The reasoning
+  /// is that a component rendered in the wrong-but-valid baseline is visible
+  /// and diagnosable — you can see that it is not your theme — whereas a
+  /// throw during a build over a missing default costs more than it explains.
+  /// Use [maybeOf] when the difference matters to you.
   static Theme3dData of(BuildContext context) =>
       maybeOf(context) ?? Theme3dData.light;
 
@@ -47,9 +47,10 @@ class Theme3d extends InheritedWidget {
 ///
 /// One widget, two writes. It publishes [data] as a [Theme3d] for
 /// `Theme3d.of(context)`, and into the surface's `'material3d.theme'` owner
-/// slot for a `Layout3d` reading `theme3d` inside `performLayout`. Without
-/// the second, a component whose *size* comes from a token — a 40dp button, a
-/// list tile at the theme's density — could not see the theme at all.
+/// slot for a `RenderObject3d` reading `theme3d` inside `performLayout`.
+/// Without the second, a component whose *size* comes from a token — a 40dp
+/// button, a list tile at the theme's density — could not see the theme at
+/// all.
 ///
 /// ```dart
 /// SceneLayout3d(

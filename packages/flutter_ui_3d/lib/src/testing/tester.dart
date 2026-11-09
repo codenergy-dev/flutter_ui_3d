@@ -11,8 +11,8 @@ import 'package:vector_math/vector_math.dart' show Vector3;
 import '../geometry/basis3d.dart';
 import '../geometry/size3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
 import '../metrics.dart';
+import '../rendering/object.dart';
 import '../surface.dart';
 import '../widgets/input.dart';
 import '../widgets/surface.dart';
@@ -155,7 +155,7 @@ extension Layout3dWidgetTester on WidgetTester {
   ///
   /// Fails the test when it finds none or more than one, the way
   /// `tester.widget` does.
-  T layout3d<T extends Layout3d>(FinderBase<Layout3d> finder) {
+  T layout3d<T extends RenderObject3d>(FinderBase<RenderObject3d> finder) {
     final found = finder.evaluate().toList();
     if (found.length != 1) {
       throw TestFailure(
@@ -174,8 +174,9 @@ extension Layout3dWidgetTester on WidgetTester {
   }
 
   /// Every box [finder] finds that is a [T].
-  Iterable<T> layouts3d<T extends Layout3d>(FinderBase<Layout3d> finder) =>
-      finder.evaluate().whereType<T>();
+  Iterable<T> layouts3d<T extends RenderObject3d>(
+    FinderBase<RenderObject3d> finder,
+  ) => finder.evaluate().whereType<T>();
 
   /// Where the one box [finder] finds is on the screen, in global
   /// coordinates: its centre, projected through the camera of the host above
@@ -183,8 +184,11 @@ extension Layout3dWidgetTester on WidgetTester {
   ///
   /// The point [tap3d] presses, and the one to move a mouse `TestGesture` to
   /// for a hover.
-  Offset getCenter3d(FinderBase<Layout3d> finder) {
-    final reach = Reach3d.of(layout3d<Layout3d>(finder), sceneSurfaces3d());
+  Offset getCenter3d(FinderBase<RenderObject3d> finder) {
+    final reach = Reach3d.of(
+      layout3d<RenderObject3d>(finder),
+      sceneSurfaces3d(),
+    );
     final global = reach.global;
     if (global == null) {
       throw TestFailure(
@@ -220,7 +224,7 @@ extension Layout3dWidgetTester on WidgetTester {
   ///
   /// Like `tap`, it does not pump.
   Future<void> tap3d(
-    FinderBase<Layout3d> finder, {
+    FinderBase<RenderObject3d> finder, {
     bool checkReachable = true,
     int? pointer,
     PointerDeviceKind kind = PointerDeviceKind.touch,
@@ -234,7 +238,7 @@ extension Layout3dWidgetTester on WidgetTester {
   ///
   /// The same reachability check as [tap3d]. Like `drag`, it does not pump.
   Future<void> drag3d(
-    FinderBase<Layout3d> finder,
+    FinderBase<RenderObject3d> finder,
     Offset offset, {
     bool checkReachable = true,
     int? pointer,
@@ -250,7 +254,7 @@ extension Layout3dWidgetTester on WidgetTester {
   /// turned towards the viewer, which scrolls a list down. The same
   /// reachability check as [tap3d]; it does not pump.
   Future<void> scroll3d(
-    FinderBase<Layout3d> finder,
+    FinderBase<RenderObject3d> finder,
     Offset delta, {
     bool checkReachable = true,
   }) async {
@@ -261,11 +265,14 @@ extension Layout3dWidgetTester on WidgetTester {
   }
 
   Offset _aim(
-    FinderBase<Layout3d> finder,
+    FinderBase<RenderObject3d> finder,
     String callee, {
     required bool checkReachable,
   }) {
-    final reach = Reach3d.of(layout3d<Layout3d>(finder), sceneSurfaces3d());
+    final reach = Reach3d.of(
+      layout3d<RenderObject3d>(finder),
+      sceneSurfaces3d(),
+    );
     final global = reach.global;
     if (global == null || (checkReachable && !reach.reaches)) {
       throw TestFailure(

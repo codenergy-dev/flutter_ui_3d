@@ -36,14 +36,14 @@ double dp(double logical) => logical / 100.0;
 
 /// Where [box]'s node transform draws its span, as fractions of its width:
 /// the left end and the length.
-(double, double) spanOf(Layout3d box) {
+(double, double) spanOf(RenderObject3d box) {
   final transform = box.nodeTransform;
   if (transform == null) return (0.0, 1.0);
   return (transform.entry(0, 3) / box.size.width, transform.entry(0, 0));
 }
 
 /// The angle [box]'s node transform turns it by, in `[0, 2π)`.
-double turnOf(Layout3d box) {
+double turnOf(RenderObject3d box) {
   final transform = box.nodeTransform!;
   final angle = math.atan2(transform.entry(1, 0), transform.entry(0, 0));
   return angle < 0 ? angle + 2 * math.pi : angle;
@@ -641,7 +641,7 @@ class _TickingWidthState extends State<_TickingWidth>
   Widget build(BuildContext context) => _SceneTickingWidth(_clock);
 }
 
-class _SceneTickingWidth extends Layout3dWidget {
+class _SceneTickingWidth extends MultiChildRenderObjectWidget3d {
   const _SceneTickingWidth(this.clock);
 
   final Animation<double> clock;

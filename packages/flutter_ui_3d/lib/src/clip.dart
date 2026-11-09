@@ -6,7 +6,7 @@ import 'package:vector_math/vector_math.dart' show Matrix4, Vector4;
 
 import 'geometry/offset3d.dart';
 import 'geometry/size3d.dart';
-import 'layout3d.dart';
+import 'rendering/object.dart';
 
 /// One half-space of a clip: everything on the negative side is clipped away.
 ///
@@ -20,7 +20,7 @@ import 'layout3d.dart';
 ///
 /// The [normal] is in whatever frame the region is expressed in. Regions
 /// travel down the tree in layout space, one box at a time, through
-/// [Layout3d.clipRegion].
+/// [RenderObject3d.clipRegion].
 class ClipPlane3d {
   /// Creates a plane keeping `dot(normal, p) + distance >= 0`.
   ///
@@ -91,10 +91,10 @@ class ClipPlane3d {
 /// half-spaces, expressed in one box's own layout frame.
 ///
 /// This is the contract the rest of the package clips against. It is a value,
-/// it is computed on demand by walking up from a box ([Layout3d.clipRegion]),
-/// and it says nothing about *how* the clip is enforced — which is
-/// deliberate, because there are three tiers and a consumer picks the one it
-/// can afford:
+/// it is computed on demand by walking up from a box
+/// ([RenderObject3d.clipRegion]), and it says nothing about *how* the clip is
+/// enforced — which is deliberate, because there are three tiers and a
+/// consumer picks the one it can afford:
 ///
 ///  1. **Culling whole nodes.** [excludes] answers whether a box falls
 ///     entirely outside, and a `node.visible = false` follows. Costs nothing,
@@ -303,7 +303,7 @@ class Clip3dRegion {
 /// The 3D analogue of `ClipRect`, and the one place in this package that
 /// publishes a [Clip3dRegion]. Layout is untouched: the child is laid out
 /// against the same constraints and the box takes the child's size, exactly
-/// as a `ProxyLayout3d` does. What changes is what the subtree below is
+/// as a `RenderProxyBox3d` does. What changes is what the subtree below is
 /// *allowed to be seen through*.
 ///
 /// ```dart
@@ -314,8 +314,9 @@ class Clip3dRegion {
 ///
 /// Two things happen, and they are different tiers of the same contract:
 ///
-///  * Every descendant's [Layout3d.clipRegion] now reports this box's extent,
-///    so a decoration painter that can honour clip planes has the numbers.
+///  * Every descendant's [RenderObject3d.clipRegion] now reports this box's
+///    extent, so a decoration painter that can honour clip planes has the
+///    numbers.
 ///  * When [cullNodes] is set, descendants that fall entirely outside have
 ///    their scene node hidden, which also puts them out of reach of a ray —
 ///    the same rule the scrolling views already rely on. This is exact for
@@ -326,7 +327,7 @@ class Clip3dRegion {
 /// clip is still published there (pulled back through the transform, which is
 /// exact), but the visibility sweep does not try to reason about a rotated
 /// subtree's extent.
-class ClipBox3d extends ProxyLayout3d {
+class ClipBox3d extends RenderProxyBox3d {
   /// Creates a box clipping [child] to its own extent.
   ClipBox3d({
     bool clipDepth = false,
@@ -362,7 +363,7 @@ class ClipBox3d extends ProxyLayout3d {
     markNeedsLayout();
   }
 
-  final Set<Layout3d> _culled = <Layout3d>{};
+  final Set<RenderObject3d> _culled = <RenderObject3d>{};
 
   /// The region this box imposes, in its own frame.
   Clip3dRegion get ownRegion => hasSize
@@ -370,7 +371,7 @@ class ClipBox3d extends ProxyLayout3d {
       : Clip3dRegion.none;
 
   @override
-  Clip3dRegion clipRegionForChild(Layout3d child) => super
+  Clip3dRegion clipRegionForChild(RenderObject3d child) => super
       .clipRegionForChild(child)
       .intersect(ownRegion.shifted(-child.offset));
 
@@ -393,7 +394,7 @@ class ClipBox3d extends ProxyLayout3d {
   /// Hides every box under [box] that falls entirely outside [region] and
   /// tells the rest to re-read the clip, with [region] expressed in [box]'s
   /// parent's frame.
-  void _sweep(Layout3d box, Clip3dRegion region) {
+  void _sweep(RenderObject3d box, Clip3dRegion region) {
     if (!box.hasSize) return;
     final here = region.shifted(-box.offset);
     if (_cullNodes && here.excludes(Offset3d.zero, box.size)) {

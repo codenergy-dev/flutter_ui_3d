@@ -7,7 +7,7 @@ import 'package:flutter/painting.dart' show TextDirection, VerticalDirection;
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// How a [Wrap3d] distributes leftover room, the 3D analogue of
 /// [WrapAlignment].
@@ -84,7 +84,7 @@ class _Run3d {
 /// runs on a flipped cross axis from the last run, and the cross alignment's
 /// start and end trade places. Which children share a run never changes.
 /// Depth never flips, and a null [textDirection] reads left to right.
-class Wrap3d extends MultiChildLayout3d<ParentData3d> {
+class Wrap3d extends RenderMultiChild3d<ParentData3d> {
   /// Creates a wrapping box.
   Wrap3d({
     Axis3d direction = Axis3d.horizontal,

@@ -10,9 +10,10 @@
 ///  * [Layout3dSurface], the root. It owns the plane the elements are
 ///    arranged on; mount its [Layout3dSurface.plane] node in the scene and
 ///    transform that node to move, turn, or scale the whole layout.
-///  * [Layout3d], the box protocol itself ([Layout3d.layout],
-///    [Layout3d.performLayout], [Layout3d.place]), with
-///    [SingleChildLayout3d] and [MultiChildLayout3d] to build on.
+///  * [RenderObject3d], Flutter's `RenderObject` and `RenderBox` folded into
+///    one, which carries the box protocol ([RenderObject3d.layout],
+///    [RenderObject3d.performLayout], [RenderObject3d.place]), with
+///    [RenderSingleChild3d] and [RenderMultiChild3d] to build on.
 ///  * [Constraints3d], [Size3d], [Offset3d], [Alignment3d], [EdgeInsets3d],
 ///    the value types, each the 3D counterpart of a Flutter one.
 ///  * [NodeBox3d], the leaf that puts engine content into a layout and
@@ -53,9 +54,9 @@
 ///    [ConstrainedBox3d], [Transform3d], [Row3d], [Column3d], [Depth3d],
 ///    [Stack3d], [Positioned3d], [Wrap3d], [Viewport3d], [ListView3d],
 ///    [GridView3d], the layouts.
-///  * [Layout3d.getMaxIntrinsicExtent] and [Layout3d.getDistanceToBaseline],
-///    the measurement protocol, with [IntrinsicWidth3d] and [Baseline3d] as
-///    the boxes that use it.
+///  * [RenderObject3d.getMaxIntrinsicExtent] and
+///    [RenderObject3d.getDistanceToBaseline], the measurement protocol, with
+///    [IntrinsicWidth3d] and [Baseline3d] as the boxes that use it.
 ///  * [CustomScrollView3d] and the slivers ([SliverList3d], [SliverGrid3d],
 ///    [SliverToBoxAdapter3d], [SliverPersistentHeader3d]), a second protocol
 ///    for sections that share one scroll position. [ListView3d] and [GridView3d] are built on it, each a
@@ -65,19 +66,19 @@
 ///    the half of scrolling that is not a gesture: what the ends feel like,
 ///    what a release throws, and how a menu or a focus traversal brings
 ///    something into view.
-///  * [Layout3d.nodeOffset], [Layout3d.nodeTransform] and [NodeTransform3d],
-///    the node-only animation path: geometry that moves without any box
-///    changing size, so nothing is laid out again. With the [Size3dTween]
-///    family for the animations that do change a size.
-///  * [debugDumpLayout3dTree], [debugPaintLayout3dSize] and
-///    [Layout3dOverflowReportingMixin], the debugging half: a layout that
+///  * [RenderObject3d.nodeOffset], [RenderObject3d.nodeTransform] and
+///    [NodeTransform3d], the node-only animation path: geometry that moves
+///    without any box changing size, so nothing is laid out again. With the
+///    [Size3dTween] family for the animations that do change a size.
+///  * [debugDumpRenderObject3dTree], [debugPaintLayout3dSize] and
+///    [RenderOverflowReportingMixin3d], the debugging half: a layout that
 ///    paints nothing has nothing to inspect, so every box is a
 ///    `DiagnosticableTree`, an overflow is reported with its axis and its
 ///    amount, and the extents can be drawn as real lines. [Semantics3d] is
 ///    the accessibility half, sized from the box rather than from the meshes.
-///  * [Layout3dBuiltChildrenMixin] and [Layout3dMeasuredChildrenMixin], the
-///    bookkeeping every view built from an [Layout3dItemBuilder] needs, for
-///    writing one of your own, with [Layout3dLayoutPassMixin] and
+///  * [RenderBuiltChildrenMixin3d] and [RenderMeasuredChildrenMixin3d], the
+///    bookkeeping every view built from a [RenderObject3dItemBuilder] needs,
+///    for writing one of your own, with [RenderLayoutPassMixin3d] and
 ///    [Scroll3dHolderMixin] under them: the layout pass that ignores its own
 ///    dirt, and the scroll position a view holds and may own.
 ///
@@ -136,7 +137,8 @@ export 'src/boxes/intrinsic.dart'
         IntrinsicExtent3d,
         IntrinsicHeight3d,
         IntrinsicWidth3d;
-export 'src/boxes/layout_builder.dart' show Layout3dBuilder, LayoutBuilder3d;
+export 'src/boxes/layout_builder.dart'
+    show RenderObject3dBuilder, LayoutBuilder3d;
 export 'src/boxes/node_box.dart' show BoxFit3d, NodeBox3d;
 export 'src/boxes/overflow.dart'
     show
@@ -145,7 +147,7 @@ export 'src/boxes/overflow.dart'
         OverflowBox3d,
         UnconstrainedBox3d;
 export 'src/boxes/shifted.dart'
-    show Align3d, Center3d, Padding3d, ShiftedLayout3d;
+    show Align3d, Center3d, Padding3d, RenderShiftedBox3d;
 export 'src/boxes/sized.dart' show ConstrainedBox3d, SizedBox3d, Transform3d;
 export 'src/boxes/stack.dart' show Positioned3d, Stack3d, StackFit3d;
 export 'src/boxes/table.dart'
@@ -161,26 +163,26 @@ export 'src/boxes/visibility.dart' show KeepAlive3d, Offstage3d, Visibility3d;
 export 'src/boxes/wrap.dart' show Wrap3d, WrapAlignment3d, WrapCrossAlignment3d;
 export 'src/built_children.dart'
     show
-        Layout3dBuiltChildrenHost,
-        Layout3dBuiltChildrenMixin,
-        Layout3dChildManager,
+        RenderObject3dBuiltChildrenHost,
+        RenderBuiltChildrenMixin3d,
+        RenderObject3dChildManager,
         Layout3dContentExtentEstimator,
-        Layout3dMeasuredChildrenMixin,
-        Layout3dPrototypeBuilder,
+        RenderMeasuredChildrenMixin3d,
+        RenderObject3dPrototypeBuilder,
         builtChildrenOf;
 export 'src/camera_binding.dart' show Layout3dCameraBinding;
 export 'src/debug/diagnostics.dart'
     show
-        debugDescribeLayout3dAncestry,
-        debugDescribeLayout3dTree,
-        debugDumpLayout3dTree,
+        debugDescribeRenderObject3dAncestry,
+        debugDescribeRenderObject3dTree,
+        debugDumpRenderObject3dTree,
         layout3dTreeStyle;
 export 'src/debug/screen_projection.dart' show Layout3dScreenProjection;
 export 'src/debug/overflow.dart'
     show
         Layout3dOverflow,
         Layout3dOverflowReporter,
-        Layout3dOverflowReportingMixin,
+        RenderOverflowReportingMixin3d,
         debugLayout3dOverflowReporter,
         defaultLayout3dOverflowReporter;
 export 'src/debug/wireframe.dart'
@@ -261,26 +263,14 @@ export 'src/input/listener.dart'
         HitTestArea3d,
         Listener3d,
         PointerEvent3dCallback,
-        ProxyLayout3dWithHitTestBehavior;
+        RenderProxyBoxWithHitTestBehavior3d;
 export 'src/input/pointer.dart' show Layout3dPointer, PointerScroll3d;
 export 'src/input/pointer_group.dart' show Layout3dPointerGroup;
 export 'src/input/tap_target.dart' show TapTarget3d;
-export 'src/layout3d.dart'
-    show
-        Layout3d,
-        Layout3dChildIntrinsicsMixin,
-        Layout3dItemBuilder,
-        Layout3dWithChildMixin,
-        Layout3dWithChildrenMixin,
-        Layout3dOwner,
-        MultiChildLayout3d,
-        ParentData3d,
-        ProxyLayout3d,
-        SingleChildLayout3d;
-export 'src/layout_pass.dart' show Layout3dLayoutPassMixin;
+export 'src/layout_pass.dart' show RenderLayoutPassMixin3d;
 export 'src/metrics.dart' show Layout3dMetrics, VisualDensity3d;
 export 'src/opacity.dart'
-    show FadeTransition3d, Layout3dOpacityMixin, Opacity3d;
+    show FadeTransition3d, RenderOpacityMixin3d, Opacity3d;
 export 'src/overlay/modal_barrier.dart' show ModalBarrier3d;
 export 'src/overlay/navigator.dart'
     show
@@ -297,6 +287,18 @@ export 'src/overlay/overlay.dart'
         Overlay3dBuilder,
         Overlay3dEntry,
         OverlayLayer3d;
+export 'src/rendering/object.dart'
+    show
+        RenderObject3d,
+        RenderChildIntrinsicsMixin3d,
+        RenderObject3dItemBuilder,
+        RenderObjectWithChildMixin3d,
+        ContainerRenderObjectMixin3d,
+        PipelineOwner3d,
+        RenderMultiChild3d,
+        ParentData3d,
+        RenderProxyBox3d,
+        RenderSingleChild3d;
 export 'src/scroll/box_scroll_view.dart' show BoxScrollView3d;
 export 'src/semantics.dart'
     show Semantics3d, debugFocusableBoxesWithoutSemantics;

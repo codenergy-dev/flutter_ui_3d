@@ -19,31 +19,33 @@ import 'package:flutter/widgets.dart'
 import 'package:flutter_scene/scene.dart' show Node;
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
-import 'clip.dart';
-import 'debug/wireframe.dart';
-import 'decoration/decoration.dart';
-import 'geometry/basis3d.dart';
-import 'geometry/constraints3d.dart';
-import 'geometry/offset3d.dart';
-import 'geometry/size3d.dart';
-import 'hit_test.dart';
-import 'metrics.dart';
-import 'slot.dart';
+import '../clip.dart';
+import '../debug/wireframe.dart';
+import '../decoration/decoration.dart';
+import '../geometry/basis3d.dart';
+import '../geometry/constraints3d.dart';
+import '../geometry/offset3d.dart';
+import '../geometry/size3d.dart';
+import '../hit_test.dart';
+import '../metrics.dart';
+import '../slot.dart';
 
 /// Which box each focus node in a layout tree stands for.
 ///
-/// Filled in by `Focus3d`, `FocusScope3d` and [Layout3dOwner.focusScope], and
+/// Filled in by `Focus3d`, `FocusScope3d` and [PipelineOwner3d.focusScope], and
 /// read through `Focus3d.layoutFor`. Not exported: it is how the key layer
 /// finds a box from `FocusManager.primaryFocus`, which is a node with no
 /// context, and nothing outside the package has a reason to write it.
-final Expando<Layout3d> focusNodeLayouts = Expando<Layout3d>('Layout3d focus');
+final Expando<RenderObject3d> focusNodeLayouts = Expando<RenderObject3d>(
+  'RenderObject3d focus',
+);
 
 /// Builds the layout for one item of a lazily built view.
 ///
 /// The one signature shared by every builder in the package:
 /// `ListView3d.builder`, `GridView3d.builder`, `SliverList3d.builder` and
 /// `SliverGrid3d.builder` all hand out an index and take a box back.
-typedef Layout3dItemBuilder = Layout3d Function(int index);
+typedef RenderObject3dItemBuilder = RenderObject3d Function(int index);
 
 /// Data a parent layout stores on its child, the 3D analogue of [ParentData].
 ///
@@ -53,7 +55,7 @@ typedef Layout3dItemBuilder = Layout3d Function(int index);
 class ParentData3d {
   /// The child's origin corner, in the parent's layout space.
   ///
-  /// Written by the parent through [Layout3d.place], never by the child.
+  /// Written by the parent through [RenderObject3d.place], never by the child.
   Offset3d offset = Offset3d.zero;
 
   /// An extra offset applied to the child's scene node and to nothing else.
@@ -70,7 +72,8 @@ class ParentData3d {
   /// of reach of a ray. Nudging the node alone leaves every one of those
   /// intact.
   ///
-  /// Written by the parent before [Layout3d.place], which is what applies it.
+  /// Written by the parent before [RenderObject3d.place], which is what applies
+  /// it.
   Offset3d sceneOffset = Offset3d.zero;
 
   /// Called when the child is removed from its parent.
@@ -83,16 +86,16 @@ class ParentData3d {
       : 'offset=$offset, sceneOffset=$sceneOffset';
 }
 
-/// Drives layout for a tree of [Layout3d] objects, the 3D analogue of
-/// [PipelineOwner].
+/// Drives layout for a tree of render objects, as Flutter's `PipelineOwner`
+/// does for its own.
 ///
 /// The owner collects the layouts that went dirty, and [flushLayout] relayouts
 /// them shallowest first. Everything downstream of layout, the scene node
 /// transforms, is written as layout happens, so there is no separate paint
 /// phase to flush.
-class Layout3dOwner {
+class PipelineOwner3d {
   /// Creates an owner, optionally reporting when a relayout is pending.
-  Layout3dOwner({this.onNeedVisualUpdate});
+  PipelineOwner3d({this.onNeedVisualUpdate});
 
   /// Called when a layout goes dirty, so a host can schedule [flushLayout].
   ///
@@ -110,7 +113,7 @@ class Layout3dOwner {
   /// It rides here, next to [basis], rather than in an `InheritedWidget`,
   /// because the imperative layer has no `BuildContext` and the basis already
   /// set the precedent. Everything in the tree reaches it through
-  /// [Layout3d.metrics]; the root writes it, through
+  /// [RenderObject3d.metrics]; the root writes it, through
   /// [Layout3dSurface.metrics] or a [Layout3dCameraBinding].
   ///
   /// This is the only copy that decides anything. The widget layer reads a
@@ -147,7 +150,7 @@ class Layout3dOwner {
     final existing = _focusScope;
     if (existing != null) return existing;
     final scope = FocusScopeNode(
-      debugLabel: 'Layout3dOwner',
+      debugLabel: 'PipelineOwner3d',
       skipTraversal: true,
     );
     // The attachment is what a later `dispose` unparents through; nothing
@@ -171,7 +174,7 @@ class Layout3dOwner {
   /// focused box is taken out of the tree: Flutter hands the focus to the
   /// nearest enclosing scope, and a Tab from there has to know what tree it
   /// is in.
-  Layout3d? focusRoot;
+  RenderObject3d? focusRoot;
 
   /// Asked when Tab or Shift-Tab runs off the end of this tree's focusable
   /// boxes, before traversal wraps round; answers whether it moved the focus
@@ -219,8 +222,9 @@ class Layout3dOwner {
   /// final Theme3dData? theme = owner.slot(themeSlot);
   /// ```
   ///
-  /// A box below reads it as [Layout3d.slot], which falls back to null while
-  /// detached, the way [Layout3d.metrics] falls back to the standard value.
+  /// A box below reads it as [RenderObject3d.slot], which falls back to null
+  /// while detached, the way [RenderObject3d.metrics] falls back to the
+  /// standard value.
   T? slot<T extends Object>(Layout3dSlot<T> key) => _slots[key] as T?;
 
   /// Writes [value] under [key], returning whether it changed anything.
@@ -279,7 +283,7 @@ class Layout3dOwner {
     _slots.clear();
   }
 
-  final List<Layout3d> _nodesNeedingLayout = <Layout3d>[];
+  final List<RenderObject3d> _nodesNeedingLayout = <RenderObject3d>[];
 
   bool _doingLayout = false;
 
@@ -301,7 +305,7 @@ class Layout3dOwner {
     _doingLayout = true;
     try {
       while (_nodesNeedingLayout.isNotEmpty) {
-        final dirty = List<Layout3d>.of(_nodesNeedingLayout)
+        final dirty = List<RenderObject3d>.of(_nodesNeedingLayout)
           ..sort((a, b) => a.treeDepth - b.treeDepth);
         _nodesNeedingLayout.clear();
         for (final layout in dirty) {
@@ -316,9 +320,17 @@ class Layout3dOwner {
   }
 }
 
-/// A box in a 3D layout tree: Flutter's layout protocol, one axis richer.
+/// A node of the 3D render tree: Flutter's `RenderObject` and `RenderBox`
+/// folded into one class.
 ///
-/// The contract is the one every Flutter developer already knows. A parent
+/// From `RenderObject` it takes the tree, the owner and the dirty tracking;
+/// from `RenderBox` the [size], the [Constraints3d], the intrinsics and the
+/// baselines. Flutter keeps those apart so that a `RenderSliver` can be a
+/// render object without being a box. This package does not: `Sliver3d`, its
+/// equivalent of `RenderSliver`, extends this class, and carries a [size]
+/// worked out from the geometry it reports.
+///
+/// The box contract is the one every Flutter developer already knows. A parent
 /// hands down [Constraints3d]; the child picks a [Size3d] that satisfies them
 /// and reports it up; the parent then decides where the child sits and calls
 /// [place]. A child never reads its own position during [performLayout], and a
@@ -331,11 +343,11 @@ class Layout3dOwner {
 /// layout composes. Moving, rotating, or scaling the surface's node carries
 /// the whole tree with it.
 ///
-/// Subclass [SingleChildLayout3d] or [MultiChildLayout3d] rather than this
+/// Subclass [RenderSingleChild3d] or [RenderMultiChild3d] rather than this
 /// class directly unless the box is a leaf.
-abstract class Layout3d with DiagnosticableTreeMixin {
-  /// Creates a layout, optionally naming its scene [Node].
-  Layout3d({String? name}) : _node = Node() {
+abstract class RenderObject3d with DiagnosticableTreeMixin {
+  /// Creates a render object, optionally naming its scene [Node].
+  RenderObject3d({String? name}) : _node = Node() {
     _node.name = name ?? '$runtimeType';
   }
 
@@ -348,15 +360,15 @@ abstract class Layout3d with DiagnosticableTreeMixin {
   /// components, or to hang extra content under it) is fine.
   Node get node => _node;
 
-  Layout3d? _parent;
+  RenderObject3d? _parent;
 
   /// The layout that owns and positions this one, or null at the root.
-  Layout3d? get parent => _parent;
+  RenderObject3d? get parent => _parent;
 
-  Layout3dOwner? _owner;
+  PipelineOwner3d? _owner;
 
   /// The owner driving layout for this tree, or null while detached.
-  Layout3dOwner? get owner => _owner;
+  PipelineOwner3d? get owner => _owner;
 
   /// Whether this layout is attached to an owner.
   bool get attached => _owner != null;
@@ -456,7 +468,7 @@ abstract class Layout3d with DiagnosticableTreeMixin {
   /// Whether this layout is waiting to be laid out.
   bool get needsLayout => _needsLayout;
 
-  Layout3d? _relayoutBoundary;
+  RenderObject3d? _relayoutBoundary;
 
   /// Whether the child's own tree layer can pull the transform under the
   /// parent's offset. Overridden by layouts that add a transform of their
@@ -470,7 +482,7 @@ abstract class Layout3d with DiagnosticableTreeMixin {
   ///
   /// Called for each child as it is adopted.
   @protected
-  void setupParentData(Layout3d child) {
+  void setupParentData(RenderObject3d child) {
     child.parentData ??= ParentData3d();
   }
 
@@ -478,7 +490,7 @@ abstract class Layout3d with DiagnosticableTreeMixin {
   /// one, and joins it to this tree's owner.
   @protected
   @mustCallSuper
-  void adoptChild(Layout3d child) {
+  void adoptChild(RenderObject3d child) {
     assert(
       child._parent == null,
       'Cannot adopt $child, it already has a parent (${child._parent}).',
@@ -495,7 +507,7 @@ abstract class Layout3d with DiagnosticableTreeMixin {
   /// Releases [child]: unparents it and unhooks its node.
   @protected
   @mustCallSuper
-  void dropChild(Layout3d child) {
+  void dropChild(RenderObject3d child) {
     assert(identical(child._parent, this));
     _node.remove(child._node);
     child.parentData?.detach();
@@ -513,11 +525,11 @@ abstract class Layout3d with DiagnosticableTreeMixin {
   }
 
   /// Calls [visitor] for each child, in layout order.
-  void visitChildren(void Function(Layout3d child) visitor) {}
+  void visitChildren(void Function(RenderObject3d child) visitor) {}
 
   /// Joins this subtree to [owner].
   @mustCallSuper
-  void attach(Layout3dOwner owner) {
+  void attach(PipelineOwner3d owner) {
     _owner = owner;
     if (_needsLayout && _relayoutBoundary != null) {
       _needsLayout = false;
@@ -707,7 +719,7 @@ abstract class Layout3d with DiagnosticableTreeMixin {
     _needsLayout = false;
   }
 
-  static void _propagateRelayoutBoundaryToChild(Layout3d child) {
+  static void _propagateRelayoutBoundaryToChild(RenderObject3d child) {
     if (identical(child._relayoutBoundary, child)) return;
     final parentBoundary = child._parent!._relayoutBoundary;
     if (identical(parentBoundary, child._relayoutBoundary)) return;
@@ -715,7 +727,7 @@ abstract class Layout3d with DiagnosticableTreeMixin {
     child.visitChildren(_propagateRelayoutBoundaryToChild);
   }
 
-  static void _cleanChildRelayoutBoundary(Layout3d child) {
+  static void _cleanChildRelayoutBoundary(RenderObject3d child) {
     if (!identical(child._relayoutBoundary, child)) {
       child._relayoutBoundary = null;
       child.visitChildren(_cleanChildRelayoutBoundary);
@@ -859,7 +871,7 @@ abstract class Layout3d with DiagnosticableTreeMixin {
   ///
   /// Return null for a box with no baseline of its own. A box that wraps
   /// another usually returns the child's, moved by wherever it placed the
-  /// child; [Layout3dChildIntrinsicsMixin] does that.
+  /// child; [RenderChildIntrinsicsMixin3d] does that.
   @protected
   double? computeDistanceToActualBaseline(Axis3d axis) => null;
 
@@ -1026,7 +1038,7 @@ abstract class Layout3d with DiagnosticableTreeMixin {
   /// slides it by the child's offset. [ClipBox3d] overrides this to intersect
   /// its own extent in.
   @protected
-  Clip3dRegion clipRegionForChild(Layout3d child) {
+  Clip3dRegion clipRegionForChild(RenderObject3d child) {
     final region = clipRegion;
     if (region.isUnbounded) return region;
     final local = localTransform;
@@ -1039,7 +1051,7 @@ abstract class Layout3d with DiagnosticableTreeMixin {
   /// How much of this box is drawn, from 0 to 1.
   ///
   /// One unless some ancestor is an [Opacity3d] — or anything else mixing in
-  /// [Layout3dOpacityMixin], which is how a [MotionTransition3d] fades an
+  /// [RenderOpacityMixin3d], which is how a [MotionTransition3d] fades an
   /// arrival. Computed by walking up rather than pushed down, exactly as
   /// [clipRegion] is and for the same reason: the walk is O(depth) and
   /// happens only when something that draws asks, while pushing would cost
@@ -1085,11 +1097,11 @@ abstract class Layout3d with DiagnosticableTreeMixin {
 
   /// The opacity this box imposes on [child].
   ///
-  /// The default passes down what this box inherits. [Layout3dOpacityMixin]
+  /// The default passes down what this box inherits. [RenderOpacityMixin3d]
   /// multiplies its own in, which is what makes two nested [Opacity3d] boxes
   /// compose the way two nested `Opacity` widgets do.
   @protected
-  double opacityForChild(Layout3d child) => inheritedOpacity;
+  double opacityForChild(RenderObject3d child) => inheritedOpacity;
 
   // ------------------------------------------------------------ hit testing
 
@@ -1207,7 +1219,7 @@ abstract class Layout3d with DiagnosticableTreeMixin {
   @protected
   bool hitTestChild(
     HitTestResult3d result,
-    Layout3d child, {
+    RenderObject3d child, {
     required Ray3d ray,
   }) {
     if (!child.node.visible) return false;
@@ -1328,7 +1340,7 @@ abstract class Layout3d with DiagnosticableTreeMixin {
     final boundary = _relayoutBoundary;
     if (boundary == null) return null;
     var steps = 0;
-    Layout3d? node = this;
+    RenderObject3d? node = this;
     while (node != null && !identical(node, boundary)) {
       steps += 1;
       node = node._parent;
@@ -1345,7 +1357,7 @@ abstract class Layout3d with DiagnosticableTreeMixin {
   /// `RenderFlex`'s.
   @override
   List<DiagnosticsNode> debugDescribeChildren() {
-    final children = <Layout3d>[];
+    final children = <RenderObject3d>[];
     visitChildren(children.add);
     if (children.isEmpty) return const <DiagnosticsNode>[];
     if (children.length == 1) {
@@ -1369,26 +1381,26 @@ abstract class Layout3d with DiagnosticableTreeMixin {
 
 /// A layout with at most one child, the 3D analogue of
 /// [RenderObjectWithChildMixin].
-abstract class SingleChildLayout3d extends Layout3d
-    with Layout3dWithChildMixin {
+abstract class RenderSingleChild3d extends RenderObject3d
+    with RenderObjectWithChildMixin3d {
   /// Creates a layout wrapping [child].
-  SingleChildLayout3d({Layout3d? child, super.name}) {
+  RenderSingleChild3d({RenderObject3d? child, super.name}) {
     this.child = child;
   }
 }
 
-/// Holds one child, the 3D analogue of [RenderObjectWithChildMixin].
+/// Holds one child, as Flutter's `RenderObjectWithChildMixin` does.
 ///
-/// Separate from [SingleChildLayout3d] because the box protocol is not the
+/// Separate from [RenderSingleChild3d] because the box protocol is not the
 /// only one that wraps a single child: a `SliverToBoxAdapter3d` holds one too,
 /// and it answers to the sliver protocol instead.
-mixin Layout3dWithChildMixin on Layout3d {
-  Layout3d? _child;
+mixin RenderObjectWithChildMixin3d on RenderObject3d {
+  RenderObject3d? _child;
 
   /// The wrapped layout, or null.
-  Layout3d? get child => _child;
+  RenderObject3d? get child => _child;
 
-  set child(Layout3d? value) {
+  set child(RenderObject3d? value) {
     if (identical(_child, value)) return;
     final old = _child;
     if (old != null) {
@@ -1408,7 +1420,7 @@ mixin Layout3dWithChildMixin on Layout3d {
   }
 
   @override
-  void visitChildren(void Function(Layout3d child) visitor) {
+  void visitChildren(void Function(RenderObject3d child) visitor) {
     final child = _child;
     if (child != null) visitor(child);
   }
@@ -1422,7 +1434,7 @@ mixin Layout3dWithChildMixin on Layout3d {
 /// baseline is the child's, moved by wherever it placed the child. A wrapper
 /// that *does* add room ([Padding3d]) or impose limits ([ConstrainedBox3d])
 /// mixes this in and overrides the intrinsic half.
-mixin Layout3dChildIntrinsicsMixin on Layout3dWithChildMixin {
+mixin RenderChildIntrinsicsMixin3d on RenderObjectWithChildMixin3d {
   @override
   double computeMinIntrinsicExtent(Axis3d axis, Size3d limits) =>
       child?.getMinIntrinsicExtent(axis, limits) ?? 0.0;
@@ -1442,13 +1454,13 @@ mixin Layout3dChildIntrinsicsMixin on Layout3dWithChildMixin {
 }
 
 /// A layout that sizes itself to its child and passes its constraints
-/// straight through, the 3D analogue of [RenderProxyBox].
+/// straight through, as Flutter's `RenderProxyBox` does.
 ///
 /// The base for wrappers that change nothing about layout on their own.
-abstract class ProxyLayout3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+abstract class RenderProxyBox3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a pass-through layout around [child].
-  ProxyLayout3d({super.child, super.name});
+  RenderProxyBox3d({super.child, super.name});
 
   @override
   void performLayout() {
@@ -1468,29 +1480,30 @@ abstract class ProxyLayout3d extends SingleChildLayout3d
 ///
 /// [ParentDataType] is the per-child state this layout keeps; read it with
 /// [parentDataOf].
-abstract class MultiChildLayout3d<ParentDataType extends ParentData3d>
-    extends Layout3d
-    with Layout3dWithChildrenMixin<ParentDataType> {
+abstract class RenderMultiChild3d<ParentDataType extends ParentData3d>
+    extends RenderObject3d
+    with ContainerRenderObjectMixin3d<ParentDataType> {
   /// Creates a layout holding [children], in order.
-  MultiChildLayout3d({List<Layout3d>? children, super.name}) {
+  RenderMultiChild3d({List<RenderObject3d>? children, super.name}) {
     if (children != null) {
       addAll(children);
     }
   }
 }
 
-/// Holds an ordered list of children, the 3D analogue of
-/// [ContainerRenderObjectMixin].
+/// Holds an ordered list of children, as Flutter's
+/// `ContainerRenderObjectMixin` does.
 ///
-/// Separate from [MultiChildLayout3d] for the same reason
-/// [Layout3dWithChildMixin] is separate: the sliver protocol needs the same
-/// child list without being a box.
-mixin Layout3dWithChildrenMixin<ParentDataType extends ParentData3d>
-    on Layout3d {
-  final List<Layout3d> _children = <Layout3d>[];
+/// Separate from [RenderMultiChild3d] for the same reason
+/// [RenderObjectWithChildMixin3d] is separate: the sliver protocol needs the
+/// same child list without being a box.
+mixin ContainerRenderObjectMixin3d<ParentDataType extends ParentData3d>
+    on RenderObject3d {
+  final List<RenderObject3d> _children = <RenderObject3d>[];
 
   /// The children, in layout order.
-  List<Layout3d> get children => List<Layout3d>.unmodifiable(_children);
+  List<RenderObject3d> get children =>
+      List<RenderObject3d>.unmodifiable(_children);
 
   /// The children this layout actually holds, for its own [performLayout].
   ///
@@ -1503,33 +1516,33 @@ mixin Layout3dWithChildrenMixin<ParentDataType extends ParentData3d>
   ///
   /// Live, not a copy: do not edit it while walking it.
   @protected
-  List<Layout3d> get heldChildren => _children;
+  List<RenderObject3d> get heldChildren => _children;
 
   /// How many children this layout has.
   int get childCount => _children.length;
 
   /// The child at [index], in layout order.
-  Layout3d childAt(int index) => _children[index];
+  RenderObject3d childAt(int index) => _children[index];
 
   /// The per-child state this layout keeps on [child].
   @protected
-  ParentDataType parentDataOf(Layout3d child) {
+  ParentDataType parentDataOf(RenderObject3d child) {
     assert(identical(child.parent, this), '$child is not a child of $this.');
     return child.parentData! as ParentDataType;
   }
 
   /// Appends [child].
-  void add(Layout3d child) => insert(child, index: _children.length);
+  void add(RenderObject3d child) => insert(child, index: _children.length);
 
   /// Appends every child in [children], in order.
-  void addAll(Iterable<Layout3d> children) {
+  void addAll(Iterable<RenderObject3d> children) {
     for (final child in children) {
       add(child);
     }
   }
 
   /// Inserts [child] at [index], appending when [index] is omitted.
-  void insert(Layout3d child, {int? index}) {
+  void insert(RenderObject3d child, {int? index}) {
     final at = index ?? _children.length;
     assert(at >= 0 && at <= _children.length);
     adoptChild(child);
@@ -1538,7 +1551,7 @@ mixin Layout3dWithChildrenMixin<ParentDataType extends ParentData3d>
   }
 
   /// Removes [child].
-  void remove(Layout3d child) {
+  void remove(RenderObject3d child) {
     if (!_children.remove(child)) return;
     dropChild(child);
     markNeedsLayout();
@@ -1546,7 +1559,7 @@ mixin Layout3dWithChildrenMixin<ParentDataType extends ParentData3d>
 
   /// Removes every child.
   void removeAll() {
-    final removed = List<Layout3d>.of(_children);
+    final removed = List<RenderObject3d>.of(_children);
     _children.clear();
     for (final child in removed) {
       dropChild(child);
@@ -1559,16 +1572,16 @@ mixin Layout3dWithChildrenMixin<ParentDataType extends ParentData3d>
   ///
   /// The entry point the widget layer uses to mirror a reconciled element
   /// list onto the layout tree; an unchanged list is a no-op.
-  void syncChildren(List<Layout3d> children) {
+  void syncChildren(List<RenderObject3d> children) {
     if (_listIdentical(_children, children)) return;
-    final incoming = Set<Layout3d>.identity()..addAll(children);
-    for (final child in List<Layout3d>.of(_children)) {
+    final incoming = Set<RenderObject3d>.identity()..addAll(children);
+    for (final child in List<RenderObject3d>.of(_children)) {
       if (!incoming.contains(child)) {
         _children.remove(child);
         dropChild(child);
       }
     }
-    final existing = Set<Layout3d>.identity()..addAll(_children);
+    final existing = Set<RenderObject3d>.identity()..addAll(_children);
     _children
       ..clear()
       ..addAll(children);
@@ -1580,7 +1593,7 @@ mixin Layout3dWithChildrenMixin<ParentDataType extends ParentData3d>
     markNeedsLayout();
   }
 
-  static bool _listIdentical(List<Layout3d> a, List<Layout3d> b) {
+  static bool _listIdentical(List<RenderObject3d> a, List<RenderObject3d> b) {
     if (a.length != b.length) return false;
     for (var i = 0; i < a.length; i++) {
       if (!identical(a[i], b[i])) return false;
@@ -1632,8 +1645,8 @@ mixin Layout3dWithChildrenMixin<ParentDataType extends ParentData3d>
   }
 
   @override
-  void visitChildren(void Function(Layout3d child) visitor) {
-    for (final child in List<Layout3d>.of(_children)) {
+  void visitChildren(void Function(RenderObject3d child) visitor) {
+    for (final child in List<RenderObject3d>.of(_children)) {
       visitor(child);
     }
   }

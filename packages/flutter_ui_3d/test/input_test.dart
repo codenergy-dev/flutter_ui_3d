@@ -381,7 +381,7 @@ void main() {
       // out what the other had put in.
       ({Layout3dSurface surface, Overlay3d overlay}) makePanel() {
         final overlay = Overlay3d(
-          children: <Layout3d>[TestBox(const Size3d(4, 3, 0))],
+          children: <RenderObject3d>[TestBox(const Size3d(4, 3, 0))],
         );
         final surface = laidOut(
           overlay,
@@ -426,7 +426,7 @@ void main() {
 
     test('forgetting an overlay takes only its own entries out', () {
       final overlay = Overlay3d(
-        children: <Layout3d>[TestBox(const Size3d(4, 3, 0))],
+        children: <RenderObject3d>[TestBox(const Size3d(4, 3, 0))],
       );
       final surface = laidOut(
         overlay,

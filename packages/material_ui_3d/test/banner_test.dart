@@ -24,9 +24,9 @@ Widget _atTop(Widget banner) => SceneColumn3d(
 );
 
 /// Where [box]'s origin is on the surface.
-Offset3d _origin(Layout3d box) {
+Offset3d _origin(RenderObject3d box) {
   var at = Offset3d.zero;
-  Layout3d? walk = box;
+  RenderObject3d? walk = box;
   while (walk != null) {
     at += walk.offset;
     walk = walk.parent;
@@ -199,7 +199,7 @@ void main() {
       // The margin is under the strip: the first box below the column is
       // ten logical pixels taller than the strip.
       final column = outermostOf<Flex3d>(pumped.surface);
-      final banner = boxesOf<Layout3d>(
+      final banner = boxesOf<RenderObject3d>(
         pumped.surface,
       ).firstWhere((box) => identical(box.parent, column));
       expect(banner.size.height, closeTo(strip.size.height + 10 * _dp, 1e-9));
@@ -224,7 +224,7 @@ void main() {
       );
       expect(rules, hasLength(1));
       final column = outermostOf<Flex3d>(pumped.surface);
-      final banner = boxesOf<Layout3d>(
+      final banner = boxesOf<RenderObject3d>(
         pumped.surface,
       ).firstWhere((box) => identical(box.parent, column));
       expect(

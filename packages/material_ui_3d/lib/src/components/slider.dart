@@ -36,7 +36,7 @@ import 'package:flutter_ui_3d/rendering.dart'
         HitTestTarget3d,
         Offset3d,
         PointerEvent3d,
-        ProxyLayout3dWithHitTestBehavior,
+        RenderProxyBoxWithHitTestBehavior3d,
         Size3d;
 import 'package:flutter_ui_3d/widgets.dart'
     show
@@ -48,7 +48,7 @@ import 'package:flutter_ui_3d/widgets.dart'
         SceneSizedBox3d,
         SceneStack3d,
         SceneTapTarget3d,
-        SingleChildLayout3dWidget;
+        SingleChildRenderObjectWidget3d;
 
 import '../theme/theme.dart';
 import 'ink_well.dart';
@@ -444,7 +444,7 @@ class _AdjustSlider3dIntent extends Intent {
 ///    on the track lands.
 ///  * **A member cannot be added after the close**, so the entry is taken
 ///    during the down dispatch, before anything knows whether it is wanted.
-class SliderGesture3d extends ProxyLayout3dWithHitTestBehavior
+class SliderGesture3d extends RenderProxyBoxWithHitTestBehavior3d
     implements HitTestTarget3d {
   /// Creates a slider's pointer region.
   SliderGesture3d({
@@ -639,7 +639,7 @@ class _SliderPress3d implements GestureArenaMember {
 }
 
 /// The declarative form of [SliderGesture3d].
-class SceneSliderGesture3d extends SingleChildLayout3dWidget {
+class SceneSliderGesture3d extends SingleChildRenderObjectWidget3d {
   /// Creates a slider's pointer region around [child].
   const SceneSliderGesture3d({
     super.key,

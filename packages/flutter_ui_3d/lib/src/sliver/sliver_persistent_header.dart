@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart'
     show DiagnosticPropertiesBuilder, DoubleProperty, FlagProperty;
 
 import '../geometry/offset3d.dart';
-import '../layout3d.dart';
 import '../layout_pass.dart';
+import '../rendering/object.dart';
 import '../scroll/scroll_controller.dart';
 import 'sliver.dart';
 import 'sliver_constraints.dart';
@@ -43,7 +43,7 @@ import 'sliver_constraints.dart';
 ///   double get maxExtent => 2.0;
 ///
 ///   @override
-///   Layout3d build(double shrinkOffset, {required bool overlapsContent}) {
+///   RenderObject3d build(double shrinkOffset, {required bool overlapsContent}) {
 ///     // One subtree, told what the scroll position did to it.
 ///     _label.scale = 1.0 - shrinkOffset / (maxExtent - minExtent) * 0.5;
 ///     return _panel;
@@ -67,9 +67,9 @@ abstract class SliverPersistentHeader3dDelegate {
   ///
   /// Must be at least [minExtent]. Both are along the viewport's scroll axis
   /// and in layout units, so a delegate stating a size in logical pixels
-  /// converts through [Layout3d.metrics] — a header knows its own metrics
-  /// before it builds, and [SliverPersistentHeader3d.metrics] is the same
-  /// object.
+  /// converts through [RenderObject3d.metrics] — a header knows its own
+  /// metrics before it builds, and [SliverPersistentHeader3d.metrics] is the
+  /// same object.
   double get maxExtent;
 
   /// The header's content, squeezed by [shrinkOffset].
@@ -78,7 +78,7 @@ abstract class SliverPersistentHeader3dDelegate {
   /// fully collapsed. [overlapsContent] is true when the header is sitting on
   /// top of content that has scrolled underneath it, which is the cue for a
   /// bar to raise its elevation the way Material does.
-  Layout3d build(double shrinkOffset, {required bool overlapsContent});
+  RenderObject3d build(double shrinkOffset, {required bool overlapsContent});
 
   /// Whether a header holding [oldDelegate] must throw its content away and
   /// ask this one instead.
@@ -124,7 +124,7 @@ abstract class SliverPersistentHeader3dDelegate {
 ///  * `CustomScrollView3d` publishes a clip plane at the trailing edge of
 ///    whatever this header is obstructing, which is what cuts a row *in half*
 ///    at the bar's edge. That reaches the content through
-///    [Layout3d.clipRegion], and a material that reads clip planes (a
+///    [RenderObject3d.clipRegion], and a material that reads clip planes (a
 ///    [BoxDecoration3d], today) honours it; one that does not is still
 ///    behind the bar rather than through it, because of [lift].
 ///
@@ -132,7 +132,7 @@ abstract class SliverPersistentHeader3dDelegate {
 /// bar's silhouette, and the clip alone leaves a shader that ignores planes
 /// interpenetrating the bar.
 class SliverPersistentHeader3d extends Sliver3d
-    with Layout3dWithChildMixin, Layout3dLayoutPassMixin {
+    with RenderObjectWithChildMixin3d, RenderLayoutPassMixin3d {
   /// Creates a header showing what [delegate] builds.
   SliverPersistentHeader3d({
     required SliverPersistentHeader3dDelegate delegate,
@@ -190,14 +190,14 @@ class SliverPersistentHeader3d extends Sliver3d
   /// covering content, or null for one logical pixel.
   ///
   /// Null rather than zero by default because a pinned header that does not
-  /// stand in front of what it covers is not pinned in any sense a viewer
-  /// would recognise: it is a bar with a list drawn through it. One logical
-  /// pixel — read from [Layout3d.metrics], so it is the same distance on any
+  /// stand in front of what it covers is not pinned in any sense a viewer would
+  /// recognise: it is a bar with a list drawn through it. One logical pixel —
+  /// read from [RenderObject3d.metrics], so it is the same distance on any
   /// scale — is enough to separate them in the depth buffer without making
-  /// the bar look like it is floating off the surface. Set a larger value for
-  /// a bar that should visibly hover, or zero for one that must stay in the
-  /// plane because something else (a clip the content honours, an opaque
-  /// backdrop) already keeps them apart.
+  /// the bar look like it is floating off the surface. Set a larger value for a
+  /// bar that should visibly hover, or zero for one that must stay in the plane
+  /// because something else (a clip the content honours, an opaque backdrop)
+  /// already keeps them apart.
   double? get lift => _lift;
 
   set lift(double? value) {
@@ -569,7 +569,7 @@ class HeldSliverPersistentHeader3dDelegate
   bool _lastOverlapsContent = false;
 
   @override
-  Layout3d build(double shrinkOffset, {required bool overlapsContent}) {
+  RenderObject3d build(double shrinkOffset, {required bool overlapsContent}) {
     _lastShrinkOffset = shrinkOffset;
     _lastOverlapsContent = overlapsContent;
     final held = header.child;

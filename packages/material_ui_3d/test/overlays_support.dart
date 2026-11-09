@@ -16,9 +16,9 @@ import 'package:material_ui_3d/material_ui_3d.dart';
 import 'package:vector_math/vector_math.dart' show Ray, Vector3;
 
 /// Every box of type [T] in [surface], outermost first.
-List<T> boxesOf<T extends Layout3d>(Layout3dSurface surface) {
+List<T> boxesOf<T extends RenderObject3d>(Layout3dSurface surface) {
   final found = <T>[];
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is T) found.add(box);
     box.visitChildren(walk);
   }
@@ -29,7 +29,7 @@ List<T> boxesOf<T extends Layout3d>(Layout3dSurface surface) {
 }
 
 /// The one box of type [T] in [surface].
-T oneOf<T extends Layout3d>(Layout3dSurface surface) {
+T oneOf<T extends RenderObject3d>(Layout3dSurface surface) {
   final found = boxesOf<T>(surface);
   if (found.length != 1) {
     throw StateError('expected one $T, found ${found.length}');
@@ -47,7 +47,7 @@ T oneOf<T extends Layout3d>(Layout3dSurface surface) {
 DecoratedBox3d? scrimOf(Layout3dSurface surface) {
   for (final barrier in boxesOf<ModalBarrier3d>(surface)) {
     final found = <DecoratedBox3d>[];
-    void walk(Layout3d box) {
+    void walk(RenderObject3d box) {
       if (box is DecoratedBox3d) found.add(box);
       box.visitChildren(walk);
     }

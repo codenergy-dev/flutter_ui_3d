@@ -34,7 +34,7 @@ class _Vsync implements TickerProvider {
 }
 
 /// The first box of type [T] at or below [root].
-T? findIn<T extends Layout3d>(Layout3d root) {
+T? findIn<T extends RenderObject3d>(RenderObject3d root) {
   if (root is T) return root;
   T? found;
   root.visitChildren((child) => found ??= findIn<T>(child));
@@ -63,7 +63,7 @@ void main() {
       flightBuilder: (_) => TestBox(size),
       child: TestBox(size),
     );
-    final overlay = Overlay3d(children: <Layout3d>[hero]);
+    final overlay = Overlay3d(children: <RenderObject3d>[hero]);
     final surface = laidOut(
       overlay,
       constraints: Constraints3d.tight(const Size3d(4, 3, 0)),
@@ -386,8 +386,8 @@ void main() {
     ) async {
       final host = page();
       final navigator = timed(host.overlay, _Vsync());
-      Layout3d twice() => Column3d(
-        children: <Layout3d>[
+      RenderObject3d twice() => Column3d(
+        children: <RenderObject3d>[
           Hero3d(
             tag: 'photo',
             flightBuilder: (_) => TestBox(const Size3d(1, 1, 0)),

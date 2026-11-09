@@ -6,7 +6,7 @@ import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// What a [Flow3dDelegate] is handed to place the children, the 3D analogue
 /// of [FlowPaintingContext].
@@ -17,7 +17,7 @@ import '../layout3d.dart';
 /// cheaper than relaying out. Here [paintChild] writes the child's *node*
 /// transform, which is the same bargain taken further: the child's geometry
 /// moves, and no box is measured again, no text is re-shaped, no decoration
-/// re-derives its uniforms. See [Layout3d.nodeOffset].
+/// re-derives its uniforms. See [RenderObject3d.nodeOffset].
 abstract interface class Flow3dPaintingContext {
   /// The size of the box the children are being arranged in.
   Size3d get size;
@@ -116,11 +116,11 @@ abstract class Flow3dDelegate {
 ///
 /// ## Hit testing
 ///
-/// This is the one box where a node transform is taken account of by a ray,
-/// and it is worth being precise about why, because the rule everywhere else
-/// is the opposite: [Layout3d.nodeOffset] and [Layout3d.nodeTransform] are
-/// invisible to hit testing, so a button that lifts under the pointer is
-/// still found where layout put it.
+/// This is the one box where a node transform is taken account of by a ray, and
+/// it is worth being precise about why, because the rule everywhere else is the
+/// opposite: [RenderObject3d.nodeOffset] and [RenderObject3d.nodeTransform] are
+/// invisible to hit testing, so a button that lifts under the pointer is still
+/// found where layout put it.
 ///
 /// That rule assumes layout put it somewhere meaningful. In a flow it did
 /// not: every child sits at the flow's origin corner, stacked on top of one
@@ -133,7 +133,7 @@ abstract class Flow3dDelegate {
 ///
 /// A child the delegate did not place this pass is hidden, and a hidden child
 /// is out of reach, so a dropped child cannot be hit either.
-class Flow3d extends MultiChildLayout3d<ParentData3d>
+class Flow3d extends RenderMultiChild3d<ParentData3d>
     implements Flow3dPaintingContext {
   /// Creates a flow arranged by [delegate].
   Flow3d({required Flow3dDelegate delegate, super.children, super.name})
@@ -166,7 +166,7 @@ class Flow3d extends MultiChildLayout3d<ParentData3d>
   }
 
   @override
-  void attach(Layout3dOwner owner) {
+  void attach(PipelineOwner3d owner) {
     super.attach(owner);
     _delegate.repaint?.addListener(_handleRepaint);
   }

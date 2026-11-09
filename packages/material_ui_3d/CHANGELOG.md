@@ -1,5 +1,14 @@
 ## Unreleased
 
+- **The render objects this is built on are called render objects.** The layout
+  package renamed its base classes to the name Flutter uses, then `3d`, and
+  everything here that names one follows: `Layout3d` is `RenderObject3d`,
+  `SingleChildLayout3d` is `RenderSingleChild3d`, `ProxyLayout3d` is
+  `RenderProxyBox3d`, `Layout3dWidget` is `MultiChildRenderObjectWidget3d`, and
+  `SingleChildLayout3dWidget` is `SingleChildRenderObjectWidget3d`. A component
+  written against those bases takes the same names; nothing in the catalogue
+  changes behaviour, and its own classes are called what they were.
+
 - **This package is `material_ui_3d` now, Flutter's name for the thing plus
   the suffix.** The design systems left the framework as `material_ui` and
   `cupertino_ui`, so that is the name to start from; `material_3d` would have

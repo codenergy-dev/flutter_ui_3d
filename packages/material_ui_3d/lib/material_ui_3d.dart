@@ -11,7 +11,7 @@
 /// [Typography3d], [ShapeScale3d], [Elevation3d], [Thickness3d],
 /// [StateLayerOpacity3d] and [MotionScheme3d] — are held by a [Theme3dData], installed by
 /// [SceneTheme3d], and read by `Theme3d.of(context)` in the widget layer or
-/// `theme3d` inside a `Layout3d`'s `performLayout`. The **primitive** is
+/// `theme3d` inside a `RenderObject3d`'s `performLayout`. The **primitive** is
 /// [Material3d], a decorated box with those tokens resolved into it, with
 /// [InkWell3d] for the interaction, [Icon3d] for a glyph and
 /// [SceneTextStyle3d] for a group of labels. Every component in the catalogue

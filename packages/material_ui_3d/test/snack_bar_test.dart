@@ -339,9 +339,9 @@ void main() {
 
   group('a second line', () {
     /// Where [box]'s origin is on the surface.
-    Offset3d originOf(Layout3d box) {
+    Offset3d originOf(RenderObject3d box) {
       var at = Offset3d.zero;
-      Layout3d? walk = box;
+      RenderObject3d? walk = box;
       while (walk != null) {
         at += walk.offset;
         walk = walk.parent;

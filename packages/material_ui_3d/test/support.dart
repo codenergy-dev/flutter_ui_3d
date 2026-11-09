@@ -3,12 +3,12 @@
 import 'package:flutter/widgets.dart' show BuildContext;
 import 'package:vector_math/vector_math.dart' show Ray, Vector3;
 import 'package:flutter_ui_3d/rendering.dart';
-import 'package:flutter_ui_3d/widgets.dart' show Layout3dWidget;
+import 'package:flutter_ui_3d/widgets.dart' show MultiChildRenderObjectWidget3d;
 import 'package:material_ui_3d/material_ui_3d.dart';
 
 /// A surface holding [child], already laid out.
 Layout3dSurface laidOut(
-  Layout3d child, {
+  RenderObject3d child, {
   Constraints3d constraints = const Constraints3d(),
   Layout3dMetrics metrics = Layout3dMetrics.standard,
 }) {
@@ -26,7 +26,7 @@ Layout3dSurface laidOut(
 /// It reads a token (a thickness, in logical pixels) and converts it with the
 /// metrics, which is the one-way arrow the token layer exists to enforce:
 /// the theme decides the dp figure, the metrics turns dp into world units.
-class ThemedBox extends Layout3d {
+class ThemedBox extends RenderObject3d {
   ThemedBox({super.name});
 
   /// How many times this box has been laid out.
@@ -55,7 +55,7 @@ class ThemedBox extends Layout3d {
 /// A copy of the layout package's own `TestBox`, because a test package
 /// cannot import another package's `test/` directory. It counts its layouts,
 /// which is what the interaction tests are actually about.
-class TestBox extends Layout3d {
+class TestBox extends RenderObject3d {
   TestBox(this._preferred, {super.name});
 
   Size3d _preferred;
@@ -85,7 +85,7 @@ class TestBox extends Layout3d {
 
 /// Hosts a [TestBox] in the widget tree and hands it back, so a test can
 /// count the layouts a rebuild actually causes.
-class SceneTestBox extends Layout3dWidget {
+class SceneTestBox extends MultiChildRenderObjectWidget3d {
   const SceneTestBox(this.preferred, this.onCreated, {super.key});
 
   /// What the box asks for.
@@ -116,7 +116,7 @@ class SceneTestBox extends Layout3dWidget {
 /// in it instead.
 DecoratedBox3d decoratedBoxIn(Layout3dSurface surface) {
   final found = <DecoratedBox3d>[];
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is DecoratedBox3d) found.add(box);
     box.visitChildren(walk);
   }
@@ -150,7 +150,7 @@ Ray rayAt(Layout3dSurface surface, Offset3d point) {
 /// all however often it is asked.
 Focus3d focusIn(Layout3dSurface surface) {
   final found = <Focus3d>[];
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is Focus3d) found.add(box);
     box.visitChildren(walk);
   }

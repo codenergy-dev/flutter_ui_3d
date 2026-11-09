@@ -12,7 +12,7 @@ import 'package:flutter/gestures.dart'
 
 import '../geometry/offset3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'events.dart';
 
 /// What a box is handed when a pointer event reaches it.
@@ -20,14 +20,14 @@ typedef PointerEvent3dCallback = void Function(PointerEvent3d event);
 
 /// A pass-through box that decides how it takes part in a hit test.
 ///
-/// The 3D analogue of `RenderProxyBoxWithHitTestBehavior`, and the base of
+/// What `RenderProxyBoxWithHitTestBehavior` is in Flutter, and the base of
 /// every interactive box here. Without one of these a component made of a
 /// decoration and a label answers a ray only where the label is: the padding
 /// that gives the button its shape is a hole. [HitTestBehavior3d.opaque]
 /// closes the hole.
-abstract class ProxyLayout3dWithHitTestBehavior extends ProxyLayout3d {
+abstract class RenderProxyBoxWithHitTestBehavior3d extends RenderProxyBox3d {
   /// Creates a pass-through box with the given [behavior].
-  ProxyLayout3dWithHitTestBehavior({
+  RenderProxyBoxWithHitTestBehavior3d({
     HitTestBehavior3d behavior = HitTestBehavior3d.deferToChild,
     super.child,
     super.name,
@@ -57,8 +57,8 @@ abstract class ProxyLayout3dWithHitTestBehavior extends ProxyLayout3d {
   /// receives the events its extent covers while the ray carries on to
   /// whatever stands behind it.
   ///
-  /// Deliberately a copy of [Layout3d.hitTest] rather than a call to it —
-  /// there is no way to say "add me anyway" through that contract, and
+  /// Deliberately a copy of [RenderObject3d.hitTest] rather than a call to it
+  /// — there is no way to say "add me anyway" through that contract, and
   /// Flutter's `RenderProxyBoxWithHitTestBehavior` duplicates it for the same
   /// reason.
   @override
@@ -103,7 +103,7 @@ abstract class ProxyLayout3dWithHitTestBehavior extends ProxyLayout3d {
 /// The [IgnorePointer3d] around the label is the usual companion: a [Text3d]
 /// answers hit tests on its own account, and a component that wants to be one
 /// target rather than two takes its label out of the way.
-class HitTestArea3d extends ProxyLayout3dWithHitTestBehavior {
+class HitTestArea3d extends RenderProxyBoxWithHitTestBehavior3d {
   /// Creates a hit-test region, opaque by default.
   HitTestArea3d({
     super.behavior = HitTestBehavior3d.opaque,
@@ -140,7 +140,7 @@ class HitTestArea3d extends ProxyLayout3dWithHitTestBehavior {
 ///   child: panel,
 /// );
 /// ```
-class Listener3d extends ProxyLayout3dWithHitTestBehavior
+class Listener3d extends RenderProxyBoxWithHitTestBehavior3d
     implements HitTestTarget3d {
   /// Creates a box that reports the pointer events it is handed.
   Listener3d({

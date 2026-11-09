@@ -12,7 +12,7 @@ import 'package:flutter/painting.dart' show TextDirection;
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'flex.dart' show CrossAxisAlignment3d;
 
 /// How wide one column of a [Table3d] is, the 3D analogue of
@@ -29,13 +29,19 @@ abstract class TableColumnWidth3d {
   const TableColumnWidth3d();
 
   /// The narrowest this column can usefully be.
-  double minIntrinsicWidth(Iterable<Layout3d> cells, double containerWidth);
+  double minIntrinsicWidth(
+    Iterable<RenderObject3d> cells,
+    double containerWidth,
+  );
 
   /// The width this column would like.
-  double maxIntrinsicWidth(Iterable<Layout3d> cells, double containerWidth);
+  double maxIntrinsicWidth(
+    Iterable<RenderObject3d> cells,
+    double containerWidth,
+  );
 
   /// This column's share of the room left over, or null if it takes none.
-  double? flex(Iterable<Layout3d> cells) => null;
+  double? flex(Iterable<RenderObject3d> cells) => null;
 }
 
 /// A column of a stated width, the 3D analogue of [FixedColumnWidth].
@@ -47,12 +53,16 @@ class FixedColumnWidth3d extends TableColumnWidth3d {
   final double width;
 
   @override
-  double minIntrinsicWidth(Iterable<Layout3d> cells, double containerWidth) =>
-      width;
+  double minIntrinsicWidth(
+    Iterable<RenderObject3d> cells,
+    double containerWidth,
+  ) => width;
 
   @override
-  double maxIntrinsicWidth(Iterable<Layout3d> cells, double containerWidth) =>
-      width;
+  double maxIntrinsicWidth(
+    Iterable<RenderObject3d> cells,
+    double containerWidth,
+  ) => width;
 }
 
 /// A column sized to a fraction of the table's width, the 3D analogue of
@@ -72,12 +82,16 @@ class FractionColumnWidth3d extends TableColumnWidth3d {
       containerWidth.isFinite ? containerWidth * value : 0.0;
 
   @override
-  double minIntrinsicWidth(Iterable<Layout3d> cells, double containerWidth) =>
-      _width(containerWidth);
+  double minIntrinsicWidth(
+    Iterable<RenderObject3d> cells,
+    double containerWidth,
+  ) => _width(containerWidth);
 
   @override
-  double maxIntrinsicWidth(Iterable<Layout3d> cells, double containerWidth) =>
-      _width(containerWidth);
+  double maxIntrinsicWidth(
+    Iterable<RenderObject3d> cells,
+    double containerWidth,
+  ) => _width(containerWidth);
 }
 
 /// A column taking a share of whatever room is left over, the 3D analogue of
@@ -95,11 +109,16 @@ class FlexColumnWidth3d extends TableColumnWidth3d {
   final double value;
 
   @override
-  double minIntrinsicWidth(Iterable<Layout3d> cells, double containerWidth) =>
-      0.0;
+  double minIntrinsicWidth(
+    Iterable<RenderObject3d> cells,
+    double containerWidth,
+  ) => 0.0;
 
   @override
-  double maxIntrinsicWidth(Iterable<Layout3d> cells, double containerWidth) {
+  double maxIntrinsicWidth(
+    Iterable<RenderObject3d> cells,
+    double containerWidth,
+  ) {
     if (containerWidth.isFinite) return 0.0;
     // Nothing to be a share of. Fall back to what the cells ask for, so an
     // unbounded table is laid out rather than collapsed to nothing.
@@ -114,7 +133,7 @@ class FlexColumnWidth3d extends TableColumnWidth3d {
   }
 
   @override
-  double? flex(Iterable<Layout3d> cells) => value;
+  double? flex(Iterable<RenderObject3d> cells) => value;
 }
 
 /// A column as wide as its widest cell wants to be, the 3D analogue of
@@ -132,7 +151,10 @@ class IntrinsicColumnWidth3d extends TableColumnWidth3d {
   final double? flexFactor;
 
   @override
-  double minIntrinsicWidth(Iterable<Layout3d> cells, double containerWidth) {
+  double minIntrinsicWidth(
+    Iterable<RenderObject3d> cells,
+    double containerWidth,
+  ) {
     var width = 0.0;
     for (final cell in cells) {
       width = math.max(
@@ -144,7 +166,10 @@ class IntrinsicColumnWidth3d extends TableColumnWidth3d {
   }
 
   @override
-  double maxIntrinsicWidth(Iterable<Layout3d> cells, double containerWidth) {
+  double maxIntrinsicWidth(
+    Iterable<RenderObject3d> cells,
+    double containerWidth,
+  ) {
     var width = 0.0;
     for (final cell in cells) {
       width = math.max(
@@ -156,7 +181,7 @@ class IntrinsicColumnWidth3d extends TableColumnWidth3d {
   }
 
   @override
-  double? flex(Iterable<Layout3d> cells) => flexFactor;
+  double? flex(Iterable<RenderObject3d> cells) => flexFactor;
 }
 
 /// Where a cell sits in the row it shares, the 3D analogue of
@@ -220,7 +245,7 @@ enum TableCellAlignment3d {
 /// compute. The height needs the columns resolved first, so an intrinsic
 /// height query resolves them against the limit it was given and then asks
 /// each row's cells — the same work a layout does, minus the placing.
-class Table3d extends MultiChildLayout3d<ParentData3d> {
+class Table3d extends RenderMultiChild3d<ParentData3d> {
   /// Creates a table of [columnCount] columns.
   Table3d({
     required int columnCount,
@@ -362,12 +387,12 @@ class Table3d extends MultiChildLayout3d<ParentData3d> {
   int get rowCount => (childCount + _columnCount - 1) ~/ _columnCount;
 
   /// The cell at [row], [column], or null when the last row stops short.
-  Layout3d? cellAt(int row, int column) {
+  RenderObject3d? cellAt(int row, int column) {
     final index = row * _columnCount + column;
     return index < childCount ? childAt(index) : null;
   }
 
-  Iterable<Layout3d> _column(int column) sync* {
+  Iterable<RenderObject3d> _column(int column) sync* {
     for (var row = 0; row < rowCount; row++) {
       final cell = cellAt(row, column);
       if (cell != null) yield cell;
@@ -617,7 +642,11 @@ class Table3d extends MultiChildLayout3d<ParentData3d> {
     }
   }
 
-  double _verticalOffset(Layout3d cell, double rowHeight, double? rowBaseline) {
+  double _verticalOffset(
+    RenderObject3d cell,
+    double rowHeight,
+    double? rowBaseline,
+  ) {
     final height = cell.size.height;
     switch (_defaultVerticalAlignment) {
       case TableCellAlignment3d.top:
@@ -637,7 +666,7 @@ class Table3d extends MultiChildLayout3d<ParentData3d> {
     }
   }
 
-  double _depthOffset(Layout3d cell, double tableDepth) {
+  double _depthOffset(RenderObject3d cell, double tableDepth) {
     final depth = cell.size.depth;
     return switch (_depthAxisAlignment) {
       CrossAxisAlignment3d.start ||

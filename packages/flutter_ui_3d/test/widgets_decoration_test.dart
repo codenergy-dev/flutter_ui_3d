@@ -56,14 +56,14 @@ class _TestDecoration3d extends Decoration3d {
 
 /// Hosts a [TestBox] in the widget tree, so a test can count the layouts the
 /// declarative layer actually causes.
-class _SceneTestBox extends Layout3dWidget {
+class _SceneTestBox extends MultiChildRenderObjectWidget3d {
   const _SceneTestBox(this.preferred, this.sink);
 
   final Size3d preferred;
   final void Function(TestBox) sink;
 
   @override
-  Layout3d createLayout(BuildContext context) {
+  RenderObject3d createLayout(BuildContext context) {
     final box = TestBox(preferred);
     sink(box);
     return box;

@@ -22,7 +22,8 @@ import 'surfaces_support.dart';
 double dp(double logical) => logical / 100.0;
 
 /// The centre of [box], in the surface's own frame.
-Offset3d centreOf(Layout3d box) => box.drawnOffsetInSurface + box.size.center;
+Offset3d centreOf(RenderObject3d box) =>
+    box.drawnOffsetInSurface + box.size.center;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

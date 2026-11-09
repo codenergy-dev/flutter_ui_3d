@@ -26,9 +26,9 @@ const double _dp = 0.01;
 Widget _square() => SceneSizedBox3d(width: 40 * _dp, height: 40 * _dp);
 
 /// Where [box]'s origin is, in the frame of [ancestor].
-Offset3d _originIn(Layout3d box, Layout3d ancestor) {
+Offset3d _originIn(RenderObject3d box, RenderObject3d ancestor) {
   var at = Offset3d.zero;
-  Layout3d? walk = box;
+  RenderObject3d? walk = box;
   while (walk != null && !identical(walk, ancestor)) {
     at += walk.offset;
     walk = walk.parent;

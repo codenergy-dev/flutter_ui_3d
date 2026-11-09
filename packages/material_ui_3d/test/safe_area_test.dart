@@ -60,7 +60,7 @@ Widget _atBottom(Widget bar) => SceneColumn3d(
 /// Where [box] starts and how big it is, in logical pixels from the surface.
 ({double left, double top, double right, double bottom}) _edges(
   PumpedSurface it,
-  Layout3d box,
+  RenderObject3d box,
 ) {
   final at = box.drawnOffsetInSurface;
   final surface = it.surface.size;

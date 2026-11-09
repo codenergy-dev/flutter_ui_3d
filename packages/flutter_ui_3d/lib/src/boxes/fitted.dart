@@ -10,7 +10,7 @@ import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'node_box.dart' show BoxFit3d;
 
 /// A box that lays its child out at whatever size it wants and then scales
@@ -53,8 +53,8 @@ import 'node_box.dart' show BoxFit3d;
 /// is all of them except [BoxFit3d.none], where a child larger than the box
 /// keeps its own size and the part outside the box is out of reach. That is
 /// the same bargain Flutter strikes, where the overflowing part is clipped.
-class FittedBox3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+class FittedBox3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a box that scales its child into the room available.
   FittedBox3d({
     BoxFit3d fit = BoxFit3d.contain,

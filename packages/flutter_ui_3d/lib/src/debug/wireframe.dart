@@ -13,7 +13,7 @@ import 'package:vector_math/vector_math.dart' show Matrix4, Vector4;
 
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// Whether every laid-out box hangs a wireframe of its own extent under its
 /// scene node.
@@ -144,7 +144,7 @@ const Color debugPaintLayout3dOffsetColor = Color(0xFFFF00FF);
 ///
 /// Returns whether anything is currently drawn, so a caller can tell an
 /// overlay that is off from one the engine could not build yet.
-bool debugSyncLayout3dWireframes(Layout3d root) {
+bool debugSyncLayout3dWireframes(RenderObject3d root) {
   final owner = root.owner;
   if (owner == null) return false;
   final wanted = debugPaintLayout3dSize;
@@ -153,7 +153,7 @@ bool debugSyncLayout3dWireframes(Layout3d root) {
       ? owner.debugAcquireWireframe(debugLayout3dWireframeFactory)
       : null;
   if (wanted && wireframe == null) return false;
-  void visit(Layout3d box, {required bool visible}) {
+  void visit(RenderObject3d box, {required bool visible}) {
     // Hidden means hidden all the way down: what a ListView3d has culled out
     // of its window, or an Offstage3d has taken out of the scene, has no
     // lines either. A box whose own node is visible inside a hidden subtree
@@ -192,7 +192,7 @@ bool debugSyncLayout3dWireframes(Layout3d root) {
 }
 
 /// The baseline and offset lines for one box.
-List<Layout3dWireframeLine> _annotationsFor(Layout3d box) {
+List<Layout3dWireframeLine> _annotationsFor(RenderObject3d box) {
   final lines = <Layout3dWireframeLine>[];
   final size = box.size;
   for (final axis in Axis3d.values) {

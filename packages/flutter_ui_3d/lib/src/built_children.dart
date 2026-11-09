@@ -6,8 +6,8 @@ import 'boxes/flex.dart' show CrossAxisAlignment3d;
 import 'boxes/visibility.dart' show KeepAlive3d;
 import 'geometry/constraints3d.dart';
 import 'geometry/offset3d.dart';
-import 'layout3d.dart';
 import 'layout_pass.dart';
+import 'rendering/object.dart';
 
 /// Where a child sits across an axis a scrolling view does not lay out on.
 ///
@@ -73,31 +73,31 @@ String explicitChildCountRefused({
 /// difference resolved — a `SceneListView3d.builder` creates a `ListView3d`
 /// but the manager belongs on the `SliverList3d` inside it — and this is how
 /// it asks without knowing which it has.
-abstract interface class Layout3dBuiltChildrenHost {
+abstract interface class RenderObject3dBuiltChildrenHost {
   /// The view that holds the children, which may be this layout itself.
-  Layout3dBuiltChildrenMixin get builtChildren;
+  RenderBuiltChildrenMixin3d get builtChildren;
 }
 
 /// The view holding [layout]'s built children.
 ///
 /// Throws if [layout] holds none, which for the declarative layer is a bug in
 /// a widget's `createLayout` rather than anything a caller did.
-Layout3dBuiltChildrenMixin builtChildrenOf(Layout3d layout) {
+RenderBuiltChildrenMixin3d builtChildrenOf(RenderObject3d layout) {
   assert(
-    layout is Layout3dBuiltChildrenHost,
+    layout is RenderObject3dBuiltChildrenHost,
     '${layout.runtimeType} does not build its children on demand, so it '
     'cannot be given a child manager.',
   );
-  return (layout as Layout3dBuiltChildrenHost).builtChildren;
+  return (layout as RenderObject3dBuiltChildrenHost).builtChildren;
 }
 
 /// Builds and disposes the children of a view that builds them on demand.
 ///
 /// The 3D analogue of `RenderSliverBoxChildManager`, and the seam that lets a
-/// lazily built child be a *widget* rather than a bare [Layout3d]. A view that
-/// mixes in [Layout3dBuiltChildrenMixin] asks its manager for the child at an
-/// index instead of calling a [Layout3dItemBuilder] itself, so the same
-/// `SliverList3d` serves both shapes: the imperative builder, which is a
+/// lazily built child be a *widget* rather than a bare [RenderObject3d]. A view
+/// that mixes in [RenderBuiltChildrenMixin3d] asks its manager for the child at
+/// an index instead of calling a [RenderObject3dItemBuilder] itself, so the
+/// same `SliverList3d` serves both shapes: the imperative builder, which is a
 /// manager over a function, and the declarative one, whose manager is an
 /// element that inflates a widget inside a build scope.
 ///
@@ -106,9 +106,9 @@ Layout3dBuiltChildrenMixin builtChildrenOf(Layout3d layout) {
 /// layout phase, in the window `SliverMultiBoxAdaptorElement` builds in — but
 /// it does mean an implementation must not do anything a layout cannot do,
 /// such as marking an ancestor as needing layout.
-abstract class Layout3dChildManager {
+abstract class RenderObject3dChildManager {
   /// Creates a manager. Implementations are usually elements.
-  const Layout3dChildManager();
+  const RenderObject3dChildManager();
 
   /// How many children this manager can build, or null when it does not know.
   ///
@@ -120,7 +120,7 @@ abstract class Layout3dChildManager {
   ///
   /// Called once per index per pass, and only for an index the view does not
   /// already hold. The child comes back unparented; the view adopts it.
-  Layout3d? createChild(int index);
+  RenderObject3d? createChild(int index);
 
   /// Releases the child standing for [index], which the view has already
   /// removed from its child list.
@@ -129,7 +129,7 @@ abstract class Layout3dChildManager {
   /// here and now, while an element hands the child's element to Flutter to
   /// deactivate and lets the render tree dispose the layout when the element
   /// is finally unmounted, so that a `GlobalKey` can still reclaim it.
-  void removeChild(int index, Layout3d child);
+  void removeChild(int index, RenderObject3d child);
 
   /// Called before a layout pass touches any child.
   void didStartLayout() {}
@@ -152,14 +152,14 @@ abstract class Layout3dChildManager {
 /// layout. What is left in the view is the part that is actually its own:
 /// where the children go.
 ///
-/// [runLayoutPass] comes from [Layout3dLayoutPassMixin], which this depends
+/// [runLayoutPass] comes from [RenderLayoutPassMixin3d], which this depends
 /// on: building and releasing children edits the child list, and those edits
 /// must not re-dirty the view that is being laid out.
-mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
-    on Layout3dWithChildrenMixin<ParentDataType>, Layout3dLayoutPassMixin
-    implements Layout3dBuiltChildrenHost {
+mixin RenderBuiltChildrenMixin3d<ParentDataType extends ParentData3d>
+    on ContainerRenderObjectMixin3d<ParentDataType>, RenderLayoutPassMixin3d
+    implements RenderObject3dBuiltChildrenHost {
   @override
-  Layout3dBuiltChildrenMixin get builtChildren => this;
+  RenderBuiltChildrenMixin3d get builtChildren => this;
 
   /// Builds the child standing for an index, or null when this view was given
   /// an explicit list of children instead.
@@ -167,7 +167,7 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   /// Implemented by the view, usually as a final field set in its `.builder`
   /// constructor.
   @protected
-  Layout3dItemBuilder? get itemBuilder;
+  RenderObject3dItemBuilder? get itemBuilder;
 
   /// What this view calls its children in an assertion message: "items" for a
   /// list, "cells" for a grid.
@@ -182,7 +182,7 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   @protected
   int declaredItemCount = 0;
 
-  Layout3dChildManager? _childManager;
+  RenderObject3dChildManager? _childManager;
 
   /// Who builds this view's children, when something other than an
   /// [itemBuilder] does.
@@ -191,9 +191,9 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   /// a manager is lazy in exactly the same way a view with an [itemBuilder]
   /// is: the two are the same mode reached from two directions, and nothing
   /// below this line asks which of them it is.
-  Layout3dChildManager? get childManager => _childManager;
+  RenderObject3dChildManager? get childManager => _childManager;
 
-  set childManager(Layout3dChildManager? value) {
+  set childManager(RenderObject3dChildManager? value) {
     if (identical(_childManager, value)) return;
     assert(
       value == null || itemBuilder == null,
@@ -243,9 +243,9 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   /// Whether this view builds its children on demand.
   bool get isLazy => itemBuilder != null || _childManager != null;
 
-  final Map<int, Layout3d> _active = <int, Layout3d>{};
+  final Map<int, RenderObject3d> _active = <int, RenderObject3d>{};
 
-  final Map<int, Layout3d> _keptAlive = <int, Layout3d>{};
+  final Map<int, RenderObject3d> _keptAlive = <int, RenderObject3d>{};
 
   /// The children currently built, by index.
   ///
@@ -278,7 +278,7 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   ///
   /// A view that overrides this overrides [builtChildOf] with the inverse.
   @protected
-  Layout3d wrapBuiltChild(int index, Layout3d built) => built;
+  RenderObject3d wrapBuiltChild(int index, RenderObject3d built) => built;
 
   /// What was built, given what this view holds in its place.
   ///
@@ -287,7 +287,7 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   /// its `createChild` returned, and keep-alive asks the item rather than the
   /// wrapper around it.
   @protected
-  Layout3d builtChildOf(Layout3d adopted) => adopted;
+  RenderObject3d builtChildOf(RenderObject3d adopted) => adopted;
 
   /// Takes the built child back out of the wrapper this view put around it,
   /// and disposes the wrapper alone.
@@ -295,29 +295,29 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   /// Only ever needed under a [childManager], which disposes what it built:
   /// the wrapper has to let go first, or disposing it would take the item with
   /// it. Returns the built child.
-  Layout3d _unwrapForManager(Layout3d adopted) {
+  RenderObject3d _unwrapForManager(RenderObject3d adopted) {
     final built = builtChildOf(adopted);
     if (identical(built, adopted)) return built;
     assert(
-      adopted is Layout3dWithChildMixin,
+      adopted is RenderObjectWithChildMixin3d,
       'A $runtimeType wrapped a built child in a ${adopted.runtimeType}, '
       'which holds no child this view can take back out of it. A wrapper '
       'returned from wrapBuiltChild holds the built child as its own child.',
     );
-    (adopted as Layout3dWithChildMixin).child = null;
+    (adopted as RenderObjectWithChildMixin3d).child = null;
     adopted.dispose();
     return built;
   }
 
   /// Whether the child standing at an index asked not to be released.
-  bool _wantsKeepAlive(Layout3d adopted) {
+  bool _wantsKeepAlive(RenderObject3d adopted) {
     final built = builtChildOf(adopted);
     return built is KeepAlive3d && built.keepAlive;
   }
 
   /// Releases a child this view has already taken off its books, through
   /// whoever created it.
-  void _releaseChild(int index, Layout3d adopted) {
+  void _releaseChild(int index, RenderObject3d adopted) {
     final manager = _childManager;
     if (manager == null) {
       adopted.dispose();
@@ -336,13 +336,13 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   }
 
   @override
-  void insert(Layout3d child, {int? index}) {
+  void insert(RenderObject3d child, {int? index}) {
     _assertNotBuilt('insert');
     super.insert(child, index: index);
   }
 
   @override
-  void remove(Layout3d child) {
+  void remove(RenderObject3d child) {
     _assertNotBuilt('remove');
     super.remove(child);
   }
@@ -354,7 +354,7 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   }
 
   @override
-  void syncChildren(List<Layout3d> children) {
+  void syncChildren(List<RenderObject3d> children) {
     _assertNotBuilt('syncChildren');
     super.syncChildren(children);
   }
@@ -362,7 +362,7 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   /// Drops whatever this view cached about where its children sit.
   ///
   /// Nothing, for a view whose positions are arithmetic;
-  /// [Layout3dMeasuredChildrenMixin] overrides it with the prefix it keeps.
+  /// [RenderMeasuredChildrenMixin3d] overrides it with the prefix it keeps.
   @protected
   void resetMeasurements() {}
 
@@ -392,7 +392,7 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   /// The child standing for [index], built if this is the first time the
   /// window has reached it, and laid out against [childConstraints].
   @protected
-  Layout3d obtainChild(int index, Constraints3d childConstraints) {
+  RenderObject3d obtainChild(int index, Constraints3d childConstraints) {
     var child = _active[index];
     if (child == null) {
       // A child parked by [KeepAlive3d] is the one that belongs here, and
@@ -440,7 +440,7 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   /// Returns what stands for [index] afterwards, or null when the manager
   /// built nothing.
   @protected
-  Layout3d? rebuildChild(int index) {
+  RenderObject3d? rebuildChild(int index) {
     final manager = _childManager;
     if (manager == null) return _active[index];
     final previous = _active[index];
@@ -489,7 +489,7 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
 
   /// The children this view has to place, with the index each one stands for.
   @protected
-  Iterable<(int, Layout3d)> positionedChildren() sync* {
+  Iterable<(int, RenderObject3d)> positionedChildren() sync* {
     if (!isLazy) {
       for (var index = 0; index < childCount; index++) {
         yield (index, childAt(index));
@@ -503,9 +503,9 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
 
   /// Brackets the pass with the manager's own hooks.
   ///
-  /// [Layout3dChildManager.didStartLayout] and
-  /// [Layout3dChildManager.didFinishLayout] are where an element locks its
-  /// child bookkeeping for the duration of a pass, the way
+  /// [RenderObject3dChildManager.didStartLayout] and
+  /// [RenderObject3dChildManager.didFinishLayout] are where an element locks
+  /// its child bookkeeping for the duration of a pass, the way
   /// `SliverMultiBoxAdaptorElement` does.
   @override
   @protected
@@ -540,9 +540,9 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
   /// and disposed here too. A parked child is looked for as well: its element
   /// can be unmounted while the window is nowhere near it, and a bucket left
   /// holding a disposed layout is a crash the next time the window comes back.
-  void forgetBuiltChild(Layout3d child) {
+  void forgetBuiltChild(RenderObject3d child) {
     assert(_childManager != null);
-    for (final books in <Map<int, Layout3d>>[_active, _keptAlive]) {
+    for (final books in <Map<int, RenderObject3d>>[_active, _keptAlive]) {
       for (final index in books.keys.toList()) {
         final adopted = books[index]!;
         if (!identical(adopted, child) &&
@@ -576,7 +576,7 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
       }
       final built = builtChildOf(child);
       if (identical(built, child)) continue;
-      (child as Layout3dWithChildMixin).child = null;
+      (child as RenderObjectWithChildMixin3d).child = null;
       child.dispose();
     }
     _keptAlive.clear();
@@ -588,12 +588,12 @@ mixin Layout3dBuiltChildrenMixin<ParentDataType extends ParentData3d>
 /// Builds the one item a list measures to learn how long an item is.
 ///
 /// The answer to "my items are all the same size, but I cannot tell you the
-/// number": see [Layout3dMeasuredChildrenMixin.prototypeItem].
-typedef Layout3dPrototypeBuilder = Layout3d Function();
+/// number": see [RenderMeasuredChildrenMixin3d.prototypeItem].
+typedef RenderObject3dPrototypeBuilder = RenderObject3d Function();
 
 /// States how long a list's content is, for a list that cannot know.
 ///
-/// See [Layout3dMeasuredChildrenMixin.contentExtentEstimator].
+/// See [RenderMeasuredChildrenMixin3d.contentExtentEstimator].
 typedef Layout3dContentExtentEstimator = double Function(int itemCount);
 
 /// Running measurements for a view whose children are not all the same size.
@@ -615,8 +615,8 @@ typedef Layout3dContentExtentEstimator = double Function(int itemCount);
 /// really are ragged but the caller knows the total anyway. The first two
 /// turn every offset into arithmetic; the third leaves the offsets measured
 /// and only steadies the total.
-mixin Layout3dMeasuredChildrenMixin<ParentDataType extends ParentData3d>
-    on Layout3dBuiltChildrenMixin<ParentDataType> {
+mixin RenderMeasuredChildrenMixin3d<ParentDataType extends ParentData3d>
+    on RenderBuiltChildrenMixin3d<ParentDataType> {
   /// The gap between adjacent children, which the running sums include.
   @protected
   double get itemSpacing;
@@ -642,8 +642,8 @@ mixin Layout3dMeasuredChildrenMixin<ParentDataType extends ParentData3d>
     markNeedsLayout();
   }
 
-  Layout3dPrototypeBuilder? _prototypeItem;
-  Layout3d? _prototype;
+  RenderObject3dPrototypeBuilder? _prototypeItem;
+  RenderObject3d? _prototype;
   Constraints3d? _prototypeConstraints;
   double? _prototypeExtent;
   bool _prototypeMeasured = false;
@@ -674,9 +674,9 @@ mixin Layout3dMeasuredChildrenMixin<ParentDataType extends ParentData3d>
   /// constraints an item gets change, and dropped by [refresh].
   ///
   /// Mutually exclusive with [itemExtent].
-  Layout3dPrototypeBuilder? get prototypeItem => _prototypeItem;
+  RenderObject3dPrototypeBuilder? get prototypeItem => _prototypeItem;
 
-  set prototypeItem(Layout3dPrototypeBuilder? value) {
+  set prototypeItem(RenderObject3dPrototypeBuilder? value) {
     if (identical(_prototypeItem, value)) return;
     assert(value == null || _itemExtent == null, _oneExtentOnly);
     _prototypeItem = value;

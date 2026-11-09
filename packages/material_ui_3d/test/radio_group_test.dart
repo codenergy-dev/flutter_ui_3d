@@ -74,7 +74,7 @@ Semantics3d _announced(Layout3dSurface surface, String label) =>
 /// The focus box of the control announcing [label].
 Focus3d _focusOf(Layout3dSurface surface, String label) {
   final found = <Focus3d>[];
-  void walk(Layout3d box) {
+  void walk(RenderObject3d box) {
     if (box is Focus3d) found.add(box);
     box.visitChildren(walk);
   }

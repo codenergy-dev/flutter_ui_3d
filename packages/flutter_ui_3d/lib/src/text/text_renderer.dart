@@ -67,7 +67,7 @@ class Text3dRenderRequest {
   final double logicalPixelsPerUnit;
 
   /// How much of the label is drawn, from 0 to 1, from
-  /// [Layout3d.inheritedOpacity].
+  /// [RenderObject3d.inheritedOpacity].
   ///
   /// One unless an [Opacity3d] is above the box. **It is coverage rather than
   /// alpha**, and a renderer must not spend it on the style's colour: see

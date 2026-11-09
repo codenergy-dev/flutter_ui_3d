@@ -1,8 +1,8 @@
 ---
 status: in progress
-reason: phase 1 has landed; phase 2 (the render object family) and phase 3 (the widgets) remain, one commit each
+reason: phases 1 and 2 have landed; phase 3 (the widgets get the plain names) remains
 created_at: 2026-11-09T12:00:00Z
-updated_at: 2026-11-09T16:46:07Z
+updated_at: 2026-11-09T16:57:18Z
 commit: 3aca98ace5b5ac3e4738018b6541532beeedc27f
 ---
 
@@ -172,6 +172,27 @@ of 112.
   the rename put out of order were re-sorted. Every Dart file was compared with
   its old self under the substitution, ignoring whitespace and commas, and
   nothing else differs.
+
+**Phase 2 is done.** All three suites held their counts (1318, 852, 13) and
+`dart analyze` is clean.
+
+- **Three things the table does not list are left alone, on purpose.** The
+  `layout3d` field on `RenderObject3dHost` spells the old class but is a public
+  member, in the same family as `layout` and `layoutFor`; `layout3dTreeStyle` is
+  a diagnostics constant; and `Layout3dWidgetBuilder` is the signature of a
+  builder, not a render object. The overflow and wireframe reporters and
+  `_TabBarLayout3d` stay for the same reason: neither list names them.
+- **Two private names moved with the class**, `_Layout3dRoot` and
+  `_findLayout3dDescendant`, because they name it outright.
+- **A name that adds `3d` to Flutter's cannot also be "the 3D analogue of" it.**
+  `PipelineOwner3d`, `RenderProxyBox3d`, `RenderObjectWithChildMixin3d`,
+  `ContainerRenderObjectMixin3d` and `RenderProxyBoxWithHitTestBehavior3d` say
+  what Flutter's class does instead of repeating it.
+- **A host is not what its name might suggest.** `RenderObject3dHost` is a
+  Flutter `RenderBox` that holds a render object, and its dartdoc says so.
+- **Longer names pushed prose past 80 columns.** 115 paragraphs of dartdoc and
+  Markdown were rewrapped; a before-and-after comparison ignoring whitespace
+  and comment markers found no other difference.
 
 ## What verification means here
 

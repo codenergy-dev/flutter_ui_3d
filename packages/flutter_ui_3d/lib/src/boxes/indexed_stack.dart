@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart'
     show DiagnosticPropertiesBuilder, IntProperty;
 
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import 'stack.dart';
 
 /// A [Stack3d] that shows one child at a time, the 3D analogue of
@@ -62,13 +62,13 @@ class IndexedStack3d extends Stack3d {
   }
 
   @override
-  void insert(Layout3d child, {int? index}) {
+  void insert(RenderObject3d child, {int? index}) {
     super.insert(child, index: index);
     _applyVisibility();
   }
 
   @override
-  void remove(Layout3d child) {
+  void remove(RenderObject3d child) {
     super.remove(child);
     _applyVisibility();
   }
@@ -80,7 +80,7 @@ class IndexedStack3d extends Stack3d {
   }
 
   @override
-  void syncChildren(List<Layout3d> children) {
+  void syncChildren(List<RenderObject3d> children) {
     super.syncChildren(children);
     _applyVisibility();
   }

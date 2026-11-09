@@ -17,7 +17,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart';
 import 'package:flutter_ui_3d/widgets.dart';
 
-Layout3d rootOf(Layout3dController controller) => controller.surface!.child!;
+RenderObject3d rootOf(Layout3dController controller) =>
+    controller.surface!.child!;
 
 /// A painter that records what it was asked to do and builds nothing, so the
 /// painter cache can be watched without a GPU.
@@ -63,7 +64,7 @@ class TestDecoration3d extends Decoration3d {
 
 /// An item that takes a painter from the surface's cache, standing in for
 /// anything a Material catalogue would decorate.
-class DecoratedItem extends SingleChildLayout3dWidget {
+class DecoratedItem extends SingleChildRenderObjectWidget3d {
   const DecoratedItem({super.key, super.child});
 
   @override
@@ -587,7 +588,7 @@ void main() {
         ),
       );
       final list = rootOf(controller) as ListView3d;
-      final items = List<Layout3d>.of(list.children);
+      final items = List<RenderObject3d>.of(list.children);
       expect(items, isNotEmpty);
 
       await tester.pumpWidget(SceneLayout3d(parent: Node()));

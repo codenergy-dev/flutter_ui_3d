@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/scheduler.dart' show TickerProvider;
 
 import '../geometry/offset3d.dart';
-import '../layout3d.dart';
 import '../layout_pass.dart';
+import '../rendering/object.dart';
 import 'scroll_controller.dart';
 
 /// What every scrolling view in this package has in common: an axis and a
@@ -30,10 +30,10 @@ abstract interface class Scrollable3d {
   ///
   /// The tree walk behind [ensureVisible3d]: focus traversal and a menu both
   /// have a box in hand and need the view it lives in, and neither has any
-  /// other way to find it. Every view here is a [Layout3d] as well as a
+  /// other way to find it. Every view here is a [RenderObject3d] as well as a
   /// [Scrollable3d], so the walk is an ordinary parent chain.
-  static Scrollable3d? of(Layout3d descendant) {
-    Layout3d? node = descendant;
+  static Scrollable3d? of(RenderObject3d descendant) {
+    RenderObject3d? node = descendant;
     while (node != null) {
       if (node is Scrollable3d) return node as Scrollable3d;
       node = node.parent;
@@ -56,21 +56,21 @@ abstract interface class Scrollable3d {
 /// such mode and takes 0.0.
 ///
 /// The walk sums the layout offsets between the two, so a
-/// [Layout3d.localTransform] in between (a `Transform3d`, a rotated
+/// [RenderObject3d.localTransform] in between (a `Transform3d`, a rotated
 /// container) is not accounted for: the answer is where the target is on the
 /// scroll axis before any such turn. Scene-only nudges
-/// ([ParentData3d.sceneOffset], [Layout3d.nodeOffset]) are ignored by
+/// ([ParentData3d.sceneOffset], [RenderObject3d.nodeOffset]) are ignored by
 /// construction, which is right — a box being animated toward the viewer has
 /// not moved down the list.
 double? offsetToReveal3d(
   Scrollable3d view,
-  Layout3d target, {
+  RenderObject3d target, {
   double? alignment,
 }) {
   final axis = view.scrollAxis;
   final controller = view.controller;
   var along = 0.0;
-  Layout3d? node = target;
+  RenderObject3d? node = target;
   while (node != null && !identical(node, view)) {
     along += node.offset.alongAxis(axis);
     node = node.parent;
@@ -101,7 +101,7 @@ double? offsetToReveal3d(
 /// once when there is nothing to do: no enclosing view, a target that is
 /// already visible, or a view with nothing to scroll.
 Future<void> ensureVisible3d(
-  Layout3d target, {
+  RenderObject3d target, {
   double? alignment,
   Duration duration = Duration.zero,
   Curve curve = Curves.easeInOut,
@@ -147,7 +147,7 @@ Future<void> ensureVisible3d(
 ///
 /// A view mixes this in, calls [initController] from its constructor body,
 /// and supplies [scrollAxis] itself.
-mixin Scroll3dHolderMixin on Layout3dLayoutPassMixin implements Scrollable3d {
+mixin Scroll3dHolderMixin on RenderLayoutPassMixin3d implements Scrollable3d {
   Scroll3dController? _held;
   bool _ownsController = true;
 
@@ -196,7 +196,7 @@ mixin Scroll3dHolderMixin on Layout3dLayoutPassMixin implements Scrollable3d {
   }
 
   /// A scroll position that moved needs a new layout, unless it moved
-  /// *during* one — and [Layout3dLayoutPassMixin.markNeedsLayout] already
+  /// *during* one — and [RenderLayoutPassMixin3d.markNeedsLayout] already
   /// ignores that case.
   void _handleScrollChanged() => markNeedsLayout();
 

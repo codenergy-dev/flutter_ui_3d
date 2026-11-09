@@ -35,7 +35,7 @@ import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_ui_3d/rendering.dart'
-    show GlyphAtlasCache3d, Layout3d, Semantics3d;
+    show GlyphAtlasCache3d, RenderObject3d, Semantics3d;
 // ignore: implementation_imports
 import 'package:flutter_ui_3d/src/testing/scene.dart'
     show Reach3d, sceneSurfaces3d;
@@ -273,7 +273,7 @@ abstract final class SelfDrive {
   /// detached entries straight after the surface that holds the overlay —
   /// which is what `sceneSurfaces3d` already returns. So a dialog on a
   /// surface of its own is found without the script knowing where it is.
-  static Layout3d? _find(Pattern label) {
+  static RenderObject3d? _find(Pattern label) {
     for (final record in sceneSurfaces3d()) {
       final found = _search(record.surface, label);
       if (found != null) return found;
@@ -281,12 +281,12 @@ abstract final class SelfDrive {
     return null;
   }
 
-  static Layout3d? _search(Layout3d box, Pattern label) {
+  static RenderObject3d? _search(RenderObject3d box, Pattern label) {
     if (box is Semantics3d) {
       final own = box.properties.label;
       if (own != null && _matches(own, label)) return box;
     }
-    Layout3d? found;
+    RenderObject3d? found;
     box.visitChildren((child) {
       found ??= _search(child, label);
     });

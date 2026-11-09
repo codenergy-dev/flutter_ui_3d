@@ -4,7 +4,7 @@ import 'package:flutter/painting.dart' show TextStyle;
 import 'package:flutter_ui_3d/rendering.dart'
     show
         Constraints3d,
-        Layout3d,
+        RenderObject3d,
         Layout3dMetrics,
         Layout3dSlot,
         VisualDensity3d;
@@ -41,9 +41,9 @@ import '../tokens/typography.dart';
 ///
 ///  * **The widget layer** reads it as `Theme3d.of(context)`, an ordinary
 ///    inherited widget.
-///  * **The imperative layer** has no `BuildContext` — a `Layout3d` is not a
-///    widget and `performLayout` is not a build — so it reads it out of the
-///    owner's slot, as [slot], which is what `Layout3dSlot` was added to
+///  * **The imperative layer** has no `BuildContext` — a `RenderObject3d` is
+///    not a widget and `performLayout` is not a build — so it reads it out of
+///    the owner's slot, as [slot], which is what `Layout3dSlot` was added to
 ///    `flutter_ui_3d` for. `SceneTheme3d` writes both at once.
 ///
 /// **Writing the slot relayouts the subtree**, by design and correctly: the
@@ -239,21 +239,21 @@ class Theme3dData {
       'Theme3dData(${colorScheme.brightness.name}, density: $density)';
 }
 
-/// Reading the theme from inside a `Layout3d`.
+/// Reading the theme from inside a `RenderObject3d`.
 ///
 /// The imperative half of the theme channel. It reads the same owner slot
 /// `SceneTheme3d` writes, so a box laid out under a themed widget tree sees
 /// the theme without anything being threaded through its constructor — which
 /// is the whole reason `Layout3dSlot` exists.
-extension Layout3dTheme3d on Layout3d {
+extension Layout3dTheme3d on RenderObject3d {
   /// The theme in force, or [Theme3dData.light] when none was published.
   ///
   /// Falling back rather than throwing, for the same reason
-  /// `Layout3d.metrics` falls back to `Layout3dMetrics.standard`: a box reads
-  /// this inside `performLayout`, where throwing would take down a whole
-  /// layout pass over a missing default, and where "detached" is a normal
-  /// state rather than an error. A component drawn in the baseline light
-  /// theme is visibly wrong and diagnosable; a layout that threw is neither.
+  /// `RenderObject3d.metrics` falls back to `Layout3dMetrics.standard`: a box
+  /// reads this inside `performLayout`, where throwing would take down a whole
+  /// layout pass over a missing default, and where "detached" is a normal state
+  /// rather than an error. A component drawn in the baseline light theme is
+  /// visibly wrong and diagnosable; a layout that threw is neither.
   Theme3dData get theme3d => slot(Theme3dData.slot) ?? Theme3dData.light;
 
   /// Whether a theme was actually published, for a caller that wants to know

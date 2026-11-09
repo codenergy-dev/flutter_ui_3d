@@ -97,7 +97,7 @@ export 'src/decoration/decoration.dart'
         Decoration3dPaintRequest,
         StateLayer3d;
 export 'src/debug/diagnostics.dart'
-    show debugDescribeLayout3dTree, debugDumpLayout3dTree;
+    show debugDescribeRenderObject3dTree, debugDumpRenderObject3dTree;
 export 'src/debug/overflow.dart'
     show Layout3dOverflow, debugLayout3dOverflowReporter;
 export 'src/debug/wireframe.dart'
@@ -143,7 +143,7 @@ export 'src/input/listener.dart' show PointerEvent3dCallback;
 export 'src/input/pointer.dart' show Layout3dPointer, PointerScroll3d;
 export 'src/input/pointer_group.dart' show Layout3dPointerGroup;
 export 'src/opacity.dart'
-    show FadeTransition3d, Layout3dOpacityMixin, Opacity3d;
+    show FadeTransition3d, RenderOpacityMixin3d, Opacity3d;
 export 'src/widgets/opacity.dart'
     show SceneAnimatedOpacity3d, SceneFadeTransition3d, SceneOpacity3d;
 export 'src/overlay/modal_barrier.dart' show ModalBarrier3d;
@@ -174,8 +174,9 @@ export 'src/widgets/overlay.dart'
         WidgetOverlay3dBuilder,
         WidgetOverlay3dEntry,
         WidgetPageRoute3d;
-export 'src/layout3d.dart' show Layout3d, Layout3dItemBuilder;
 export 'src/metrics.dart' show Layout3dMetrics, VisualDensity3d;
+export 'src/rendering/object.dart'
+    show RenderObject3d, RenderObject3dItemBuilder;
 export 'src/semantics.dart'
     show Semantics3d, debugFocusableBoxesWithoutSemantics;
 export 'src/scroll/grid_delegate.dart'
@@ -230,9 +231,9 @@ export 'src/widgets/drag.dart'
     show SceneDismissible3d, SceneDragTarget3d, SceneDraggable3d;
 export 'src/widgets/framework.dart'
     show
-        LazyLayout3dWidget,
-        Layout3dWidget,
-        SingleChildLayout3dWidget,
+        LazyRenderObjectWidget3d,
+        MultiChildRenderObjectWidget3d,
+        SingleChildRenderObjectWidget3d,
         debugCheckNoInterposedRenderObject;
 export 'src/widgets/input.dart'
     show

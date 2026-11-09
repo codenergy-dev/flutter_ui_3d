@@ -4,9 +4,9 @@ import 'package:vector_math/vector_math.dart' show Matrix4, Quaternion, Vector3;
 import '../geometry/alignment3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
 import '../metrics.dart';
 import '../opacity.dart';
+import '../rendering/object.dart';
 
 /// Where a subtree stands before it has arrived — and where it goes as it
 /// leaves.
@@ -286,8 +286,9 @@ class Motion3d {
 ///
 /// So this box re-applies from its own [performLayout] as well as on every
 /// tick. Writing the node tier there is free of consequence by construction —
-/// it does not dirty layout, and [Layout3d.worldTransform] undoes it — and it
-/// is what keeps a route from showing one frame at rest before it starts.
+/// it does not dirty layout, and [RenderObject3d.worldTransform] undoes it —
+/// and it is what keeps a route from showing one frame at rest before it
+/// starts.
 ///
 /// ## What a ray sees
 ///
@@ -295,7 +296,7 @@ class Motion3d {
 /// the node tier's contract everywhere in this package, and for the couple of
 /// hundred milliseconds an arrival lasts it is the right trade: a press lands
 /// where the dialog is about to be.
-class MotionTransition3d extends ProxyLayout3d with Layout3dOpacityMixin {
+class MotionTransition3d extends RenderProxyBox3d with RenderOpacityMixin3d {
   /// Creates a box that moves [child] from [motion] to rest as [animation]
   /// runs.
   MotionTransition3d({

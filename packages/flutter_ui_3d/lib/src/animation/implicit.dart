@@ -65,8 +65,8 @@ typedef Layout3dTweenVisitor<T extends Object> =
 ///    [AnimationController] listener with a [BoxDecoration3dTween]. No box is
 ///    ever marked dirty.
 ///  * **A position, a lift, a depression, a turn** — the node-only path:
-///    [NodeTransform3d], [Layout3d.nodeOffset], [Layout3d.nodeTransform].
-///    One matrix per frame, no layout at all.
+///    [NodeTransform3d], [RenderObject3d.nodeOffset],
+///    [RenderObject3d.nodeTransform]. One matrix per frame, no layout at all.
 ///  * **A size, a padding, an alignment, a constraint** — this class. There
 ///    is nothing cheaper, because the layout genuinely changed.
 abstract class ImplicitlyAnimatedLayout3dWidget extends StatefulWidget {

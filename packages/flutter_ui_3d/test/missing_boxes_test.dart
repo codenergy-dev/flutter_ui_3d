@@ -11,7 +11,7 @@ import 'package:vector_math/vector_math.dart' show Matrix4;
 import 'support.dart';
 
 /// A leaf with a baseline of its own, for the table's baseline row.
-class BaselineBox extends Layout3d {
+class BaselineBox extends RenderObject3d {
   BaselineBox(this.preferred, this.baseline, {super.name});
 
   final Size3d preferred;

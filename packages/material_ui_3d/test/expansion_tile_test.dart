@@ -18,9 +18,9 @@ const Theme3dData _theme = Theme3dData.light;
 const double _dp = 0.01;
 
 /// Where [box]'s origin is on the surface.
-Offset3d _origin(Layout3d box) {
+Offset3d _origin(RenderObject3d box) {
   var at = Offset3d.zero;
-  Layout3d? walk = box;
+  RenderObject3d? walk = box;
   while (walk != null) {
     at += walk.offset;
     walk = walk.parent;
@@ -61,9 +61,9 @@ Widget _tile({
 );
 
 /// The whole tile: the column's first child.
-Layout3d _tileBox(Layout3dSurface surface) {
+RenderObject3d _tileBox(Layout3dSurface surface) {
   final column = outermostOf<Flex3d>(surface);
-  return boxesOf<Layout3d>(
+  return boxesOf<RenderObject3d>(
     surface,
   ).firstWhere((box) => identical(box.parent, column));
 }

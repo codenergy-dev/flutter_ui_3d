@@ -10,7 +10,7 @@ import 'package:vector_math/vector_math.dart' show Aabb3, Vector3;
 
 import 'geometry/size3d.dart';
 import 'input/focus.dart';
-import 'layout3d.dart';
+import 'rendering/object.dart';
 
 /// A box that publishes itself to assistive technology, the 3D analogue of
 /// `Semantics`.
@@ -49,19 +49,19 @@ import 'layout3d.dart';
 /// [SemanticsComponent] with no override projects the node's combined mesh
 /// bounds, which for a control is whatever meshes happen to hang under it —
 /// an icon and a label, not the touch target they sit in. This box overrides
-/// them with its own [Layout3d.size] instead, so the semantics rectangle is
-/// the box the layout protocol produced: the 48dp target, including the empty
-/// room around the glyph. That agreement between what a ray can hit and what
-/// a screen reader can focus is the whole point of putting semantics in the
-/// layout tree rather than on the meshes.
+/// them with its own [RenderObject3d.size] instead, so the semantics rectangle
+/// is the box the layout protocol produced: the 48dp target, including the
+/// empty room around the glyph. That agreement between what a ray can hit and
+/// what a screen reader can focus is the whole point of putting semantics in
+/// the layout tree rather than on the meshes.
 ///
 /// **Traversal order is layout order**, without anything being said. Reading
-/// order follows the scene graph, and in this package the scene graph *is*
-/// the layout tree: a child's node is its parent's node's child, added in
-/// layout order, by [Layout3d.adoptChild]. So a `Column3d` of controls reads
-/// top to bottom, and a `Row3d` reads leading to trailing, for the same
-/// reason they lay out that way. Set [sortOrder] only where that is wrong.
-class Semantics3d extends ProxyLayout3d {
+/// order follows the scene graph, and in this package the scene graph *is* the
+/// layout tree: a child's node is its parent's node's child, added in layout
+/// order, by [RenderObject3d.adoptChild]. So a `Column3d` of controls reads top
+/// to bottom, and a `Row3d` reads leading to trailing, for the same reason they
+/// lay out that way. Set [sortOrder] only where that is wrong.
+class Semantics3d extends RenderProxyBox3d {
   /// Creates a box publishing [properties] for its subtree.
   Semantics3d({
     required SemanticsProperties properties,
@@ -138,8 +138,8 @@ class Semantics3d extends ProxyLayout3d {
   }
 
   /// The nearest [Semantics3d] at or above [layout], or null.
-  static Semantics3d? of(Layout3d layout) {
-    Layout3d? node = layout;
+  static Semantics3d? of(RenderObject3d layout) {
+    RenderObject3d? node = layout;
     while (node != null) {
       if (node is Semantics3d) return node;
       node = node.parent;
@@ -200,7 +200,7 @@ class Semantics3d extends ProxyLayout3d {
 /// ```dart
 /// expect(debugFocusableBoxesWithoutSemantics(surface), isEmpty);
 /// ```
-List<Focus3d> debugFocusableBoxesWithoutSemantics(Layout3d root) {
+List<Focus3d> debugFocusableBoxesWithoutSemantics(RenderObject3d root) {
   final missing = <Focus3d>[];
   for (final focus in const Focus3dTraversal().focusableDescendants(root)) {
     if (_hasSemanticsAbove(focus, root) || _hasSemanticsBelow(focus)) continue;
@@ -209,8 +209,8 @@ List<Focus3d> debugFocusableBoxesWithoutSemantics(Layout3d root) {
   return missing;
 }
 
-bool _hasSemanticsAbove(Layout3d box, Layout3d root) {
-  Layout3d? node = box;
+bool _hasSemanticsAbove(RenderObject3d box, RenderObject3d root) {
+  RenderObject3d? node = box;
   while (node != null) {
     if (node is Semantics3d) return true;
     if (identical(node, root)) return false;
@@ -219,9 +219,9 @@ bool _hasSemanticsAbove(Layout3d box, Layout3d root) {
   return false;
 }
 
-bool _hasSemanticsBelow(Layout3d box) {
+bool _hasSemanticsBelow(RenderObject3d box) {
   var found = false;
-  void visit(Layout3d child) {
+  void visit(RenderObject3d child) {
     if (found) return;
     if (child is Semantics3d) {
       found = true;

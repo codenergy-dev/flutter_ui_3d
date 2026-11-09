@@ -363,7 +363,7 @@ void _dragAcross(
 /// Two switches with four named parts between them, built by one closure —
 /// so the names are registered where they are created rather than reassembled
 /// afterwards, which is how a probe map goes stale.
-final Map<String, Layout3d> _switchProbes = <String, Layout3d>{};
+final Map<String, RenderObject3d> _switchProbes = <String, RenderObject3d>{};
 
 /// Every scene the render test draws.
 ///
@@ -936,7 +936,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         basis: LayoutBasis3d.xz,
         constraints: Constraints3d.tight(const Size3d(4.2, 1.4, 0.1)),
         child: Row3d(
-          children: <Layout3d>[
+          children: <RenderObject3d>[
             for (final patch in patches.values)
               SizedBox3d(width: 1.4, height: 1.4, depth: 0.1, child: patch),
           ],
@@ -952,7 +952,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         decoration: const BoxDecoration3d(color: _panelFill),
         name: 'panel',
       );
-      Layout3d cell(Layout3d? child) => SizedBox3d(
+      RenderObject3d cell(RenderObject3d? child) => SizedBox3d(
         width: 1.4,
         height: 1.4,
         depth: 0.1,
@@ -970,7 +970,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       final casterSurface = Layout3dSurface(
         basis: LayoutBasis3d.xz,
         constraints: Constraints3d.tight(const Size3d(4.2, 1.4, 0.1)),
-        child: Row3d(children: <Layout3d>[cell(cube), cell(panel), cell(null)]),
+        child: Row3d(
+          children: <RenderObject3d>[cell(cube), cell(panel), cell(null)],
+        ),
       );
       casterSurface.plane.position = Vector3(0, 1.3, 0);
 
@@ -1042,9 +1044,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     final surface = Layout3dSurface(
       constraints: Constraints3d.tight(const Size3d(3, 3, 1)),
       child: Overlay3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           Column3d(
-            children: <Layout3d>[
+            children: <RenderObject3d>[
               source,
               for (final box in rows.skip(1))
                 SizedBox3d(width: 3, height: 1, depth: 0.05, child: box),
@@ -1105,7 +1107,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       },
       child: SizedBox3d(width: 1.8, height: 1.1, depth: 0.05, child: card),
     );
-    final panel = Overlay3d(children: <Layout3d>[Center3d(child: source)]);
+    final panel = Overlay3d(
+      children: <RenderObject3d>[Center3d(child: source)],
+    );
     final surface = Layout3dSurface(
       constraints: Constraints3d.tight(const Size3d(3, 3, 1)),
       child: panel,
@@ -1173,8 +1177,8 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
           constraints: Constraints3d.tight(const Size3d(3.6, 1.2, 0.2)),
           child: Row3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
-            children: <Layout3d>[
-              for (final box in <Layout3d>[flat, raised, high])
+            children: <RenderObject3d>[
+              for (final box in <RenderObject3d>[flat, raised, high])
                 SizedBox3d(width: 1.0, height: 1.0, depth: 0.04, child: box),
             ],
           ),
@@ -1216,8 +1220,8 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
           constraints: Constraints3d.tight(const Size3d(3.6, 1.2, 0.2)),
           child: Row3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
-            children: <Layout3d>[
-              for (final box in <Layout3d>[idle, hovered])
+            children: <RenderObject3d>[
+              for (final box in <RenderObject3d>[idle, hovered])
                 SizedBox3d(width: 1.4, height: 1.0, depth: 0.02, child: box),
             ],
           ),
@@ -1291,7 +1295,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
             // 12dp, the theme's own step. The deepest pair here is the 4dp
             // backing against a 2dp button, mean 3dp, so it clears with room.
             depthStep: 0.12,
-            children: <Layout3d>[
+            children: <RenderObject3d>[
               SizedBox3d(width: 3.6, height: 1.6, depth: 0.04, child: backing),
               SizedBox3d(
                 width: 3.2,
@@ -1299,8 +1303,8 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
                 depth: 0.02,
                 child: Row3d(
                   mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
-                  children: <Layout3d>[
-                    for (final box in <Layout3d>[enabled, disabled])
+                  children: <RenderObject3d>[
+                    for (final box in <RenderObject3d>[enabled, disabled])
                       SizedBox3d(
                         width: 1.4,
                         height: 0.4,
@@ -1368,8 +1372,8 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
             constraints: Constraints3d.tight(const Size3d(8.4, 2.6, 0.2)),
             child: Row3d(
               mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
-              children: <Layout3d>[
-                for (final box in <Layout3d>[outlined, filled])
+              children: <RenderObject3d>[
+                for (final box in <RenderObject3d>[outlined, filled])
                   SizedBox3d(width: 3.84, height: 2.4, depth: 0.12, child: box),
               ],
             ),
@@ -1438,7 +1442,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     final list = ListView3d(
       controller: controller,
       spacing: 0.1,
-      children: <Layout3d>[
+      children: <RenderObject3d>[
         for (final box in cards)
           SizedBox3d(width: 2.2, height: 0.5, depth: 0.04, child: box),
       ],
@@ -1452,7 +1456,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         // against a 4dp card, mean 6dp, so it clears with half again to
         // spare — which is `Thickness3d.separates` as a picture.
         depthStep: 0.12,
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           SizedBox3d(width: 3.0, height: 2.4, depth: 0.08, child: backing),
           SizedBox3d(
             width: 2.2,
@@ -1527,7 +1531,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
               // 2.5dp, so the rule stands clear of the card it is drawn on —
               // which is the whole reason a divider has a depth at all.
               depthStep: 0.72,
-              children: <Layout3d>[
+              children: <RenderObject3d>[
                 SizedBox3d(width: 7.2, height: 3.2, depth: 0.24, child: card),
                 SizedBox3d(width: 6.0, height: 0.06, depth: 0.06, child: rule),
               ],
@@ -1552,7 +1556,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // finally did found the plane tier dead in a second place: a viewport
     // fills in what a pinned header is sitting on *after* the rows have been
     // laid out and placed, so every row published the unbounded block and
-    // `Layout3d.clipRegion` went on answering correctly to anything that
+    // `RenderObject3d.clipRegion` went on answering correctly to anything that
     // asked afterwards. See
     // `plans/2026_09_08_the_declarative_side_of_a_pinned_bar.md`.
     //
@@ -1621,7 +1625,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     );
     final list = SliverList3d(
       spacing: 0.1,
-      children: <Layout3d>[
+      children: <RenderObject3d>[
         for (final row in rows)
           SizedBox3d(width: 2.0, height: 0.4, depth: 0.04, child: row),
       ],
@@ -1636,7 +1640,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       child: Stack3d(
         alignment: Alignment3d.center,
         depthStep: 0.12,
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           SizedBox3d(width: 3.0, height: 2.4, depth: 0.08, child: backing),
           SizedBox3d(width: 2.0, height: 1.6, depth: 0.04, child: view),
         ],
@@ -1708,7 +1712,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
             // `Thickness3d.depthStep`, in world units at the default rate —
             // the same number `Scaffold3d` puts between two slots.
             depthStep: 0.12,
-            children: <Layout3d>[
+            children: <RenderObject3d>[
               SizedBox3d(width: 3.0, height: 2.4, depth: 0.01, child: backing),
               // The body, one step in front of the backing.
               SizedBox3d(width: 2.0, height: 1.6, depth: 0.04, child: card),
@@ -1787,7 +1791,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
             // of the bar for the depth test.
             alignment: Alignment3d.center,
             depthStep: 0.0,
-            children: <Layout3d>[
+            children: <RenderObject3d>[
               SizedBox3d(width: 3.0, height: 1.2, depth: 0.08, child: bar),
               // Deeper than the bar, so its bounds centre sits further from
               // the camera than the bar's and the translucent sort draws it
@@ -1886,7 +1890,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
             // times over — which is what keeps the dialog from fighting the
             // slab it is carried on.
             depthStep: 0.12,
-            children: <Layout3d>[
+            children: <RenderObject3d>[
               SizedBox3d(width: 3.0, height: 2.4, depth: 0.08, child: backing),
               // Narrower than the backing on purpose: the strip either side is
               // where an unscrimmed reading comes from.
@@ -1906,7 +1910,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     //
     // The anchoring is a `nodeOffset` — the node tier, one matrix, no
     // relayout — and that is precisely why a headless test cannot finish the
-    // job. `Layout3d.worldTransform` *undoes* `nodeOffset` by design, so
+    // job. `RenderObject3d.worldTransform` *undoes* `nodeOffset` by design, so
     // `screenPointOf` on the menu reports where layout put it rather than
     // where it is drawn: the projection and the picture genuinely disagree
     // here, and only the picture is the truth.
@@ -1960,7 +1964,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
           child: Stack3d(
             alignment: Alignment3d.center,
             depthStep: 0.12,
-            children: <Layout3d>[
+            children: <RenderObject3d>[
               SizedBox3d(width: 3.0, height: 2.4, depth: 0.08, child: backing),
               // The button in the top-left corner, which is as far from the
               // stack's own centre as this surface allows.
@@ -2066,14 +2070,14 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         name: 'card',
       );
 
-      Layout3d cell(DecoratedBox3d panel, Text3d? mark) => SizedBox3d(
+      RenderObject3d cell(DecoratedBox3d panel, Text3d? mark) => SizedBox3d(
         width: extent,
         height: extent,
         child: Stack3d(
           alignment: Alignment3d.center,
           // `Thickness3d.stepOver(thin, thin)` is 2dp, at this rate 0.12.
           depthStep: style.depthStep * rate,
-          children: <Layout3d>[
+          children: <RenderObject3d>[
             SizedBox3d(
               width: extent,
               height: extent,
@@ -2093,13 +2097,13 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
             child: Stack3d(
               alignment: Alignment3d.center,
               depthStep: 0.36,
-              children: <Layout3d>[
+              children: <RenderObject3d>[
                 SizedBox3d(width: 5.4, height: 2.4, depth: 0.24, child: card),
                 Row3d(
                   mainAxisAlignment: MainAxisAlignment3d.center,
                   crossAxisAlignment: CrossAxisAlignment3d.center,
                   spacing: 0.6,
-                  children: <Layout3d>[
+                  children: <RenderObject3d>[
                     cell(empty, null),
                     cell(marked, glyph(drawn: true)),
                     cell(unmarked, glyph(drawn: false)),
@@ -2148,7 +2152,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       final style = SwitchStyle3d.of(theme);
       const rate = 0.06;
 
-      Layout3d aSwitch({
+      RenderObject3d aSwitch({
         required bool value,
         required String trackName,
         required String thumbName,
@@ -2185,7 +2189,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         // An off thumb is drawn at its own 16dp by scaling the 24dp box about
         // its centre, which is `Switch3d`'s arithmetic; an on one is not
         // scaled at all.
-        Layout3d sized(Layout3d box) {
+        RenderObject3d sized(RenderObject3d box) {
           if (value) return box;
           final s = style.unselectedThumbSize / style.thumbSize;
           final c = style.thumbSize * rate / 2.0;
@@ -2201,7 +2205,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
           child: Stack3d(
             alignment: Alignment3d.center,
             depthStep: style.depthStep * rate,
-            children: <Layout3d>[
+            children: <RenderObject3d>[
               SizedBox3d(
                 width: style.trackWidth * rate,
                 height: style.trackHeight * rate,
@@ -2258,11 +2262,11 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
               mainAxisAlignment: MainAxisAlignment3d.center,
               crossAxisAlignment: CrossAxisAlignment3d.center,
               spacing: 0.9,
-              children: <Layout3d>[on, off],
+              children: <RenderObject3d>[on, off],
             ),
           ),
         ],
-        probes: Map<String, Layout3d>.of(_switchProbes),
+        probes: Map<String, RenderObject3d>.of(_switchProbes),
       );
     },
     camera: _wideCamera(),
@@ -2360,7 +2364,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       gesture.child = Stack3d(
         alignment: Alignment3d.center,
         depthStep: style.depthStep * rate,
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           body,
           SizedBox3d(
             width: travel,
@@ -2379,7 +2383,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         child: Stack3d(
           alignment: Alignment3d.center,
           depthStep: 0.36,
-          children: <Layout3d>[
+          children: <RenderObject3d>[
             SizedBox3d(width: 9.4, height: 3.0, depth: 0.24, child: card),
             gesture,
           ],
@@ -2472,9 +2476,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         name: name,
       );
 
-      final probes = <String, Layout3d>{};
+      final probes = <String, RenderObject3d>{};
 
-      Layout3d paddedCard(String prefix, EdgeInsets3d padding) {
+      RenderObject3d paddedCard(String prefix, EdgeInsets3d padding) {
         final body = SizedBox3d(
           width: sliderWidth * rate,
           height: sliderStyle.stateLayerSize * rate,
@@ -2489,7 +2493,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         final slider = Stack3d(
           alignment: Alignment3d.frontCenter,
           depthStep: sliderStyle.depthStep * rate,
-          children: <Layout3d>[
+          children: <RenderObject3d>[
             body,
             SizedBox3d(
               width: travel,
@@ -2552,7 +2556,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
                       crossAxisAlignment: CrossAxisAlignment3d.stretch,
                       depthAxisAlignment: CrossAxisAlignment3d.start,
                       mainAxisSize: MainAxisSize3d.min,
-                      children: <Layout3d>[
+                      children: <RenderObject3d>[
                         Align3d(
                           alignment: Alignment3d.frontCenter,
                           child: slider,
@@ -2580,7 +2584,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
               child: Column3d(
                 mainAxisSize: MainAxisSize3d.min,
                 spacing: 0.6,
-                children: <Layout3d>[
+                children: <RenderObject3d>[
                   paddedCard(
                     'face',
                     const EdgeInsets3d.symmetric(
@@ -2695,7 +2699,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         Layout3dSurface(
           constraints: Constraints3d.tight(const Size3d(3.6, 1.8, 0.6)),
           child: Stack3d(
-            children: <Layout3d>[
+            children: <RenderObject3d>[
               Positioned3d(
                 left: 0.1,
                 top: 0.1,
@@ -2742,7 +2746,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     final surface = Layout3dSurface(
       constraints: Constraints3d.tight(const Size3d(3.6, 1.8, 0.3)),
       child: Stack3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           Positioned3d(
             left: 0.1,
             top: 0.1,
@@ -3052,7 +3056,7 @@ Text3d _slabLabel(String text) => Text3d(
 class _BarHeader3dDelegate extends SliverPersistentHeader3dDelegate {
   const _BarHeader3dDelegate(this.content, {required this.extent});
 
-  final Layout3d content;
+  final RenderObject3d content;
   final double extent;
 
   @override
@@ -3062,7 +3066,7 @@ class _BarHeader3dDelegate extends SliverPersistentHeader3dDelegate {
   double get maxExtent => extent;
 
   @override
-  Layout3d build(double shrinkOffset, {required bool overlapsContent}) =>
+  RenderObject3d build(double shrinkOffset, {required bool overlapsContent}) =>
       content;
 
   @override
@@ -3129,14 +3133,15 @@ ProbeSceneContent _fadedPanels(double opacity) {
 
   // The one box under test. Everything inside it fades; the backdrops and the
   // pin are outside it and must be drawn exactly as they always are.
-  Layout3d faded(Layout3d child) => Opacity3d(opacity: opacity, child: child);
+  RenderObject3d faded(RenderObject3d child) =>
+      Opacity3d(opacity: opacity, child: child);
 
   return ProbeSceneContent(
     surfaces: <Layout3dSurface>[
       Layout3dSurface(
         constraints: Constraints3d.tight(const Size3d(4.0, 2.0, 1.2)),
         child: Stack3d(
-          children: <Layout3d>[
+          children: <RenderObject3d>[
             // The benign ordering.
             Positioned3d(
               left: 0.10,
@@ -3200,7 +3205,7 @@ ProbeSceneContent _fadedPanels(double opacity) {
         ),
       ),
     ],
-    probes: <String, Layout3d>{
+    probes: <String, RenderObject3d>{
       'backLeft': backLeft,
       'backRight': backRight,
       'fadeLeft': fadeLeft,

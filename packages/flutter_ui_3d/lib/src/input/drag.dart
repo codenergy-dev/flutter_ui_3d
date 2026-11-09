@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart' show VoidCallback;
 
 import '../geometry/offset3d.dart';
 import '../hit_test.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// What happened to a drag while it was over one target.
 ///
@@ -71,9 +71,9 @@ enum Drag3dAnchor {
 
 /// A box that can catch a drag, the non-generic seam under [DragTarget3d].
 ///
-/// The same shape as [HitTestTarget3d] is under [Listener3d], and for the
-/// same reason: the machinery has to find drop targets on a hit-test path of
-/// bare [Layout3d]s, and it cannot be parameterised on a payload type it has
+/// The same shape as [HitTestTarget3d] is under [Listener3d], and for the same
+/// reason: the machinery has to find drop targets on a hit-test path of bare
+/// [RenderObject3d]s, and it cannot be parameterised on a payload type it has
 /// never heard of. So the type test happens *inside* the target — where
 /// [DragTarget3d] answers [willAcceptDrag3d] with `details.data is T` — and
 /// the session dispatches through this interface knowing nothing.
@@ -84,7 +84,7 @@ enum Drag3dAnchor {
 /// dirties no layout.
 ///
 /// ```dart
-/// class DropZone extends ProxyLayout3dWithHitTestBehavior
+/// class DropZone extends RenderProxyBoxWithHitTestBehavior3d
 ///     implements Drag3dTarget {
 ///   DropZone(this.panel) : super(behavior: HitTestBehavior3d.translucent);
 ///
@@ -238,7 +238,7 @@ class Drag3dSession {
   bool _active = true;
   bool _dispatching = false;
   bool _accepted = false;
-  Layout3d? _acceptedBy;
+  RenderObject3d? _acceptedBy;
 
   /// The targets that accepted this drag on the last [update], deepest first.
   ///
@@ -277,7 +277,7 @@ class Drag3dSession {
 
   /// The box behind [target], for a caller that needs to know *where* the
   /// drop would land — a drop animation aiming the feedback at it.
-  Layout3d? get targetLayout =>
+  RenderObject3d? get targetLayout =>
       _accepting.isEmpty ? null : _accepting.first.layout;
 
   /// Whether the drag ended on a target that took it.
@@ -292,7 +292,7 @@ class Drag3dSession {
   ///
   /// Where a drop animation flies the feedback to. Held after the session has
   /// ended, unlike [targetLayout].
-  Layout3d? get acceptedBy => _acceptedBy;
+  RenderObject3d? get acceptedBy => _acceptedBy;
 
   /// Registers [listener] to be called once, when this session ends.
   ///
@@ -363,10 +363,10 @@ class Drag3dSession {
     for (final entry in hit.path) {
       final layout = entry.layout;
       if (layout is! Drag3dTarget) continue;
-      // The cast is not redundant: `Layout3d` is a public class in another
-      // library and does not promote through an interface it does not
-      // declare, which is why `Layout3dPointer._deliver` spells the same
-      // thing out for `HitTestTarget3d`.
+      // The cast is not redundant: `RenderObject3d` is a public class in
+      // another library and does not promote through an interface it does not
+      // declare, which is why `Layout3dPointer._deliver` spells the same thing
+      // out for `HitTestTarget3d`.
       if (!(layout as Drag3dTarget).willAcceptDrag3d(_detailsFor(entry))) {
         continue;
       }
@@ -514,7 +514,7 @@ class Drag3dSession {
     }
   }
 
-  static bool _holds(List<HitTestEntry3d> entries, Layout3d layout) {
+  static bool _holds(List<HitTestEntry3d> entries, RenderObject3d layout) {
     for (final entry in entries) {
       if (identical(entry.layout, layout)) return true;
     }

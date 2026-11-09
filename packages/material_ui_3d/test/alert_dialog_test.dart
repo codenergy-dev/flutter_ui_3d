@@ -110,7 +110,7 @@ void main() {
 
   group('the arrangement', () {
     /// Where [box] starts, in logical pixels from the dialog's own panel.
-    Offset3d offsetInPanel(PumpedSurface it, Layout3d box) {
+    Offset3d offsetInPanel(PumpedSurface it, RenderObject3d box) {
       final panel = it.panel.drawnOffsetInSurface;
       final at = box.drawnOffsetInSurface;
       return Offset3d(
@@ -136,8 +136,8 @@ void main() {
       final (glyph, title, body) = (labels[0], labels[1], labels[2]);
       final action = boxesOf<SizedBox3d>(it.surface).last;
 
-      double top(Layout3d box) => offsetInPanel(it, box).y;
-      double bottom(Layout3d box) => top(box) + box.size.height / _dp;
+      double top(RenderObject3d box) => offsetInPanel(it, box).y;
+      double bottom(RenderObject3d box) => top(box) + box.size.height / _dp;
 
       expect(top(title) - bottom(glyph), closeTo(alert.iconGap, _tol));
       expect(top(body) - bottom(title), closeTo(alert.titleGap, _tol));
@@ -278,7 +278,7 @@ void main() {
         it.surface,
       ).singleWhere((box) => box.height == height);
       final (icon, title, body) = (tall(0.24), tall(0.3), tall(0.4));
-      double centre(Layout3d box) =>
+      double centre(RenderObject3d box) =>
           offsetInPanel(it, box).x + box.size.width / _dp / 2.0;
 
       final middle = it.panel.size.width / _dp / 2.0;

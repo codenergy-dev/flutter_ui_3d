@@ -34,7 +34,7 @@ final otherPaletteSlot = Layout3dSlot<Palette>('palette');
 const differentTypeSlot = Layout3dSlot<Density>('palette');
 
 /// A box that sizes itself from a slot, the way a themed component will.
-class PaddedBySlot extends Layout3d {
+class PaddedBySlot extends RenderObject3d {
   int layoutCount = 0;
   double? sawPadding;
 
@@ -50,7 +50,7 @@ class PaddedBySlot extends Layout3d {
 void main() {
   group('the owner', () {
     test('round-trips a typed value and reports whether it changed', () {
-      final owner = Layout3dOwner();
+      final owner = PipelineOwner3d();
       expect(owner.slot(paletteSlot), isNull);
 
       expect(owner.setSlot(paletteSlot, const Palette(8)), isTrue);
@@ -67,7 +67,7 @@ void main() {
       // Dart canonicalizes const instances, so an identity-keyed slot would
       // behave one way declared `const` and another declared `final`. Value
       // equality is the rule a reader can state without knowing which.
-      final owner = Layout3dOwner();
+      final owner = PipelineOwner3d();
       owner.setSlot(paletteSlot, const Palette(8));
       expect(otherPaletteSlot, paletteSlot);
       expect(owner.slot(otherPaletteSlot), const Palette(8));
@@ -78,7 +78,7 @@ void main() {
     });
 
     test('null removes the value', () {
-      final owner = Layout3dOwner();
+      final owner = PipelineOwner3d();
       owner.setSlot(densitySlot, const Density(1));
       expect(owner.setSlot(densitySlot, null), isTrue);
       expect(owner.slot(densitySlot), isNull);
@@ -89,7 +89,7 @@ void main() {
     test('dispose drops the slots and does not dispose the values', () {
       // The owner collects tree-wide state, it does not own it. A value that
       // holds resources is disposed by whoever put it there.
-      final owner = Layout3dOwner();
+      final owner = PipelineOwner3d();
       owner.setSlot(paletteSlot, const Palette(8));
       owner.dispose();
       expect(owner.slot(paletteSlot), isNull);
@@ -243,13 +243,13 @@ void main() {
 }
 
 /// Hosts a [PaddedBySlot] in the widget tree.
-class _SceneSlotReader extends Layout3dWidget {
+class _SceneSlotReader extends MultiChildRenderObjectWidget3d {
   const _SceneSlotReader(this.sink);
 
   final void Function(PaddedBySlot) sink;
 
   @override
-  Layout3d createLayout(BuildContext context) {
+  RenderObject3d createLayout(BuildContext context) {
     final box = PaddedBySlot();
     sink(box);
     return box;

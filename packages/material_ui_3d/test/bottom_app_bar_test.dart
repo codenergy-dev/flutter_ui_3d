@@ -33,9 +33,9 @@ Widget _spent(EdgeInsets3d padding, Widget child) => Builder(
 );
 
 /// Where [box]'s origin is in [ancestor]'s frame.
-Offset3d _originIn(Layout3d box, Layout3d ancestor) {
+Offset3d _originIn(RenderObject3d box, RenderObject3d ancestor) {
   var at = Offset3d.zero;
-  Layout3d? walk = box;
+  RenderObject3d? walk = box;
   while (walk != null && !identical(walk, ancestor)) {
     at += walk.offset;
     walk = walk.parent;

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart' show protected;
 
-import 'layout3d.dart';
+import 'rendering/object.dart';
 
 /// A layout that edits its own tree while it is being laid out, and ignores
 /// the dirt that raises.
@@ -12,10 +12,10 @@ import 'layout3d.dart';
 /// [runLayoutPass] makes [markNeedsLayout] a no-op for its duration, which is
 /// what Flutter's `RenderObject` gets from `_doingThisLayoutWithCallback`.
 ///
-/// Kept apart from [Layout3dBuiltChildrenMixin] because the two needs do not
+/// Kept apart from [RenderBuiltChildrenMixin3d] because the two needs do not
 /// travel together: `CustomScrollView3d` holds a scroll position without
 /// building children, and `Viewport3d` holds one with a single child.
-mixin Layout3dLayoutPassMixin on Layout3d {
+mixin RenderLayoutPassMixin3d on RenderObject3d {
   bool _layingOut = false;
 
   /// Whether a layout pass is running on this layout.

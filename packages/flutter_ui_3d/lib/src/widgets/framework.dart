@@ -36,31 +36,34 @@ import 'package:flutter/widgets.dart'
         Widget;
 
 import '../built_children.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 import '../surface.dart';
 
-/// Hosts one [Layout3d] inside the Flutter element tree.
+/// Hosts one [RenderObject3d] inside the Flutter element tree.
+///
+/// This is a Flutter [RenderBox], not a [RenderObject3d]: the name says what
+/// it holds.
 ///
 /// The layout tree is not a widget tree, but reconciling one by hand (which
 /// child moved, which was removed, what order they are in now) is exactly the
 /// problem Flutter's element machinery already solves. So each layout widget
-/// creates a zero-sized [RenderBox] that carries its [Layout3d], and the
+/// creates a zero-sized [RenderBox] that carries its [RenderObject3d], and the
 /// render tree's own child list, reconciled by
 /// [MultiChildRenderObjectWidget], is mirrored onto the layout tree during
 /// [performLayout]. The boxes take no space and paint nothing; the real
 /// output is the scene node transforms the layout writes.
-class Layout3dRenderBox extends RenderBox
-    with ContainerRenderObjectMixin<RenderBox, Layout3dHostParentData> {
+class RenderObject3dHost extends RenderBox
+    with ContainerRenderObjectMixin<RenderBox, RenderObject3dHostParentData> {
   /// Creates a host for [layout3d].
-  Layout3dRenderBox(this.layout3d);
+  RenderObject3dHost(this.layout3d);
 
   /// The layout this box owns.
-  final Layout3d layout3d;
+  final RenderObject3d layout3d;
 
   @override
   void setupParentData(RenderObject child) {
-    if (child.parentData is! Layout3dHostParentData) {
-      child.parentData = Layout3dHostParentData();
+    if (child.parentData is! RenderObject3dHostParentData) {
+      child.parentData = RenderObject3dHostParentData();
     }
   }
 
@@ -120,11 +123,11 @@ class Layout3dRenderBox extends RenderBox
   /// them off a render child list it did not build.
   @protected
   void layoutChildBoxes() {
-    final layouts = <Layout3d>[];
+    final layouts = <RenderObject3d>[];
     var child = firstChild;
     while (child != null) {
       child.layout(hostConstraints);
-      if (child is Layout3dRenderBox) {
+      if (child is RenderObject3dHost) {
         layouts.add(child.layout3d);
       } else {
         assert(debugCheckNoInterposedRenderObject(child));
@@ -137,16 +140,16 @@ class Layout3dRenderBox extends RenderBox
   /// Whether this box disposes [layout3d] when Flutter disposes this box.
   ///
   /// False for a widget's own layout, which lives and dies with the surface.
-  /// True for a layout built on demand by a [Layout3dLazyElement]: nothing
-  /// else holds it, and it has to come off its parent's books before the
-  /// surface's own teardown walks over it a second time.
+  /// True for a layout built on demand by a [LazyRenderObjectElement3d]:
+  /// nothing else holds it, and it has to come off its parent's books before
+  /// the surface's own teardown walks over it a second time.
   bool disposeLayoutOnUnmount = false;
 
   @override
   void dispose() {
     if (disposeLayoutOnUnmount) {
       final parent = layout3d.parent;
-      if (parent is Layout3dBuiltChildrenMixin) {
+      if (parent is RenderBuiltChildrenMixin3d) {
         parent.forgetBuiltChild(layout3d);
       } else if (parent != null) {
         detachLayout(layout3d, parent);
@@ -179,7 +182,7 @@ class Layout3dRenderBox extends RenderBox
     // chain.
     if (_escalated) return;
     final parent = this.parent;
-    if (parent is! Layout3dRenderBox) return;
+    if (parent is! RenderObject3dHost) return;
     final root = findRoot();
     if (root == null || root._inLayoutPass) return;
     _escalated = true;
@@ -188,10 +191,10 @@ class Layout3dRenderBox extends RenderBox
 
   /// The root box of the surface this box belongs to, if it is in a tree.
   @protected
-  Layout3dRootRenderBox? findRoot() {
+  RenderObject3dRootHost? findRoot() {
     RenderObject? node = this;
     while (node != null) {
-      if (node is Layout3dRootRenderBox) return node;
+      if (node is RenderObject3dRootHost) return node;
       node = node.parent;
     }
     return null;
@@ -208,9 +211,9 @@ class Layout3dRenderBox extends RenderBox
 /// `Scene*3d` widgets, hiding the layout subtree below it.
 ///
 /// The trap this exists for is the most expensive one in the declarative
-/// layer, and it is silent. [Layout3dRenderBox.layoutChildBoxes] mirrors the
+/// layer, and it is silent. [RenderObject3dHost.layoutChildBoxes] mirrors the
 /// render tree onto the layout tree by collecting its render children that
-/// are [Layout3dRenderBox]es; anything else is not one, so its whole subtree
+/// are [RenderObject3dHost]es; anything else is not one, so its whole subtree
 /// — every `Scene*3d` widget below it — is simply not collected. Nothing
 /// throws, nothing is laid out, and nothing appears in the scene.
 ///
@@ -226,7 +229,7 @@ class Layout3dRenderBox extends RenderBox
 /// Debug-only, and it costs one walk of an interposed subtree, which in a
 /// correct tree does not exist.
 bool debugCheckNoInterposedRenderObject(RenderObject interposed) {
-  final lost = _findLayout3dDescendant(interposed);
+  final lost = _findRenderObject3dDescendant(interposed);
   if (lost == null) return true;
   throw FlutterError.fromParts(<DiagnosticsNode>[
     ErrorSummary(
@@ -234,7 +237,7 @@ bool debugCheckNoInterposedRenderObject(RenderObject interposed) {
     ),
     ErrorDescription(
       'The 3D layout tree is mirrored from the render tree, and only the '
-      'zero-sized hosts that carry a Layout3d are mirrored. '
+      'zero-sized hosts that carry a RenderObject3d are mirrored. '
       '${_describeCreator(interposed)} creates a render object of its own, so '
       'everything below it — starting with ${lost.layout3d.runtimeType} — is '
       'not part of the layout tree at all. It is never laid out and never '
@@ -254,12 +257,12 @@ bool debugCheckNoInterposedRenderObject(RenderObject interposed) {
   ]);
 }
 
-/// The first [Layout3dRenderBox] anywhere below [node], or null.
-Layout3dRenderBox? _findLayout3dDescendant(RenderObject node) {
-  Layout3dRenderBox? found;
+/// The first [RenderObject3dHost] anywhere below [node], or null.
+RenderObject3dHost? _findRenderObject3dDescendant(RenderObject node) {
+  RenderObject3dHost? found;
   void visit(RenderObject child) {
     if (found != null) return;
-    if (child is Layout3dRenderBox) {
+    if (child is RenderObject3dHost) {
       found = child;
       return;
     }
@@ -280,13 +283,13 @@ String _describeCreator(RenderObject object) {
 }
 
 /// Parent data for the zero-sized hosting boxes.
-class Layout3dHostParentData extends ContainerBoxParentData<RenderBox> {}
+class RenderObject3dHostParentData extends ContainerBoxParentData<RenderBox> {}
 
 /// The hosting box of a [Layout3dSurface], which lays the surface out once
 /// the tree below it has been reconciled.
-class Layout3dRootRenderBox extends Layout3dRenderBox {
+class RenderObject3dRootHost extends RenderObject3dHost {
   /// Creates the root host for [surface].
-  Layout3dRootRenderBox(Layout3dSurface surface) : super(surface) {
+  RenderObject3dRootHost(Layout3dSurface surface) : super(surface) {
     surface.onNeedVisualUpdate = _handleNeedVisualUpdate;
   }
 
@@ -343,7 +346,7 @@ class Layout3dRootRenderBox extends Layout3dRenderBox {
 /// somewhere else.
 ///
 /// The one place the widget layer edits the layout tree.
-void adoptLayoutChildren(Layout3d parent, List<Layout3d> children) {
+void adoptLayoutChildren(RenderObject3d parent, List<RenderObject3d> children) {
   for (final child in children) {
     final previous = child.parent;
     if (previous != null && !identical(previous, parent)) {
@@ -352,11 +355,11 @@ void adoptLayoutChildren(Layout3d parent, List<Layout3d> children) {
   }
   // The mixins rather than the box classes, so a sliver that holds children
   // is adopted the same way a box is.
-  if (parent is Layout3dWithChildrenMixin) {
+  if (parent is ContainerRenderObjectMixin3d) {
     parent.syncChildren(children);
     return;
   }
-  if (parent is Layout3dWithChildMixin) {
+  if (parent is RenderObjectWithChildMixin3d) {
     assert(
       children.length <= 1,
       '${parent.runtimeType} takes a single child, but was given '
@@ -372,52 +375,53 @@ void adoptLayoutChildren(Layout3d parent, List<Layout3d> children) {
 }
 
 /// Removes [child] from [parent], whatever kind of layout it is.
-void detachLayout(Layout3d child, Layout3d parent) {
-  if (parent is Layout3dWithChildrenMixin) {
+void detachLayout(RenderObject3d child, RenderObject3d parent) {
+  if (parent is ContainerRenderObjectMixin3d) {
     parent.remove(child);
-  } else if (parent is Layout3dWithChildMixin &&
+  } else if (parent is RenderObjectWithChildMixin3d &&
       identical(parent.child, child)) {
     parent.child = null;
   }
 }
 
-/// The base of the declarative layouts: a widget that owns a [Layout3d] and
-/// applies property changes to it on rebuild.
+/// The base of the declarative layouts: a widget that owns a [RenderObject3d]
+/// and applies property changes to it on rebuild.
 ///
 /// Subclasses create the layout once and update it in place, so an unchanged
 /// rebuild writes nothing and a changed one costs only the properties that
 /// changed, the same contract flutter_scene's own scene widgets keep with
 /// their nodes.
-abstract class Layout3dWidget extends MultiChildRenderObjectWidget {
+abstract class MultiChildRenderObjectWidget3d
+    extends MultiChildRenderObjectWidget {
   /// Creates a layout widget with the given children.
-  const Layout3dWidget({super.key, super.children});
+  const MultiChildRenderObjectWidget3d({super.key, super.children});
 
   /// Creates the layout object this widget describes.
   @protected
-  Layout3d createLayout(BuildContext context);
+  RenderObject3d createLayout(BuildContext context);
 
   /// Applies this widget's properties to an existing layout.
   @protected
-  void updateLayout(BuildContext context, covariant Layout3d layout);
+  void updateLayout(BuildContext context, covariant RenderObject3d layout);
 
   @override
   RenderObject createRenderObject(BuildContext context) =>
-      Layout3dRenderBox(createLayout(context));
+      RenderObject3dHost(createLayout(context));
 
   @override
   void updateRenderObject(
     BuildContext context,
-    covariant Layout3dRenderBox renderObject,
+    covariant RenderObject3dHost renderObject,
   ) {
     updateLayout(context, renderObject.layout3d);
   }
 }
 
-/// A [Layout3dWidget] with at most one child.
+/// A [MultiChildRenderObjectWidget3d] with at most one child.
 ///
 /// Flutter's `SingleChildRenderObjectWidget` is not the base here: its element
 /// hands the child render object to a `RenderObjectWithChildMixin`, while
-/// [Layout3dRenderBox] holds a child *list* so that one mirroring path serves
+/// [RenderObject3dHost] holds a child *list* so that one mirroring path serves
 /// every layout shape. This is a multi-child widget that reports a list of
 /// nought or one instead.
 ///
@@ -425,9 +429,10 @@ abstract class Layout3dWidget extends MultiChildRenderObjectWidget {
 /// lets these widgets be `const`: `const ScenePadding3d(...)` in a `build`
 /// method is a widget Flutter can skip rebuilding, the same as `const
 /// Padding(...)`.
-abstract class SingleChildLayout3dWidget extends Layout3dWidget {
+abstract class SingleChildRenderObjectWidget3d
+    extends MultiChildRenderObjectWidget3d {
   /// Creates a single-child layout widget.
-  const SingleChildLayout3dWidget({super.key, this.child});
+  const SingleChildRenderObjectWidget3d({super.key, this.child});
 
   /// The widget below this one in the tree.
   final Widget? child;
@@ -441,27 +446,27 @@ abstract class SingleChildLayout3dWidget extends Layout3dWidget {
 
 /// The host of a layout whose children are built as they are reached.
 ///
-/// The difference from an ordinary [Layout3dRenderBox] is where the layout
-/// children come from. An ordinary host mirrors: it reads the render child
-/// list Flutter reconciled for it and hands that to its layout. A lazy host
-/// cannot, because its render children are created *during* the layout that
-/// decides which of them should exist — the list is being written while it
-/// would be read. So it mirrors nothing, and the layout's child list is
-/// maintained by [Layout3dLazyElement] acting as its [Layout3dChildManager]
+/// The difference from an ordinary [RenderObject3dHost] is where the layout
+/// children come from. An ordinary host mirrors: it reads the render child list
+/// Flutter reconciled for it and hands that to its layout. A lazy host cannot,
+/// because its render children are created *during* the layout that decides
+/// which of them should exist — the list is being written while it would be
+/// read. So it mirrors nothing, and the layout's child list is maintained by
+/// [LazyRenderObjectElement3d] acting as its [RenderObject3dChildManager]
 /// instead. What is left here is laying the built subtrees out, so that each
 /// item's own hosting boxes mirror their part of the tree.
-class Layout3dLazyRenderBox extends Layout3dRenderBox {
+class RenderObject3dLazyHost extends RenderObject3dHost {
   /// Creates a lazy host for [layout3d].
-  Layout3dLazyRenderBox(super.layout3d);
+  RenderObject3dLazyHost(super.layout3d);
 
   /// The view inside [layout3d] that holds the built children.
-  Layout3dBuiltChildrenMixin get builtChildren => builtChildrenOf(layout3d);
+  RenderBuiltChildrenMixin3d get builtChildren => builtChildrenOf(layout3d);
 
   @override
   void layoutChildBoxes() {
     var child = firstChild;
     while (child != null) {
-      child.layout(Layout3dRenderBox.hostConstraints);
+      child.layout(RenderObject3dHost.hostConstraints);
       child = childAfter(child);
     }
   }
@@ -469,13 +474,13 @@ class Layout3dLazyRenderBox extends Layout3dRenderBox {
   /// Lays out the subtree of an item just built, so that it reaches the
   /// layout tree before the view that asked for it uses it.
   ///
-  /// The item's own [Layout3dRenderBox.performLayout] is what mirrors its
+  /// The item's own [RenderObject3dHost.performLayout] is what mirrors its
   /// children onto its layout, and nothing else is going to run it: the pass
   /// that is asking for this item is already past the point where Flutter
   /// lays this box's children out.
   void layoutBuiltChild(RenderBox child) {
     assert(identical(child.parent, this));
-    child.layout(Layout3dRenderBox.hostConstraints);
+    child.layout(RenderObject3dHost.hostConstraints);
   }
 }
 
@@ -487,22 +492,22 @@ class Layout3dLazyRenderBox extends Layout3dRenderBox {
 /// its children: an explicit list is reconciled up front and mirrored onto
 /// the layout, while a builder inflates items as the view reaches them.
 ///
-/// A built item is an ordinary widget in an ordinary element tree, which is
-/// the whole point of this class existing: it can read an [InheritedWidget],
-/// keep [State], and rebuild on its own. What it must not do is resolve to
-/// something that is not a layout — the top-most render object of an item has
-/// to be a [Layout3dRenderBox] — so `SceneContainer3d`, `SceneText3d` and the
-/// rest are fine, under any number of builders, providers and stateful
-/// widgets, while a Flutter `Text` is not.
+/// A built item is an ordinary widget in an ordinary element tree, which is the
+/// whole point of this class existing: it can read an [InheritedWidget], keep
+/// [State], and rebuild on its own. What it must not do is resolve to something
+/// that is not a layout — the top-most render object of an item has to be a
+/// [RenderObject3dHost] — so `SceneContainer3d`, `SceneText3d` and the rest
+/// are fine, under any number of builders, providers and stateful widgets,
+/// while a Flutter `Text` is not.
 ///
-/// This is not a [Layout3dWidget], and cannot be: that class is a
-/// `MultiChildRenderObjectWidget`, whose element type is fixed to
+/// This is not a [MultiChildRenderObjectWidget3d], and cannot be: that class is
+/// a `MultiChildRenderObjectWidget`, whose element type is fixed to
 /// `MultiChildRenderObjectElement`, and a lazy view needs an element of its
 /// own. The contract with the layout object is the same one, spelled again.
-abstract class LazyLayout3dWidget extends RenderObjectWidget {
+abstract class LazyRenderObjectWidget3d extends RenderObjectWidget {
   /// Creates a layout widget in one of its two shapes: [children] given, or
   /// [itemBuilder] and [itemCount] given.
-  const LazyLayout3dWidget({
+  const LazyRenderObjectWidget3d({
     super.key,
     this.children = const <Widget>[],
     this.itemCount,
@@ -566,7 +571,7 @@ abstract class LazyLayout3dWidget extends RenderObjectWidget {
   Widget? buildChild(
     BuildContext context,
     int index,
-    covariant Layout3d layout,
+    covariant RenderObject3d layout,
   ) {
     final builder = itemBuilder;
     final count = itemCount;
@@ -577,31 +582,31 @@ abstract class LazyLayout3dWidget extends RenderObjectWidget {
 
   /// Creates the layout object this widget describes.
   @protected
-  Layout3d createLayout(BuildContext context);
+  RenderObject3d createLayout(BuildContext context);
 
   /// Applies this widget's properties to an existing layout.
   @protected
-  void updateLayout(BuildContext context, covariant Layout3d layout);
+  void updateLayout(BuildContext context, covariant RenderObject3d layout);
 
   @override
-  Layout3dLazyElement createElement() {
+  LazyRenderObjectElement3d createElement() {
     assert(
       !isLazy || children.isEmpty,
       'A builder view has no children of its own: its items come from '
       'itemBuilder, and a child given here would never be laid out.',
     );
-    return Layout3dLazyElement(this);
+    return LazyRenderObjectElement3d(this);
   }
 
   @override
   RenderObject createRenderObject(BuildContext context) => isLazy
-      ? Layout3dLazyRenderBox(createLayout(context))
-      : Layout3dRenderBox(createLayout(context));
+      ? RenderObject3dLazyHost(createLayout(context))
+      : RenderObject3dHost(createLayout(context));
 
   @override
   void updateRenderObject(
     BuildContext context,
-    covariant Layout3dRenderBox renderObject,
+    covariant RenderObject3dHost renderObject,
   ) {
     updateLayout(context, renderObject.layout3d);
     final count = itemCount;
@@ -614,15 +619,15 @@ abstract class LazyLayout3dWidget extends RenderObjectWidget {
   }
 }
 
-/// The element of a [LazyLayout3dWidget], and the child manager of the view
-/// it hosts.
+/// The element of a [LazyRenderObjectWidget3d], and the child manager of the
+/// view it hosts.
 ///
 /// The 3D analogue of `SliverMultiBoxAdaptorElement`, and the same trade: the
-/// element is the [Layout3dChildManager] its own layout consults, so both
+/// element is the [RenderObject3dChildManager] its own layout consults, so both
 /// trees are edited from one place. When the view reaches index 7 it arrives
 /// here, in [createChild], which opens a build scope, inflates the widget,
-/// mounts it, lays its subtree out, and hands back the [Layout3d] at the top
-/// of it.
+/// mounts it, lays its subtree out, and hands back the [RenderObject3d] at the
+/// top of it.
 ///
 /// Building inside a layout is legal here for the reason it is legal in
 /// Flutter: the surface's layout pass runs inside Flutter's layout phase,
@@ -633,19 +638,21 @@ abstract class LazyLayout3dWidget extends RenderObjectWidget {
 /// ordinary multi-child element: `MultiChildRenderObjectElement` cannot be
 /// reused for that, because it insists on a `MultiChildRenderObjectWidget`,
 /// so the handful of lines that reconcile a child list are repeated here.
-class Layout3dLazyElement extends RenderObjectElement
-    implements Layout3dChildManager {
+class LazyRenderObjectElement3d extends RenderObjectElement
+    implements RenderObject3dChildManager {
   /// Creates an element for [widget].
-  Layout3dLazyElement(LazyLayout3dWidget super.widget);
+  LazyRenderObjectElement3d(LazyRenderObjectWidget3d super.widget);
 
   @override
-  LazyLayout3dWidget get widget => super.widget as LazyLayout3dWidget;
+  LazyRenderObjectWidget3d get widget =>
+      super.widget as LazyRenderObjectWidget3d;
 
   @override
-  Layout3dRenderBox get renderObject => super.renderObject as Layout3dRenderBox;
+  RenderObject3dHost get renderObject =>
+      super.renderObject as RenderObject3dHost;
 
-  Layout3dBuiltChildrenMixin get _view =>
-      (renderObject as Layout3dLazyRenderBox).builtChildren;
+  RenderBuiltChildrenMixin3d get _view =>
+      (renderObject as RenderObject3dLazyHost).builtChildren;
 
   // The explicit shape: the child list, reconciled the way every multi-child
   // element reconciles one.
@@ -664,7 +671,7 @@ class Layout3dLazyElement extends RenderObjectElement
   /// Kept so that a rebuild which swapped an item's render object can take
   /// the layout that went with the old one off the view's books before the
   /// view lays it out again.
-  final Map<int, Layout3d> _childLayouts = <int, Layout3d>{};
+  final Map<int, RenderObject3d> _childLayouts = <int, RenderObject3d>{};
 
   int? _currentlyUpdatingChildIndex;
 
@@ -707,7 +714,7 @@ class Layout3dLazyElement extends RenderObjectElement
   }
 
   @override
-  void update(covariant LazyLayout3dWidget newWidget) {
+  void update(covariant LazyRenderObjectWidget3d newWidget) {
     super.update(newWidget);
     if (!_lazy) {
       _children = updateChildren(
@@ -782,9 +789,9 @@ class Layout3dLazyElement extends RenderObjectElement
   Widget? _build(int index) =>
       widget.buildChild(this, index, renderObject.layout3d);
 
-  Layout3dRenderBox _hostOf(Element child, int index) {
+  RenderObject3dHost _hostOf(Element child, int index) {
     final render = child.renderObject;
-    if (render is Layout3dRenderBox) return render;
+    if (render is RenderObject3dHost) return render;
     throw FlutterError.fromParts(<DiagnosticsNode>[
       ErrorSummary(
         'The itemBuilder of a ${widget.runtimeType} returned something that '
@@ -808,7 +815,7 @@ class Layout3dLazyElement extends RenderObjectElement
 
   /// Builds the item at [index] and returns the layout at the top of it.
   @override
-  Layout3d? createChild(int index) {
+  RenderObject3d? createChild(int index) {
     assert(_lazy);
     assert(_currentlyUpdatingChildIndex == null);
     owner!.buildScope(this, () {
@@ -833,14 +840,14 @@ class Layout3dLazyElement extends RenderObjectElement
     final child = _childElements[index];
     if (child == null) return null;
     final host = _hostOf(child, index)..disposeLayoutOnUnmount = true;
-    (renderObject as Layout3dLazyRenderBox).layoutBuiltChild(host);
+    (renderObject as RenderObject3dLazyHost).layoutBuiltChild(host);
     _childLayouts[index] = host.layout3d;
     return host.layout3d;
   }
 
   /// Releases the item at [index], which the view has already unparented.
   @override
-  void removeChild(int index, Layout3d child) {
+  void removeChild(int index, RenderObject3d child) {
     assert(_lazy);
     assert(_currentlyUpdatingChildIndex == null);
     _childLayouts.remove(index);

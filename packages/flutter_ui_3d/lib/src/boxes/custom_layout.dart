@@ -4,18 +4,18 @@ import 'package:flutter/foundation.dart'
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// Tags a child of a [CustomMultiChildLayout3d] so a delegate can name it,
 /// the 3D analogue of [LayoutId].
 ///
 /// Flutter's `LayoutId` is a `ParentDataWidget`, which writes an id into the
 /// child's parent data. There is no parent-data widget here, and none is
-/// wanted: a [Layout3d] is cheap — a scene node and a size — so the id is
-/// carried by a box that wraps the child, exactly as [Positioned3d] carries a
-/// [Stack3d]'s pins. The box passes constraints and size straight through, so
-/// it changes nothing about the layout it takes part in.
-class LayoutId3d extends ProxyLayout3d {
+/// wanted: a [RenderObject3d] is cheap — a scene node and a size — so the
+/// id is carried by a box that wraps the child, exactly as [Positioned3d]
+/// carries a [Stack3d]'s pins. The box passes constraints and size straight
+/// through, so it changes nothing about the layout it takes part in.
+class LayoutId3d extends RenderProxyBox3d {
   /// Tags [child] with [id].
   LayoutId3d({required Object id, super.child, super.name}) : _id = id;
 
@@ -174,7 +174,7 @@ abstract class MultiChildLayout3dDelegate {
   _DelegateState? _state;
 
   /// Runs [performLayout] with the child map in place.
-  void _run(Size3d size, Map<Object, Layout3d> children) {
+  void _run(Size3d size, Map<Object, RenderObject3d> children) {
     _state = _DelegateState(children);
     try {
       performLayout(size);
@@ -197,7 +197,7 @@ abstract class MultiChildLayout3dDelegate {
 class _DelegateState {
   _DelegateState(this.children) : pending = children.keys.toSet();
 
-  final Map<Object, Layout3d> children;
+  final Map<Object, RenderObject3d> children;
 
   /// The ids not yet laid out this pass, for the assertions above.
   final Set<Object> pending;
@@ -215,7 +215,7 @@ class _DelegateState {
 /// the bar left only after the bar has been measured. What child order still
 /// decides is hit testing, which runs back to front as everywhere else, so a
 /// child later in the list wins a ray both boxes are in.
-class CustomMultiChildLayout3d extends MultiChildLayout3d<ParentData3d> {
+class CustomMultiChildLayout3d extends RenderMultiChild3d<ParentData3d> {
   /// Creates a box arranged by [delegate].
   CustomMultiChildLayout3d({
     required MultiChildLayout3dDelegate delegate,
@@ -243,8 +243,8 @@ class CustomMultiChildLayout3d extends MultiChildLayout3d<ParentData3d> {
 
   /// The children by the id their [LayoutId3d] carries.
   @protected
-  Map<Object, Layout3d> childrenById() {
-    final result = <Object, Layout3d>{};
+  Map<Object, RenderObject3d> childrenById() {
+    final result = <Object, RenderObject3d>{};
     for (final child in heldChildren) {
       assert(
         child is LayoutId3d,

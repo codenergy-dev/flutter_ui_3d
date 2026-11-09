@@ -3,17 +3,17 @@ import 'package:flutter/foundation.dart'
 
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// A box that can hide its child without taking it out of the layout.
 ///
-/// The 3D analogue of `Visibility`, and simpler than Flutter's for one
-/// reason: there is no display list to skip. A scene node either draws or it
-/// does not, so hiding is a flag on the node, and the flag is the same one
-/// the scrolling views already set on the children they cull. Hit testing
-/// honours it — `Layout3d.hitTestChild` refuses a hidden child — so an
-/// invisible box is unpointable as well as unseen, which is what a caller
-/// almost always means.
+/// The 3D analogue of `Visibility`, and simpler than Flutter's for one reason:
+/// there is no display list to skip. A scene node either draws or it does not,
+/// so hiding is a flag on the node, and the flag is the same one the scrolling
+/// views already set on the children they cull. Hit testing honours it —
+/// `RenderObject3d.hitTestChild` refuses a hidden child — so an invisible box
+/// is unpointable as well as unseen, which is what a caller almost always
+/// means.
 ///
 /// The child is still laid out and still reports its size, so the space stays
 /// reserved and nothing above moves. Use [Offstage3d] to take the space back.
@@ -21,7 +21,7 @@ import '../layout3d.dart';
 /// ```dart
 /// Visibility3d(visible: index == selected, child: checkmark)
 /// ```
-class Visibility3d extends ProxyLayout3d {
+class Visibility3d extends RenderProxyBox3d {
   /// Creates a box showing or hiding [child].
   Visibility3d({bool visible = true, super.child, super.name})
     : _visible = visible {
@@ -74,7 +74,7 @@ class Visibility3d extends ProxyLayout3d {
 /// ```dart
 /// Offstage3d(offstage: !expanded, child: details)
 /// ```
-class Offstage3d extends SingleChildLayout3d with Layout3dChildIntrinsicsMixin {
+class Offstage3d extends RenderSingleChild3d with RenderChildIntrinsicsMixin3d {
   /// Creates a box that can take its child out of the layout.
   Offstage3d({bool offstage = true, super.child, super.name})
     : _offstage = offstage {
@@ -173,7 +173,7 @@ class Offstage3d extends SingleChildLayout3d with Layout3dChildIntrinsicsMixin {
 ///
 /// Setting [keepAlive] back to false does not release the child there and
 /// then; the next pass that finds the index outside its window does.
-class KeepAlive3d extends ProxyLayout3d {
+class KeepAlive3d extends RenderProxyBox3d {
   /// Creates a box asking for [child] to be kept.
   KeepAlive3d({this.keepAlive = true, super.child, super.name});
 

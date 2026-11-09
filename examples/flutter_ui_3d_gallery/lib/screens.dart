@@ -4,9 +4,9 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart' show SynchronousFuture;
 import 'package:flutter/material.dart' show DefaultTabController, Icons;
 import 'package:flutter/widgets.dart';
-// Both libraries, because a flight builder returns a `Layout3d` rather than a
-// `Widget`: an overlay entry inserted from inside a route transition has no
-// element to build into. `widgets.dart` is the rest of the screen.
+// Both libraries, because a flight builder returns a `RenderObject3d` rather
+// than a `Widget`: an overlay entry inserted from inside a route transition has
+// no element to build into. `widgets.dart` is the rest of the screen.
 import 'package:flutter_ui_3d/rendering.dart';
 import 'package:flutter_ui_3d/widgets.dart';
 import 'package:material_ui_3d/material_ui_3d.dart';
@@ -1083,9 +1083,9 @@ class GalleryAvatar extends ImageProvider<GalleryAvatar> {
 /// A dp figure as world units, read from the surface's unit contract.
 ///
 /// A `build` method reaches the contract through [Layout3dMetricsScope]; a
-/// `performLayout` reaches the same thing as `Layout3d.metrics`. Everything
-/// Material states is in logical pixels and has to cross that boundary
-/// exactly once — never the other way round.
+/// `performLayout` reaches the same thing as `RenderObject3d.metrics`.
+/// Everything Material states is in logical pixels and has to cross that
+/// boundary exactly once — never the other way round.
 double _dp(BuildContext context, double logicalPixels) =>
     Layout3dMetricsScope.of(context).dp(logicalPixels);
 
@@ -1096,10 +1096,10 @@ EdgeInsets3d _insets(BuildContext context, EdgeInsets3d insets) =>
 ///
 /// A flight belongs to an overlay entry inserted from inside a route
 /// transition, where there is no element to build a widget into — so this
-/// returns a `Layout3d` rather than a `Widget`, the same seam a drag's
+/// returns a `RenderObject3d` rather than a `Widget`, the same seam a drag's
 /// feedback has. It is laid out at the size of the end the flight starts
 /// from and scaled to reach the other, so it needs no size of its own.
-Layout3d _avatar(int index) => Image3d(
+RenderObject3d _avatar(int index) => Image3d(
   image: GalleryAvatar(index),
   fit: BoxFit.cover,
   // Half the 40dp end, so the circle stays a circle at both sizes: the

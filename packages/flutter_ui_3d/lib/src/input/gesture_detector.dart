@@ -73,7 +73,7 @@ import 'listener.dart';
 ///  * One drag rather than three: [onPanStart] and friends. A view that
 ///    scrolls is a [Scrollable3d] and competes for the pointer through
 ///    `Layout3dPointer` rather than through a recognizer of its own.
-class GestureDetector3d extends ProxyLayout3dWithHitTestBehavior
+class GestureDetector3d extends RenderProxyBoxWithHitTestBehavior3d
     implements HitTestTarget3d {
   /// Creates a gesture detector.
   ///

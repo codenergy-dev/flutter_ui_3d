@@ -11,7 +11,7 @@ import 'package:flutter/foundation.dart'
 
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// One box reporting that its content did not fit inside it.
 ///
@@ -34,7 +34,7 @@ class Layout3dOverflow {
   });
 
   /// The box whose content did not fit.
-  final Layout3d box;
+  final RenderObject3d box;
 
   /// How much the content exceeded the box by, per axis.
   ///
@@ -123,7 +123,7 @@ void defaultLayout3dOverflowReporter(Layout3dOverflow overflow) {
 /// is news. Reporting is throttled to changes, because a list being flung
 /// past a row that overflows would otherwise report the same overflow on
 /// every frame of the fling.
-mixin Layout3dOverflowReportingMixin on Layout3d {
+mixin RenderOverflowReportingMixin3d on RenderObject3d {
   Size3d _debugOverflow = Size3d.zero;
   Size3d? _debugReportedOverflow;
 

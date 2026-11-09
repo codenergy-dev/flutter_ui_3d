@@ -399,7 +399,7 @@ void main() {
       expect(it.target.effectiveMinimumSize.height, closeTo(0.48, 1e-9));
       var sawTarget = false;
       var semanticsIsInside = false;
-      void walk(Layout3d box) {
+      void walk(RenderObject3d box) {
         if (box is TapTarget3d) sawTarget = true;
         if (box is Semantics3d && sawTarget) semanticsIsInside = true;
         box.visitChildren(walk);

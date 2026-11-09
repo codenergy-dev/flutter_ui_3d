@@ -7,15 +7,15 @@ import '../geometry/alignment3d.dart';
 import '../geometry/constraints3d.dart';
 import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
-import '../layout3d.dart';
+import '../rendering/object.dart';
 
 /// Imposes extra constraints on its child, the 3D analogue of
 /// [ConstrainedBox].
 ///
 /// The extra constraints are combined with the incoming ones through
 /// [Constraints3d.enforce], so a parent's limits always win.
-class ConstrainedBox3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+class ConstrainedBox3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a box that constrains its child.
   ConstrainedBox3d({
     Constraints3d additionalConstraints = const Constraints3d(),
@@ -185,8 +185,8 @@ class SizedBox3d extends ConstrainedBox3d {
 /// `Transform3d.rotate(axis: Vector3(0, 0, 1), angle: 0.2)` turns the child
 /// clockwise on the plane, exactly as `Transform.rotate` does in Flutter. The
 /// child is laid out and sized as if the transform were not there.
-class Transform3d extends SingleChildLayout3d
-    with Layout3dChildIntrinsicsMixin {
+class Transform3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a transformed box.
   Transform3d({
     required Matrix4 transform,
@@ -204,7 +204,7 @@ class Transform3d extends SingleChildLayout3d
     required double angle,
     AlignmentGeometry3d alignment = Alignment3d.center,
     TextDirection? textDirection,
-    Layout3d? child,
+    RenderObject3d? child,
     String? name,
   }) : this(
          transform: Matrix4.compose(
@@ -223,7 +223,7 @@ class Transform3d extends SingleChildLayout3d
     required Vector3 scale,
     AlignmentGeometry3d alignment = Alignment3d.center,
     TextDirection? textDirection,
-    Layout3d? child,
+    RenderObject3d? child,
     String? name,
   }) : this(
          transform: Matrix4.diagonal3(scale),
@@ -236,7 +236,7 @@ class Transform3d extends SingleChildLayout3d
   /// A box that translates its child, in layout space.
   Transform3d.translate({
     required Offset3d offset,
-    Layout3d? child,
+    RenderObject3d? child,
     String? name,
   }) : this(
          transform: Matrix4.translationValues(offset.x, offset.y, offset.z),

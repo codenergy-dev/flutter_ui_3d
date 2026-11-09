@@ -2,7 +2,7 @@ import 'package:flutter/animation.dart' show Animation;
 import 'package:flutter/foundation.dart'
     show DiagnosticPropertiesBuilder, DoubleProperty, protected;
 
-import 'layout3d.dart';
+import 'rendering/object.dart';
 
 /// The behaviour of a box that fades everything below it.
 ///
@@ -13,13 +13,13 @@ import 'layout3d.dart';
 /// changes.
 ///
 /// The republish is the whole reason this is a mixin rather than two copies.
-/// [Layout3d.inheritedOpacity] is computed by walking *up*, so nothing below
-/// finds out that the value changed unless it is told — and being told is
-/// [Layout3d.refreshOpacity], one uniform per box that draws. Forget the
-/// republish and an opacity is correct for whatever was laid out afterwards
+/// [RenderObject3d.inheritedOpacity] is computed by walking *up*, so nothing
+/// below finds out that the value changed unless it is told — and being told
+/// is [RenderObject3d.refreshOpacity], one uniform per box that draws. Forget
+/// the republish and an opacity is correct for whatever was laid out afterwards
 /// and stale for everything else, which is the kind of defect that only shows
 /// up in the one frame nobody photographed.
-mixin Layout3dOpacityMixin on Layout3d {
+mixin RenderOpacityMixin3d on RenderObject3d {
   double _opacity = 1.0;
 
   /// How much of the subtree below this box survives, from 0 to 1.
@@ -50,7 +50,7 @@ mixin Layout3dOpacityMixin on Layout3d {
   void initialOpacity(double value) => _opacity = value.clamp(0.0, 1.0);
 
   @override
-  double opacityForChild(Layout3d child) =>
+  double opacityForChild(RenderObject3d child) =>
       super.opacityForChild(child) * _opacity;
 
   @override
@@ -67,8 +67,8 @@ mixin Layout3dOpacityMixin on Layout3d {
 /// The 3D analogue of `Opacity`, and the only box in this package that
 /// publishes an opacity. Layout is untouched — the child is laid out against
 /// the same constraints and this box takes the child's size, exactly as a
-/// [ProxyLayout3d] does — and so is the geometry. What changes is how much of
-/// the subtree's fragments are drawn.
+/// [RenderProxyBox3d] does — and so is the geometry. What changes is how much
+/// of the subtree's fragments are drawn.
 ///
 /// ```dart
 /// Opacity3d(
@@ -114,10 +114,10 @@ mixin Layout3dOpacityMixin on Layout3d {
 ///
 /// Everything, at every opacity, including zero. An opacity is a property of
 /// the picture and nothing else here — the same bargain
-/// [Layout3d.nodeOffset] makes. Wrap the subtree in an `IgnorePointer3d` to
-/// take a faded-out control out of reach as well, exactly as Flutter's own
+/// [RenderObject3d.nodeOffset] makes. Wrap the subtree in an `IgnorePointer3d`
+/// to take a faded-out control out of reach as well, exactly as Flutter's own
 /// `Opacity` leaves you to.
-class Opacity3d extends ProxyLayout3d with Layout3dOpacityMixin {
+class Opacity3d extends RenderProxyBox3d with RenderOpacityMixin3d {
   /// Creates a box that draws [child] at [opacity].
   Opacity3d({double opacity = 1.0, super.child, super.name = 'Opacity3d'}) {
     initialOpacity(opacity);
@@ -125,7 +125,7 @@ class Opacity3d extends ProxyLayout3d with Layout3dOpacityMixin {
 
   /// How much of the subtree below survives, from 0 to 1.
   ///
-  /// The same value as [Layout3dOpacityMixin.imposedOpacity], under the name
+  /// The same value as [RenderOpacityMixin3d.imposedOpacity], under the name
   /// a caller of this box writes. Note that it is what this box *imposes*,
   /// not what is in force on it: an `Opacity3d` at 0.5 inside another at 0.5
   /// reports 0.5 here and draws its subtree at 0.25.

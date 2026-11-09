@@ -200,14 +200,14 @@ void main() {
         Text3d('R1', style: style, name: 'R1'),
       ];
       final view = PageView3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           Row3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceBetween,
-            children: <Layout3d>[labels[0], labels[1]],
+            children: <RenderObject3d>[labels[0], labels[1]],
           ),
           Row3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceBetween,
-            children: <Layout3d>[labels[2], labels[3]],
+            children: <RenderObject3d>[labels[2], labels[3]],
           ),
         ],
       );
@@ -278,12 +278,12 @@ void main() {
       // every letter is out. That is what the gallery's "Volume" did.
       final label = Text3d('Volume', style: style, name: 'Volume');
       final view = PageView3d(
-        children: <Layout3d>[
+        children: <RenderObject3d>[
           Column3d(
             crossAxisAlignment: CrossAxisAlignment3d.stretch,
-            children: <Layout3d>[label],
+            children: <RenderObject3d>[label],
           ),
-          Column3d(children: <Layout3d>[Text3d('x', style: style)]),
+          Column3d(children: <RenderObject3d>[Text3d('x', style: style)]),
         ],
       );
       final surface = laidOut(
@@ -430,12 +430,12 @@ void main() {
     // The plane tier of the contract is a shader block, and the block is
     // written when a decorated box paints. A box paints from inside its own
     // `performLayout` — where an enclosing `ClipBox3d` has not been given a
-    // size yet, because a proxy takes its size *from its child*. So the
-    // first block every panel under a clip ever got was the unbounded one,
-    // and nothing afterwards replaced it: a row half inside a window drew
-    // straight through the edge, and the whole tier was dead in a way no
-    // arithmetic test could see. `Layout3d.refreshClipRegion` is what closes
-    // that, and these are the two paths it has to cover.
+    // size yet, because a proxy takes its size *from its child*. So the first
+    // block every panel under a clip ever got was the unbounded one, and
+    // nothing afterwards replaced it: a row half inside a window drew straight
+    // through the edge, and the whole tier was dead in a way no arithmetic test
+    // could see. `RenderObject3d.refreshClipRegion` is what closes that, and
+    // these are the two paths it has to cover.
 
     setUp(ClipRecorder.reset);
     tearDown(() {
@@ -479,7 +479,7 @@ void main() {
         ClipBox3d(
           child: ListView3d(
             controller: controller,
-            children: <Layout3d>[
+            children: <RenderObject3d>[
               for (var i = 0; i < 6; i++)
                 SizedBox3d(
                   width: 2,

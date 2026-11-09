@@ -110,7 +110,7 @@ void main() {
       );
 
       expect(find3d.byType(Semantics3d), findsExactly(2));
-      expect(find3d.bySubtype<ProxyLayout3d>(), findsAtLeast(2));
+      expect(find3d.bySubtype<RenderProxyBox3d>(), findsAtLeast(2));
       expect(find3d.byType(Layout3dSurface), findsOne);
       expect(find3d.byLayout(surface), findsOne);
       // A SceneColumn3d builds a Flex3d, and a node is named after the box.
@@ -178,7 +178,7 @@ void main() {
       await tester.pump();
 
       expect(find3d.focused(), findsOne);
-      expect(tester.layout3d<Layout3d>(find3d.focused()), isA<Focus3d>());
+      expect(tester.layout3d<RenderObject3d>(find3d.focused()), isA<Focus3d>());
     });
 
     testWidgets('finds a detached entry, on the surface of its own', (
@@ -225,7 +225,8 @@ void main() {
       );
 
       await expectFailure(
-        () async => tester.layout3d<Layout3d>(find3d.bySemanticsLabel('twin')),
+        () async =>
+            tester.layout3d<RenderObject3d>(find3d.bySemanticsLabel('twin')),
         <String>['box with semantics label "twin"', 'found 2'],
       );
       await expectFailure(
@@ -597,7 +598,7 @@ void main() {
       );
 
       var summed = Offset3d.zero;
-      for (Layout3d? node = box; node != null; node = node.parent) {
+      for (RenderObject3d? node = box; node != null; node = node.parent) {
         summed += node.offset;
       }
       expect(box.drawnOffsetInSurface.x, closeTo(summed.x, 1e-6));
@@ -681,7 +682,7 @@ void main() {
       );
       expect(
         mismatchOf(isReachable3d, 'a string'),
-        contains('is not a Layout3d or a finder'),
+        contains('is not a RenderObject3d or a finder'),
       );
     });
 
