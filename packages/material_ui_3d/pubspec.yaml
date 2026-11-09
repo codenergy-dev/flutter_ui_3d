@@ -3,8 +3,8 @@ description: >-
   Material Design 3 built as real geometry on flutter_ui_3d and flutter_scene.
   The token families, a theme both the widget and the imperative layer can
   read, and the depth scales Material does not have.
-repository: https://github.com/codenergy-dev/flutter_scene_layout3d
-homepage: https://github.com/codenergy-dev/flutter_scene_layout3d
+repository: https://github.com/codenergy-dev/flutter_ui_3d
+homepage: https://github.com/codenergy-dev/flutter_ui_3d
 version: 0.1.0
 
 topics:

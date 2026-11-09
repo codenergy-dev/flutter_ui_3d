@@ -24,7 +24,7 @@ dependencies:
   flutter_scene: ^0.23.0
   flutter_ui_3d:
     git:
-      url: https://github.com/codenergy-dev/flutter_scene_layout3d.git
+      url: https://github.com/codenergy-dev/flutter_ui_3d.git
       path: packages/flutter_ui_3d
 
 # Temporary, and the reason is below: 0.23.0 loses draw calls out of an
