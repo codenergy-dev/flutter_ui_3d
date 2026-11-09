@@ -1,8 +1,7 @@
 ---
-status: in progress
-reason: the link has still to replace the render object handed between the two widgets
+status: completed
 created_at: 2026-11-09T18:00:00Z
-updated_at: 2026-11-09T18:00:00Z
+updated_at: 2026-11-09T19:30:00Z
 commit: 6ea8863bd27ec582f0555f2e394aefde26bfe96a
 ---
 
@@ -61,4 +60,15 @@ boxes by hand.
 
 ## Decisions made while working
 
-Nothing yet.
+- **The new tests found a defect older than this work.** `anchorOffsetTo`
+  documented null for a box with no size and read `anchor.size` before looking.
+  Nothing had reached it, because a follower held an anchor that had been laid
+  out frames before. With a link, an attached anchor with no size is ordinary:
+  a stack lays out its positioned children last, so the follower can be placed
+  first. It answers null now, and the anchor's own placement moves the follower
+  moments later in the same pass.
+- **`showMenu3d` changed its signature**, from `anchor:` to `link:`. Keeping a
+  `RenderAnchor3d` parameter would have left a public function asking for the
+  thing the widgets stopped handing out.
+- **The base package gained 18 tests**, to 1336. It had none on these two
+  classes because they did not live here.

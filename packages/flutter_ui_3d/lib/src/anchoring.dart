@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show VoidCallback;
 import 'package:vector_math/vector_math.dart' show Matrix4, Vector3;
 
 import 'geometry/alignment3d.dart';
@@ -107,6 +106,7 @@ extension Layout3dAnchoring on RenderObject3d {
     Alignment3d target = Alignment3d.center,
     bool includeDepth = false,
   }) {
+    if (!anchor.hasSize) return null;
     final wanted = localPointFrom(anchor, target.alongSize(anchor.size));
     if (wanted == null) return null;
     final here = self.alongSize(size);
@@ -118,27 +118,100 @@ extension Layout3dAnchoring on RenderObject3d {
   }
 }
 
+/// Where an anchor and its followers meet, the 3D counterpart of Flutter's
+/// `LayerLink`.
+///
+/// Whoever owns both ends makes one, usually a `State`, and gives it to an
+/// `Anchor3d` and a `Follower3d`:
+///
+/// ```dart
+/// final _link = AnchorLink3d();
+///
+/// Anchor3d(link: _link, child: button);
+/// Follower3d(link: _link, child: menu);
+/// ```
+///
+/// One anchor and any number of followers. Two anchors on a link is not an
+/// error, because the moment one replaces another in a frame is exactly that:
+/// the last to attach is the one followed.
+class AnchorLink3d {
+  RenderAnchor3d? _anchor;
+
+  final Set<RenderFollower3d> _followers = <RenderFollower3d>{};
+
+  /// The box followers on this link sit over, or null while none is attached.
+  ///
+  /// Null is a state a follower has to be able to live in, and it does: it
+  /// stays where it last was, or where layout put it if it never had an anchor,
+  /// which is what Flutter's `showWhenUnlinked` defaults to.
+  RenderAnchor3d? get anchor => _anchor;
+
+  void _reanchorFollowers() {
+    for (final follower in _followers) {
+      follower.reanchor();
+    }
+  }
+}
+
 /// The box an overlay is anchored to: a menu's button, a tooltip's control.
 ///
-/// A proxy that reports when it has been **placed**, which is one of the two
-/// hooks a follower needs. A scrolling view places its rows rather than
+/// A proxy that tells its [link] when it has been **placed**, which is one of
+/// the two hooks a follower needs. A scrolling view places its rows rather than
 /// relaying them out, so a follower watching only for a relayout would never
 /// hear about a scroll.
 class RenderAnchor3d extends RenderProxyBox3d {
-  /// Creates an anchor.
-  RenderAnchor3d({super.name = 'RenderAnchor3d'});
+  /// Creates an anchor on [link].
+  RenderAnchor3d({required AnchorLink3d link, super.name = 'RenderAnchor3d'})
+    : _link = link;
 
-  /// Called after this box has been positioned, every pass.
-  VoidCallback? onPlaced;
+  AnchorLink3d _link;
+
+  /// Where this box's followers find it.
+  AnchorLink3d get link => _link;
+
+  set link(AnchorLink3d value) {
+    if (identical(_link, value)) return;
+    final linked = identical(_link._anchor, this);
+    if (linked) _link._anchor = null;
+    _link = value;
+    if (attached) {
+      value._anchor = this;
+      value._reanchorFollowers();
+    }
+  }
+
+  @override
+  void attach(PipelineOwner3d owner) {
+    super.attach(owner);
+    _link._anchor = this;
+  }
+
+  @override
+  void detach() {
+    _leaveLink();
+    super.detach();
+  }
+
+  /// Takes this box off its link, unless another anchor has already replaced
+  /// it there.
+  void _leaveLink() {
+    if (identical(_link._anchor, this)) _link._anchor = null;
+  }
 
   @override
   void place(Offset3d offset) {
     super.place(offset);
-    onPlaced?.call();
+    if (identical(_link._anchor, this)) _link._reanchorFollowers();
+  }
+
+  @override
+  void dispose() {
+    _leaveLink();
+    super.dispose();
   }
 }
 
-/// Keeps its child over [anchor], on the node tier.
+/// Keeps its child over the anchor on [link], on the node tier.
 ///
 /// The follower half of the anchoring. It re-anchors on two occasions and
 /// both are inside the layout pass, so the menu is never a frame behind its
@@ -154,19 +227,17 @@ class RenderAnchor3d extends RenderProxyBox3d {
 /// to answer in the empty middle of the panel while a press on the item, at
 /// its button, reached the barrier and closed the menu.
 class RenderFollower3d extends RenderProxyBox3d {
-  /// Creates a follower for [anchor].
+  /// Creates a follower on [link].
   RenderFollower3d({
-    required RenderAnchor3d anchor,
+    required AnchorLink3d link,
     Alignment3d self = Alignment3d.topLeft,
     Alignment3d target = Alignment3d.bottomLeft,
     super.name = 'RenderFollower3d',
-  }) : _anchor = anchor,
+  }) : _link = link,
        _self = self,
-       _target = target {
-    anchor.onPlaced = reanchor;
-  }
+       _target = target;
 
-  RenderAnchor3d _anchor;
+  AnchorLink3d _link;
 
   Alignment3d _self;
 
@@ -193,24 +264,41 @@ class RenderFollower3d extends RenderProxyBox3d {
     reanchor();
   }
 
-  /// The box being followed.
-  RenderAnchor3d get anchor => _anchor;
+  /// Where this box finds its anchor.
+  AnchorLink3d get link => _link;
 
-  set anchor(RenderAnchor3d value) {
-    if (identical(_anchor, value)) return;
-    if (identical(_anchor.onPlaced, reanchor)) _anchor.onPlaced = null;
-    _anchor = value..onPlaced = reanchor;
+  set link(AnchorLink3d value) {
+    if (identical(_link, value)) return;
+    if (attached) {
+      _link._followers.remove(this);
+      value._followers.add(this);
+    }
+    _link = value;
     reanchor();
   }
 
   /// Puts this box back over its anchor.
   ///
-  /// A no-op until both boxes have been laid out, which is the frame the
-  /// menu was inserted on.
+  /// A no-op while the link has no anchor, and until both boxes have been laid
+  /// out, which is the frame the menu was inserted on.
   void reanchor() {
-    final placed = anchorOffsetTo(_anchor, self: self, target: target);
+    final anchor = _link.anchor;
+    if (anchor == null) return;
+    final placed = anchorOffsetTo(anchor, self: self, target: target);
     if (placed == null || placed == nodeOffset) return;
     nodeOffset = placed;
+  }
+
+  @override
+  void attach(PipelineOwner3d owner) {
+    super.attach(owner);
+    _link._followers.add(this);
+  }
+
+  @override
+  void detach() {
+    _link._followers.remove(this);
+    super.detach();
   }
 
   @override
@@ -225,7 +313,7 @@ class RenderFollower3d extends RenderProxyBox3d {
 
   @override
   void dispose() {
-    if (identical(_anchor.onPlaced, reanchor)) _anchor.onPlaced = null;
+    _link._followers.remove(this);
     super.dispose();
   }
 }

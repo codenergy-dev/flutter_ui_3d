@@ -2063,14 +2063,15 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       name: 'menu',
     );
 
-    final anchor = RenderAnchor3d()
+    final link = AnchorLink3d();
+    final anchor = RenderAnchor3d(link: link)
       ..child = RenderSizedBox3d(
         width: 0.5,
         height: 0.3,
         depth: 0.02,
         child: button,
       );
-    final follower = RenderFollower3d(anchor: anchor)
+    final follower = RenderFollower3d(link: link)
       ..child = RenderSizedBox3d(
         width: 1.0,
         height: 0.8,

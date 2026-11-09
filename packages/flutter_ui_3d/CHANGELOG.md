@@ -1,5 +1,19 @@
 ## Unreleased
 
+- **An anchor and its followers meet at an `AnchorLink3d`.** `Anchor3d` used to
+  hand its render object up through `onCreated`, and `Follower3d` took that
+  object as a parameter, so a `build` method kept a `RenderAnchor3d` in a field.
+  Now the state owns a link and gives it to both, the way Flutter's `LayerLink`
+  works, and `RenderAnchor3d` and `RenderFollower3d` take `link:` as well. A
+  link holds any number of followers, where the old `onPlaced` slot let a
+  second follower silently overwrite the first; `onPlaced` is gone. With no
+  anchor on the link a follower stays where it last was.
+
+- **`anchorOffsetTo` answers null for an anchor with no size, as it always
+  said it did.** It read the anchor's size before checking for one, so it
+  threw in debug instead. A stack lays out its positioned children last, which
+  is enough for a follower to be placed before the anchor it finds.
+
 - **`Anchor3d` and `Follower3d` belong to this package now.** They came from
   `material_ui_3d`, where they were `Anchor3dWidget` and `Follower3dWidget`, and
   nothing in them was Material's: a menu at its button and a tooltip under its

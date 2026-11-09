@@ -74,6 +74,9 @@ The entry points:
   is **completed**, in three phases: the packages, then the render object
   family, then the widgets, which now carry Flutter's plain names while the
   render objects carry `Render`.
+- [Anchoring in the base package](../packages/flutter_ui_3d/plans/2026_11_09_anchoring_in_the_base_package.md)
+  is **completed**: `Anchor3d` and `Follower3d` moved here from Material and
+  meet at an `AnchorLink3d`.
 - [The Material catalogue plan](../packages/material_ui_3d/plans/2026_09_01_flutter_scene_material3d.md)
   is **completed**, all ten phases of it, and its closing section is the thing
   to read before extending any of the catalogue: what the whole thing proved,

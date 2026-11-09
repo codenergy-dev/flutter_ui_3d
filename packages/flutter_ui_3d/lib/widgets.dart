@@ -31,7 +31,7 @@
 /// ```
 library;
 
-export 'src/anchoring.dart' show Layout3dAnchoring;
+export 'src/anchoring.dart' show AnchorLink3d, Layout3dAnchoring;
 export 'src/widgets/anchor.dart' show Anchor3d, Follower3d;
 export 'src/animation/implicit.dart'
     show

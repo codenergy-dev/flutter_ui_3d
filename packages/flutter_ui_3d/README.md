@@ -2615,6 +2615,29 @@ That is `RenderFollower3d`, and Flutter's
 leaves it out on purpose: a sliding thumb should still be pressed where layout
 put its slot.
 
+You rarely write that yourself, because the pair that does it is in the package.
+Make one `AnchorLink3d`, usually in a `State`, and give it to both ends:
+
+```dart
+final link = AnchorLink3d();
+
+Stack3d(
+  children: [
+    Positioned3d(
+      left: 1,
+      top: 1,
+      child: Anchor3d(link: link, child: button),
+    ),
+    Follower3d(link: link, child: menu),
+  ],
+);
+```
+
+`Follower3d` hangs its top start corner from the anchor's bottom start corner
+unless told otherwise through `self` and `target`, and it keeps doing so while
+the anchor scrolls or moves. A link has one anchor and as many followers as you
+like. While nothing is on it, a follower stays where it last was.
+
 ## Dragging things around
 
 Every drag so far has been a drag of the thing under the finger: a list moves

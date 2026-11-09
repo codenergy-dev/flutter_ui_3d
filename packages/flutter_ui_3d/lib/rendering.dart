@@ -90,7 +90,7 @@
 library;
 
 export 'src/anchoring.dart'
-    show Layout3dAnchoring, RenderAnchor3d, RenderFollower3d;
+    show AnchorLink3d, Layout3dAnchoring, RenderAnchor3d, RenderFollower3d;
 export 'src/animation/hero.dart'
     show
         RenderHero3d,

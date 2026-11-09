@@ -114,7 +114,9 @@ plan, which is the rule phase 0 established and every phase since has obeyed.
 
 Not an item on this map, because no application is waiting on it:
 [names that say what Flutter calls them](2026_11_09_names_that_say_what_flutter_calls_them.md),
-completed, renamed the packages and then the classes.
+completed, renamed the packages and then the classes, and
+[anchoring in the base package](2026_11_09_anchoring_in_the_base_package.md),
+completed, moved the anchoring widgets out of Material.
 
 ## The order, and why
 

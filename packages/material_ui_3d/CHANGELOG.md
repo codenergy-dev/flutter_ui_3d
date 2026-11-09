@@ -1,5 +1,10 @@
 ## Unreleased
 
+- **`showMenu3d` takes the `AnchorLink3d` an anchor is on.** Its `anchor:`
+  parameter, a `RenderAnchor3d`, is `link:` now, because the widgets that make
+  an anchor no longer hand one over. Put the same link on an `Anchor3d` around
+  whatever the menu hangs from.
+
 - **The anchoring widgets moved to `flutter_ui_3d`, under their plain names.**
   `Anchor3dWidget` is `Anchor3d` and `Follower3dWidget` is `Follower3d`, imported
   from `package:flutter_ui_3d/widgets.dart`. `RenderAnchor3d` and

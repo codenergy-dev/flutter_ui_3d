@@ -14,17 +14,13 @@ import 'package:flutter/widgets.dart'
         TextDirection,
         Widget;
 import 'package:flutter_ui_3d/rendering.dart'
-    show
-        Alignment3d,
-        EdgeInsets3d,
-        HitTestBehavior3d,
-        RenderAnchor3d,
-        RenderOverlay3d;
+    show Alignment3d, EdgeInsets3d, HitTestBehavior3d, RenderOverlay3d;
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
         Align3d,
         Anchor3d,
+        AnchorLink3d,
         Follower3d,
         IgnorePointer3d,
         Listener3d,
@@ -130,7 +126,7 @@ class Tooltip3d extends StatefulWidget {
 
 class _Tooltip3dState extends State<Tooltip3d>
     with SingleTickerProviderStateMixin {
-  RenderAnchor3d? _anchor;
+  final AnchorLink3d _link = AnchorLink3d();
   RenderOverlay3d? _overlay;
   WidgetOverlay3dEntry? _entry;
   Timer? _timer;
@@ -202,9 +198,10 @@ class _Tooltip3dState extends State<Tooltip3d>
 
   void _show() {
     _timer = null;
-    final anchor = _anchor;
     final overlay = _overlay;
-    if (!mounted || anchor == null || overlay == null || isShowing) return;
+    if (!mounted || _link.anchor == null || overlay == null || isShowing) {
+      return;
+    }
 
     final style = _style;
     final metrics = Layout3dMetricsScope.of(context);
@@ -221,7 +218,7 @@ class _Tooltip3dState extends State<Tooltip3d>
         // growth is: the anchoring is one corner on another, and a label that
         // is arriving is still hung where it belongs.
         child: Follower3d(
-          anchor: anchor,
+          link: _link,
           self: Alignment3d.topCenter,
           target: Alignment3d.bottomCenter,
           child: Padding3d(
@@ -284,10 +281,7 @@ class _Tooltip3dState extends State<Tooltip3d>
       // the hover region. The control inside still takes every tap, because
       // children are tested before their parent.
       behavior: HitTestBehavior3d.opaque,
-      child: Anchor3d(
-        onCreated: (anchor) => _anchor = anchor,
-        child: widget.child,
-      ),
+      child: Anchor3d(link: _link, child: widget.child),
     ),
   );
 }

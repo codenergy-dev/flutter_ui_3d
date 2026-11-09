@@ -90,7 +90,7 @@ Everything below runs from the repository root unless stated otherwise.
 
 ```sh
 flutter pub get                                      # clones the engine, see below
-cd packages/flutter_ui_3d && flutter test            # 1318 today
+cd packages/flutter_ui_3d && flutter test            # 1336 today
 cd packages/material_ui_3d && flutter test           # 852 today
 cd examples/flutter_ui_3d_gallery && flutter test    # 13 today
 dart analyze                                         # must be clean, everywhere

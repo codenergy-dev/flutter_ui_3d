@@ -18,7 +18,6 @@ import 'package:flutter_ui_3d/rendering.dart'
         Constraints3d,
         CrossAxisAlignment3d,
         MainAxisSize3d,
-        RenderAnchor3d,
         Route3dTransition,
         Size3d;
 import 'package:flutter_ui_3d/widgets.dart'
@@ -26,6 +25,7 @@ import 'package:flutter_ui_3d/widgets.dart'
         Layout3dMetricsScope,
         Align3d,
         Anchor3d,
+        AnchorLink3d,
         Follower3d,
         Column3d,
         ConstrainedBox3d,
@@ -355,7 +355,7 @@ class PopupMenuButton3d<T> extends StatefulWidget {
 }
 
 class _PopupMenuButton3dState<T> extends State<PopupMenuButton3d<T>> {
-  RenderAnchor3d? _anchor;
+  final AnchorLink3d _link = AnchorLink3d();
   WidgetPageRoute3d<T>? _open;
 
   @override
@@ -375,8 +375,7 @@ class _PopupMenuButton3dState<T> extends State<PopupMenuButton3d<T>> {
   }
 
   Future<void> _open3d() async {
-    final anchor = _anchor;
-    if (anchor == null || _open != null) return;
+    if (_link.anchor == null || _open != null) return;
     final theme = Theme3d.of(context);
     final arrival = (widget.style ?? MenuStyle3d.of(theme)).arrival;
     final route = WidgetPageRoute3d<T>(
@@ -399,7 +398,7 @@ class _PopupMenuButton3dState<T> extends State<PopupMenuButton3d<T>> {
         // on another and only the menu grows, so a menu that is arriving is
         // still hung where it belongs.
         child: Follower3d(
-          anchor: anchor,
+          link: _link,
           self: widget.menuCorner,
           target: widget.anchorCorner,
           child: MotionTransition3d(
@@ -460,7 +459,7 @@ class _PopupMenuButton3dState<T> extends State<PopupMenuButton3d<T>> {
         onTap: widget.enabled ? _open3d : null,
       ),
       child: Anchor3d(
-        onCreated: (anchor) => _anchor = anchor,
+        link: _link,
         child: Material3d(
           color: const Color(0x00000000),
           shape: Theme3d.of(context).shape.full,
@@ -522,15 +521,15 @@ class MenuItem3dEntry<T> {
   final bool enabled;
 }
 
-/// Puts a menu in front of everything, anchored to [anchor], and returns what
-/// it is popped with.
+/// Puts a menu in front of everything, anchored to whatever is on [link], and
+/// returns what it is popped with.
 ///
 /// What [PopupMenuButton3d] calls. Useful on its own for a menu opened by
 /// something that is not a button — a long press on a row, a keyboard
-/// shortcut — as long as there is a [RenderAnchor3d] to hang it on.
+/// shortcut — as long as there is an [Anchor3d] on [link] to hang it on.
 Future<T?> showMenu3d<T>({
   required BuildContext context,
-  required RenderAnchor3d anchor,
+  required AnchorLink3d link,
   required List<Widget> children,
   MenuStyle3d? style,
   String? semanticLabel,
@@ -555,7 +554,7 @@ Future<T?> showMenu3d<T>({
       dismissible: true,
       onDismiss: route.pop,
       child: Follower3d(
-        anchor: anchor,
+        link: link,
         self: menuCorner,
         target: anchorCorner,
         child: MotionTransition3d(

@@ -443,7 +443,7 @@ The suites are two, and both matter:
 
 ```sh
 flutter pub get                                        # resolves the workspace
-cd packages/flutter_ui_3d && flutter test              # 1318, arithmetic
+cd packages/flutter_ui_3d && flutter test              # 1336, arithmetic
 cd packages/material_ui_3d && flutter test             # 852, arithmetic
 
 cd examples/render_probe                               # 112, on a real GPU
