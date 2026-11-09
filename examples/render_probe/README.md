@@ -45,9 +45,9 @@ will ask about:
 
 ```dart
 ProbeScene('row_of_cubes', () {
-  final left = NodeBox3d(fit: BoxFit3d.contain, content: cube(), name: 'left');
+  final left = RenderNodeBox3d(fit: BoxFit3d.contain, content: cube(), name: 'left');
   return ProbeSceneContent(
-    surfaces: [Layout3dSurface(child: Row3d(children: [left, ...]))],
+    surfaces: [RenderSurface3d(child: RenderRow3d(children: [left, ...]))],
     probes: {'left': left},
   );
 }),
@@ -109,25 +109,26 @@ satisfied by a scene with no shadows in it.
 ### A scene that is mid-interaction
 
 Two of them are: `drag_feedback_depth` and `drag_feedback_detached` hold a
-`Draggable3d` in flight while the frame is captured, because what a drag looks
-like is the one part of it no arithmetic can check. A scene does that by
+`RenderDraggable3d` in flight while the frame is captured, because what a drag
+looks like is the one part of it no arithmetic can check. A scene does that by
 building its surface, flushing it, and driving a real `Layout3dPointer` — see
 `_dragAcross` — all inside `build()`, so what the harness receives is a static
 scene that happens to have a live drag in it.
 
 The step that is easy to leave out is the flush *in the middle*. An overlay
-entry has no size on the frame it is inserted, so `Draggable3d` cannot yet work
-out where the feedback has to sit to cover the card it came from; the press and
-the first move insert it, a flush gives it a size, and only the second move
+entry has no size on the frame it is inserted, so `RenderDraggable3d` cannot yet
+work out where the feedback has to sit to cover the card it came from; the press
+and the first move insert it, a flush gives it a size, and only the second move
 writes the node offset a probe is there to look at.
 
 A probe aimed at feedback can use `centerOf` and get the carried position, and
 the reason is worth knowing before you assume otherwise. `worldTransform`
 undoes a box's **own** `nodeOffset` — that channel exists to move geometry
 without moving the box layout arranged — but an *ancestor's* stays in
-`globalTransform` and therefore in the projection. `Draggable3d` writes the
-offset onto the `IgnorePointer3d` it wraps the feedback subtree in, which is
-above anything a caller can name, so `centerOf('feedback')` follows the drag.
+`globalTransform` and therefore in the projection. `RenderDraggable3d` writes
+the offset onto the `RenderIgnorePointer3d` it wraps the feedback subtree in,
+which is above anything a caller can name, so `centerOf('feedback')` follows the
+drag.
 
 Reconstructing the drawn point by hand from `box.nodeOffset` is the trap: on a
 probed feedback box that is always zero, so the "drawn" point comes out equal
@@ -324,7 +325,7 @@ harness wrapped the gallery's *screen* widget in a `MaterialApp` of its own
 rather than running `Gallery3dApp`, and every glyph in every atlas came
 back with a double rule through its descenders. That is Flutter's
 `_errorTextStyle` — what a `Text` resolves to with no `Material` above it —
-whose `decoration` a `SceneText3d` inherits like any other and the atlas bakes
+whose `decoration` a `Text3d` inherits like any other and the atlas bakes
 into the texture. It is a real trap rather than a harness quirk, and it is
 written up as *An atlas bakes the decoration, and a missing `Material` supplies
 one* in [docs/traps.md](../../docs/traps.md); the point here is that a harness
@@ -395,7 +396,7 @@ near-white track and reads darker. Its off thumb is drawn at 16dp by scaling
 the 24dp box about its centre, which is what `Switch3d` itself does now that
 its thumb grows. `slider_drag` is mid-interaction, like the
 drag scenes: it drives a real `Layout3dPointer` through the component's own
-`SliderGesture3d` three quarters of the way across, then asks whether the
+`RenderSliderGesture3d` three quarters of the way across, then asks whether the
 active track stops where the thumb is.
 
 `arc_on_a_ring` and `arc_turned` are the circular progress indicator's one

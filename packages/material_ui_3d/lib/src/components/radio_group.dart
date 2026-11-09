@@ -12,9 +12,9 @@ import 'package:flutter/widgets.dart'
         State,
         StatefulWidget,
         Widget;
-import 'package:flutter_ui_3d/rendering.dart' show Focus3d, Focus3dTraversal;
-import 'package:flutter_ui_3d/widgets.dart'
-    show SceneActions3d, SceneShortcuts3d;
+import 'package:flutter_ui_3d/rendering.dart'
+    show RenderFocus3d, Focus3dTraversal;
+import 'package:flutter_ui_3d/widgets.dart' show Actions3d, Shortcuts3d;
 
 /// What a [RadioGroup3d] hands the radios below it: the chosen value and what
 /// to call when it changes.
@@ -36,7 +36,7 @@ abstract interface class RadioGroupRegistry3d<T> {
 /// RadioGroup3d<Delivery>(
 ///   groupValue: _delivery,
 ///   onChanged: (value) => setState(() => _delivery = value),
-///   child: SceneColumn3d(
+///   child: Column3d(
 ///     mainAxisSize: MainAxisSize3d.min,
 ///     depthAxisAlignment: CrossAxisAlignment3d.start,
 ///     children: <Widget>[
@@ -70,14 +70,14 @@ abstract interface class RadioGroupRegistry3d<T> {
 /// Flutter's map, so a ported screen behaves as it did. Space is the radio's
 /// own activation and needs nothing from here.
 ///
-/// The bindings are a `SceneShortcuts3d` around the group, which is where a
+/// The bindings are a `Shortcuts3d` around the group, which is where a
 /// binding for a plane has to be — a Flutter `Shortcuts` around the view
 /// reaches nothing on it; see `docs/traps.md`. They are enabled only while a
 /// radio of this group holds the focus, so an arrow on any other control
 /// inside the group goes on up the walk and moves the focus as it would have.
 ///
 /// **This is therefore a box on the plane**, and goes inside a surface,
-/// around the radios — not above the `SceneLayout3d` the way a
+/// around the radios — not above the `Surface3d` the way a
 /// `DefaultTabController` can.
 ///
 /// ## Tab stops on every radio
@@ -92,9 +92,9 @@ abstract interface class RadioGroupRegistry3d<T> {
 ///
 /// Nothing of its own; each radio announces itself as before, `checked` and
 /// `inMutuallyExclusiveGroup`. Flutter's group wears the `radioGroup` role on
-/// a node whose children are its radios, and a `Semantics3d` has no children
-/// in the semantics tree — a group node here would group nothing. The same
-/// absence is what stops `TabBar3d` wearing `tabBar`, where Flutter checks
+/// a node whose children are its radios, and a `RenderSemantics3d` has no
+/// children in the semantics tree — a group node here would group nothing. The
+/// same absence is what stops `TabBar3d` wearing `tabBar`, where Flutter checks
 /// the children and a frame with an empty bar in it will not build.
 class RadioGroup3d<T> extends StatefulWidget {
   /// Creates a group of radios choosing a [T].
@@ -175,7 +175,7 @@ class _RadioGroup3dState<T> extends State<RadioGroup3d<T>>
   void _move({required bool forward}) {
     final focused = _focused;
     if (focused == null) return;
-    final box = Focus3d.layoutFor(focused.focusNode);
+    final box = RenderFocus3d.layoutFor(focused.focusNode);
     if (box == null) return;
     // The tree's order, from the root the focus is trapped in: the order Tab
     // walks, which for a column or a row of radios is the reading order — a
@@ -196,14 +196,14 @@ class _RadioGroup3dState<T> extends State<RadioGroup3d<T>>
     if (at < 0 || order.length < 2) return;
     final next = order[(at + (forward ? 1 : -1) + order.length) % order.length];
     widget.onChanged(next.widget.value);
-    final nextBox = Focus3d.layoutFor(next.focusNode);
-    if (nextBox is Focus3d) nextBox.requestFocus();
+    final nextBox = RenderFocus3d.layoutFor(next.focusNode);
+    if (nextBox is RenderFocus3d) nextBox.requestFocus();
   }
 
   @override
-  Widget build(BuildContext context) => SceneShortcuts3d(
+  Widget build(BuildContext context) => Shortcuts3d(
     shortcuts: _shortcuts,
-    child: SceneActions3d(
+    child: Actions3d(
       actions: _actions,
       child: _RadioGroup3dScope<T>(
         state: this,

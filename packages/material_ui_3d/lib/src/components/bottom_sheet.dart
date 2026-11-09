@@ -8,10 +8,10 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneAlign3d,
-        SceneConstrainedBox3d,
-        SceneMotionTransition3d,
-        SceneSemantics3d,
+        Align3d,
+        ConstrainedBox3d,
+        MotionTransition3d,
+        Semantics3d,
         WidgetPageRoute3d;
 
 import '../theme/theme.dart';
@@ -94,7 +94,7 @@ enum Sheet3dEdge {
 ///   context: context,
 ///   builder: (context) => BottomSheet3d(
 ///     semanticLabel: 'Share with',
-///     child: SceneColumn3d(
+///     child: Column3d(
 ///       mainAxisSize: MainAxisSize3d.min,
 ///       children: contacts,
 ///     ),
@@ -140,7 +140,8 @@ class BottomSheet3d extends StatelessWidget {
 
   /// What a screen reader announces the sheet as.
   ///
-  /// **State it.** A `Semantics3d` gathers nothing from the labels inside.
+  /// **State it.** A `RenderSemantics3d` gathers nothing from the labels
+  /// inside.
   final String? semanticLabel;
 
   /// The direction [semanticLabel] reads in.
@@ -158,14 +159,14 @@ class BottomSheet3d extends StatelessWidget {
     // reaches is the edge's business.
     final shape = edge.shapeFor(resolved.shape.topLeft);
 
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: SemanticsProperties(
         scopesRoute: true,
         namesRoute: semanticLabel != null,
         label: semanticLabel,
         textDirection: readingDirection3d(context, textDirection),
       ),
-      child: SceneConstrainedBox3d(
+      child: ConstrainedBox3d(
         constraints: edge.isHorizontal
             ? Constraints3d(maxWidth: metrics.dp(resolved.maxWidth))
             : Constraints3d(maxHeight: metrics.dp(resolved.maxWidth)),
@@ -181,7 +182,7 @@ class BottomSheet3d extends StatelessWidget {
             color: resolved.contentColor,
           ),
           alignment: null,
-          child: SceneAlign3d(
+          child: Align3d(
             alignment: Alignment3d.frontCenter,
             // The sheet shrink-wraps across the edge it is pinned to and
             // spans the other axis: a bottom sheet is as tall as its content
@@ -236,7 +237,7 @@ Future<T?> showModalBottomSheet3d<T>({
       dismissible: barrierDismissible,
       onDismiss: route.pop,
       scrimFade: route.animation,
-      child: SceneMotionTransition3d(
+      child: MotionTransition3d(
         animation: route.animation,
         motion: arrival.motion,
         child: builder(context),
@@ -282,9 +283,9 @@ Future<T?> showBottomSheet3d<T>({
     debugLabel: debugLabel ?? 'BottomSheet3d.persistent',
     // No scrim here and so no `modalFrame3d`: the motion wraps the aligned
     // sheet directly, and there is nothing behind it that must stay still.
-    builder: (context, self) => SceneAlign3d(
+    builder: (context, self) => Align3d(
       alignment: edge.alignment,
-      child: SceneMotionTransition3d(
+      child: MotionTransition3d(
         animation: route.animation,
         motion: arrival.motion,
         child: builder(context),

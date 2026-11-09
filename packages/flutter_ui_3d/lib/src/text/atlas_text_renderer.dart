@@ -34,10 +34,10 @@ Geometry? uploadGlyphGeometry(GeometryBuilder builder) => builder.build();
 /// captures.
 ///
 /// ```dart
-/// Text3d('Save', style: labelStyle, renderer: AtlasText3dRenderer())
+/// RenderText3d('Save', style: labelStyle, renderer: AtlasText3dRenderer())
 /// ```
 ///
-/// **What it does per layout.** Nothing, when nothing changed: a [Text3d]
+/// **What it does per layout.** Nothing, when nothing changed: a [RenderText3d]
 /// hands back the same [TextLayout3d] object when it relaid out at the same
 /// width, and this compares identities before it does anything else. When
 /// the text really did change it walks the lines, asks the atlas for a slot
@@ -274,7 +274,7 @@ class AtlasText3dRenderer extends Text3dRenderer {
   /// keep and bakes against whatever packing the atlas is handing out. That is
   /// not a hypothetical: `DefaultTextRenderer3d` compares its factory by
   /// identity, so an application that writes a closure into
-  /// `SceneTheme3d.textRendererFactory` inside `build` disposes and rebuilds
+  /// `Theme3d.textRendererFactory` inside `build` disposes and rebuilds
   /// every renderer in the scene on every build — and never gets this. See
   /// *A text renderer is a resource* in `docs/traps.md`.
   ///
@@ -366,7 +366,7 @@ class AtlasText3dRenderer extends Text3dRenderer {
     _publish();
 
     final node = _mesh = Node(mesh: Mesh.primitives(primitives: primitives))
-      ..name = 'Text3d glyphs'
+      ..name = 'RenderText3d glyphs'
       // The nudge that lifts the glyphs off the panel behind them. In dp,
       // so it goes through the surface's unit rate like every other
       // figure, and negative because toward the viewer is negative z.
@@ -625,7 +625,7 @@ class AtlasText3dRenderer extends Text3dRenderer {
   ///
   /// [color] is the wall's colour for every segment that does not state one.
   /// A glyph out of an atlas never does — a label is one colour — and a
-  /// paragraph's segments always do, because a [RichText3d] samples each
+  /// paragraph's segments always do, because a [RenderRichText3d] samples each
   /// one's colour out of the bitmap it traced.
   ///
   /// Separated from [render] for the same reason [buildGlyphGeometry] is:

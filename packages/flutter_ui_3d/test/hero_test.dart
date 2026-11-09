@@ -12,10 +12,10 @@ import 'package:flutter_ui_3d/rendering.dart';
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dController,
-        SceneHero3d,
-        SceneLayout3d,
-        SceneOverlay3d,
-        SceneSizedBox3d,
+        Hero3d,
+        Surface3d,
+        Overlay3d,
+        SizedBox3d,
         WidgetPageRoute3d;
 
 import 'support.dart';
@@ -42,28 +42,29 @@ T? findIn<T extends RenderObject3d>(RenderObject3d root) {
 }
 
 /// Every flight currently up in [overlay].
-List<Hero3dFlightBox> flightsIn(Overlay3d overlay) => <Hero3dFlightBox>[
-  for (final entry in overlay.entries)
-    if (entry.content case final content?)
-      if (findIn<Hero3dFlightBox>(content) case final flight?) flight,
-];
+List<RenderHero3dFlightBox> flightsIn(RenderOverlay3d overlay) =>
+    <RenderHero3dFlightBox>[
+      for (final entry in overlay.entries)
+        if (entry.content case final content?)
+          if (findIn<RenderHero3dFlightBox>(content) case final flight?) flight,
+    ];
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   /// A page with one hero on it, under an overlay on a laid-out surface.
-  ({Layout3dSurface surface, Overlay3d overlay, Hero3d hero}) page({
+  ({RenderSurface3d surface, RenderOverlay3d overlay, RenderHero3d hero}) page({
     Size3d size = const Size3d(1, 1, 0),
     Hero3dFit fit = Hero3dFit.stretch,
     Object tag = 'photo',
   }) {
-    final hero = Hero3d(
+    final hero = RenderHero3d(
       tag: tag,
       fit: fit,
-      flightBuilder: (_) => TestBox(size),
-      child: TestBox(size),
+      flightBuilder: (_) => RenderTestBox(size),
+      child: RenderTestBox(size),
     );
-    final overlay = Overlay3d(children: <RenderObject3d>[hero]);
+    final overlay = RenderOverlay3d(children: <RenderObject3d>[hero]);
     final surface = laidOut(
       overlay,
       constraints: Constraints3d.tight(const Size3d(4, 3, 0)),
@@ -72,7 +73,7 @@ void main() {
     return (surface: surface, overlay: overlay, hero: hero);
   }
 
-  Navigator3d timed(Overlay3d overlay, _Vsync vsync, {int ms = 200}) =>
+  Navigator3d timed(RenderOverlay3d overlay, _Vsync vsync, {int ms = 200}) =>
       Navigator3d(
         overlay,
         vsync: vsync,
@@ -86,16 +87,16 @@ void main() {
   ///
   /// The hero is read through a closure because the route's builder has not
   /// run when this returns: a route builds its content when it is pushed.
-  ({PageRoute3d<void> route, Hero3d Function() hero}) heroRoute({
+  ({PageRoute3d<void> route, RenderHero3d Function() hero}) heroRoute({
     Size3d size = const Size3d(2, 1, 0),
     Object tag = 'photo',
   }) {
-    Hero3d? built;
+    RenderHero3d? built;
     final route = PageRoute3d<void>(
-      builder: (_) => built = Hero3d(
+      builder: (_) => built = RenderHero3d(
         tag: tag,
-        flightBuilder: (_) => TestBox(size),
-        child: TestBox(size),
+        flightBuilder: (_) => RenderTestBox(size),
+        child: RenderTestBox(size),
       ),
     );
     return (route: route, hero: () => built!);
@@ -243,28 +244,28 @@ void main() {
     ) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0),
           controller: controller,
-          child: SceneOverlay3d(
-            child: SceneHero3d(
+          child: Overlay3d(
+            child: Hero3d(
               tag: 'photo',
-              flightBuilder: (_) => TestBox(const Size3d(1, 1, 0)),
-              child: const SceneSizedBox3d(width: 1, height: 1, depth: 0),
+              flightBuilder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
+              child: const SizedBox3d(width: 1, height: 1, depth: 0),
             ),
           ),
         ),
       );
-      final overlay = controller.surface!.child! as Overlay3d;
+      final overlay = controller.surface!.child! as RenderOverlay3d;
       final navigator = timed(overlay, _Vsync());
       unawaited(
         navigator.push(
           WidgetPageRoute3d<void>(
-            builder: (context, self) => SceneHero3d(
+            builder: (context, self) => Hero3d(
               tag: 'photo',
-              flightBuilder: (_) => TestBox(const Size3d(2, 2, 0)),
-              child: const SceneSizedBox3d(width: 2, height: 2, depth: 0),
+              flightBuilder: (_) => RenderTestBox(const Size3d(2, 2, 0)),
+              child: const SizedBox3d(width: 2, height: 2, depth: 0),
             ),
           ),
         ),
@@ -369,10 +370,10 @@ void main() {
 
   group('a hero on its own', () {
     test('it hides on the flag the culling views write, and keeps it', () {
-      final hero = Hero3d(
+      final hero = RenderHero3d(
         tag: 'x',
-        flightBuilder: (_) => TestBox(const Size3d(1, 1, 0)),
-        child: TestBox(const Size3d(1, 1, 0)),
+        flightBuilder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(hero);
       addTearDown(surface.dispose);
@@ -386,17 +387,17 @@ void main() {
     ) async {
       final host = page();
       final navigator = timed(host.overlay, _Vsync());
-      RenderObject3d twice() => Column3d(
+      RenderObject3d twice() => RenderColumn3d(
         children: <RenderObject3d>[
-          Hero3d(
+          RenderHero3d(
             tag: 'photo',
-            flightBuilder: (_) => TestBox(const Size3d(1, 1, 0)),
-            child: TestBox(const Size3d(1, 1, 0)),
+            flightBuilder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
+            child: RenderTestBox(const Size3d(1, 1, 0)),
           ),
-          Hero3d(
+          RenderHero3d(
             tag: 'photo',
-            flightBuilder: (_) => TestBox(const Size3d(1, 1, 0)),
-            child: TestBox(const Size3d(1, 1, 0)),
+            flightBuilder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
+            child: RenderTestBox(const Size3d(1, 1, 0)),
           ),
         ],
       );

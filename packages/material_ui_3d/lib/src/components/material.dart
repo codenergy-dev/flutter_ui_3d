@@ -16,15 +16,12 @@ import 'package:flutter_ui_3d/rendering.dart'
         Border3d,
         BorderRadius3d,
         BoxDecoration3d,
-        DecoratedBox3d,
+        RenderDecoratedBox3d,
         EdgeInsets3d,
         EdgeInsetsGeometry3d,
         Offset3d;
 import 'package:flutter_ui_3d/widgets.dart'
-    show
-        Layout3dMetricsScope,
-        SceneContainer3d,
-        SingleChildRenderObjectWidget3d;
+    show Layout3dMetricsScope, Container3d, SingleChildRenderObjectWidget3d;
 
 import '../theme/theme.dart';
 import '../theme/theme_data.dart';
@@ -35,7 +32,7 @@ import 'node_shift.dart';
 /// A Material surface: the one primitive every other component here is built
 /// out of.
 ///
-/// It is a `SceneDecoratedBox3d` with the theme resolved into it, and it owns
+/// It is a `DecoratedBox3d` with the theme resolved into it, and it owns
 /// the five things Material says a surface has — the colour, the shape, the
 /// elevation, the state layer, and the thing Material has no word for because
 /// a screen has none of it, the **thickness**. Every button in the catalogue
@@ -49,7 +46,7 @@ import 'node_shift.dart';
 ///   elevation: theme.elevation.level1,
 ///   thickness: theme.thickness.raised,
 ///   padding: const EdgeInsets3d.symmetric(horizontal: 24, vertical: 10),
-///   child: const SceneText3d('Continue'),
+///   child: const Text3d('Continue'),
 /// )
 /// ```
 ///
@@ -58,7 +55,7 @@ import 'node_shift.dart';
 /// the ones its specification is written with at any surface scale. The
 /// decoration figures are converted by the painter; the padding and the
 /// thickness are converted here, through `Layout3dMetricsScope.of(context)`,
-/// which is why **a `Material3d` has to be built inside a `SceneLayout3d`**
+/// which is why **a `Material3d` has to be built inside a `Surface3d`**
 /// and asserts when it is not.
 ///
 /// ## What each token defaults to
@@ -92,7 +89,7 @@ import 'node_shift.dart';
 /// is a slab rather than a decal, and [bevel] rounds its rim in proportion —
 /// a knife-edged 4dp card reads as a cut-out under a grazing light.
 ///
-/// The rule to know before stacking two of them: `Stack3d.depthStep`
+/// The rule to know before stacking two of them: `RenderStack3d.depthStep`
 /// separates two slabs only when the step exceeds the **mean** of their
 /// thicknesses, because each is centred on its own plane. Under that, the
 /// back one pokes through the front one and wins the depth test where they
@@ -166,7 +163,7 @@ class Material3d extends StatefulWidget {
   /// `bodyMedium` in [contentColor].
   ///
   /// Merged onto whatever style is already in force, exactly as Flutter's
-  /// `Material` does it, so a `SceneText3d` inside a component only has to
+  /// `Material` does it, so a `Text3d` inside a component only has to
   /// say what differs.
   final TextStyle? textStyle;
 
@@ -197,8 +194,8 @@ class Material3d extends StatefulWidget {
   /// the surface, which is where a label on a card belongs.
   ///
   /// Null gives the child the surface's own constraints instead of aligning
-  /// it in them, the way a `Container3d` with no alignment does. The content
-  /// still stands off the face by [contentLift] either way.
+  /// it in them, the way a `RenderContainer3d` with no alignment does. The
+  /// content still stands off the face by [contentLift] either way.
   final AlignmentGeometry3d? alignment;
 
   /// How far the content stands off this surface's own front face, in logical
@@ -240,9 +237,9 @@ class Material3d extends StatefulWidget {
   /// The single place a token becomes a `BoxDecoration3d`, exposed as a
   /// static because two callers need it and they must not drift apart: this
   /// widget, and anything building a Material surface in the **imperative**
-  /// layer — a `DecoratedBox3d` in a scene assembled without widgets, which
-  /// is what `examples/render_probe` is and what a game with its own scene
-  /// graph will be. A probe that reimplemented the resolution would be
+  /// layer — a `RenderDecoratedBox3d` in a scene assembled without widgets,
+  /// which is what `examples/render_probe` is and what a game with its own
+  /// scene graph will be. A probe that reimplemented the resolution would be
   /// checking its own arithmetic rather than this package's.
   ///
   /// Every argument is in logical pixels and every null falls back to
@@ -301,8 +298,8 @@ class _Material3dState extends State<Material3d>
       opacities: theme.stateLayer,
       // The press ripple's frames come from here. It is the only per-frame
       // animation in the catalogue, and it stays on the repaint-only tier:
-      // the ticker writes `DecoratedBox3d.stateLayer` and nothing else, so a
-      // whole ripple costs no build and no layout. See `docs/traps.md`.
+      // the ticker writes `RenderDecoratedBox3d.stateLayer` and nothing else,
+      // so a whole ripple costs no build and no layout. See `docs/traps.md`.
       vsync: this,
     );
     ink.restyle(color: contentColor, opacities: theme.stateLayer);
@@ -329,14 +326,14 @@ class _Material3dState extends State<Material3d>
         child: _Material3dSurface(
           ink: ink,
           decoration: decoration,
-          child: SceneContainer3d(
+          child: Container3d(
             alignment: widget.alignment,
             padding: metrics.dpInsets(widget.padding),
             depth: metrics.dp(thickness),
             // Toward the viewer is negative z, and this is the node tier, so
             // the content's geometry stands off the face while its boxes stay
             // exactly where layout put them. See [Material3d.contentLift].
-            child: SceneNodeShift3d(
+            child: NodeShift3d(
               shift: Offset3d(0.0, 0.0, -metrics.dp(Material3d.contentLift)),
               name: Material3d.contentLiftName,
               child: widget.child,
@@ -351,7 +348,7 @@ class _Material3dState extends State<Material3d>
 /// The decorated box a [Material3d] draws, and the place the ink controller
 /// is handed its box.
 ///
-/// It exists rather than a plain `SceneDecoratedBox3d` for one reason: the
+/// It exists rather than a plain `DecoratedBox3d` for one reason: the
 /// state layer must not be a widget property. If it were, every hover would
 /// have to rebuild this widget to reach the box, which is exactly the tier
 /// the decoration layer was designed to avoid. So the decoration comes down
@@ -369,14 +366,14 @@ class _Material3dSurface extends SingleChildRenderObjectWidget3d {
   final BoxDecoration3d decoration;
 
   @override
-  DecoratedBox3d createLayout(BuildContext context) {
-    final box = DecoratedBox3d(decoration: decoration);
+  RenderDecoratedBox3d createLayout(BuildContext context) {
+    final box = RenderDecoratedBox3d(decoration: decoration);
     ink.attach(box);
     return box;
   }
 
   @override
-  void updateLayout(BuildContext context, DecoratedBox3d layout) {
+  void updateLayout(BuildContext context, RenderDecoratedBox3d layout) {
     layout.decoration = decoration;
     ink.attach(layout);
   }

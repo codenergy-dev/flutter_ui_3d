@@ -1,5 +1,5 @@
 // How far one label grows with the reader's font setting: an explicit
-// `textScaler` on a text box, and `SceneTextScaling3d` for a subtree.
+// `textScaler` on a text box, and `TextScaling3d` for a subtree.
 //
 // The reader's setting lives on the surface and stays there. What is tested
 // here is what a label does with it — an icon that must not grow, and a
@@ -23,26 +23,28 @@ const TextStyle style = TextStyle(fontSize: 10);
 Widget atScale(TextScaler scaler, Widget child) => MediaQuery(
   data: MediaQueryData(textScaler: scaler),
   child: SizedBox.expand(
-    child: SceneLayout3d(
+    child: Surface3d(
       parent: Node(),
       size: const Size3d(4, 3, 0.5),
-      child: SceneCenter3d(child: child),
+      child: Center3d(child: child),
     ),
   ),
 );
 
-/// How wide the one `Text3d` on screen came out, in world units.
-double widthOf(WidgetTester tester, [int index = 0]) =>
-    tester.layout3d<Text3d>(find3d.bySubtype<Text3d>().at(index)).size.width;
+/// How wide the one `RenderText3d` on screen came out, in world units.
+double widthOf(WidgetTester tester, [int index = 0]) => tester
+    .layout3d<RenderText3d>(find3d.bySubtype<RenderText3d>().at(index))
+    .size
+    .width;
 
 void main() {
   group('a text box\'s own scaler', () {
     test('replaces the surface\'s, and null follows it', () {
-      final surface = Layout3dSurface(
+      final surface = RenderSurface3d(
         metrics: Layout3dMetrics(textScaler: TextScaler.linear(2)),
-        child: Text3d('hello', style: style),
+        child: RenderText3d('hello', style: style),
       )..flush();
-      final label = surface.child! as Text3d;
+      final label = surface.child! as RenderText3d;
       expect(label.size.width, closeTo(1.0, 1e-9), reason: 'the surface\'s');
       expect(label.effectiveTextScaler, TextScaler.linear(2));
 
@@ -57,31 +59,27 @@ void main() {
     });
 
     test('a paragraph measures with it too', () {
-      final surface = Layout3dSurface(
+      final surface = RenderSurface3d(
         metrics: Layout3dMetrics(textScaler: TextScaler.linear(2)),
-        child: RichText3d(
+        child: RenderRichText3d(
           const TextSpan(text: 'hello', style: style),
           textScaler: TextScaler.noScaling,
         ),
       )..flush();
-      final paragraph = surface.child! as RichText3d;
+      final paragraph = surface.child! as RenderRichText3d;
       expect(paragraph.size.width, closeTo(0.5, 1e-9));
       expect(paragraph.painter.textScaler, TextScaler.noScaling);
     });
   });
 
-  group('SceneText3d', () {
+  group('Text3d', () {
     testWidgets('an explicit scaler ignores the reader\'s setting', (
       tester,
     ) async {
       await tester.pumpWidget(
         atScale(
           TextScaler.linear(2),
-          const SceneText3d(
-            'hello',
-            style: style,
-            textScaler: TextScaler.noScaling,
-          ),
+          const Text3d('hello', style: style, textScaler: TextScaler.noScaling),
         ),
       );
       expect(widthOf(tester), closeTo(0.5, 1e-9));
@@ -89,27 +87,29 @@ void main() {
 
     testWidgets('with none, it still follows the surface', (tester) async {
       await tester.pumpWidget(
-        atScale(TextScaler.linear(2), const SceneText3d('hello', style: style)),
+        atScale(TextScaler.linear(2), const Text3d('hello', style: style)),
       );
       expect(widthOf(tester), closeTo(1.0, 1e-9));
       expect(
-        tester.layout3d<Text3d>(find3d.bySubtype<Text3d>()).textScaler,
+        tester
+            .layout3d<RenderText3d>(find3d.bySubtype<RenderText3d>())
+            .textScaler,
         isNull,
         reason: 'following, not holding a copy',
       );
     });
   });
 
-  group('SceneTextScaling3d', () {
+  group('TextScaling3d', () {
     testWidgets('clamped stops a label growing past its ceiling', (
       tester,
     ) async {
       await tester.pumpWidget(
         atScale(
           TextScaler.linear(2),
-          SceneTextScaling3d.clamped(
+          TextScaling3d.clamped(
             maxScaleFactor: 1.3,
-            child: const SceneText3d('hello', style: style),
+            child: const Text3d('hello', style: style),
           ),
         ),
       );
@@ -120,9 +120,9 @@ void main() {
       await tester.pumpWidget(
         atScale(
           TextScaler.linear(1.2),
-          SceneTextScaling3d.clamped(
+          TextScaling3d.clamped(
             maxScaleFactor: 1.3,
-            child: const SceneText3d('hello', style: style),
+            child: const Text3d('hello', style: style),
           ),
         ),
       );
@@ -133,16 +133,16 @@ void main() {
       await tester.pumpWidget(
         atScale(
           TextScaler.linear(2),
-          SceneTextScaling3d.clamped(
+          TextScaling3d.clamped(
             maxScaleFactor: 1.5,
-            child: const SceneColumn3d(
+            child: const Column3d(
               mainAxisSize: MainAxisSize3d.min,
               children: <Widget>[
-                ScenePadding3d(
+                Padding3d(
                   padding: EdgeInsets3d.all(0.1),
-                  child: SceneText3d('hello', style: style),
+                  child: Text3d('hello', style: style),
                 ),
-                SceneText3d('world', style: style),
+                Text3d('world', style: style),
               ],
             ),
           ),
@@ -156,11 +156,11 @@ void main() {
       await tester.pumpWidget(
         atScale(
           TextScaler.linear(3),
-          SceneTextScaling3d.clamped(
+          TextScaling3d.clamped(
             maxScaleFactor: 2,
-            child: SceneTextScaling3d.clamped(
+            child: TextScaling3d.clamped(
               maxScaleFactor: 1.5,
-              child: const SceneText3d('hello', style: style),
+              child: const Text3d('hello', style: style),
             ),
           ),
         ),
@@ -174,9 +174,9 @@ void main() {
       await tester.pumpWidget(
         atScale(
           TextScaler.linear(2),
-          SceneTextScaling3d.clamped(
+          TextScaling3d.clamped(
             maxScaleFactor: 1.3,
-            child: const SceneText3d(
+            child: const Text3d(
               'hello',
               style: style,
               textScaler: TextScaler.noScaling,
@@ -192,9 +192,9 @@ void main() {
     ) async {
       Widget frame(TextScaler scaler) => atScale(
         scaler,
-        SceneTextScaling3d.clamped(
+        TextScaling3d.clamped(
           maxScaleFactor: 1.3,
-          child: const SceneText3d('hello', style: style),
+          child: const Text3d('hello', style: style),
         ),
       );
       await tester.pumpWidget(frame(TextScaler.noScaling));

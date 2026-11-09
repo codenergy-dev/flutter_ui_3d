@@ -35,7 +35,7 @@ class Fixture {
     Drag3dAutoscroll? autoscroll = const Drag3dAutoscroll(),
   }) {
     controller = Scroll3dController();
-    list = ReorderableList3d(
+    list = RenderReorderableList3d(
       itemCount: itemCount,
       itemExtent: extents == null ? itemExtent : null,
       spacing: spacing,
@@ -45,7 +45,7 @@ class Fixture {
       autoscroll: autoscroll,
       itemBuilder: (index) {
         builds.add(index);
-        return TestBox(
+        return RenderTestBox(
           Size3d(1, extents == null ? itemExtent : extents[index], 0),
           pointable: true,
           name: 'item $index',
@@ -53,7 +53,9 @@ class Fixture {
       },
       onReorder: (oldIndex, newIndex) => reorders.add((oldIndex, newIndex)),
     );
-    this.overlay = overlay ? Overlay3d(children: <RenderObject3d>[list]) : null;
+    this.overlay = overlay
+        ? RenderOverlay3d(children: <RenderObject3d>[list])
+        : null;
     surface = laidOut(
       this.overlay ?? list,
       constraints: Constraints3d.tight(Size3d(1, viewportExtent, 0)),
@@ -62,9 +64,9 @@ class Fixture {
   }
 
   late final Scroll3dController controller;
-  late final ReorderableList3d list;
-  late final Overlay3d? overlay;
-  late final Layout3dSurface surface;
+  late final RenderReorderableList3d list;
+  late final RenderOverlay3d? overlay;
+  late final RenderSurface3d surface;
   late final Layout3dPointer pointer;
 
   /// Every index the caller's own item builder was asked for.
@@ -77,7 +79,7 @@ class Fixture {
   /// The `(oldIndex, newIndex)` pairs the list reported.
   final List<(int, int)> reorders = <(int, int)>[];
 
-  SliverReorderableList3d get sliver => list.sliver;
+  RenderSliverReorderableList3d get sliver => list.sliver;
 
   /// Aims a ray at [y] on the surface's plane, half a unit in from the side.
   Ray at(double y) => rayAt(surface, Offset3d(0.5, y, 0));
@@ -276,14 +278,17 @@ void main() {
       final data = <String>['a', 'b', 'c', 'd', 'e'];
       final controller = Scroll3dController();
       addTearDown(controller.dispose);
-      late final ReorderableList3d list;
-      list = ReorderableList3d(
+      late final RenderReorderableList3d list;
+      list = RenderReorderableList3d(
         itemCount: data.length,
         itemExtent: 1.0,
         controller: controller,
         startMode: const Drag3dStartMode.immediate(),
-        itemBuilder: (index) =>
-            TestBox(const Size3d(1, 1, 0), pointable: true, name: data[index]),
+        itemBuilder: (index) => RenderTestBox(
+          const Size3d(1, 1, 0),
+          pointable: true,
+          name: data[index],
+        ),
         onReorder: (oldIndex, newIndex) {
           data.insert(newIndex, data.removeAt(oldIndex));
           // Disposes every built item, including the one under the finger.
@@ -375,7 +380,7 @@ void main() {
       addTearDown(f.dispose);
       f.list.feedbackBuilder = (index) {
         built.add(index);
-        return TestBox(const Size3d(0.4, 0.4, 0));
+        return RenderTestBox(const Size3d(0.4, 0.4, 0));
       };
 
       f.lift(2);

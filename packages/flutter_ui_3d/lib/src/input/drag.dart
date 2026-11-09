@@ -69,26 +69,27 @@ enum Drag3dAnchor {
   targetPlane,
 }
 
-/// A box that can catch a drag, the non-generic seam under [DragTarget3d].
+/// A box that can catch a drag, the non-generic seam under
+/// [RenderDragTarget3d].
 ///
-/// The same shape as [HitTestTarget3d] is under [Listener3d], and for the same
-/// reason: the machinery has to find drop targets on a hit-test path of bare
-/// [RenderObject3d]s, and it cannot be parameterised on a payload type it has
-/// never heard of. So the type test happens *inside* the target — where
-/// [DragTarget3d] answers [willAcceptDrag3d] with `details.data is T` — and
-/// the session dispatches through this interface knowing nothing.
+/// The same shape as [HitTestTarget3d] is under [RenderListener3d], and for the
+/// same reason: the machinery has to find drop targets on a hit-test path of
+/// bare [RenderObject3d]s, and it cannot be parameterised on a payload type it
+/// has never heard of. So the type test happens *inside* the target — where
+/// [RenderDragTarget3d] answers [willAcceptDrag3d] with `details.data is T` —
+/// and the session dispatches through this interface knowing nothing.
 ///
 /// Implement it directly when a component wants to be a drop zone without
 /// inheriting a generic class: a Material drop target whose highlight is a
-/// `DecoratedBox3d.stateLayer` write is four lines over this interface, and
-/// dirties no layout.
+/// `RenderDecoratedBox3d.stateLayer` write is four lines over this interface,
+/// and dirties no layout.
 ///
 /// ```dart
 /// class DropZone extends RenderProxyBoxWithHitTestBehavior3d
 ///     implements Drag3dTarget {
 ///   DropZone(this.panel) : super(behavior: HitTestBehavior3d.translucent);
 ///
-///   final DecoratedBox3d panel;
+///   final RenderDecoratedBox3d panel;
 ///
 ///   @override
 ///   bool willAcceptDrag3d(Drag3dDetails details) => details.data is Photo;
@@ -137,7 +138,7 @@ class Drag3dDetails {
   /// The payload, as the draggable declared it.
   ///
   /// Untyped here on purpose: see [Drag3dTarget]. Null is a legal payload and
-  /// a `DragTarget3d<T>` refuses it, since `null is T` is false for every
+  /// a `RenderDragTarget3d<T>` refuses it, since `null is T` is false for every
   /// non-nullable `T`.
   final Object? data;
 
@@ -187,10 +188,10 @@ class Drag3dEvent {
 ///
 /// The whole of the drag-and-drop machinery that is not a component. It is
 /// deliberately ignorant: it does not hit-test, does not own feedback
-/// geometry, does not know what a [Draggable3d] is, and holds no reference to
-/// the box the drag started on. What it does is keep the answer to one
-/// question up to date — *which drop targets is this drag over, and which of
-/// them wants it* — and dispatch the enter, move, leave and drop that follow
+/// geometry, does not know what a [RenderDraggable3d] is, and holds no
+/// reference to the box the drag started on. What it does is keep the answer to
+/// one question up to date — *which drop targets is this drag over, and which
+/// of them wants it* — and dispatch the enter, move, leave and drop that follow
 /// from a change to that answer.
 ///
 /// Something else does the hit testing and hands the result in. On one

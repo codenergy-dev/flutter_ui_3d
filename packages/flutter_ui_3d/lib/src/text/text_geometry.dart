@@ -235,8 +235,8 @@ class GlyphWallSegment3d {
   ///
   /// Null for every glyph out of an atlas, and the reason is the atlas: a
   /// label is one colour, the raster is white, and the material tints the
-  /// lot. A [RichText3d] has no such thing — the whole reason to reach for
-  /// one is a paragraph carrying several colours — so it samples each
+  /// lot. A [RenderRichText3d] has no such thing — the whole reason to reach
+  /// for one is a paragraph carrying several colours — so it samples each
   /// segment's colour out of the bitmap it traced and states it here.
   final Color? color;
 

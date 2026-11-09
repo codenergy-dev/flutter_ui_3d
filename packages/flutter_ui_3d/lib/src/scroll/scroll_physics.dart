@@ -203,7 +203,7 @@ class ClampingScroll3dPhysics extends Scroll3dPhysics {
 /// content can bend away from the finger, tilt on the axis it was pulled
 /// past, or compress like a stack of cards, and none of that is a scroll
 /// offset at all — it is a transform on the geometry, which is the node-only
-/// path ([NodeTransform3d]) and costs no layout. Watch
+/// path ([RenderNodeTransform3d]) and costs no layout. Watch
 /// [Scroll3dController.overscroll] and animate whatever you like from it;
 /// this class is the conservative default underneath.
 class BouncingScroll3dPhysics extends Scroll3dPhysics {
@@ -295,9 +295,9 @@ class BouncingScroll3dPhysics extends Scroll3dPhysics {
 /// release settles back onto whichever page it is more than half onto.
 ///
 /// [pageExtent] is the stride, and defaults to the whole window, which is
-/// what [PageView3d] wants. State it to snap something that is not a full
-/// page — a carousel of cards in a `ListView3d` with an `itemExtent`, where
-/// the neighbours are meant to peek in:
+/// what [RenderPageView3d] wants. State it to snap something that is not a full
+/// page — a carousel of cards in a `RenderListView3d` with an `itemExtent`,
+/// where the neighbours are meant to peek in:
 ///
 /// ```dart
 /// Scroll3dController(

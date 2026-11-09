@@ -97,7 +97,7 @@ class Thickness3dTween extends Tween<Thickness3d> {
 ///   end: Theme3dData.dark,
 /// ).animate(controller);
 ///
-/// // Rebuilding the SceneTheme3d with theme.value writes the owner slot,
+/// // Rebuilding the Theme3d with theme.value writes the owner slot,
 /// // which relayouts the subtree. That is a screen transition, not an
 /// // interaction: a control lighting up under a pointer animates its own
 /// // decoration instead and touches no layout at all.

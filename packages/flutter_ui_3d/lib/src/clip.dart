@@ -98,7 +98,7 @@ class ClipPlane3d {
 ///
 ///  1. **Culling whole nodes.** [excludes] answers whether a box falls
 ///     entirely outside, and a `node.visible = false` follows. Costs nothing,
-///     needs no engine support, and is what [ClipBox3d] does today. It is
+///     needs no engine support, and is what [RenderClipBox3d] does today. It is
 ///     also what the scrolling views already do by hand.
 ///  2. **Clip planes in the material.** [planes] is the uniform block: up to
 ///     [maxPlanes] `vec4`s, `xyz` the normal and `w` the distance, in the
@@ -307,8 +307,8 @@ class Clip3dRegion {
 /// *allowed to be seen through*.
 ///
 /// ```dart
-/// ClipBox3d(
-///   child: SizedBox3d(width: 2, height: 1, child: scrollingContent),
+/// RenderClipBox3d(
+///   child: RenderSizedBox3d(width: 2, height: 1, child: scrollingContent),
 /// )
 /// ```
 ///
@@ -327,9 +327,9 @@ class Clip3dRegion {
 /// clip is still published there (pulled back through the transform, which is
 /// exact), but the visibility sweep does not try to reason about a rotated
 /// subtree's extent.
-class ClipBox3d extends RenderProxyBox3d {
+class RenderClipBox3d extends RenderProxyBox3d {
   /// Creates a box clipping [child] to its own extent.
-  ClipBox3d({
+  RenderClipBox3d({
     bool clipDepth = false,
     bool cullNodes = true,
     super.child,
@@ -406,9 +406,9 @@ class ClipBox3d extends RenderProxyBox3d {
     }
     box.refreshClipRegion();
     // No early exit for a box that is wholly inside: a child may overflow its
-    // parent's extent (a Column3d taller than the room it was given is the
-    // ordinary case here), so a parent being inside says nothing about where
-    // its children ended up.
+    // parent's extent (a RenderColumn3d taller than the room it was given is
+    // the ordinary case here), so a parent being inside says nothing about
+    // where its children ended up.
     final local = box.localTransform;
     if (local != null) return;
     box.visitChildren((child) => _sweep(child, here));

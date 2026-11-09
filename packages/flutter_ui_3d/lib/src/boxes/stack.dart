@@ -14,7 +14,7 @@ import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
 import '../rendering/object.dart';
 
-/// How a [Stack3d] sizes its non-positioned children, the 3D analogue of
+/// How a [RenderStack3d] sizes its non-positioned children, the 3D analogue of
 /// [StackFit].
 enum StackFit3d {
   /// Children may be any size up to the stack's constraints.
@@ -27,16 +27,16 @@ enum StackFit3d {
   passthrough,
 }
 
-/// Anchors a child of a [Stack3d] to the stack's faces, the 3D analogue of
-/// [Positioned].
+/// Anchors a child of a [RenderStack3d] to the stack's faces, the 3D analogue
+/// of [Positioned].
 ///
 /// Give at most two of the three values on an axis: an inset from the low
 /// face, an inset from the high face, and a fixed extent. Two of them fix
 /// both the position and the size; one leaves the other to the child and the
 /// stack's alignment.
-class Positioned3d extends RenderProxyBox3d {
+class RenderPositioned3d extends RenderProxyBox3d {
   /// Creates a positioned child.
-  Positioned3d({
+  RenderPositioned3d({
     double? left,
     double? top,
     double? right,
@@ -78,7 +78,7 @@ class Positioned3d extends RenderProxyBox3d {
   /// handed in rather than read from the stack, so changing it means building
   /// the child again; the widget form reads it from the ambient
   /// `Directionality`.
-  factory Positioned3d.directional({
+  factory RenderPositioned3d.directional({
     required TextDirection textDirection,
     double? start,
     double? top,
@@ -93,7 +93,7 @@ class Positioned3d extends RenderProxyBox3d {
     String? name,
   }) {
     final rtl = textDirection == TextDirection.rtl;
-    return Positioned3d(
+    return RenderPositioned3d(
       left: rtl ? end : start,
       top: top,
       right: rtl ? start : end,
@@ -256,19 +256,19 @@ class Positioned3d extends RenderProxyBox3d {
 /// Overlays its children, the 3D analogue of [Stack].
 ///
 /// Non-positioned children are sized according to [fit] and placed by
-/// [alignment]; [Positioned3d] children are pinned to the stack's faces. The
-/// stack sizes itself to its largest non-positioned child.
+/// [alignment]; [RenderPositioned3d] children are pinned to the stack's faces.
+/// The stack sizes itself to its largest non-positioned child.
 ///
 /// Depth is where a 3D stack parts ways with Flutter's. Two children that
 /// share the same `z` are coplanar and will fight for the depth buffer, so
 /// [depthStep] pulls each successive child's *geometry* toward the viewer by a
 /// fixed amount, reproducing "later children paint on top" with real geometry.
 /// It changes nothing about the layout: not the stack's size, not where a
-/// child's box sits, not what a [Positioned3d] pin means, and not what a ray
-/// reaches. See [depthStep].
-class Stack3d extends RenderMultiChild3d<ParentData3d> {
+/// child's box sits, not what a [RenderPositioned3d] pin means, and not what a
+/// ray reaches. See [depthStep].
+class RenderStack3d extends RenderMultiChild3d<ParentData3d> {
   /// Creates a stack of overlaid children.
-  Stack3d({
+  RenderStack3d({
     AlignmentGeometry3d alignment = Alignment3d.topLeftFront,
     TextDirection? textDirection,
     StackFit3d fit = StackFit3d.loose,
@@ -327,8 +327,8 @@ class Stack3d extends RenderMultiChild3d<ParentData3d> {
   /// it is written to [ParentData3d.sceneOffset], which moves the child's
   /// scene node and nothing else. The child's box stays where the stack put
   /// it, so hit testing still finds the last child first — which is the same
-  /// answer the separated geometry gives the eye — and a `Positioned3d(back:
-  /// 0)` slab still sits on the back face.
+  /// answer the separated geometry gives the eye — and a
+  /// `RenderPositioned3d(back: 0)` slab still sits on the back face.
   double get depthStep => _depthStep;
 
   set depthStep(double value) {
@@ -345,7 +345,7 @@ class Stack3d extends RenderMultiChild3d<ParentData3d> {
   double _stackIntrinsic(Axis3d axis, Size3d limits, {required bool min}) {
     var extent = 0.0;
     for (final child in children) {
-      if (child is Positioned3d && child.isPositioned) continue;
+      if (child is RenderPositioned3d && child.isPositioned) continue;
       extent = math.max(
         extent,
         min
@@ -385,7 +385,7 @@ class Stack3d extends RenderMultiChild3d<ParentData3d> {
     var depth = constraints.minDepth;
 
     for (final child in children) {
-      if (child is Positioned3d && child.isPositioned) continue;
+      if (child is RenderPositioned3d && child.isPositioned) continue;
       hasNonPositioned = true;
       child.layout(nonPositionedConstraints, parentUsesSize: true);
       final childSize = child.size;
@@ -401,7 +401,7 @@ class Stack3d extends RenderMultiChild3d<ParentData3d> {
     final stackSize = size;
     var index = 0;
     for (final child in children) {
-      final positioned = child is Positioned3d && child.isPositioned
+      final positioned = child is RenderPositioned3d && child.isPositioned
           ? child
           : null;
       final Offset3d anchor;
@@ -417,8 +417,8 @@ class Stack3d extends RenderMultiChild3d<ParentData3d> {
         anchor = _positionedOffset(positioned, child.size, stackSize);
       }
       // The step separates the geometry in the scene without moving the box,
-      // so a Positioned3d lands exactly on the face it pinned itself to and
-      // every child stays inside the stack, where a ray can still reach it.
+      // so a RenderPositioned3d lands exactly on the face it pinned itself to
+      // and every child stays inside the stack, where a ray can still reach it.
       parentDataOf(child).sceneOffset = Offset3d(0, 0, -index * _depthStep);
       child.place(anchor);
       index++;
@@ -433,7 +433,10 @@ class Stack3d extends RenderMultiChild3d<ParentData3d> {
     constraints.hasBoundedDepth ? constraints.maxDepth : constraints.minDepth,
   );
 
-  Constraints3d _positionedConstraints(Positioned3d child, Size3d stackSize) {
+  Constraints3d _positionedConstraints(
+    RenderPositioned3d child,
+    Size3d stackSize,
+  ) {
     var result = const Constraints3d();
     for (final axis in Axis3d.values) {
       final low = child._lowOf(axis);
@@ -463,7 +466,7 @@ class Stack3d extends RenderMultiChild3d<ParentData3d> {
   }
 
   Offset3d _positionedOffset(
-    Positioned3d child,
+    RenderPositioned3d child,
     Size3d childSize,
     Size3d stackSize,
   ) {

@@ -19,21 +19,24 @@ const TextStyle style = TextStyle(fontSize: 10);
 RenderObject3d rootOf(Layout3dController controller) =>
     controller.surface!.child!;
 
-/// The box under a `SceneCenter3d` at the root, which is how a widget test
+/// The box under a `Center3d` at the root, which is how a widget test
 /// gives an animated box room to be a size of its own: the surface hands its
 /// root child tight constraints.
 RenderObject3d centredOf(Layout3dController controller) =>
-    (rootOf(controller) as Align3d).child!;
+    (rootOf(controller) as RenderAlign3d).child!;
 
 /// A viewport over five stacked boxes: content 10 long, window 4, so six
 /// units of scroll.
-({Layout3dSurface surface, Viewport3d viewport, List<TestBox> items}) column({
-  Scroll3dController? controller,
-}) {
-  final items = List.generate(5, (_) => TestBox(const Size3d(2, 2, 2)));
-  final viewport = Viewport3d(
+({
+  RenderSurface3d surface,
+  RenderViewport3d viewport,
+  List<RenderTestBox> items,
+})
+column({Scroll3dController? controller}) {
+  final items = List.generate(5, (_) => RenderTestBox(const Size3d(2, 2, 2)));
+  final viewport = RenderViewport3d(
     controller: controller,
-    child: Column3d(mainAxisSize: MainAxisSize3d.min, children: items),
+    child: RenderColumn3d(mainAxisSize: MainAxisSize3d.min, children: items),
   );
   final surface = laidOut(
     viewport,
@@ -91,7 +94,7 @@ void main() {
 
   group('the node-only path', () {
     testWidgets('moves the geometry and marks nothing dirty', (tester) async {
-      final content = TestBox(const Size3d(2, 2, 2));
+      final content = RenderTestBox(const Size3d(2, 2, 2));
       final ticker = AnimationController(
         vsync: const TestVSync(),
         duration: const Duration(milliseconds: 100),
@@ -100,7 +103,10 @@ void main() {
         begin: Offset3d.zero,
         end: const Offset3d(0, 0, -1),
       ).animate(ticker);
-      final slide = NodeTransform3d(offsetAnimation: lift, child: content);
+      final slide = RenderNodeTransform3d(
+        offsetAnimation: lift,
+        child: content,
+      );
       final surface = laidOut(
         slide,
         constraints: Constraints3d.tight(const Size3d(4, 4, 4)),
@@ -124,10 +130,10 @@ void main() {
     });
 
     testWidgets('the layout frame is what a ray still finds', (tester) async {
-      final content = TestBox(const Size3d(2, 2, 2), pointable: true);
-      final slide = NodeTransform3d(child: content);
+      final content = RenderTestBox(const Size3d(2, 2, 2), pointable: true);
+      final slide = RenderNodeTransform3d(child: content);
       final surface = laidOut(
-        Center3d(child: slide),
+        RenderCenter3d(child: slide),
         constraints: Constraints3d.tight(const Size3d(4, 4, 4)),
       );
       final before = surface.hitTestAt(const Offset3d(2, 2, 0));
@@ -141,25 +147,25 @@ void main() {
       expect(after.path.map((entry) => entry.layout), contains(content));
     });
 
-    testWidgets('SceneAnimatedSlide3d rebuilds nothing while it runs', (
+    testWidgets('AnimatedSlide3d rebuilds nothing while it runs', (
       tester,
     ) async {
       final parent = Node();
       final controller = Layout3dController();
 
-      Widget frame(Offset3d offset) => SceneLayout3d(
+      Widget frame(Offset3d offset) => Surface3d(
         parent: parent,
         size: const Size3d(10, 10, 10),
         controller: controller,
-        child: SceneAnimatedSlide3d(
+        child: AnimatedSlide3d(
           duration: const Duration(milliseconds: 100),
           offset: offset,
-          child: const SceneSizedBox3d.cube(2),
+          child: const SizedBox3d.cube(2),
         ),
       );
 
       await tester.pumpWidget(frame(Offset3d.zero));
-      final slide = rootOf(controller) as NodeTransform3d;
+      final slide = rootOf(controller) as RenderNodeTransform3d;
       final box = slide.child!;
 
       await tester.pumpWidget(frame(const Offset3d(0, 0, -1)));
@@ -181,12 +187,12 @@ void main() {
       final controller = Layout3dController();
       var ended = 0;
 
-      Widget frame(double width) => SceneLayout3d(
+      Widget frame(double width) => Surface3d(
         parent: parent,
         size: const Size3d(10, 10, 10),
         controller: controller,
-        child: SceneCenter3d(
-          child: SceneAnimatedContainer3d(
+        child: Center3d(
+          child: AnimatedContainer3d(
             duration: const Duration(milliseconds: 100),
             curve: Curves.linear,
             onEnd: () => ended++,
@@ -219,12 +225,12 @@ void main() {
       final parent = Node();
       final controller = Layout3dController();
 
-      Widget frame(double width) => SceneLayout3d(
+      Widget frame(double width) => Surface3d(
         parent: parent,
         size: const Size3d(10, 10, 10),
         controller: controller,
-        child: SceneCenter3d(
-          child: SceneAnimatedContainer3d(
+        child: Center3d(
+          child: AnimatedContainer3d(
             duration: const Duration(milliseconds: 100),
             curve: Curves.linear,
             width: width,
@@ -254,16 +260,16 @@ void main() {
 
       Widget frame(double width) => Directionality(
         textDirection: TextDirection.ltr,
-        child: SceneLayout3d(
+        child: Surface3d(
           parent: parent,
           size: const Size3d(10, 10, 10),
           controller: controller,
-          child: SceneCenter3d(
-            child: SceneAnimatedContainer3d(
+          child: Center3d(
+            child: AnimatedContainer3d(
               duration: const Duration(milliseconds: 100),
               curve: Curves.linear,
               width: width,
-              child: const SceneText3d('hello world', style: style),
+              child: const Text3d('hello world', style: style),
             ),
           ),
         ),
@@ -388,7 +394,7 @@ void main() {
     });
 
     test('a box outside any scrolling view is left alone', () {
-      final loose = TestBox(const Size3d(1, 1, 1));
+      final loose = RenderTestBox(const Size3d(1, 1, 1));
       laidOut(loose);
       expect(Scrollable3d.of(loose), isNull);
       expect(ensureVisible3d(loose), completes);
@@ -487,7 +493,7 @@ void main() {
       final scroll = Scroll3dController();
       final view = column(controller: scroll);
       scroll.jumpTo(6);
-      view.viewport.child = TestBox(const Size3d(2, 6, 2));
+      view.viewport.child = RenderTestBox(const Size3d(2, 6, 2));
       view.surface.flush();
       expect(scroll.offset, 2);
     });

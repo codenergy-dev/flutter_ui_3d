@@ -1,5 +1,24 @@
 ## Unreleased
 
+- **The widgets have the plain names, and the render objects are called
+  `Render`, as in Flutter.** A widget used to be the imperative class's name
+  under a `Scene` prefix, which is the reverse of Flutter and the same tie to
+  the engine one level down. Now `SceneRow3d` is `Row3d` and the render object
+  that was `Row3d` is `RenderRow3d`, and the same pair runs through the whole
+  layout layer: `Sliver3d` is `RenderSliver3d`, `SliverList3d` is
+  `RenderSliverList3d`, and `SceneSliverList3d` is `SliverList3d`. A class that
+  extends a render object gets the prefix whether or not a widget wears its
+  name, so `ListView3d` the render object and `Container3d` the render object
+  are `RenderListView3d` and `RenderContainer3d`. A `build` method that wrote
+  `SceneRow3d(children: rows)` writes `Row3d(children: rows)`; code that built
+  the box by hand, in a `createLayout` or a test, writes `RenderRow3d()`.
+  The surface takes a name of its own rather than a repeated one:
+  `SceneLayout3d` is `Surface3d`, the widget among a `SceneView`'s children, and
+  `Layout3dSurface` is `RenderSurface3d`. In `testing.dart`, `SceneSurface3d`
+  and `SceneHost3d` are `FoundSurface3d` and `FoundInputHost3d`, because neither
+  is a widget. Nothing changes in behaviour, and a debug string that quoted a
+  class's name quotes its new one, so an overflow is `A RenderRow3d overflowed`.
+
 - **The render object is called a render object, and its family is called
   what Flutter calls it.** `Layout3d` is `RenderObject3d` now, in
   `src/rendering/object.dart`, which is Flutter's file name for that class. It

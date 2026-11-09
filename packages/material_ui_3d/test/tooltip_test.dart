@@ -6,7 +6,7 @@ import 'package:flutter_ui_3d/widgets.dart';
 import 'package:material_ui_3d/material_ui_3d.dart';
 
 import 'overlays_support.dart';
-import 'support.dart' show SceneTestBox, TestBox;
+import 'support.dart' show TestBox, RenderTestBox;
 
 /// A tooltip over a counting box, in the top-left corner of the panel.
 class PumpedTooltip {
@@ -19,11 +19,12 @@ class PumpedTooltip {
   final List<int> builds;
 
   /// The child box, which counts its own layouts.
-  TestBox? child;
+  RenderTestBox? child;
 
-  Layout3dSurface get surface => controller.surface!;
-  Overlay3d get overlay => overlayController.overlay!;
-  List<DecoratedBox3d> get panels => boxesOf<DecoratedBox3d>(surface);
+  RenderSurface3d get surface => controller.surface!;
+  RenderOverlay3d get overlay => overlayController.overlay!;
+  List<RenderDecoratedBox3d> get panels =>
+      boxesOf<RenderDecoratedBox3d>(surface);
 }
 
 Future<PumpedTooltip> pumpTooltip(
@@ -34,17 +35,17 @@ Future<PumpedTooltip> pumpTooltip(
   final controller = Layout3dController();
   final overlayController = Overlay3dController();
   final builds = <int>[0];
-  TestBox? child;
+  RenderTestBox? child;
   await tester.pumpWidget(
-    SceneLayout3d(
+    Surface3d(
       parent: Node(),
       size: const Size3d(8, 6, 1),
       controller: controller,
-      child: SceneTheme3d(
+      child: Theme3d(
         data: Theme3dData.light,
-        child: SceneOverlay3d(
+        child: Overlay3d(
           controller: overlayController,
-          child: ScenePositioned3d(
+          child: Positioned3d(
             left: 0,
             top: 0,
             front: 0,
@@ -54,7 +55,7 @@ Future<PumpedTooltip> pumpTooltip(
               child: Builder(
                 builder: (context) {
                   builds[0]++;
-                  return SceneTestBox(
+                  return TestBox(
                     const Size3d(0.4, 0.4, 0.02),
                     (box) => child = box,
                   );
@@ -70,10 +71,10 @@ Future<PumpedTooltip> pumpTooltip(
 }
 
 /// Moves a pointer onto the control in the corner, then off it.
-void hover(Layout3dSurface surface, Layout3dPointer pointer) =>
+void hover(RenderSurface3d surface, Layout3dPointer pointer) =>
     pointer.hover(rayAt(surface, const Offset3d(0.2, 0.2, 0)));
 
-void away(Layout3dSurface surface, Layout3dPointer pointer) =>
+void away(RenderSurface3d surface, Layout3dPointer pointer) =>
     pointer.hover(rayAt(surface, const Offset3d(7.5, 5.5, 0)));
 
 void main() {
@@ -199,8 +200,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
       await tester.pump();
 
-      final anchor = oneOf<Anchor3d>(pumped.surface);
-      final follower = oneOf<Follower3d>(pumped.surface);
+      final anchor = oneOf<RenderAnchor3d>(pumped.surface);
+      final follower = oneOf<RenderFollower3d>(pumped.surface);
       expect(follower.nodeOffset, isNot(Offset3d.zero));
       final wanted = follower.anchorOffsetTo(
         anchor,
@@ -223,15 +224,15 @@ void main() {
 
       // No barrier and no absorbing label: a tooltip that took the ray would
       // dismiss itself the instant it appeared.
-      expect(boxesOf<ModalBarrier3d>(pumped.surface), isEmpty);
-      expect(boxesOf<IgnorePointer3d>(pumped.surface), isNotEmpty);
+      expect(boxesOf<RenderModalBarrier3d>(pumped.surface), isEmpty);
+      expect(boxesOf<RenderIgnorePointer3d>(pumped.surface), isNotEmpty);
     });
 
     testWidgets('the description is on the control, not on the label', (
       tester,
     ) async {
       final pumped = await pumpTooltip(tester);
-      final semantics = boxesOf<Semantics3d>(pumped.surface).single;
+      final semantics = boxesOf<RenderSemantics3d>(pumped.surface).single;
       expect(semantics.properties.tooltip, 'Compose');
     });
 
@@ -246,10 +247,10 @@ void main() {
       expect(pumped.overlay.entries, hasLength(1));
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(8, 6, 1),
-          child: const SceneSizedBox3d.cube(1),
+          child: const SizedBox3d.cube(1),
         ),
       );
       expect(pumped.overlayController.overlay, isNull);

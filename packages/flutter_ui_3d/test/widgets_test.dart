@@ -22,8 +22,8 @@ RenderObject3d rootOf(Layout3dController controller) =>
     controller.surface!.child!;
 
 /// The one child of a single-child layout, for the tests that put a box under
-/// a [Center3d] so that it is loosely constrained rather than sized by the
-/// surface.
+/// a [RenderCenter3d] so that it is loosely constrained rather than sized by
+/// the surface.
 RenderObject3d childOf(RenderObject3d layout) =>
     (layout as RenderObjectWithChildMixin3d).child!;
 
@@ -35,14 +35,14 @@ void main() {
     // child into a list in its constructor, which no const expression can do,
     // so every one of them was rebuilt on every build of its parent while the
     // multi-child ones beside it were not.
-    const padded = ScenePadding3d(
+    const padded = Padding3d(
       padding: EdgeInsets3d.all(1),
-      child: SceneSizedBox3d.cube(2),
+      child: SizedBox3d.cube(2),
     );
     final parent = Node();
     final controller = Layout3dController();
 
-    Widget frame() => SceneLayout3d(
+    Widget frame() => Surface3d(
       parent: parent,
       size: const Size3d(10, 10, 10),
       controller: controller,
@@ -51,8 +51,8 @@ void main() {
 
     await tester.pumpWidget(frame());
     final layout = rootOf(controller);
-    expect(layout, isA<Padding3d>());
-    expect((layout as Padding3d).padding, const EdgeInsets3d.all(1));
+    expect(layout, isA<RenderPadding3d>());
+    expect((layout as RenderPadding3d).padding, const EdgeInsets3d.all(1));
 
     // Rebuilding with the identical const widget reconciles onto the same
     // layout object rather than making a new one.
@@ -64,20 +64,14 @@ void main() {
     final parent = Node();
     final controller = Layout3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: parent,
         size: const Size3d(10, 10, 10),
         controller: controller,
-        child: SceneColumn3d(
+        child: Column3d(
           children: [
-            SceneNodeBox3d(
-              content: Node(),
-              explicitSize: const Size3d(2, 2, 2),
-            ),
-            SceneNodeBox3d(
-              content: Node(),
-              explicitSize: const Size3d(4, 3, 2),
-            ),
+            NodeBox3d(content: Node(), explicitSize: const Size3d(2, 2, 2)),
+            NodeBox3d(content: Node(), explicitSize: const Size3d(4, 3, 2)),
           ],
         ),
       ),
@@ -92,7 +86,8 @@ void main() {
     expect(boxes[0].size, const Size3d(2, 2, 2));
     expect(boxes[1].size, const Size3d(4, 3, 2));
     // Centred across, and on the plane's front face in depth: a column's
-    // depth cross axis starts at the front. See Flex3d.depthAxisAlignment.
+    // depth cross axis starts at the front. See
+    // RenderFlex3d.depthAxisAlignment.
     expect(boxes[0].offset, const Offset3d(4, 0, 0));
     expect(boxes[1].offset, const Offset3d(3, 2, 0));
   });
@@ -102,29 +97,23 @@ void main() {
   ) async {
     final controller = Layout3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         constraints: const Constraints3d(maxHeight: 10, maxDepth: 10),
         controller: controller,
-        child: SceneIntrinsicWidth3d(
-          child: SceneColumn3d(
+        child: IntrinsicWidth3d(
+          child: Column3d(
             crossAxisAlignment: CrossAxisAlignment3d.stretch,
             children: [
-              SceneNodeBox3d(
-                content: Node(),
-                explicitSize: const Size3d(2, 1, 1),
-              ),
-              SceneNodeBox3d(
-                content: Node(),
-                explicitSize: const Size3d(5, 1, 1),
-              ),
+              NodeBox3d(content: Node(), explicitSize: const Size3d(2, 1, 1)),
+              NodeBox3d(content: Node(), explicitSize: const Size3d(5, 1, 1)),
             ],
           ),
         ),
       ),
     );
 
-    final column = (rootOf(controller) as IntrinsicWidth3d).child!;
+    final column = (rootOf(controller) as RenderIntrinsicWidth3d).child!;
     expect(column.size.width, 5);
     for (final box in childrenOf(column)) {
       expect(box.size.width, 5);
@@ -136,23 +125,23 @@ void main() {
   ) async {
     final controller = Layout3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: const Size3d(10, 10, 10),
         controller: controller,
-        child: SceneRow3d(
+        child: Row3d(
           crossAxisAlignment: CrossAxisAlignment3d.baseline,
           children: [
-            SceneBaseline3d(
+            Baseline3d(
               baseline: 4,
-              child: SceneNodeBox3d(
+              child: NodeBox3d(
                 content: Node(),
                 explicitSize: const Size3d(1, 3, 1),
               ),
             ),
-            SceneBaseline3d(
+            Baseline3d(
               baseline: 2,
-              child: SceneNodeBox3d(
+              child: NodeBox3d(
                 content: Node(),
                 explicitSize: const Size3d(1, 2, 1),
               ),
@@ -172,20 +161,14 @@ void main() {
   ) async {
     final controller = Layout3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: const Size3d(4, 4, 1),
         controller: controller,
-        child: SceneListView3d(
+        child: ListView3d(
           children: [
-            SceneNodeBox3d(
-              content: Node(),
-              explicitSize: const Size3d(4, 2, 1),
-            ),
-            SceneNodeBox3d(
-              content: Node(),
-              explicitSize: const Size3d(4, 2, 1),
-            ),
+            NodeBox3d(content: Node(), explicitSize: const Size3d(4, 2, 1)),
+            NodeBox3d(content: Node(), explicitSize: const Size3d(4, 2, 1)),
           ],
         ),
       ),
@@ -200,18 +183,18 @@ void main() {
   testWidgets('a list with no controller keeps its place through a rebuild', (
     tester,
   ) async {
-    // Every update of `SceneListView3d` writes its controller, and with none
+    // Every update of `ListView3d` writes its controller, and with none
     // that is null — which used to mean a fresh position, so any `setState`
     // above a list sent it back to the top.
     final controller = Layout3dController();
-    Widget build() => SceneLayout3d(
+    Widget build() => Surface3d(
       parent: Node(),
       size: const Size3d(4, 4, 1),
       controller: controller,
-      child: SceneListView3d(
+      child: ListView3d(
         children: [
           for (var i = 0; i < 6; i++)
-            SceneNodeBox3d(
+            NodeBox3d(
               key: ValueKey<int>(i),
               content: Node(),
               explicitSize: const Size3d(4, 2, 1),
@@ -230,21 +213,16 @@ void main() {
     expect(list.controller.offset, 3);
   });
 
-  testWidgets('SceneIgnorePointer3d takes its subtree out of reach', (
-    tester,
-  ) async {
+  testWidgets('IgnorePointer3d takes its subtree out of reach', (tester) async {
     final controller = Layout3dController();
 
-    Widget build({required bool ignoring}) => SceneLayout3d(
+    Widget build({required bool ignoring}) => Surface3d(
       parent: Node(),
       size: const Size3d(2, 2, 1),
       controller: controller,
-      child: SceneIgnorePointer3d(
+      child: IgnorePointer3d(
         ignoring: ignoring,
-        child: SceneNodeBox3d(
-          content: Node(),
-          explicitSize: const Size3d(2, 2, 1),
-        ),
+        child: NodeBox3d(content: Node(), explicitSize: const Size3d(2, 2, 1)),
       ),
     );
 
@@ -261,20 +239,17 @@ void main() {
     );
   });
 
-  testWidgets('SceneWrap3d breaks its children into runs', (tester) async {
+  testWidgets('Wrap3d breaks its children into runs', (tester) async {
     final controller = Layout3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: const Size3d(10, 10, 1),
         controller: controller,
-        child: SceneWrap3d(
+        child: Wrap3d(
           children: [
             for (var index = 0; index < 3; index++)
-              SceneNodeBox3d(
-                content: Node(),
-                explicitSize: const Size3d(4, 2, 1),
-              ),
+              NodeBox3d(content: Node(), explicitSize: const Size3d(4, 2, 1)),
           ],
         ),
       ),
@@ -286,28 +261,28 @@ void main() {
     expect(boxes[2].offset, const Offset3d(0, 2, 0));
   });
 
-  testWidgets('SceneGridView3d keeps its cells on an unchanged delegate', (
+  testWidgets('GridView3d keeps its cells on an unchanged delegate', (
     tester,
   ) async {
     final controller = Layout3dController();
 
     final cell = Node();
-    Widget build() => SceneLayout3d(
+    Widget build() => Surface3d(
       parent: Node(),
       size: const Size3d(10, 10, 1),
       controller: controller,
-      child: SceneGridView3d(
+      child: GridView3d(
         gridDelegate: const Grid3dDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
         ),
         children: [
-          SceneNodeBox3d(content: cell, explicitSize: const Size3d(1, 1, 1)),
+          NodeBox3d(content: cell, explicitSize: const Size3d(1, 1, 1)),
         ],
       ),
     );
 
     await tester.pumpWidget(build());
-    final grid = rootOf(controller) as GridView3d;
+    final grid = rootOf(controller) as RenderGridView3d;
     expect(grid.gridLayout!.cellCrossAxisExtent, 5);
 
     await tester.pumpWidget(build());
@@ -316,29 +291,29 @@ void main() {
     expect(controller.surface!.needsFlush, isFalse);
   });
 
-  testWidgets('SceneCustomScrollView3d puts sections on one position', (
+  testWidgets('CustomScrollView3d puts sections on one position', (
     tester,
   ) async {
     final controller = Layout3dController();
     final scroll = Scroll3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: const Size3d(4, 6, 1),
         controller: controller,
-        child: SceneCustomScrollView3d(
+        child: CustomScrollView3d(
           controller: scroll,
           slivers: [
-            SceneSliverToBoxAdapter3d(
-              child: SceneNodeBox3d(
+            SliverToBoxAdapter3d(
+              child: NodeBox3d(
                 content: Node(),
                 explicitSize: const Size3d(4, 3, 1),
               ),
             ),
-            SceneSliverList3d(
+            SliverList3d(
               children: [
                 for (var index = 0; index < 3; index++)
-                  SceneNodeBox3d(
+                  NodeBox3d(
                     content: Node(),
                     explicitSize: const Size3d(2, 2, 1),
                   ),
@@ -349,10 +324,10 @@ void main() {
       ),
     );
 
-    final view = rootOf(controller) as CustomScrollView3d;
+    final view = rootOf(controller) as RenderCustomScrollView3d;
 
     expect(view.slivers, hasLength(2));
-    expect(view.slivers[1], isA<SliverList3d>());
+    expect(view.slivers[1], isA<RenderSliverList3d>());
     // The header takes 3, the list of three 2-tall items takes 6.
     expect(view.slivers[1].offset, const Offset3d(0, 3, 0));
     expect(scroll.contentExtent, 9);
@@ -363,13 +338,10 @@ void main() {
     final parent = Node();
     final controller = Layout3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: parent,
         controller: controller,
-        child: SceneNodeBox3d(
-          content: Node(),
-          explicitSize: const Size3d(1, 1, 1),
-        ),
+        child: NodeBox3d(content: Node(), explicitSize: const Size3d(1, 1, 1)),
       ),
     );
     expect(parent.children, contains(controller.plane));
@@ -378,15 +350,15 @@ void main() {
   testWidgets('a rebuild updates the layout in place', (tester) async {
     final controller = Layout3dController();
 
-    Widget build(double gap) => SceneLayout3d(
+    Widget build(double gap) => Surface3d(
       parent: Node(),
       size: const Size3d(10, 10, 10),
       controller: controller,
-      child: SceneColumn3d(
+      child: Column3d(
         spacing: gap,
         children: [
-          SceneNodeBox3d(content: Node(), explicitSize: const Size3d(2, 2, 2)),
-          SceneNodeBox3d(content: Node(), explicitSize: const Size3d(2, 2, 2)),
+          NodeBox3d(content: Node(), explicitSize: const Size3d(2, 2, 2)),
+          NodeBox3d(content: Node(), explicitSize: const Size3d(2, 2, 2)),
         ],
       ),
     );
@@ -404,19 +376,19 @@ void main() {
   testWidgets('reordering keyed children reorders the layout', (tester) async {
     final controller = Layout3dController();
 
-    Widget build(List<Widget> children) => SceneLayout3d(
+    Widget build(List<Widget> children) => Surface3d(
       parent: Node(),
       size: const Size3d(10, 10, 10),
       controller: controller,
-      child: SceneColumn3d(children: children),
+      child: Column3d(children: children),
     );
 
-    final first = SceneNodeBox3d(
+    final first = NodeBox3d(
       key: const ValueKey('first'),
       content: Node(),
       explicitSize: const Size3d(2, 2, 2),
     );
-    final second = SceneNodeBox3d(
+    final second = NodeBox3d(
       key: const ValueKey('second'),
       content: Node(),
       explicitSize: const Size3d(4, 4, 4),
@@ -435,19 +407,19 @@ void main() {
   testWidgets('removing a child drops it from the layout', (tester) async {
     final controller = Layout3dController();
 
-    Widget build({required bool showSecond}) => SceneLayout3d(
+    Widget build({required bool showSecond}) => Surface3d(
       parent: Node(),
       size: const Size3d(10, 10, 10),
       controller: controller,
-      child: SceneColumn3d(
+      child: Column3d(
         children: [
-          SceneNodeBox3d(
+          NodeBox3d(
             key: const ValueKey('first'),
             content: Node(),
             explicitSize: const Size3d(2, 2, 2),
           ),
           if (showSecond)
-            SceneNodeBox3d(
+            NodeBox3d(
               key: const ValueKey('second'),
               content: Node(),
               explicitSize: const Size3d(2, 2, 2),
@@ -470,24 +442,21 @@ void main() {
   testWidgets('nested layouts compose', (tester) async {
     final controller = Layout3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: const Size3d(10, 10, 10),
         controller: controller,
-        child: ScenePadding3d(
+        child: Padding3d(
           padding: const EdgeInsets3d.all(1),
-          child: SceneRow3d(
+          child: Row3d(
             children: [
-              SceneExpanded3d(
-                child: SceneNodeBox3d(
+              Expanded3d(
+                child: NodeBox3d(
                   content: Node(),
                   explicitSize: const Size3d(1, 1, 1),
                 ),
               ),
-              SceneNodeBox3d(
-                content: Node(),
-                explicitSize: const Size3d(2, 2, 2),
-              ),
+              NodeBox3d(content: Node(), explicitSize: const Size3d(2, 2, 2)),
             ],
           ),
         ),
@@ -505,15 +474,15 @@ void main() {
     final controller = Layout3dController();
     final scroll = Scroll3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: const Size3d(10, 4, 10),
         controller: controller,
-        child: SceneListView3d(
+        child: ListView3d(
           controller: scroll,
           children: [
             for (var index = 0; index < 5; index++)
-              SceneNodeBox3d(
+              NodeBox3d(
                 key: ValueKey(index),
                 content: Node(),
                 explicitSize: const Size3d(2, 2, 2),
@@ -536,67 +505,62 @@ void main() {
     final parent = Node();
     final controller = Layout3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: parent,
         controller: controller,
-        child: SceneNodeBox3d(
-          content: Node(),
-          explicitSize: const Size3d(1, 1, 1),
-        ),
+        child: NodeBox3d(content: Node(), explicitSize: const Size3d(1, 1, 1)),
       ),
     );
     expect(parent.children, isNotEmpty);
 
-    await tester.pumpWidget(SceneLayout3d(parent: Node()));
+    await tester.pumpWidget(Surface3d(parent: Node()));
     expect(controller.surface, isNull);
     expect(parent.children, isEmpty);
   });
 
-  testWidgets('SceneClipBox3d publishes its extent to the subtree', (
-    tester,
-  ) async {
+  testWidgets('ClipBox3d publishes its extent to the subtree', (tester) async {
     // The widget form phase 4 wrote a four-line adapter for. It is the one
     // widget here that publishes a Clip3dRegion at all.
     final controller = Layout3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: const Size3d(4, 2, 1),
         controller: controller,
-        child: const SceneClipBox3d(
-          child: SceneSizedBox3d(
+        child: const ClipBox3d(
+          child: SizedBox3d(
             width: 4,
             height: 2,
-            child: SceneSizedBox3d(width: 8, height: 1),
+            child: SizedBox3d(width: 8, height: 1),
           ),
         ),
       ),
     );
 
     final clip = rootOf(controller);
-    expect(clip, isA<ClipBox3d>());
-    final inner = (clip as ClipBox3d).child!;
+    expect(clip, isA<RenderClipBox3d>());
+    final inner = (clip as RenderClipBox3d).child!;
     expect(inner.clipRegion.planes, hasLength(4));
     expect(inner.clipRegion.contains(const Offset3d(2, 1, 0)), isTrue);
     expect(inner.clipRegion.contains(const Offset3d(6, 1, 0)), isFalse);
   });
 
-  testWidgets('SceneClipBox3d writes its flags without rebuilding the box', (
+  testWidgets('ClipBox3d writes its flags without rebuilding the box', (
     tester,
   ) async {
     final controller = Layout3dController();
-    Widget frame({required bool clipDepth}) => SceneLayout3d(
+    Widget frame({required bool clipDepth}) => Surface3d(
       parent: Node(),
       size: const Size3d(4, 2, 1),
       controller: controller,
-      child: SceneClipBox3d(
+      child: ClipBox3d(
         clipDepth: clipDepth,
-        child: const SceneSizedBox3d(width: 4, height: 2),
+        child: const SizedBox3d(width: 4, height: 2),
       ),
     );
 
     await tester.pumpWidget(frame(clipDepth: false));
-    final box = rootOf(controller) as ClipBox3d;
+    final box = rootOf(controller) as RenderClipBox3d;
     expect(box.clipDepth, isFalse);
     expect(box.ownRegion.planes, hasLength(4));
 
@@ -612,23 +576,23 @@ void main() {
     final controller = Layout3dController();
     final scroll = Scroll3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: const Size3d(4, 10, 2),
         controller: controller,
-        child: SceneCustomScrollView3d(
+        child: CustomScrollView3d(
           controller: scroll,
           slivers: <Widget>[
-            const SceneSliverPersistentHeader3d(
+            const SliverPersistentHeader3d(
               minExtent: 2,
               maxExtent: 4,
               pinned: true,
-              child: SceneSizedBox3d(width: 4, height: 4),
+              child: SizedBox3d(width: 4, height: 4),
             ),
-            SceneSliverList3d(
+            SliverList3d(
               children: <Widget>[
                 for (var i = 0; i < 6; i++)
-                  const SceneSizedBox3d(width: 4, height: 2),
+                  const SizedBox3d(width: 4, height: 2),
               ],
             ),
           ],
@@ -636,8 +600,8 @@ void main() {
       ),
     );
 
-    final view = rootOf(controller) as CustomScrollView3d;
-    final header = view.slivers.first as SliverPersistentHeader3d;
+    final view = rootOf(controller) as RenderCustomScrollView3d;
+    final header = view.slivers.first as RenderSliverPersistentHeader3d;
     // The delegate hands back the subtree the widget attached rather than
     // building one, so the header never drops it.
     final content = header.child;
@@ -656,25 +620,25 @@ void main() {
     tester,
   ) async {
     final controller = Layout3dController();
-    Widget frame({required bool pinned, required double max}) => SceneLayout3d(
+    Widget frame({required bool pinned, required double max}) => Surface3d(
       parent: Node(),
       size: const Size3d(4, 10, 2),
       controller: controller,
-      child: SceneCustomScrollView3d(
+      child: CustomScrollView3d(
         slivers: <Widget>[
-          SceneSliverPersistentHeader3d(
+          SliverPersistentHeader3d(
             minExtent: 2,
             maxExtent: max,
             pinned: pinned,
-            child: const SceneSizedBox3d(width: 4, height: 4),
+            child: const SizedBox3d(width: 4, height: 4),
           ),
         ],
       ),
     );
 
     await tester.pumpWidget(frame(pinned: true, max: 4));
-    final view = rootOf(controller) as CustomScrollView3d;
-    final header = view.slivers.first as SliverPersistentHeader3d;
+    final view = rootOf(controller) as RenderCustomScrollView3d;
+    final header = view.slivers.first as RenderSliverPersistentHeader3d;
     expect(header.pinned, isTrue);
     expect(header.delegate.maxExtent, 4);
 
@@ -689,20 +653,20 @@ void main() {
     tester,
   ) async {
     final controller = Layout3dController();
-    Widget frame(bool visible) => SceneLayout3d(
+    Widget frame(bool visible) => Surface3d(
       parent: Node(),
       size: const Size3d(4, 4, 2),
       controller: controller,
-      child: SceneCenter3d(
-        child: SceneVisibility3d(
+      child: Center3d(
+        child: Visibility3d(
           visible: visible,
-          child: const SceneSizedBox3d(width: 2, height: 1, depth: 1),
+          child: const SizedBox3d(width: 2, height: 1, depth: 1),
         ),
       ),
     );
 
     await tester.pumpWidget(frame(true));
-    final box = childOf(rootOf(controller)) as Visibility3d;
+    final box = childOf(rootOf(controller)) as RenderVisibility3d;
     expect(box.visible, isTrue);
     expect(box.size, const Size3d(2, 1, 1));
 
@@ -711,26 +675,26 @@ void main() {
     expect(box.visible, isFalse);
     expect(box.node.visible, isFalse);
     // The space is still reserved, which is the whole difference from
-    // SceneOffstage3d.
+    // Offstage3d.
     expect(box.size, const Size3d(2, 1, 1));
   });
 
   testWidgets('an offstage widget gives the space back', (tester) async {
     final controller = Layout3dController();
-    Widget frame(bool offstage) => SceneLayout3d(
+    Widget frame(bool offstage) => Surface3d(
       parent: Node(),
       size: const Size3d(4, 4, 2),
       controller: controller,
-      child: SceneCenter3d(
-        child: SceneOffstage3d(
+      child: Center3d(
+        child: Offstage3d(
           offstage: offstage,
-          child: const SceneSizedBox3d(width: 2, height: 1, depth: 1),
+          child: const SizedBox3d(width: 2, height: 1, depth: 1),
         ),
       ),
     );
 
     await tester.pumpWidget(frame(false));
-    final box = childOf(rootOf(controller)) as Offstage3d;
+    final box = childOf(rootOf(controller)) as RenderOffstage3d;
     expect(box.size, const Size3d(2, 1, 1));
 
     await tester.pumpWidget(frame(true));
@@ -741,20 +705,20 @@ void main() {
 
   testWidgets('a keep-alive widget writes its flag in place', (tester) async {
     final controller = Layout3dController();
-    Widget frame(bool keep) => SceneLayout3d(
+    Widget frame(bool keep) => Surface3d(
       parent: Node(),
       size: const Size3d(4, 4, 2),
       controller: controller,
-      child: SceneCenter3d(
-        child: SceneKeepAlive3d(
+      child: Center3d(
+        child: KeepAlive3d(
           keepAlive: keep,
-          child: const SceneSizedBox3d(width: 2, height: 1, depth: 1),
+          child: const SizedBox3d(width: 2, height: 1, depth: 1),
         ),
       ),
     );
 
     await tester.pumpWidget(frame(true));
-    final box = childOf(rootOf(controller)) as KeepAlive3d;
+    final box = childOf(rootOf(controller)) as RenderKeepAlive3d;
     expect(box.keepAlive, isTrue);
 
     await tester.pumpWidget(frame(false));
@@ -768,21 +732,21 @@ void main() {
     tester,
   ) async {
     final controller = Layout3dController();
-    Widget frame(Axis3d axis) => SceneLayout3d(
+    Widget frame(Axis3d axis) => Surface3d(
       parent: Node(),
       size: const Size3d(8, 8, 2),
       controller: controller,
-      child: SceneCenter3d(
-        child: SceneIntrinsicExtent3d(
+      child: Center3d(
+        child: IntrinsicExtent3d(
           axis: axis,
           step: 2,
-          child: const SceneSizedBox3d(width: 3, height: 1, depth: 1),
+          child: const SizedBox3d(width: 3, height: 1, depth: 1),
         ),
       ),
     );
 
     await tester.pumpWidget(frame(Axis3d.horizontal));
-    final box = childOf(rootOf(controller)) as IntrinsicExtent3d;
+    final box = childOf(rootOf(controller)) as RenderIntrinsicExtent3d;
     expect(box.axis, Axis3d.horizontal);
     // Three wide, rounded up to the next multiple of the step.
     expect(box.size.width, 4);
@@ -798,12 +762,12 @@ void main() {
     final controller = Layout3dController();
     Widget frame(String tail, TextDirection direction) => Directionality(
       textDirection: direction,
-      child: SceneLayout3d(
+      child: Surface3d(
         parent: Node(),
         size: const Size3d(8, 4, 2),
         controller: controller,
-        child: SceneCenter3d(
-          child: SceneRichText3d(
+        child: Center3d(
+          child: RichText3d(
             text: TextSpan(
               style: const TextStyle(fontSize: 14),
               children: <InlineSpan>[
@@ -818,7 +782,7 @@ void main() {
     );
 
     await tester.pumpWidget(frame('Ada', TextDirection.ltr));
-    final box = childOf(rootOf(controller)) as RichText3d;
+    final box = childOf(rootOf(controller)) as RenderRichText3d;
     expect(box.textDirection, TextDirection.ltr);
     expect(box.maxLines, 2);
 

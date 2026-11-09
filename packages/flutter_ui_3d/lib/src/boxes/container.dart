@@ -21,14 +21,14 @@ import '../rendering/object.dart';
 /// where the content lands, never the layout.
 ///
 /// This is a layout container and nothing else: unlike Flutter's, it has no
-/// `decoration`. Making a box *visible* is [DecoratedBox3d]'s job — wrap the
-/// container in one (`SceneDecoratedBox3d` on the declarative side), or put
-/// engine content in the tree with a `NodeBox3d`.
+/// `decoration`. Making a box *visible* is [RenderDecoratedBox3d]'s job — wrap
+/// the container in one (`DecoratedBox3d` on the declarative side), or put
+/// engine content in the tree with a `RenderNodeBox3d`.
 ///
 /// The separation is deliberate, and it is not only about drawing. Flutter's
 /// `Container` can afford a decoration because it is a *composition*: it builds
 /// a small tree and `DecoratedBox` stays the single implementation of what a
-/// decoration is. There is no composition here — a `Container3d` is one
+/// decoration is. There is no composition here — a `RenderContainer3d` is one
 /// [RenderObject3d] — so a decoration on it would be a second implementation
 /// of the painter lifecycle, and it would have to be painted inside the
 /// [margin] and around the [padding] rather than at the box's own size, which
@@ -37,14 +37,14 @@ import '../rendering/object.dart';
 ///
 /// ```dart
 /// // A panel with space inside it.
-/// DecoratedBox3d(decoration: d, child: Container3d(padding: p, child: c));
+/// RenderDecoratedBox3d(decoration: d, child: RenderContainer3d(padding: p, child: c));
 /// // A panel with space around it.
-/// Container3d(margin: m, child: DecoratedBox3d(decoration: d, child: c));
+/// RenderContainer3d(margin: m, child: RenderDecoratedBox3d(decoration: d, child: c));
 /// ```
-class Container3d extends RenderSingleChild3d
+class RenderContainer3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d {
   /// Creates a container.
-  Container3d({
+  RenderContainer3d({
     AlignmentGeometry3d? alignment,
     EdgeInsetsGeometry3d padding = EdgeInsets3d.zero,
     EdgeInsetsGeometry3d margin = EdgeInsets3d.zero,

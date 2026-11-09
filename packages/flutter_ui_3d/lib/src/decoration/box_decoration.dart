@@ -128,16 +128,16 @@ class Border3d {
 /// 1dp outline, a 6dp elevation — and the metrics turn them into world units
 /// at paint time. That is what makes the same decoration correct on a
 /// camera-bound surface and on a wall panel the author scaled by hand, and it
-/// is the same bargain `Text3d` strikes with `TextStyle.fontSize`.
+/// is the same bargain `RenderText3d` strikes with `TextStyle.fontSize`.
 ///
 /// ```dart
-/// DecoratedBox3d(
+/// RenderDecoratedBox3d(
 ///   decoration: const BoxDecoration3d(
 ///     color: Color(0xFF1B6EF3),
 ///     borderRadius: BorderRadius3d.circular(12),
 ///     elevation: 6,
 ///   ),
-///   child: Padding3d(padding: EdgeInsets3d.all(0.1), child: label),
+///   child: RenderPadding3d(padding: EdgeInsets3d.all(0.1), child: label),
 /// )
 /// ```
 class BoxDecoration3d extends Decoration3d implements Decoration3dElevation {
@@ -202,10 +202,10 @@ class BoxDecoration3d extends Decoration3d implements Decoration3dElevation {
   /// How far the panel stands off its parent, in logical pixels.
   ///
   /// Material's elevation. In Flutter an elevation is a painted shadow
-  /// standing in for a height; here the height is real, so [DecoratedBox3d]
-  /// lifts the geometry toward the viewer by `metrics.dp(elevation)` and a
-  /// raised panel reads as raised because it moves under the camera and
-  /// occludes what is behind it.
+  /// standing in for a height; here the height is real, so
+  /// [RenderDecoratedBox3d] lifts the geometry toward the viewer by
+  /// `metrics.dp(elevation)` and a raised panel reads as raised because it
+  /// moves under the camera and occludes what is behind it.
   ///
   /// **It casts no shadow, and cannot.** The panel shader declares
   /// `blending: alpha` — its anti-aliased outline *is* an alpha — and

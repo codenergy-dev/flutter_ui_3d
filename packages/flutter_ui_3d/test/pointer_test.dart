@@ -13,12 +13,12 @@ import 'package:flutter_ui_3d/rendering.dart';
 import 'support.dart';
 
 /// A listener that writes down what reached it, in the order it arrived.
-Listener3d recorder(
+RenderListener3d recorder(
   String label,
   List<String> log, {
   HitTestBehavior3d behavior = HitTestBehavior3d.deferToChild,
   RenderObject3d? child,
-}) => Listener3d(
+}) => RenderListener3d(
   behavior: behavior,
   onPointerDown: (_) => log.add('$label down'),
   onPointerMove: (_) => log.add('$label move'),
@@ -38,10 +38,14 @@ void main() {
         'leaf',
         log,
         behavior: HitTestBehavior3d.opaque,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final middle = recorder('middle', log, child: leaf);
-      final outer = recorder('outer', log, child: Center3d(child: middle));
+      final outer = recorder(
+        'outer',
+        log,
+        child: RenderCenter3d(child: middle),
+      );
       final surface = laidOut(
         outer,
         constraints: Constraints3d.tight(const Size3d(2, 2, 0)),
@@ -59,12 +63,12 @@ void main() {
         'target',
         log,
         behavior: HitTestBehavior3d.opaque,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(
-        Column3d(
+        RenderColumn3d(
           children: [
-            Row3d(children: [Center3d(child: target)]),
+            RenderRow3d(children: [RenderCenter3d(child: target)]),
           ],
         ),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
@@ -76,18 +80,18 @@ void main() {
       expect(log, ['target down']);
     });
 
-    test('an AbsorbPointer3d in between takes the press instead', () {
+    test('a RenderAbsorbPointer3d in between takes the press instead', () {
       final log = <String>[];
       final target = recorder(
         'target',
         log,
         behavior: HitTestBehavior3d.opaque,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final outer = recorder(
         'outer',
         log,
-        child: AbsorbPointer3d(child: target),
+        child: RenderAbsorbPointer3d(child: target),
       );
       final surface = laidOut(
         outer,
@@ -102,13 +106,13 @@ void main() {
 
     test('the path is captured, so a move that leaves the box still lands', () {
       final positions = <Offset3d>[];
-      final listener = Listener3d(
+      final listener = RenderListener3d(
         behavior: HitTestBehavior3d.opaque,
         onPointerMove: (event) => positions.add(event.localPosition),
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(
-        Center3d(child: listener),
+        RenderCenter3d(child: listener),
         constraints: Constraints3d.tight(const Size3d(4, 4, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -129,7 +133,7 @@ void main() {
           'box',
           log,
           behavior: HitTestBehavior3d.opaque,
-          child: TestBox(const Size3d(1, 1, 0)),
+          child: RenderTestBox(const Size3d(1, 1, 0)),
         ),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
       );
@@ -149,15 +153,15 @@ void main() {
     test('a hidden subtree receives nothing', () {
       final log = <String>[];
       final surface = laidOut(
-        Stack3d(
+        RenderStack3d(
           children: [
-            TestBox(const Size3d(1, 1, 0), pointable: true),
-            Offstage3d(
+            RenderTestBox(const Size3d(1, 1, 0), pointable: true),
+            RenderOffstage3d(
               child: recorder(
                 'hidden',
                 log,
                 behavior: HitTestBehavior3d.opaque,
-                child: TestBox(const Size3d(1, 1, 0)),
+                child: RenderTestBox(const Size3d(1, 1, 0)),
               ),
             ),
           ],
@@ -173,13 +177,13 @@ void main() {
 
     test('the event carries the position in the box own frame, and in dp', () {
       PointerEvent3d? seen;
-      final listener = Listener3d(
+      final listener = RenderListener3d(
         behavior: HitTestBehavior3d.opaque,
         onPointerDown: (event) => seen = event,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(
-        Center3d(child: listener),
+        RenderCenter3d(child: listener),
         constraints: Constraints3d.tight(const Size3d(3, 3, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -200,7 +204,7 @@ void main() {
   });
 
   group('hit test behaviour', () {
-    ({Layout3dSurface surface, List<String> log}) paddedButton(
+    ({RenderSurface3d surface, List<String> log}) paddedButton(
       HitTestBehavior3d behavior,
     ) {
       final log = <String>[];
@@ -208,14 +212,16 @@ void main() {
         'button',
         log,
         behavior: behavior,
-        child: Padding3d(
+        child: RenderPadding3d(
           padding: const EdgeInsets3d.all(0.5),
-          child: IgnorePointer3d(child: TestBox(const Size3d(1, 1, 0))),
+          child: RenderIgnorePointer3d(
+            child: RenderTestBox(const Size3d(1, 1, 0)),
+          ),
         ),
       );
       return (
         surface: laidOut(
-          Center3d(child: button),
+          RenderCenter3d(child: button),
           constraints: Constraints3d.tight(const Size3d(2, 2, 0)),
         ),
         log: log,
@@ -244,15 +250,15 @@ void main() {
 
     test('translucent hears the pointer and lets the ray through', () {
       final log = <String>[];
-      final behind = TestBox(const Size3d(1, 1, 0), pointable: true);
+      final behind = RenderTestBox(const Size3d(1, 1, 0), pointable: true);
       final front = recorder(
         'veil',
         log,
         behavior: HitTestBehavior3d.translucent,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(
-        Stack3d(children: [behind, front]),
+        RenderStack3d(children: [behind, front]),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -264,7 +270,7 @@ void main() {
       expect(pointer.lastHit.path.map((entry) => entry.layout).toList(), [
         front,
         behind,
-        isA<Stack3d>(),
+        isA<RenderStack3d>(),
         surface,
       ]);
       expect(log, ['veil down'], reason: 'and the veil heard it anyway');
@@ -272,23 +278,23 @@ void main() {
   });
 
   group('hover', () {
-    ({Layout3dSurface surface, List<String> log, Layout3dPointer pointer})
+    ({RenderSurface3d surface, List<String> log, Layout3dPointer pointer})
     twoPanels() {
       final log = <String>[];
       final left = recorder(
         'left',
         log,
         behavior: HitTestBehavior3d.opaque,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final right = recorder(
         'right',
         log,
         behavior: HitTestBehavior3d.opaque,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(
-        Row3d(children: [left, right]),
+        RenderRow3d(children: [left, right]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       return (surface: surface, log: log, pointer: Layout3dPointer(surface));
@@ -344,7 +350,7 @@ void main() {
         'inner',
         log,
         behavior: HitTestBehavior3d.opaque,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final outer = recorder(
         'outer',
@@ -367,12 +373,12 @@ void main() {
     test('the hover events are the Flutter ones', () {
       final events = <PointerEvent>[];
       final surface = laidOut(
-        Listener3d(
+        RenderListener3d(
           behavior: HitTestBehavior3d.opaque,
           onPointerEnter: (event) => events.add(event.event),
           onPointerHover: (event) => events.add(event.event),
           onPointerExit: (event) => events.add(event.event),
-          child: TestBox(const Size3d(1, 1, 0)),
+          child: RenderTestBox(const Size3d(1, 1, 0)),
         ),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
       );
@@ -391,23 +397,23 @@ void main() {
 
   group('several pointers', () {
     test('two fingers drive two lists independently', () {
-      final left = ListView3d(
+      final left = RenderListView3d(
         children: List.generate(
           8,
-          (index) => TestBox(const Size3d(1, 1, 0), pointable: true),
+          (index) => RenderTestBox(const Size3d(1, 1, 0), pointable: true),
         ),
       );
-      final right = ListView3d(
+      final right = RenderListView3d(
         children: List.generate(
           8,
-          (index) => TestBox(const Size3d(1, 1, 0), pointable: true),
+          (index) => RenderTestBox(const Size3d(1, 1, 0), pointable: true),
         ),
       );
       final surface = laidOut(
-        Row3d(
+        RenderRow3d(
           children: [
-            SizedBox3d(width: 1, child: left),
-            SizedBox3d(width: 1, child: right),
+            RenderSizedBox3d(width: 1, child: left),
+            RenderSizedBox3d(width: 1, child: right),
           ],
         ),
         constraints: Constraints3d.tight(const Size3d(2, 2, 0)),
@@ -443,16 +449,16 @@ void main() {
         'left',
         log,
         behavior: HitTestBehavior3d.opaque,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final right = recorder(
         'right',
         log,
         behavior: HitTestBehavior3d.opaque,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(
-        Row3d(children: [left, right]),
+        RenderRow3d(children: [left, right]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -471,14 +477,15 @@ void main() {
     });
   });
 
-  group('TapTarget3d', () {
-    ({Layout3dSurface surface, TapTarget3d target, TestBox icon}) toolbar() {
+  group('RenderTapTarget3d', () {
+    ({RenderSurface3d surface, RenderTapTarget3d target, RenderTestBox icon})
+    toolbar() {
       // 24dp of icon in a 100dp-wide surface, at the standard hundred logical
       // pixels to the unit.
-      final icon = TestBox(const Size3d(0.24, 0.24, 0), pointable: true);
-      final target = TapTarget3d(child: icon);
+      final icon = RenderTestBox(const Size3d(0.24, 0.24, 0), pointable: true);
+      final target = RenderTapTarget3d(child: icon);
       final surface = laidOut(
-        Center3d(child: target),
+        RenderCenter3d(child: target),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
       );
       return (surface: surface, target: target, icon: icon);
@@ -543,10 +550,10 @@ void main() {
     });
 
     test('a target whose content answers nothing still answers itself', () {
-      final icon = TestBox(const Size3d(0.24, 0.24, 0));
-      final target = TapTarget3d(child: icon);
+      final icon = RenderTestBox(const Size3d(0.24, 0.24, 0));
+      final target = RenderTapTarget3d(child: icon);
       final surface = laidOut(
-        Center3d(child: target),
+        RenderCenter3d(child: target),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
       );
 
@@ -562,11 +569,11 @@ void main() {
       // something no bigger — a Material panel around an ink well — is
       // rejected a level above and never sees the ray. Put the target
       // outside, the way Flutter's `_InputPadding` sits outside `Material`.
-      final icon = TestBox(const Size3d(0.24, 0.24, 0), pointable: true);
-      final target = TapTarget3d(child: icon);
+      final icon = RenderTestBox(const Size3d(0.24, 0.24, 0), pointable: true);
+      final target = RenderTapTarget3d(child: icon);
       final surface = laidOut(
-        Center3d(
-          child: SizedBox3d.fromSize(
+        RenderCenter3d(
+          child: RenderSizedBox3d.fromSize(
             const Size3d(0.24, 0.24, 0),
             child: target,
           ),
@@ -591,10 +598,10 @@ void main() {
     });
 
     test('a target already big enough is left alone', () {
-      final big = TestBox(const Size3d(0.8, 0.8, 0), pointable: true);
-      final target = TapTarget3d(child: big);
+      final big = RenderTestBox(const Size3d(0.8, 0.8, 0), pointable: true);
+      final target = RenderTapTarget3d(child: big);
       final surface = laidOut(
-        Center3d(child: target),
+        RenderCenter3d(child: target),
         constraints: Constraints3d.tight(const Size3d(2, 2, 0)),
       );
 
@@ -603,10 +610,10 @@ void main() {
     });
 
     test('the minimum is read through the metrics, so density carries', () {
-      final icon = TestBox(const Size3d(0.24, 0.24, 0), pointable: true);
-      final target = TapTarget3d(child: icon);
+      final icon = RenderTestBox(const Size3d(0.24, 0.24, 0), pointable: true);
+      final target = RenderTapTarget3d(child: icon);
       final surface = laidOut(
-        Center3d(child: target),
+        RenderCenter3d(child: target),
         constraints: Constraints3d.tight(const Size3d(2, 2, 0)),
         metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.02),
       );
@@ -615,7 +622,7 @@ void main() {
       expect(target.effectiveMinimumSize.width, closeTo(0.96, 1e-9));
       expect(
         surface.hitTestAt(const Offset3d(0.6, 1, 0)).path.last.layout,
-        isA<Layout3dSurface>(),
+        isA<RenderSurface3d>(),
       );
       expect(
         surface
@@ -630,7 +637,7 @@ void main() {
   group('the sequence itself', () {
     test('a press that hits nothing starts no sequence', () {
       final surface = laidOut(
-        TestBox(const Size3d(1, 1, 0), pointable: true),
+        RenderTestBox(const Size3d(1, 1, 0), pointable: true),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -647,7 +654,7 @@ void main() {
           'box',
           log,
           behavior: HitTestBehavior3d.opaque,
-          child: TestBox(const Size3d(1, 1, 0)),
+          child: RenderTestBox(const Size3d(1, 1, 0)),
         ),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
       );
@@ -666,7 +673,7 @@ void main() {
           'box',
           log,
           behavior: HitTestBehavior3d.opaque,
-          child: TestBox(const Size3d(1, 1, 0)),
+          child: RenderTestBox(const Size3d(1, 1, 0)),
         ),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
       );
@@ -684,8 +691,8 @@ void main() {
       final events = <PointerEvent>[];
       final positions = <double>[];
       final surface = laidOut(
-        Center3d(
-          child: Listener3d(
+        RenderCenter3d(
+          child: RenderListener3d(
             behavior: HitTestBehavior3d.opaque,
             onPointerDown: (event) => events.add(event.event),
             onPointerMove: (event) => events.add(event.event),
@@ -693,7 +700,7 @@ void main() {
               events.add(event.event);
               positions.add(event.localPosition.x);
             },
-            child: TestBox(const Size3d(1, 1, 0)),
+            child: RenderTestBox(const Size3d(1, 1, 0)),
           ),
         ),
         constraints: Constraints3d.tight(const Size3d(2, 2, 0)),

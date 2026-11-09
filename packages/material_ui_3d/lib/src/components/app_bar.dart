@@ -20,20 +20,20 @@ import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
         MediaQuery3d,
-        SceneAlign3d,
-        SceneSafeArea3d,
-        SceneConstrainedBox3d,
-        SceneCustomMultiChildLayout3d,
-        SceneExpanded3d,
-        SceneLayoutId3d,
-        ScenePadding3d,
-        SceneRow3d,
-        SceneSemantics3d,
-        SceneSizedBox3d,
-        SceneSliverPersistentHeader3d,
-        SceneSpacer3d,
-        SceneText3d,
-        SceneTextScaling3d;
+        Align3d,
+        SafeArea3d,
+        ConstrainedBox3d,
+        CustomMultiChildLayout3d,
+        Expanded3d,
+        LayoutId3d,
+        Padding3d,
+        Row3d,
+        Semantics3d,
+        SizedBox3d,
+        SliverPersistentHeader3d,
+        Spacer3d,
+        Text3d,
+        TextScaling3d;
 
 import '../theme/theme.dart';
 import '../theme/theme_data.dart';
@@ -58,8 +58,8 @@ import 'reading_direction.dart';
 ///
 /// A fixed-height bar for a screen that does not scroll under it. When the
 /// body *does* scroll under it, use [SliverAppBar3d], which is the same
-/// tokens over a `SliverPersistentHeader3d` and is where every interesting
-/// question in this component actually lives.
+/// tokens over a `RenderSliverPersistentHeader3d` and is where every
+/// interesting question in this component actually lives.
 ///
 /// ## It is the deepest thing on a screen, and that is not decoration
 ///
@@ -75,8 +75,8 @@ import 'reading_direction.dart';
 ///
 /// ## What it announces
 ///
-/// A `Semantics3d` gathers nothing, so a bar states its own label — and a bar
-/// has the same problem `ListTile3d` has, a title plus content that is not
+/// A `RenderSemantics3d` gathers nothing, so a bar states its own label — and a
+/// bar has the same problem `ListTile3d` has, a title plus content that is not
 /// the title. [AppBar3d.text] takes the title as a string and announces it,
 /// marked as a **header**, which is what Flutter's `AppBar` publishes and
 /// what lets a screen reader jump between sections. The widget-taking
@@ -118,7 +118,7 @@ class AppBar3d extends StatelessWidget {
     this.primary = true,
     String? semanticLabel,
     this.textDirection,
-  }) : title = SceneText3d(title),
+  }) : title = Text3d(title),
        semanticLabel = semanticLabel ?? title;
 
   /// How far the title grows with the reader's font setting: 1.34,
@@ -198,7 +198,7 @@ class AppBar3d extends StatelessWidget {
         (toolbarHeight ?? resolved.toolbarHeight) + _topInset(context);
     return announce(
       context,
-      SceneSizedBox3d(
+      SizedBox3d(
         height: Layout3dMetricsScope.of(context).dp(height),
         child: buildBar(
           context,
@@ -232,10 +232,10 @@ class AppBar3d extends StatelessWidget {
     // of fixed height would be nothing but title.
     final titled = title == null
         ? null
-        : SceneTextStyle3d(
+        : TextStyle3d(
             style: titleStyle,
             color: content,
-            child: SceneTextScaling3d.clamped(
+            child: TextScaling3d.clamped(
               maxScaleFactor: AppBar3d.maxTitleTextScaleFactor,
               child: title!,
             ),
@@ -258,22 +258,22 @@ class AppBar3d extends StatelessWidget {
       // squeezes the controls into the title's width. The arithmetic is
       // Flutter's `NavigationToolbar`'s, and it needs every width measured
       // before the title is placed.
-      toolbar = SceneCustomMultiChildLayout3d(
+      toolbar = CustomMultiChildLayout3d(
         delegate: _CentredToolbar3dLayout(
           spacing: spacing,
           textDirection: direction,
         ),
         children: <Widget>[
           if (leading != null)
-            SceneLayoutId3d(
+            LayoutId3d(
               id: _ToolbarSlot3d.leading,
               child: _leadingSlot(metrics, style, direction, leading!),
             ),
-          SceneLayoutId3d(id: _ToolbarSlot3d.middle, child: titled),
+          LayoutId3d(id: _ToolbarSlot3d.middle, child: titled),
           if (actions.isNotEmpty)
-            SceneLayoutId3d(
+            LayoutId3d(
               id: _ToolbarSlot3d.trailing,
-              child: SceneRow3d(
+              child: Row3d(
                 mainAxisSize: MainAxisSize3d.min,
                 crossAxisAlignment: CrossAxisAlignment3d.center,
                 children: actions,
@@ -282,7 +282,7 @@ class AppBar3d extends StatelessWidget {
         ],
       );
     } else {
-      toolbar = SceneRow3d(
+      toolbar = Row3d(
         mainAxisSize: MainAxisSize3d.max,
         mainAxisAlignment: MainAxisAlignment3d.start,
         crossAxisAlignment: CrossAxisAlignment3d.center,
@@ -291,17 +291,17 @@ class AppBar3d extends StatelessWidget {
           if (leading != null)
             _leadingSlot(metrics, style, direction, leading!),
           if (titled != null)
-            SceneExpanded3d(
+            Expanded3d(
               child: _clearOfEmptyEdges(metrics, style, direction, titled),
             )
           else
-            const SceneSpacer3d(),
+            const Spacer3d(),
           ...actions,
         ],
       );
     }
 
-    final line = SceneSizedBox3d(height: metrics.dp(barHeight), child: toolbar);
+    final line = SizedBox3d(height: metrics.dp(barHeight), child: toolbar);
 
     return Material3d(
       color: backgroundColor ?? style.container,
@@ -319,7 +319,7 @@ class AppBar3d extends StatelessWidget {
       // surface it is drawn on wins the depth test and the title vanishes
       // with nothing to say why.
       child: _clearOfTheStatusBar(
-        SceneAlign3d(alignment: const Alignment3d(0, 1, -1), child: line),
+        Align3d(alignment: const Alignment3d(0, 1, -1), child: line),
       ),
     );
   }
@@ -331,9 +331,9 @@ class AppBar3d extends StatelessWidget {
   /// [toolbar], kept clear of the insets at the top and the sides when the
   /// bar is [primary] — and the surface behind it left to run up under the
   /// status bar, which is the difference between this and a
-  /// `SceneSafeArea3d` around the whole bar.
+  /// `SafeArea3d` around the whole bar.
   Widget _clearOfTheStatusBar(Widget toolbar) =>
-      primary ? SceneSafeArea3d(bottom: false, child: toolbar) : toolbar;
+      primary ? SafeArea3d(bottom: false, child: toolbar) : toolbar;
 
   /// [leading] in its slot: [AppBarStyle3d.leadingWidth] from the bar's
   /// leading edge, the bar's padding on that edge counted toward it, with the
@@ -352,11 +352,11 @@ class AppBar3d extends StatelessWidget {
     AppBarStyle3d style,
     TextDirection direction,
     Widget leading,
-  ) => SceneSizedBox3d(
+  ) => SizedBox3d(
     width: metrics.dp(
       math.max(0.0, style.leadingWidth - _startPadding(style, direction)),
     ),
-    child: SceneAlign3d(alignment: const Alignment3d(0, 0, -1), child: leading),
+    child: Align3d(alignment: const Alignment3d(0, 0, -1), child: leading),
   );
 
   /// [title], kept [AppBarStyle3d.titleSpacing] off each edge of the bar that
@@ -385,7 +385,7 @@ class AppBar3d extends StatelessWidget {
     final start = inset(leading == null, _startPadding(style, direction));
     final end = inset(actions.isEmpty, _endPadding(style, direction));
     if (start == 0.0 && end == 0.0) return title;
-    return ScenePadding3d(
+    return Padding3d(
       padding: EdgeInsetsDirectional3d.only(
         start: metrics.dp(start),
         end: metrics.dp(end),
@@ -411,7 +411,7 @@ class AppBar3d extends StatelessWidget {
   Widget announce(BuildContext context, Widget bar) {
     final label = semanticLabel;
     if (label == null) return bar;
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: SemanticsProperties(
         header: true,
         label: label,
@@ -425,11 +425,11 @@ class AppBar3d extends StatelessWidget {
 /// The bar at the top of a scroll view, which the content passes behind.
 ///
 /// ```dart
-/// SceneCustomScrollView3d(
+/// CustomScrollView3d(
 ///   controller: scroll,
 ///   slivers: <Widget>[
 ///     SliverAppBar3d.text(title: 'Inbox', pinned: true),
-///     SceneSliverList3d(children: rows),
+///     SliverList3d(children: rows),
 ///   ],
 /// )
 /// ```
@@ -443,12 +443,12 @@ class AppBar3d extends StatelessWidget {
 ///    separation, and it has to clear the mean of the two slabs' thicknesses
 ///    — an 8dp bar over a 4dp card needs more than 6dp — which is why the
 ///    default here is the theme's own `thickness.depthStep` and **not**
-///    `SliverPersistentHeader3d`'s one logical pixel. One pixel separates two
-///    decals; it does not separate two Material components.
-///  * `CustomScrollView3d` publishes a clip plane at the bar's trailing edge,
-///    which is what cuts a row *in half* at that edge. A `Material3d`'s panel
-///    shader honours it; a leaf holding an application's own material does
-///    not, and is merely behind the bar rather than cut by it.
+///    `RenderSliverPersistentHeader3d`'s one logical pixel. One pixel separates
+///    two decals; it does not separate two Material components.
+///  * `RenderCustomScrollView3d` publishes a clip plane at the bar's trailing
+///    edge, which is what cuts a row *in half* at that edge. A `Material3d`'s
+///    panel shader honours it; a leaf holding an application's own material
+///    does not, and is merely behind the bar rather than cut by it.
 ///
 /// `examples/render_probe`'s `sliver_app_bar_clip` is the picture of the
 /// second one, and it is the scene that found the plane tier had never fired
@@ -515,7 +515,7 @@ class SliverAppBar3d extends StatelessWidget {
     this.lift,
     String? semanticLabel,
     this.textDirection,
-  }) : title = SceneText3d(title),
+  }) : title = Text3d(title),
        semanticLabel = semanticLabel ?? title;
 
   /// What sits at the leading edge.
@@ -586,7 +586,7 @@ class SliverAppBar3d extends StatelessWidget {
   /// `thickness.depthStep`.
   ///
   /// The default is the whole reason this property is not simply forwarded.
-  /// `SliverPersistentHeader3d.lift` defaults to one logical pixel, which
+  /// `RenderSliverPersistentHeader3d.lift` defaults to one logical pixel, which
   /// separates two things with no thickness and does nothing for two slabs:
   /// a `Thickness3d.raised` card passing under a `Thickness3d.structural`
   /// bar pokes through it everywhere they overlap. `Thickness3d.depthStep` is
@@ -642,7 +642,7 @@ class SliverAppBar3d extends StatelessWidget {
     // is how the collapse happens without anything rebuilding: the header
     // lays its child out loose against whatever is left of the maximum, and
     // a box that asks for an infinite minimum gets exactly that.
-    final filling = SceneConstrainedBox3d(
+    final filling = ConstrainedBox3d(
       constraints: const Constraints3d(minHeight: double.infinity),
       child: bar.buildBar(
         context,
@@ -652,7 +652,7 @@ class SliverAppBar3d extends StatelessWidget {
       ),
     );
 
-    return SceneSliverPersistentHeader3d(
+    return SliverPersistentHeader3d(
       minExtent: metrics.dp(collapsed + inset),
       maxExtent: metrics.dp(expanded + inset),
       pinned: pinned,

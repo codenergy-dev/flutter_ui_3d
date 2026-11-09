@@ -32,10 +32,11 @@ import '../slot.dart';
 
 /// Which box each focus node in a layout tree stands for.
 ///
-/// Filled in by `Focus3d`, `FocusScope3d` and [PipelineOwner3d.focusScope], and
-/// read through `Focus3d.layoutFor`. Not exported: it is how the key layer
-/// finds a box from `FocusManager.primaryFocus`, which is a node with no
-/// context, and nothing outside the package has a reason to write it.
+/// Filled in by `RenderFocus3d`, `RenderFocusScope3d` and
+/// [PipelineOwner3d.focusScope], and read through `RenderFocus3d.layoutFor`.
+/// Not exported: it is how the key layer finds a box from
+/// `FocusManager.primaryFocus`, which is a node with no context, and nothing
+/// outside the package has a reason to write it.
 final Expando<RenderObject3d> focusNodeLayouts = Expando<RenderObject3d>(
   'RenderObject3d focus',
 );
@@ -43,15 +44,16 @@ final Expando<RenderObject3d> focusNodeLayouts = Expando<RenderObject3d>(
 /// Builds the layout for one item of a lazily built view.
 ///
 /// The one signature shared by every builder in the package:
-/// `ListView3d.builder`, `GridView3d.builder`, `SliverList3d.builder` and
-/// `SliverGrid3d.builder` all hand out an index and take a box back.
+/// `RenderListView3d.builder`, `RenderGridView3d.builder`,
+/// `RenderSliverList3d.builder` and `RenderSliverGrid3d.builder` all hand out
+/// an index and take a box back.
 typedef RenderObject3dItemBuilder = RenderObject3d Function(int index);
 
 /// Data a parent layout stores on its child, the 3D analogue of [ParentData].
 ///
 /// Every child carries at least its [offset], the position its parent gave
-/// it. Layouts that need more per-child state subclass this: `Flex3d` adds
-/// the flex factor, `Stack3d` adds the positioning fields.
+/// it. Layouts that need more per-child state subclass this: `RenderFlex3d`
+/// adds the flex factor, `RenderStack3d` adds the positioning fields.
 class ParentData3d {
   /// The child's origin corner, in the parent's layout space.
   ///
@@ -65,11 +67,11 @@ class ParentData3d {
   /// and a hit test walks straight past it. It moves the *geometry*, not the
   /// box.
   ///
-  /// That distinction is what [Stack3d.depthStep] is built on. Coplanar
+  /// That distinction is what [RenderStack3d.depthStep] is built on. Coplanar
   /// children fight for the depth buffer and have to be separated in the
   /// scene, but separating them in the layout would push them out of their
-  /// parent's box, break a [Positioned3d] pin, and take the topmost child out
-  /// of reach of a ray. Nudging the node alone leaves every one of those
+  /// parent's box, break a [RenderPositioned3d] pin, and take the topmost child
+  /// out of reach of a ray. Nudging the node alone leaves every one of those
   /// intact.
   ///
   /// Written by the parent before [RenderObject3d.place], which is what applies
@@ -114,10 +116,10 @@ class PipelineOwner3d {
   /// because the imperative layer has no `BuildContext` and the basis already
   /// set the precedent. Everything in the tree reaches it through
   /// [RenderObject3d.metrics]; the root writes it, through
-  /// [Layout3dSurface.metrics] or a [Layout3dCameraBinding].
+  /// [RenderSurface3d.metrics] or a [Layout3dCameraBinding].
   ///
   /// This is the only copy that decides anything. The widget layer reads a
-  /// *published* one — `SceneLayout3d` mirrors this value into a
+  /// *published* one — `Surface3d` mirrors this value into a
   /// `Layout3dMetricsScope` so a `build` method can convert its own figures
   /// — and that scope follows this value rather than the other way round.
   Layout3dMetrics metrics = Layout3dMetrics.standard;
@@ -133,7 +135,7 @@ class PipelineOwner3d {
 
   FocusScopeNode? _focusScope;
 
-  /// The focus scope every [Focus3d] in this tree hangs under.
+  /// The focus scope every [RenderFocus3d] in this tree hangs under.
   ///
   /// Per-surface, and here for the same reason [basis] and [metrics] are: it
   /// is tree-wide state both layers have to reach without a `BuildContext`.
@@ -169,7 +171,7 @@ class PipelineOwner3d {
 
   /// The box [focusScope] stands for, which is the root of the tree.
   ///
-  /// Set by `Layout3dSurface`. It is what a key walk starts from when the
+  /// Set by `RenderSurface3d`. It is what a key walk starts from when the
   /// surface's scope itself holds primary focus, which happens whenever the
   /// focused box is taken out of the tree: Flutter hands the focus to the
   /// nearest enclosing scope, and a Tab from there has to know what tree it
@@ -181,8 +183,8 @@ class PipelineOwner3d {
   /// somewhere else.
   ///
   /// [forward] is true for Tab. Only the tree's own end counts: a Tab inside a
-  /// `FocusScope3d` — a dialog — cycles the dialog and never asks. Set by
-  /// `SceneInput3d` on every surface it knows about, which is how Tab walks
+  /// `RenderFocusScope3d` — a dialog — cycles the dialog and never asks. Set by
+  /// `Input3d` on every surface it knows about, which is how Tab walks
   /// from one surface to the next and out of the scene into the widgets around
   /// it. Left null, the tree cycles, which is what it always did.
   bool Function(bool forward)? onFocusTraversalEdge;
@@ -190,7 +192,7 @@ class PipelineOwner3d {
   /// Offered each key event that reaches [focusScope] while the scope itself
   /// holds primary focus.
   ///
-  /// Set by `Layout3dSurface` to the package's key walk. The owner knows
+  /// Set by `RenderSurface3d` to the package's key walk. The owner knows
   /// nothing about keys; it only has the node they arrive at.
   KeyEventResult Function(KeyEvent event)? onFocusScopeKeyEvent;
 
@@ -231,7 +233,7 @@ class PipelineOwner3d {
   ///
   /// Null removes the entry. This is the plain write: it does *not* relayout,
   /// because the owner does not know which boxes read the slot and cannot
-  /// reach the root to dirty it. Use [Layout3dSurface.setSlot] for a value
+  /// reach the root to dirty it. Use [RenderSurface3d.setSlot] for a value
   /// boxes measure against — a theme's paddings and type sizes — which is
   /// most of them.
   bool setSlot<T extends Object>(Layout3dSlot<T> key, T? value) {
@@ -270,7 +272,7 @@ class PipelineOwner3d {
 
   /// Releases what the owner made, which is the focus scope and nothing else.
   ///
-  /// Called by [Layout3dSurface.dispose]. The layouts are not the owner's to
+  /// Called by [RenderSurface3d.dispose]. The layouts are not the owner's to
   /// dispose: it collects them, it does not hold them.
   void dispose() {
     _focusScope?.dispose();
@@ -326,8 +328,8 @@ class PipelineOwner3d {
 /// From `RenderObject` it takes the tree, the owner and the dirty tracking;
 /// from `RenderBox` the [size], the [Constraints3d], the intrinsics and the
 /// baselines. Flutter keeps those apart so that a `RenderSliver` can be a
-/// render object without being a box. This package does not: `Sliver3d`, its
-/// equivalent of `RenderSliver`, extends this class, and carries a [size]
+/// render object without being a box. This package does not: `RenderSliver3d`,
+/// its equivalent of `RenderSliver`, extends this class, and carries a [size]
 /// worked out from the geometry it reports.
 ///
 /// The box contract is the one every Flutter developer already knows. A parent
@@ -404,7 +406,7 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
   /// ```
   ///
   /// Read it inside [performLayout] like [metrics]. A slot written through
-  /// [Layout3dSurface.setSlot] relayouts the subtree, which is what makes
+  /// [RenderSurface3d.setSlot] relayouts the subtree, which is what makes
   /// that safe.
   T? slot<T extends Object>(Layout3dSlot<T> key) => _owner?.slot(key);
 
@@ -472,7 +474,7 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
 
   /// Whether the child's own tree layer can pull the transform under the
   /// parent's offset. Overridden by layouts that add a transform of their
-  /// own, such as `Transform3d` and `Container3d`.
+  /// own, such as `RenderTransform3d` and `RenderContainer3d`.
   @protected
   Matrix4? get localTransform => null;
 
@@ -786,7 +788,7 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
   /// placed. It is also expensive, because answering walks the entire
   /// subtree, which is why the answer is cached until the next
   /// [markNeedsLayout] and why so few boxes ask. Do not call it from
-  /// [performLayout] unless the box exists to (see [IntrinsicExtent3d]);
+  /// [performLayout] unless the box exists to (see [RenderIntrinsicExtent3d]);
   /// laying a child out and reading its [size] is the cheap way to find out
   /// how big it is.
   double getMinIntrinsicExtent(
@@ -899,7 +901,7 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
     // The gate is what keeps this off the ordinary path: the walk happens
     // only when something above actually clips, which is one walk up the
     // parent chain and an immediate return everywhere else. A tree with no
-    // `ClipBox3d` in it pays that and nothing more.
+    // `RenderClipBox3d` in it pays that and nothing more.
     if (moved && !clipRegion.isUnbounded) refreshClipSubtree();
   }
 
@@ -925,8 +927,8 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
   /// It is the sibling of [ParentData3d.sceneOffset] and composes with it.
   /// The difference is ownership: `sceneOffset` is the *parent's* nudge,
   /// rewritten whenever the parent places this box (that is how
-  /// [Stack3d.depthStep] separates coplanar children), while this one is the
-  /// box's own and survives every relayout. An animation must use this one,
+  /// [RenderStack3d.depthStep] separates coplanar children), while this one is
+  /// the box's own and survives every relayout. An animation must use this one,
   /// or a stack would erase it on the next pass.
   ///
   /// Measured in layout axes, like [offset]. [worldTransform] undoes it, so a
@@ -991,8 +993,8 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
 
   /// The clip in force for this box, in its own layout frame.
   ///
-  /// [Clip3dRegion.none] unless some ancestor is a [ClipBox3d]. Computed by
-  /// walking up rather than pushed down, because the walk is O(depth) and
+  /// [Clip3dRegion.none] unless some ancestor is a [RenderClipBox3d]. Computed
+  /// by walking up rather than pushed down, because the walk is O(depth) and
   /// happens only when something asks — a decoration painter, a culling
   /// sweep — while pushing would cost every box on every layout whether or
   /// not anything in the tree clips at all.
@@ -1019,15 +1021,15 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
   /// Re-reads [clipRegion] and republishes whatever this box did with it.
   ///
   /// Nothing by default, because most boxes do nothing with a clip. A
-  /// [DecoratedBox3d] overrides it to repaint, because its painter packs the
-  /// region into a shader block and that block is what actually cuts a
+  /// [RenderDecoratedBox3d] overrides it to repaint, because its painter packs
+  /// the region into a shader block and that block is what actually cuts a
   /// half-in box.
   ///
   /// **It exists because a clip is not available when a box first paints.**
   /// A box publishes its clip from inside its own `performLayout`, and a
-  /// [ClipBox3d] takes its size *from its child* — so on the layout that
+  /// [RenderClipBox3d] takes its size *from its child* — so on the layout that
   /// creates them, every descendant asks for the clip before the box
-  /// imposing it has an extent, and gets [Clip3dRegion.none]. `ClipBox3d`
+  /// imposing it has an extent, and gets [Clip3dRegion.none]. `RenderClipBox3d`
   /// calls this on its whole subtree afterwards, when the extent exists.
   void refreshClipRegion() {}
 
@@ -1035,8 +1037,8 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
   ///
   /// The default takes what this box inherits, pulls it back through
   /// [localTransform] (so a rotated subtree is still clipped, exactly) and
-  /// slides it by the child's offset. [ClipBox3d] overrides this to intersect
-  /// its own extent in.
+  /// slides it by the child's offset. [RenderClipBox3d] overrides this to
+  /// intersect its own extent in.
   @protected
   Clip3dRegion clipRegionForChild(RenderObject3d child) {
     final region = clipRegion;
@@ -1050,9 +1052,9 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
 
   /// How much of this box is drawn, from 0 to 1.
   ///
-  /// One unless some ancestor is an [Opacity3d] — or anything else mixing in
-  /// [RenderOpacityMixin3d], which is how a [MotionTransition3d] fades an
-  /// arrival. Computed by walking up rather than pushed down, exactly as
+  /// One unless some ancestor is a [RenderOpacity3d] — or anything else mixing
+  /// in [RenderOpacityMixin3d], which is how a [RenderMotionTransition3d] fades
+  /// an arrival. Computed by walking up rather than pushed down, exactly as
   /// [clipRegion] is and for the same reason: the walk is O(depth) and
   /// happens only when something that draws asks, while pushing would cost
   /// every box on every layout whether or not anything in the tree fades.
@@ -1063,13 +1065,13 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
   /// subtree possible here at all: the alternative — folding the opacity into
   /// every colour — makes a partly transparent slab that writes depth, which
   /// hides what is behind it instead of showing it through. See
-  /// `assets/box_decoration3d.fmat`'s `ScreenDoor`, and [Opacity3d] for what
-  /// the difference from Flutter's own `Opacity` costs in the picture.
+  /// `assets/box_decoration3d.fmat`'s `ScreenDoor`, and [RenderOpacity3d] for
+  /// what the difference from Flutter's own `Opacity` costs in the picture.
   ///
   /// Read by the three things this package draws with — a decoration's
   /// painter, a label's glyph material, and the wall around its letters — and
   /// by nothing else. A box that draws geometry of its own has to consume it
-  /// itself; see [NodeBox3d.onFade].
+  /// itself; see [RenderNodeBox3d.onFade].
   double get inheritedOpacity => _parent?.opacityForChild(this) ?? 1.0;
 
   /// Calls [refreshOpacity] on this box and everything under it.
@@ -1098,8 +1100,8 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
   /// The opacity this box imposes on [child].
   ///
   /// The default passes down what this box inherits. [RenderOpacityMixin3d]
-  /// multiplies its own in, which is what makes two nested [Opacity3d] boxes
-  /// compose the way two nested `Opacity` widgets do.
+  /// multiplies its own in, which is what makes two nested [RenderOpacity3d]
+  /// boxes compose the way two nested `Opacity` widgets do.
   @protected
   double opacityForChild(RenderObject3d child) => inheritedOpacity;
 
@@ -1108,9 +1110,9 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
   /// The layout-space transform between this box's own frame and the frame
   /// its children are placed in.
   ///
-  /// Defaults to [localTransform], which is what a `Transform3d` puts between
-  /// itself and its child. The box's own [size] is measured in the frame
-  /// *before* this transform, exactly as Flutter measures a
+  /// Defaults to [localTransform], which is what a `RenderTransform3d` puts
+  /// between itself and its child. The box's own [size] is measured in the
+  /// frame *before* this transform, exactly as Flutter measures a
   /// `RenderTransform`'s size in the untransformed frame, so a child rotated
   /// out of its parent's box is not reachable.
   @protected
@@ -1199,9 +1201,9 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
   ///
   /// False by default, as in Flutter: a box that arranges other boxes is not
   /// itself a target, so a ray through the gap between two items in a
-  /// `Column3d` passes through. Leaves that stand for something the user can
-  /// point at ([NodeBox3d]) and boxes that consume a gesture over their whole
-  /// extent (the scrolling views) return true.
+  /// `RenderColumn3d` passes through. Leaves that stand for something the user
+  /// can point at ([RenderNodeBox3d]) and boxes that consume a gesture over
+  /// their whole extent (the scrolling views) return true.
   @protected
   bool hitTestSelf(Offset3d position) => false;
 
@@ -1214,8 +1216,8 @@ abstract class RenderObject3d with DiagnosticableTreeMixin {
 
   /// Hit-tests [child], moving [ray] into the child's own frame.
   ///
-  /// Skips children whose node is hidden, so what a `ListView3d` culls out of
-  /// its window is out of reach as well: nothing invisible is pointable.
+  /// Skips children whose node is hidden, so what a `RenderListView3d` culls
+  /// out of its window is out of reach as well: nothing invisible is pointable.
   @protected
   bool hitTestChild(
     HitTestResult3d result,
@@ -1392,8 +1394,8 @@ abstract class RenderSingleChild3d extends RenderObject3d
 /// Holds one child, as Flutter's `RenderObjectWithChildMixin` does.
 ///
 /// Separate from [RenderSingleChild3d] because the box protocol is not the
-/// only one that wraps a single child: a `SliverToBoxAdapter3d` holds one too,
-/// and it answers to the sliver protocol instead.
+/// only one that wraps a single child: a `RenderSliverToBoxAdapter3d` holds one
+/// too, and it answers to the sliver protocol instead.
 mixin RenderObjectWithChildMixin3d on RenderObject3d {
   RenderObject3d? _child;
 
@@ -1432,8 +1434,8 @@ mixin RenderObjectWithChildMixin3d on RenderObject3d {
 /// For every wrapper that neither adds room of its own nor changes what its
 /// child would ask for: its intrinsic extents are the child's, and its
 /// baseline is the child's, moved by wherever it placed the child. A wrapper
-/// that *does* add room ([Padding3d]) or impose limits ([ConstrainedBox3d])
-/// mixes this in and overrides the intrinsic half.
+/// that *does* add room ([RenderPadding3d]) or impose limits
+/// ([RenderConstrainedBox3d]) mixes this in and overrides the intrinsic half.
 mixin RenderChildIntrinsicsMixin3d on RenderObjectWithChildMixin3d {
   @override
   double computeMinIntrinsicExtent(Axis3d axis, Size3d limits) =>
@@ -1508,7 +1510,7 @@ mixin ContainerRenderObjectMixin3d<ParentDataType extends ParentData3d>
   /// The children this layout actually holds, for its own [performLayout].
   ///
   /// The same list [children] answers with, everywhere except a layout that
-  /// forwards its public child list somewhere else: a `BoxScrollView3d`
+  /// forwards its public child list somewhere else: a `RenderBoxScrollView3d`
   /// answers [children] with the items inside its one sliver, because that is
   /// what a caller means by the children of a list, while the child it holds
   /// and lays out is the sliver. Layout code reads this; callers read
@@ -1635,7 +1637,8 @@ mixin ContainerRenderObjectMixin3d<ParentDataType extends ParentData3d>
   }
 
   /// Tests children back to front, so the one drawn last is found first,
-  /// which is what makes a later `Stack3d` child sit on top of an earlier one.
+  /// which is what makes a later `RenderStack3d` child sit on top of an earlier
+  /// one.
   @override
   bool hitTestChildren(HitTestResult3d result, {required Ray3d ray}) {
     for (var i = _children.length - 1; i >= 0; i--) {

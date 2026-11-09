@@ -1,5 +1,5 @@
-// DecoratedBox3d, BoxDecoration3d and its uniforms, the painter cache,
-// Visibility3d and Offstage3d.
+// RenderDecoratedBox3d, BoxDecoration3d and its uniforms, the painter cache,
+// RenderVisibility3d and RenderOffstage3d.
 
 import 'dart:math' as math;
 import 'dart:ui' show Color;
@@ -80,10 +80,10 @@ void main() {
     BoxDecoration3d.painterFactory = null;
   });
 
-  group('DecoratedBox3d', () {
+  group('RenderDecoratedBox3d', () {
     test('sizes itself to its child and passes the constraints through', () {
-      final child = TestBox(const Size3d(2, 3, 0.5));
-      final box = DecoratedBox3d(
+      final child = RenderTestBox(const Size3d(2, 3, 0.5));
+      final box = RenderDecoratedBox3d(
         decoration: const TestDecoration3d('panel'),
         child: child,
       );
@@ -93,7 +93,9 @@ void main() {
     });
 
     test('is the smallest it may be with no child', () {
-      final box = DecoratedBox3d(decoration: const TestDecoration3d('panel'));
+      final box = RenderDecoratedBox3d(
+        decoration: const TestDecoration3d('panel'),
+      );
       laidOut(box, constraints: const Constraints3d(minWidth: 1, maxWidth: 4));
       expect(box.size, const Size3d(1, 0, 0));
     });
@@ -101,8 +103,8 @@ void main() {
     test('two sizes are one painter and two paints', () {
       // The whole bet, stated as a test: a box that changes size does not get
       // new geometry, it gets the same painter told a different number.
-      final child = TestBox(const Size3d(2, 2, 0));
-      final box = DecoratedBox3d(
+      final child = RenderTestBox(const Size3d(2, 2, 0));
+      final box = RenderDecoratedBox3d(
         decoration: const TestDecoration3d('panel'),
         child: child,
       );
@@ -119,10 +121,16 @@ void main() {
     });
 
     test('equal decorations share a painter, unequal ones do not', () {
-      final a = DecoratedBox3d(decoration: const TestDecoration3d('panel'));
-      final b = DecoratedBox3d(decoration: const TestDecoration3d('panel'));
-      final c = DecoratedBox3d(decoration: const TestDecoration3d('pill'));
-      laidOut(Column3d(children: <RenderObject3d>[a, b, c]));
+      final a = RenderDecoratedBox3d(
+        decoration: const TestDecoration3d('panel'),
+      );
+      final b = RenderDecoratedBox3d(
+        decoration: const TestDecoration3d('panel'),
+      );
+      final c = RenderDecoratedBox3d(
+        decoration: const TestDecoration3d('pill'),
+      );
+      laidOut(RenderColumn3d(children: <RenderObject3d>[a, b, c]));
 
       expect(RecordingPainter.created, hasLength(2));
       expect(a.painter, same(b.painter));
@@ -130,9 +138,13 @@ void main() {
     });
 
     test('the cache disposes a painter when the last box lets go', () {
-      final a = DecoratedBox3d(decoration: const TestDecoration3d('panel'));
-      final b = DecoratedBox3d(decoration: const TestDecoration3d('panel'));
-      laidOut(Column3d(children: <RenderObject3d>[a, b]));
+      final a = RenderDecoratedBox3d(
+        decoration: const TestDecoration3d('panel'),
+      );
+      final b = RenderDecoratedBox3d(
+        decoration: const TestDecoration3d('panel'),
+      );
+      laidOut(RenderColumn3d(children: <RenderObject3d>[a, b]));
       final painter = RecordingPainter.created.single;
 
       a.decoration = const TestDecoration3d('pill');
@@ -146,7 +158,9 @@ void main() {
     test(
       'a decoration change keeps the painter when the shape is the same',
       () {
-        final box = DecoratedBox3d(decoration: const TestDecoration3d('panel'));
+        final box = RenderDecoratedBox3d(
+          decoration: const TestDecoration3d('panel'),
+        );
         laidOut(box);
         final painter = RecordingPainter.created.single;
         final paintsBefore = painter.paints.length;
@@ -161,8 +175,8 @@ void main() {
     );
 
     test('a decoration change does not relayout', () {
-      final child = TestBox(const Size3d(1, 1, 0));
-      final box = DecoratedBox3d(
+      final child = RenderTestBox(const Size3d(1, 1, 0));
+      final box = RenderDecoratedBox3d(
         decoration: const TestDecoration3d('panel'),
         child: child,
       );
@@ -178,12 +192,12 @@ void main() {
       'a state-layer change repaints, asks for a frame, and dirties nothing',
       () {
         var frames = 0;
-        final child = TestBox(const Size3d(1, 1, 0));
-        final box = DecoratedBox3d(
+        final child = RenderTestBox(const Size3d(1, 1, 0));
+        final box = RenderDecoratedBox3d(
           decoration: const TestDecoration3d('panel'),
           child: child,
         );
-        final surface = Layout3dSurface(child: box)
+        final surface = RenderSurface3d(child: box)
           ..onNeedVisualUpdate = () => frames++;
         surface.flush();
         final painter = RecordingPainter.created.single;
@@ -204,7 +218,9 @@ void main() {
     );
 
     test('the painter is told the metrics and the clip', () {
-      final box = DecoratedBox3d(decoration: const TestDecoration3d('panel'));
+      final box = RenderDecoratedBox3d(
+        decoration: const TestDecoration3d('panel'),
+      );
       laidOut(box, metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.02));
       final request = RecordingPainter.created.single.last;
       expect(request.metrics.unitsPerLogicalPixel, 0.02);
@@ -215,9 +231,9 @@ void main() {
 
   group('elevation', () {
     test('lifts the geometry toward the viewer by dp', () {
-      final box = DecoratedBox3d(
+      final box = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(elevation: 6),
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       laidOut(box, metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.01));
       expect(box.elevationUnits, closeTo(0.06, 1e-9));
@@ -227,9 +243,9 @@ void main() {
     });
 
     test('scales with the unit contract, like every other dp figure', () {
-      final box = DecoratedBox3d(
+      final box = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(elevation: 6),
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(box);
       surface.metrics = const Layout3dMetrics(unitsPerLogicalPixel: 0.05);
@@ -238,13 +254,13 @@ void main() {
     });
 
     test('moves neither the layout box nor what a ray reaches', () {
-      final flat = DecoratedBox3d(
+      final flat = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(),
-        child: TestBox(const Size3d(2, 2, 0.2)),
+        child: RenderTestBox(const Size3d(2, 2, 0.2)),
       );
-      final raised = DecoratedBox3d(
+      final raised = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(elevation: 12),
-        child: TestBox(const Size3d(2, 2, 0.2)),
+        child: RenderTestBox(const Size3d(2, 2, 0.2)),
       );
       final flatSurface = laidOut(flat, origin: Alignment3d.topLeft);
       final raisedSurface = laidOut(raised, origin: Alignment3d.topLeft);
@@ -254,19 +270,21 @@ void main() {
       expect(
         raisedSurface
             .hitTestAt(const Offset3d(1, 1, 0))
-            .firstOf<DecoratedBox3d>(),
+            .firstOf<RenderDecoratedBox3d>(),
         same(raised),
       );
       expect(
         flatSurface
             .hitTestAt(const Offset3d(1, 1, 0))
-            .firstOf<DecoratedBox3d>(),
+            .firstOf<RenderDecoratedBox3d>(),
         same(flat),
       );
     });
 
     test('a decoration with no elevation carries no transform', () {
-      final box = DecoratedBox3d(decoration: const TestDecoration3d('panel'));
+      final box = RenderDecoratedBox3d(
+        decoration: const TestDecoration3d('panel'),
+      );
       laidOut(box);
       expect(box.elevationUnits, 0.0);
       expect(box.localTransform, isNull);
@@ -276,17 +294,17 @@ void main() {
   group('BoxDecoration3d', () {
     test('every panel shares one painter, whatever its numbers', () {
       BoxDecoration3d.painterFactory = (_) => RecordingPainter('box');
-      final a = DecoratedBox3d(
+      final a = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(color: Color(0xFFFF0000)),
       );
-      final b = DecoratedBox3d(
+      final b = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(
           color: Color(0xFF00FF00),
           borderRadius: BorderRadius3d.circular(12),
           elevation: 3,
         ),
       );
-      laidOut(Column3d(children: <RenderObject3d>[a, b]));
+      laidOut(RenderColumn3d(children: <RenderObject3d>[a, b]));
       expect(RecordingPainter.created, hasLength(1));
       expect(a.painter, same(b.painter));
     });
@@ -302,7 +320,7 @@ void main() {
     });
 
     test('no factory means no painter and no drawing', () {
-      final box = DecoratedBox3d(decoration: const BoxDecoration3d());
+      final box = RenderDecoratedBox3d(decoration: const BoxDecoration3d());
       laidOut(box, constraints: Constraints3d.tight(const Size3d(1, 1, 0)));
       expect(box.painter, isNull);
       expect(box.size, const Size3d(1, 1, 0));
@@ -657,18 +675,18 @@ void main() {
     });
   });
 
-  group('Visibility3d', () {
+  group('RenderVisibility3d', () {
     test('keeps the space and hides the node', () {
-      final child = TestBox(const Size3d(2, 2, 0), pointable: true);
-      final box = Visibility3d(visible: false, child: child);
+      final child = RenderTestBox(const Size3d(2, 2, 0), pointable: true);
+      final box = RenderVisibility3d(visible: false, child: child);
       laidOut(box);
       expect(box.size, const Size3d(2, 2, 0));
       expect(box.node.visible, isFalse);
     });
 
     test('an invisible child is out of reach of a ray', () {
-      final child = TestBox(const Size3d(2, 2, 0), pointable: true);
-      final box = Visibility3d(child: child);
+      final child = RenderTestBox(const Size3d(2, 2, 0), pointable: true);
+      final box = RenderVisibility3d(child: child);
       final surface = laidOut(box, origin: Alignment3d.topLeft);
       expect(surface.hitTestAt(const Offset3d(1, 1, 0)).isEmpty, isFalse);
 
@@ -677,8 +695,8 @@ void main() {
     });
 
     test('toggling it does not relayout', () {
-      final child = TestBox(const Size3d(2, 2, 0));
-      final box = Visibility3d(child: child);
+      final child = RenderTestBox(const Size3d(2, 2, 0));
+      final box = RenderVisibility3d(child: child);
       final surface = laidOut(box);
       final layouts = child.layoutCount;
       box.visible = false;
@@ -687,20 +705,20 @@ void main() {
     });
   });
 
-  group('Offstage3d', () {
+  group('RenderOffstage3d', () {
     test('reports no size and hides the node', () {
-      final child = TestBox(const Size3d(2, 2, 0), pointable: true);
-      final box = Offstage3d(child: child);
+      final child = RenderTestBox(const Size3d(2, 2, 0), pointable: true);
+      final box = RenderOffstage3d(child: child);
       laidOut(box);
       expect(box.size, Size3d.zero);
       expect(box.node.visible, isFalse);
     });
 
     test('takes its space out of the row it is in', () {
-      final visible = TestBox(const Size3d(1, 1, 0));
-      final column = Column3d(
+      final visible = RenderTestBox(const Size3d(1, 1, 0));
+      final column = RenderColumn3d(
         children: <RenderObject3d>[
-          Offstage3d(child: TestBox(const Size3d(1, 5, 0))),
+          RenderOffstage3d(child: RenderTestBox(const Size3d(1, 5, 0))),
           visible,
         ],
       );
@@ -710,7 +728,7 @@ void main() {
     });
 
     test('answers intrinsic queries with nothing', () {
-      final box = Offstage3d(child: TestBox(const Size3d(3, 3, 0)));
+      final box = RenderOffstage3d(child: RenderTestBox(const Size3d(3, 3, 0)));
       expect(
         box.getMaxIntrinsicExtent(Axis3d.horizontal, Size3d.infinite),
         0.0,
@@ -723,8 +741,8 @@ void main() {
     });
 
     test('an offstage child is out of reach of a ray', () {
-      final child = TestBox(const Size3d(2, 2, 0), pointable: true);
-      final box = Offstage3d(offstage: false, child: child);
+      final child = RenderTestBox(const Size3d(2, 2, 0), pointable: true);
+      final box = RenderOffstage3d(offstage: false, child: child);
       final surface = laidOut(box, origin: Alignment3d.topLeft);
       expect(surface.hitTestAt(const Offset3d(1, 1, 0)).isEmpty, isFalse);
 
@@ -734,8 +752,8 @@ void main() {
     });
 
     test('going back onstage relayouts and restores the size', () {
-      final child = TestBox(const Size3d(2, 2, 0));
-      final box = Offstage3d(child: child);
+      final child = RenderTestBox(const Size3d(2, 2, 0));
+      final box = RenderOffstage3d(child: child);
       final surface = laidOut(box);
       box.offstage = false;
       expect(surface.needsFlush, isTrue);

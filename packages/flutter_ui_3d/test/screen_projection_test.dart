@@ -38,12 +38,12 @@ PerspectiveCamera _raisedCamera() => PerspectiveCamera(
 /// A surface mounted under a root node and laid out, the way a real scene has
 /// it: [RenderObject3d.worldTransform] reads the node's global transform, so
 /// nothing here means anything until the surface hangs off something.
-Layout3dSurface _mounted(
+RenderSurface3d _mounted(
   RenderObject3d child, {
   LayoutBasis3d? basis,
   Size3d? size,
 }) {
-  final surface = Layout3dSurface(
+  final surface = RenderSurface3d(
     basis: basis,
     constraints: Constraints3d.tight(size ?? const Size3d(4, 3, 1)),
     child: child,
@@ -56,8 +56,8 @@ Layout3dSurface _mounted(
 void main() {
   group('screenCenter', () {
     test('a box centred on the origin projects to the centre of the view', () {
-      final box = TestBox(const Size3d(2, 2, 0));
-      _mounted(Center3d(child: box), size: const Size3d(4, 4, 0));
+      final box = RenderTestBox(const Size3d(2, 2, 0));
+      _mounted(RenderCenter3d(child: box), size: const Size3d(4, 4, 0));
 
       final centre = box.screenCenter(_camera(), _view);
       expect(centre, isNotNull);
@@ -66,10 +66,10 @@ void main() {
     });
 
     test('layout down is screen down, and layout right is screen right', () {
-      final leading = TestBox(const Size3d(1, 1, 0));
-      final trailing = TestBox(const Size3d(1, 1, 0));
+      final leading = RenderTestBox(const Size3d(1, 1, 0));
+      final trailing = RenderTestBox(const Size3d(1, 1, 0));
       _mounted(
-        Column3d(children: [leading, trailing]),
+        RenderColumn3d(children: [leading, trailing]),
         size: const Size3d(4, 4, 0),
       );
 
@@ -84,9 +84,12 @@ void main() {
     });
 
     test('a row runs left to right on screen', () {
-      final first = TestBox(const Size3d(1, 1, 0));
-      final second = TestBox(const Size3d(1, 1, 0));
-      _mounted(Row3d(children: [first, second]), size: const Size3d(4, 2, 0));
+      final first = RenderTestBox(const Size3d(1, 1, 0));
+      final second = RenderTestBox(const Size3d(1, 1, 0));
+      _mounted(
+        RenderRow3d(children: [first, second]),
+        size: const Size3d(4, 2, 0),
+      );
 
       final left = first.screenCenter(_camera(), _view)!;
       final right = second.screenCenter(_camera(), _view)!;
@@ -95,13 +98,13 @@ void main() {
     });
 
     test('null before layout, because there is nowhere to be yet', () {
-      final box = TestBox(const Size3d(1, 1, 1));
+      final box = RenderTestBox(const Size3d(1, 1, 1));
       expect(box.screenCenter(_camera(), _view), isNull);
     });
 
     test('null when the box sits behind the camera', () {
-      final box = TestBox(const Size3d(1, 1, 0));
-      final surface = _mounted(Center3d(child: box));
+      final box = RenderTestBox(const Size3d(1, 1, 0));
+      final surface = _mounted(RenderCenter3d(child: box));
       // Put the plane well behind the lens.
       surface.plane.position = Vector3(0, 0, 20);
       surface.flush();
@@ -112,10 +115,10 @@ void main() {
 
   group('the ground plane', () {
     test('on xz, a column advances toward the viewer', () {
-      final first = TestBox(const Size3d(1, 1, 0));
-      final second = TestBox(const Size3d(1, 1, 0));
+      final first = RenderTestBox(const Size3d(1, 1, 0));
+      final second = RenderTestBox(const Size3d(1, 1, 0));
       _mounted(
-        Column3d(children: [first, second]),
+        RenderColumn3d(children: [first, second]),
         basis: LayoutBasis3d.xz,
         size: const Size3d(4, 4, 0),
       );
@@ -133,9 +136,9 @@ void main() {
 
     test('the same tree projects differently on xy and xz', () {
       Offset centreOf(LayoutBasis3d basis) {
-        final box = TestBox(const Size3d(1, 1, 0));
+        final box = RenderTestBox(const Size3d(1, 1, 0));
         _mounted(
-          Column3d(children: [TestBox(const Size3d(1, 1, 0)), box]),
+          RenderColumn3d(children: [RenderTestBox(const Size3d(1, 1, 0)), box]),
           basis: basis,
           size: const Size3d(4, 4, 0),
         );
@@ -151,8 +154,8 @@ void main() {
 
   group('screenPointOf', () {
     test('the origin corner is the top left of an upright box', () {
-      final box = TestBox(const Size3d(2, 2, 0));
-      _mounted(Center3d(child: box), size: const Size3d(4, 4, 0));
+      final box = RenderTestBox(const Size3d(2, 2, 0));
+      _mounted(RenderCenter3d(child: box), size: const Size3d(4, 4, 0));
 
       final origin = box.screenPointOf(Offset3d.zero, _camera(), _view)!;
       final far = box.screenPointOf(const Offset3d(1, 1, 0), _camera(), _view)!;
@@ -162,8 +165,8 @@ void main() {
 
     test('a fraction outside the box projects the space around it, which is '
         'how a probe checks a gap is empty', () {
-      final box = TestBox(const Size3d(1, 1, 0));
-      _mounted(Center3d(child: box), size: const Size3d(4, 4, 0));
+      final box = RenderTestBox(const Size3d(1, 1, 0));
+      _mounted(RenderCenter3d(child: box), size: const Size3d(4, 4, 0));
 
       final centre = box.screenCenter(_camera(), _view)!;
       final beyond = box.screenPointOf(
@@ -178,8 +181,8 @@ void main() {
   group('screenBounds', () {
     test('contains the centre, and grows with the box', () {
       Rect boundsFor(double extent) {
-        final box = TestBox(Size3d(extent, extent, 0));
-        _mounted(Center3d(child: box), size: const Size3d(8, 8, 0));
+        final box = RenderTestBox(Size3d(extent, extent, 0));
+        _mounted(RenderCenter3d(child: box), size: const Size3d(8, 8, 0));
         return box.screenBounds(_camera(), _view)!;
       }
 
@@ -192,8 +195,8 @@ void main() {
 
     test('a nearer surface projects larger, which is perspective working', () {
       Rect boundsAt(double distance) {
-        final box = TestBox(const Size3d(1, 1, 0));
-        _mounted(Center3d(child: box), size: const Size3d(4, 4, 0));
+        final box = RenderTestBox(const Size3d(1, 1, 0));
+        _mounted(RenderCenter3d(child: box), size: const Size3d(4, 4, 0));
         return box.screenBounds(_camera(distance: distance), _view)!;
       }
 
@@ -202,7 +205,7 @@ void main() {
 
     test('null before layout', () {
       expect(
-        TestBox(const Size3d(1, 1, 1)).screenBounds(_camera(), _view),
+        RenderTestBox(const Size3d(1, 1, 1)).screenBounds(_camera(), _view),
         isNull,
       );
     });

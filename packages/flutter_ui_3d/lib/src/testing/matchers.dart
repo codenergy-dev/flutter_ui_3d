@@ -15,7 +15,7 @@ import 'scene.dart';
 
 /// Matches when a press at the centre of every box found would reach it.
 ///
-/// The box is projected through the camera of the [SceneInput3d] above it,
+/// The box is projected through the camera of the [Input3d] above it,
 /// and the host is asked what a press at that point of the view would be
 /// dispatched to — the same question `tester.tap3d` asks before it presses.
 /// It fails for a box covered by another surface, by a sibling in front of
@@ -98,10 +98,10 @@ Matcher _hasSizeWhere({
 /// Matches when no box found is laid out behind the front face of the panel
 /// it is on.
 ///
-/// The panel is the nearest [DecoratedBox3d] above the box. Both are measured
-/// where they are *drawn*, in the surface's frame, and the box's front has to
-/// be no further from the viewer than the panel's front face — because a slab
-/// is opaque, and content inside one is hidden by it however correct its
+/// The panel is the nearest [RenderDecoratedBox3d] above the box. Both are
+/// measured where they are *drawn*, in the surface's frame, and the box's front
+/// has to be no further from the viewer than the panel's front face — because a
+/// slab is opaque, and content inside one is hidden by it however correct its
 /// layout is. A box on no panel passes: there is nothing to be sunk into.
 ///
 /// It is the check for the defect a `EdgeInsets3d.all` padding makes inside a
@@ -110,23 +110,23 @@ Matcher _hasSizeWhere({
 /// Over a whole screen it asks every label at once:
 ///
 /// ```dart
-/// expect(find3d.bySubtype<Text3d>(), standsOnItsPanel3d);
+/// expect(find3d.bySubtype<RenderText3d>(), standsOnItsPanel3d);
 /// ```
 const Matcher standsOnItsPanel3d = _EveryBoxMatcher(
   _standsOnItsPanel,
   'not laid out behind the front face of its panel',
 );
 
-String? _reachable(RenderObject3d box, List<SceneSurface3d> surfaces) {
+String? _reachable(RenderObject3d box, List<FoundSurface3d> surfaces) {
   final reach = Reach3d.of(box, surfaces);
   return reach.reaches ? null : reach.describeMiss();
 }
 
-String? _standsOnItsPanel(RenderObject3d box, List<SceneSurface3d> surfaces) {
+String? _standsOnItsPanel(RenderObject3d box, List<FoundSurface3d> surfaces) {
   final surface = rootSurfaceOf(box);
   if (surface == null || !box.hasSize) return 'it is not laid out';
   RenderObject3d? panel = box.parent;
-  while (panel != null && panel is! DecoratedBox3d) {
+  while (panel != null && panel is! RenderDecoratedBox3d) {
     panel = panel.parent;
   }
   if (panel == null) return null;
@@ -155,7 +155,7 @@ String _figure(double value) {
 class _EveryBoxMatcher extends Matcher {
   const _EveryBoxMatcher(this._check, this._description);
 
-  final String? Function(RenderObject3d box, List<SceneSurface3d> surfaces)
+  final String? Function(RenderObject3d box, List<FoundSurface3d> surfaces)
   _check;
   final String _description;
 

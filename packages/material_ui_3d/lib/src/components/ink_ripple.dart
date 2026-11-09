@@ -82,7 +82,7 @@ class InkRipple3dStyle {
 /// the press landed, how far the circle has to reach and how strong the wash
 /// is, and ask what it looks like at a moment. [MutableInkController3d] drives
 /// one of these from a `Ticker` and writes the answer onto a
-/// `DecoratedBox3d.stateLayer`; a test drives it with a `for` loop.
+/// `RenderDecoratedBox3d.stateLayer`; a test drives it with a `for` loop.
 ///
 /// Splitting it out this way is not tidiness. The claim phase 8 has to make is
 /// that a whole ripple costs no build and no layout, and the only way to make

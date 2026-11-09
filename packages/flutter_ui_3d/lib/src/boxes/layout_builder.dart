@@ -10,7 +10,7 @@ import '../rendering/object.dart';
 
 /// Builds a subtree from the constraints it is given.
 ///
-/// The imperative half of [LayoutBuilder3d]. The declarative half is a
+/// The imperative half of [RenderLayoutBuilder3d]. The declarative half is a
 /// widget builder, and goes through the layout's [RenderObject3dChildManager]
 /// instead.
 typedef RenderObject3dBuilder =
@@ -27,10 +27,10 @@ typedef RenderObject3dBuilder =
 /// phone-sized slab:
 ///
 /// ```dart
-/// LayoutBuilder3d(
+/// RenderLayoutBuilder3d(
 ///   builder: (constraints) => constraints.maxWidth > 6
-///       ? Row3d(children: [rail, body])
-///       : Column3d(children: [body, bar]),
+///       ? RenderRow3d(children: [rail, body])
+///       : RenderColumn3d(children: [body, bar]),
 /// )
 /// ```
 ///
@@ -63,15 +63,15 @@ typedef RenderObject3dBuilder =
 /// constraints it has not been given, and answering would mean building a
 /// subtree for constraints nothing is going to lay out — with the side effect
 /// of replacing the child that *is* laid out. Flutter refuses for the same
-/// reason. Put a [SizedBox3d] or an [AspectRatio3d] around the builder when
-/// something above it needs an intrinsic answer.
-class LayoutBuilder3d extends RenderMultiChild3d<ParentData3d>
+/// reason. Put a [RenderSizedBox3d] or a [RenderAspectRatio3d] around the
+/// builder when something above it needs an intrinsic answer.
+class RenderLayoutBuilder3d extends RenderMultiChild3d<ParentData3d>
     with RenderLayoutPassMixin3d, RenderBuiltChildrenMixin3d<ParentData3d> {
   /// Creates a box that builds its child from its constraints.
   ///
   /// [builder] is the imperative form; leave it out in the declarative layer,
-  /// where `SceneLayoutBuilder3d`'s element is the child manager.
-  LayoutBuilder3d({RenderObject3dBuilder? builder, super.name})
+  /// where `LayoutBuilder3d`'s element is the child manager.
+  RenderLayoutBuilder3d({RenderObject3dBuilder? builder, super.name})
     : _builder = builder;
 
   RenderObject3dBuilder? _builder;
@@ -84,7 +84,7 @@ class LayoutBuilder3d extends RenderMultiChild3d<ParentData3d>
     if (identical(_builder, value)) return;
     assert(
       value == null || childManager == null,
-      'A LayoutBuilder3d builds its child from a function or from a child '
+      'A RenderLayoutBuilder3d builds its child from a function or from a child '
       'manager, not both.',
     );
     _builder = value;
@@ -146,11 +146,11 @@ class LayoutBuilder3d extends RenderMultiChild3d<ParentData3d>
   double _noIntrinsics(Axis3d axis) {
     assert(
       false,
-      'A LayoutBuilder3d was asked for its intrinsic extent along $axis. It '
+      'A RenderLayoutBuilder3d was asked for its intrinsic extent along $axis. It '
       'has no answer: its child is a function of the constraints, and an '
       'intrinsic query is a question about constraints it has not been given, '
       'so answering would mean building a subtree nobody is going to lay out. '
-      'Wrap the builder in a SizedBox3d or an AspectRatio3d, or ask the '
+      'Wrap the builder in a RenderSizedBox3d or a RenderAspectRatio3d, or ask the '
       'question of the subtree the builder returns.',
     );
     return 0.0;

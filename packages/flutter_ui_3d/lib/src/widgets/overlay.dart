@@ -30,37 +30,37 @@ import '../view.dart';
 import 'framework.dart';
 import 'input.dart';
 
-/// Imperative access to the [Overlay3d] a [SceneOverlay3d] owns.
+/// Imperative access to the [RenderOverlay3d] an [Overlay3d] owns.
 ///
 /// Attach one where the overlay is described and entries can be inserted from
 /// anywhere that has the controller, without a `BuildContext` in hand — a
 /// component's own state object, a service, a test.
 class Overlay3dController {
-  Overlay3d? _overlay;
+  RenderOverlay3d? _overlay;
 
   /// The overlay, or null while the widget is unmounted.
-  Overlay3d? get overlay => _overlay;
+  RenderOverlay3d? get overlay => _overlay;
 }
 
-/// The declarative form of [Overlay3d]: a stack of things in front of
+/// The declarative form of [RenderOverlay3d]: a stack of things in front of
 /// everything else.
 ///
 /// Put one high in a layout — around a whole panel, usually — and every
 /// descendant can put something in front of it with
-/// `SceneOverlay3d.of(context).insertEntry(...)`. The base content is
+/// `Overlay3d.of(context).insertEntry(...)`. The base content is
 /// [child]; the entries are inserted imperatively, because that is what
 /// "from anywhere, at any time, outliving the widget that asked" means: a
 /// dialog opened from a button's callback is not part of that button's
 /// subtree.
 ///
 /// ```dart
-/// SceneOverlay3d(
+/// Overlay3d(
 ///   camera: camera,
-///   child: SceneColumn3d(children: [...]),
+///   child: Column3d(children: [...]),
 /// )
 ///
 /// // ... from a button, deep inside:
-/// final overlay = SceneOverlay3d.of(context);
+/// final overlay = Overlay3d.of(context);
 /// late final Overlay3dEntry entry;
 /// entry = Overlay3dEntry(
 ///   modal: true,
@@ -75,9 +75,9 @@ class Overlay3dController {
 /// same ones the widgets drive, so nothing is out of reach; what an entry does
 /// not get is reconciliation, so a component that rebuilds its dialog calls
 /// [Overlay3dEntry.markNeedsBuild].
-class SceneOverlay3d extends StatefulWidget {
+class Overlay3d extends StatefulWidget {
   /// Creates an overlay over [child].
-  const SceneOverlay3d({
+  const Overlay3d({
     super.key,
     this.alignment = Alignment3d.center,
     this.fit = StackFit3d.loose,
@@ -102,7 +102,7 @@ class SceneOverlay3d extends StatefulWidget {
 
   /// The camera the detached entries' bindings read.
   ///
-  /// With one, [Overlay3d.updateCameraBindings] runs off the enclosing
+  /// With one, [RenderOverlay3d.updateCameraBindings] runs off the enclosing
   /// scene's per-frame clock, so a billboarded dialog keeps facing the viewer
   /// without the application ticking anything. Entries without a binding cost
   /// nothing.
@@ -125,43 +125,43 @@ class SceneOverlay3d extends StatefulWidget {
   /// Throws when there is none, which is a programming error: a component
   /// that opens a dialog needs somewhere to put it. Use [maybeOf] where the
   /// absence is a real case.
-  static Overlay3d of(BuildContext context) {
+  static RenderOverlay3d of(BuildContext context) {
     final overlay = maybeOf(context);
     assert(
       overlay != null,
-      'SceneOverlay3d.of found no SceneOverlay3d above this context. Wrap the '
+      'Overlay3d.of found no Overlay3d above this context. Wrap the '
       'part of the layout that opens dialogs in one.',
     );
     return overlay!;
   }
 
   /// The overlay above [context], or null.
-  static Overlay3d? maybeOf(BuildContext context) =>
+  static RenderOverlay3d? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_Overlay3dScope>()?.overlay;
 
   @override
-  State<SceneOverlay3d> createState() => _SceneOverlay3dState();
+  State<Overlay3d> createState() => _Overlay3dState();
 }
 
-class _SceneOverlay3dState extends State<SceneOverlay3d> {
-  late final Overlay3d _overlay = Overlay3d(
+class _Overlay3dState extends State<Overlay3d> {
+  late final RenderOverlay3d _overlay = RenderOverlay3d(
     alignment: widget.alignment,
     fit: widget.fit,
     depthStep: widget.depthStep,
-    name: 'SceneOverlay3d',
+    name: 'Overlay3d',
   );
 
   /// The enclosing view's per-frame clock, when there is one.
   ///
   /// A camera binding has to run every frame and the camera moves without
   /// anything in the widget tree changing, so a rebuild is the wrong signal —
-  /// the same reasoning [SceneLayout3d] follows for its own binding.
+  /// the same reasoning [Surface3d] follows for its own binding.
   ValueListenable<Duration>? _frames;
 
   /// The widget-built entries, in the order they stand in.
   ///
   /// Kept rather than derived on every notification so that an entry with no
-  /// widget in it — a `Draggable3d`'s feedback, say — costs no rebuild at
+  /// widget in it — a `RenderDraggable3d`'s feedback, say — costs no rebuild at
   /// all: a drag inserts and removes an entry per gesture and none of them
   /// changes this list.
   List<WidgetOverlay3dEntry> _widgetEntries = const <WidgetOverlay3dEntry>[];
@@ -222,7 +222,7 @@ class _SceneOverlay3dState extends State<SceneOverlay3d> {
   TextScaler _textScaler = TextScaler.noScaling;
 
   /// The camera this overlay reads: its own, or the enclosing
-  /// [SceneInput3d]'s.
+  /// [Input3d]'s.
   Camera? get _camera => widget.camera ?? _input?.camera;
 
   /// Tells the host above that this overlay's entries are surfaces of their
@@ -234,7 +234,7 @@ class _SceneOverlay3dState extends State<SceneOverlay3d> {
   /// press is pressable in the very same frame rather than after the next
   /// tick.
   void _syncInputHost() {
-    final host = SceneInput3d.maybeOf(context);
+    final host = Input3d.maybeOf(context);
     if (identical(host, _input)) return;
     _input?.unregisterOverlay(_overlay);
     _input = host;
@@ -242,7 +242,7 @@ class _SceneOverlay3dState extends State<SceneOverlay3d> {
   }
 
   @override
-  void didUpdateWidget(SceneOverlay3d oldWidget) {
+  void didUpdateWidget(Overlay3d oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(widget.controller, oldWidget.controller)) {
       if (identical(oldWidget.controller?._overlay, _overlay)) {
@@ -325,7 +325,7 @@ class _SceneOverlay3dState extends State<SceneOverlay3d> {
 class _Overlay3dScope extends InheritedWidget {
   const _Overlay3dScope({required this.overlay, required super.child});
 
-  final Overlay3d overlay;
+  final RenderOverlay3d overlay;
 
   @override
   bool updateShouldNotify(_Overlay3dScope oldWidget) =>
@@ -335,7 +335,7 @@ class _Overlay3dScope extends InheritedWidget {
 /// Hosts the overlay the state owns.
 ///
 /// The layout is made by the state rather than by [createLayout], because
-/// [SceneOverlay3d.of] has to hand it to descendants that are built *inside*
+/// [Overlay3d.of] has to hand it to descendants that are built *inside*
 /// this widget: the handle has to exist before the subtree it serves does.
 class _Overlay3dWidget extends MultiChildRenderObjectWidget3d {
   const _Overlay3dWidget({
@@ -346,16 +346,16 @@ class _Overlay3dWidget extends MultiChildRenderObjectWidget3d {
     required super.children,
   });
 
-  final Overlay3d overlay;
+  final RenderOverlay3d overlay;
   final Alignment3d alignment;
   final StackFit3d fit;
   final double depthStep;
 
   @override
-  Overlay3d createLayout(BuildContext context) => overlay;
+  RenderOverlay3d createLayout(BuildContext context) => overlay;
 
   @override
-  void updateLayout(BuildContext context, Overlay3d layout) {
+  void updateLayout(BuildContext context, RenderOverlay3d layout) {
     assert(identical(layout, overlay));
     layout
       ..alignment = alignment
@@ -364,15 +364,15 @@ class _Overlay3dWidget extends MultiChildRenderObjectWidget3d {
   }
 }
 
-/// The declarative form of [ModalBarrier3d]: a slab that fills what it is
+/// The declarative form of [RenderModalBarrier3d]: a slab that fills what it is
 /// given, swallows every ray, and reports the tap that should dismiss what is
 /// in front of it.
 ///
 /// [Overlay3dEntry.modal] puts one in for you; this is for a barrier that is
 /// part of a layout described in widgets.
-class SceneModalBarrier3d extends SingleChildRenderObjectWidget3d {
+class ModalBarrier3d extends SingleChildRenderObjectWidget3d {
   /// Creates a barrier.
-  const SceneModalBarrier3d({
+  const ModalBarrier3d({
     super.key,
     this.onDismiss,
     this.dismissible = true,
@@ -390,14 +390,15 @@ class SceneModalBarrier3d extends SingleChildRenderObjectWidget3d {
   final double thickness;
 
   @override
-  ModalBarrier3d createLayout(BuildContext context) => ModalBarrier3d(
-    onDismiss: onDismiss,
-    dismissible: dismissible,
-    thickness: thickness,
-  );
+  RenderModalBarrier3d createLayout(BuildContext context) =>
+      RenderModalBarrier3d(
+        onDismiss: onDismiss,
+        dismissible: dismissible,
+        thickness: thickness,
+      );
 
   @override
-  void updateLayout(BuildContext context, ModalBarrier3d layout) {
+  void updateLayout(BuildContext context, RenderModalBarrier3d layout) {
     layout
       ..onDismiss = onDismiss
       ..dismissible = dismissible
@@ -419,9 +420,9 @@ class SceneModalBarrier3d extends SingleChildRenderObjectWidget3d {
 /// subtree the element tree is still driving. So removing an entry releases
 /// the content rather than disposing it, and the hosting box that built it
 /// disposes it when it leaves the tree.
-class Overlay3dContentSlot3d extends RenderProxyBox3d {
+class RenderOverlay3dContentSlot3d extends RenderProxyBox3d {
   /// Creates an empty slot.
-  Overlay3dContentSlot3d({super.name = 'Overlay3dEntry.slot'});
+  RenderOverlay3dContentSlot3d({super.name = 'Overlay3dEntry.slot'});
 
   @override
   void dispose() {
@@ -449,9 +450,9 @@ typedef WidgetOverlay3dBuilder =
 /// entry = WidgetOverlay3dEntry(
 ///   modal: true,
 ///   onDismiss: () => entry.remove(),
-///   contentBuilder: (context, _) => const Dialog3d(child: SceneText3d('Hi')),
+///   contentBuilder: (context, _) => const Dialog3d(child: Text3d('Hi')),
 /// );
-/// SceneOverlay3d.of(context).insertEntry(entry);
+/// Overlay3d.of(context).insertEntry(entry);
 /// ```
 ///
 /// **The content arrives one frame after the entry does**, and Flutter's own
@@ -461,10 +462,10 @@ typedef WidgetOverlay3dBuilder =
 /// its barrier is already up, so a modal is modal from the moment it is
 /// inserted. A test pumps once after inserting.
 ///
-/// It only works under a [SceneOverlay3d]. An entry of this kind put into a
-/// bare imperative [Overlay3d] shows nothing, because nothing is listening
-/// for it; the assert in [Overlay3d.insertEntry]'s neighbourhood cannot catch
-/// that, so this is where it is written down.
+/// It only works under an [Overlay3d]. An entry of this kind put into a
+/// bare imperative [RenderOverlay3d] shows nothing, because nothing is
+/// listening for it; the assert in [RenderOverlay3d.insertEntry]'s
+/// neighbourhood cannot catch that, so this is where it is written down.
 class WidgetOverlay3dEntry extends Overlay3dEntry {
   /// Creates an entry whose content is built from widgets.
   WidgetOverlay3dEntry({
@@ -487,15 +488,15 @@ class WidgetOverlay3dEntry extends Overlay3dEntry {
   /// everything inherited above the overlay is in scope.
   final WidgetOverlay3dBuilder contentBuilder;
 
-  Overlay3dContentSlot3d? _slot;
+  RenderOverlay3dContentSlot3d? _slot;
 
   /// The slot this entry's widgets are attached to, or null before the entry
   /// is inserted.
-  Overlay3dContentSlot3d? get contentSlot => _slot;
+  RenderOverlay3dContentSlot3d? get contentSlot => _slot;
 
   static RenderObject3d _makeSlot(Overlay3dEntry entry) {
     final self = entry as WidgetOverlay3dEntry;
-    return self._slot = Overlay3dContentSlot3d(
+    return self._slot = RenderOverlay3dContentSlot3d(
       name: self.debugLabel ?? 'Overlay3dEntry.slot',
     );
   }
@@ -506,9 +507,9 @@ class WidgetOverlay3dEntry extends Overlay3dEntry {
 /// A [MultiChildRenderObjectWidget3d] that does not mirror its children onto
 /// its own layout. Its layout is a zero-sized anchor, which the overlay adopts
 /// as an ordinary base child and which occupies nothing and answers no ray; the
-/// subtree underneath goes into the entry's [Overlay3dContentSlot3d] instead,
-/// which is under the entry's host, behind its barrier and inside its focus
-/// scope.
+/// subtree underneath goes into the entry's [RenderOverlay3dContentSlot3d]
+/// instead, which is under the entry's host, behind its barrier and inside its
+/// focus scope.
 class _Overlay3dEntryContent extends MultiChildRenderObjectWidget3d {
   _Overlay3dEntryContent({required super.key, required this.entry})
     : super(children: <Widget>[_Overlay3dEntryBuilder(entry: entry)]);
@@ -543,7 +544,7 @@ class _Overlay3dEntryBuilder extends StatelessWidget {
 ///
 /// It exists because every [RenderObject3dHost] carries a layout and this one's
 /// real output is somewhere else. It takes the smallest size it is offered,
-/// which in a [Stack3d] is nothing, and a zero-extent box answers no ray.
+/// which in a [RenderStack3d] is nothing, and a zero-extent box answers no ray.
 class _Overlay3dContentAnchor extends RenderObject3d {
   _Overlay3dContentAnchor() : super(name: 'Overlay3dEntry.anchor');
 
@@ -648,7 +649,7 @@ class WidgetPageRoute3d<T> extends Route3d<T> {
 
   /// Where the content stands before it has arrived, or null for no movement.
   ///
-  /// Wraps the whole of what [builder] returns in a [SceneMotionTransition3d]
+  /// Wraps the whole of what [builder] returns in a [MotionTransition3d]
   /// driven by [Route3d.animation]. Content that carries a scrim of its own
   /// wants the box *inside* the scrim instead — a dim that slides in with the
   /// dialog it dims is wrong — and writes the widget by hand there.
@@ -660,7 +661,7 @@ class WidgetPageRoute3d<T> extends Route3d<T> {
   /// Which surface the route lives on, and how far in front.
   final OverlayLayer3d layer;
 
-  /// Whether a [ModalBarrier3d] goes behind the content.
+  /// Whether a [RenderModalBarrier3d] goes behind the content.
   final bool modal;
 
   /// Whether a tap on the barrier pops this route.
@@ -670,7 +671,7 @@ class WidgetPageRoute3d<T> extends Route3d<T> {
   ///
   /// A [RenderObject3d], not a widget: it is the barrier's child, and the
   /// barrier is built by the entry rather than by the element tree. A component
-  /// that wants a scrim described in widgets puts its own [SceneModalBarrier3d]
+  /// that wants a scrim described in widgets puts its own [ModalBarrier3d]
   /// inside [builder] and leaves [modal] false, which is also the only way to
   /// choose the depth step between the scrim and the content.
   final RenderObject3d Function(WidgetPageRoute3d<T> route)? scrimBuilder;
@@ -698,7 +699,7 @@ class WidgetPageRoute3d<T> extends Route3d<T> {
       final motion = this.motion;
       return motion == null
           ? content
-          : SceneMotionTransition3d(
+          : MotionTransition3d(
               animation: animation,
               motion: motion,
               child: content,

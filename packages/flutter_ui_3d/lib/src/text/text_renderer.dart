@@ -47,7 +47,7 @@ class Text3dRenderRequest {
   /// A renderer that builds geometry in layout axes (which is the easy way to
   /// build it, since the layout is expressed in them) has nothing to do with
   /// this; one that hands a preassembled quad to the engine has to undo the
-  /// basis the way [NodeBox3d] does.
+  /// basis the way [RenderNodeBox3d] does.
   final LayoutBasis3d basis;
 
   /// World units per logical pixel: what multiplies [layout] into [size].
@@ -69,8 +69,8 @@ class Text3dRenderRequest {
   /// How much of the label is drawn, from 0 to 1, from
   /// [RenderObject3d.inheritedOpacity].
   ///
-  /// One unless an [Opacity3d] is above the box. **It is coverage rather than
-  /// alpha**, and a renderer must not spend it on the style's colour: see
+  /// One unless a [RenderOpacity3d] is above the box. **It is coverage rather
+  /// than alpha**, and a renderer must not spend it on the style's colour: see
   /// [GlyphMaterial3d.fade] for what that does to a glyph's silhouette, and
   /// [GlyphWallMaterial3d.fade] for the third primitive a label is made of
   /// that a colour cannot reach at all.
@@ -85,7 +85,7 @@ class Text3dRenderRequest {
 /// Makes a [Text3dRenderer] for one box.
 ///
 /// The shape an inherited default has to take, and the reason it cannot be a
-/// renderer. A renderer handed to a [Text3d] is *owned* by it — the box
+/// renderer. A renderer handed to a [RenderText3d] is *owned* by it — the box
 /// disposes it — so one instance shared across a screen of labels is disposed
 /// by whichever label leaves the tree first, and every other label is then
 /// holding a dead renderer. A factory gives each box one of its own; what is
@@ -105,13 +105,13 @@ typedef Text3dRendererFactory = Text3dRenderer Function();
 /// what lets the layout half be finished while the drawing half is still a
 /// choice.
 ///
-/// A [Text3d] with no renderer lays out, reports its size, answers intrinsics
-/// and states a baseline, and draws nothing. That is a useful object on its
-/// own: it is what every test in this package's suite measures, and it is
-/// what a component library sizes its buttons against.
+/// A [RenderText3d] with no renderer lays out, reports its size, answers
+/// intrinsics and states a baseline, and draws nothing. That is a useful object
+/// on its own: it is what every test in this package's suite measures, and it
+/// is what a component library sizes its buttons against.
 ///
-/// A renderer handed to a [Text3d] is owned by it: [render] is called after
-/// each of the box's layouts, and [dispose] when the box is disposed.
+/// A renderer handed to a [RenderText3d] is owned by it: [render] is called
+/// after each of the box's layouts, and [dispose] when the box is disposed.
 abstract class Text3dRenderer {
   /// Allows subclasses to be const.
   const Text3dRenderer();

@@ -30,7 +30,7 @@ import 'scene.dart';
 /// The surface has to be laid out and mounted: its size and its place in the
 /// world are what the camera is placed from.
 PerspectiveCamera cameraFacing3d(
-  Layout3dSurface surface, {
+  RenderSurface3d surface, {
   Size viewSize = const Size(800, 600),
   double margin = 1.1,
   double fovRadiansY = math.pi / 4,
@@ -42,7 +42,7 @@ PerspectiveCamera cameraFacing3d(
 
 void _frame(
   PerspectiveCamera camera,
-  Layout3dSurface surface, {
+  RenderSurface3d surface, {
   required Size viewSize,
   double margin = 1.1,
 }) {
@@ -73,13 +73,13 @@ void _frame(
 /// person would.
 ///
 /// A press here is a tap on the **screen**: the box's centre is projected
-/// through the camera of the [SceneInput3d] above it, and Flutter's own
+/// through the camera of the [Input3d] above it, and Flutter's own
 /// `tapAt` taps that point. Everything between the platform and the box runs
 /// — the ray, the order of the surfaces, absorption, the overlay's entries,
 /// the gesture arena — which is the path an application runs and the one a
 /// ray aimed down a surface's own depth axis skips.
 extension Layout3dWidgetTester on WidgetTester {
-  /// Mounts [child] on one surface under a [SceneInput3d] whose camera looks
+  /// Mounts [child] on one surface under an [Input3d] whose camera looks
   /// straight at it, and returns the surface.
   ///
   /// The default [size] is an 800 × 600 dp screen at the standard metrics —
@@ -90,7 +90,7 @@ extension Layout3dWidgetTester on WidgetTester {
   ///
   /// Nothing here draws. A `SceneView` needs a GPU, so its place is taken by
   /// a box that fills the view, which is all the host reads.
-  Future<Layout3dSurface> pumpSurface3d(
+  Future<RenderSurface3d> pumpSurface3d(
     Widget child, {
     Size3d size = const Size3d(8, 6, 1),
     LayoutBasis3d? basis,
@@ -98,7 +98,7 @@ extension Layout3dWidgetTester on WidgetTester {
   }) async {
     final controller = Layout3dController();
     await pumpScene3d(<Widget>[
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         controller: controller,
         size: size,
@@ -110,20 +110,20 @@ extension Layout3dWidgetTester on WidgetTester {
     return controller.surface!;
   }
 
-  /// Mounts [surfaces] — `SceneLayout3d`s, or widgets that build them —
-  /// under a [SceneInput3d].
+  /// Mounts [surfaces] — `Surface3d`s, or widgets that build them —
+  /// under an [Input3d].
   ///
   /// With no [camera], the host's camera is placed by [cameraFacing3d] to
   /// look straight at the first surface. Give one to ask about a scene the
   /// way the application frames it: a panel turned away, two surfaces one in
   /// front of the other.
   ///
-  /// A screen that builds its own [SceneInput3d] needs none of this: pump it
+  /// A screen that builds its own [Input3d] needs none of this: pump it
   /// with `pumpWidget`, and everything else here finds the host it is under.
   Future<void> pumpScene3d(List<Widget> surfaces, {Camera? camera}) async {
     final framed = camera == null ? PerspectiveCamera() : null;
     await pumpWidget(
-      SceneInput3d(
+      Input3d(
         camera: camera ?? framed,
         child: SizedBox.expand(
           // Non-directional: a surface takes no space, and a Directionality
@@ -147,7 +147,7 @@ extension Layout3dWidgetTester on WidgetTester {
 
   /// Every surface in the widget tree, in tree order, each overlay's detached
   /// entries straight after the surface the overlay is on.
-  List<Layout3dSurface> get surfaces3d => <Layout3dSurface>[
+  List<RenderSurface3d> get surfaces3d => <RenderSurface3d>[
     for (final record in sceneSurfaces3d()) record.surface,
   ];
 
@@ -205,7 +205,7 @@ extension Layout3dWidgetTester on WidgetTester {
   /// Asked of the host whose view holds [position]; empty when none does.
   /// See [Input3dHost.hitTestAt].
   List<HitTestResult3d> hitTest3d(Offset position) {
-    SceneHost3d? found;
+    FoundInputHost3d? found;
     for (final record in sceneSurfaces3d()) {
       final host = record.host;
       if (host != null && host.contains(position)) found = host;

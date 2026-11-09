@@ -25,7 +25,7 @@ import 'package:material_ui_3d/material_ui_3d.dart';
 ///
 /// Not named `allOf`: `package:matcher` exports one, and the collision is a
 /// compile error in every test that imports both.
-List<T> boxesOf<T extends RenderObject3d>(Layout3dSurface surface) {
+List<T> boxesOf<T extends RenderObject3d>(RenderSurface3d surface) {
   final found = <T>[];
   void walk(RenderObject3d box) {
     if (box is T) found.add(box);
@@ -38,7 +38,7 @@ List<T> boxesOf<T extends RenderObject3d>(Layout3dSurface surface) {
 }
 
 /// The one box of type [T] in [surface].
-T oneOf<T extends RenderObject3d>(Layout3dSurface surface) {
+T oneOf<T extends RenderObject3d>(RenderSurface3d surface) {
   final found = boxesOf<T>(surface);
   if (found.length != 1) {
     throw StateError('expected one $T, found ${found.length}');
@@ -47,7 +47,7 @@ T oneOf<T extends RenderObject3d>(Layout3dSurface surface) {
 }
 
 /// The outermost box of type [T] in [surface].
-T outermostOf<T extends RenderObject3d>(Layout3dSurface surface) =>
+T outermostOf<T extends RenderObject3d>(RenderSurface3d surface) =>
     boxesOf<T>(surface).first;
 
 /// The node-tier shifts a component built itself, in tree order.
@@ -56,17 +56,17 @@ T outermostOf<T extends RenderObject3d>(Layout3dSurface surface) =>
 /// own face (`Material3d.contentLift`), so "the shift" a component test means
 /// — a switch's thumb sliding, a slider's active track scaling — is whichever
 /// one the component named.
-List<NodeShift3d> componentShifts(Layout3dSurface surface) =>
-    boxesOf<NodeShift3d>(
+List<RenderNodeShift3d> componentShifts(RenderSurface3d surface) =>
+    boxesOf<RenderNodeShift3d>(
       surface,
     ).where((shift) => shift.node.name != Material3d.contentLiftName).toList();
 
 /// The one shift a component built itself.
-NodeShift3d oneComponentShift(Layout3dSurface surface) {
+RenderNodeShift3d oneComponentShift(RenderSurface3d surface) {
   final found = componentShifts(surface);
   if (found.length != 1) {
     throw StateError(
-      'expected one component NodeShift3d, found ${found.length}',
+      'expected one component RenderNodeShift3d, found ${found.length}',
     );
   }
   return found.single;
@@ -76,7 +76,7 @@ NodeShift3d oneComponentShift(Layout3dSurface surface) {
 ///
 /// How a test reaches a box a component built privately — a switch's thumb,
 /// a progress bar's span — which has no type a test can name.
-RenderObject3d namedBox(Layout3dSurface surface, String name) {
+RenderObject3d namedBox(RenderSurface3d surface, String name) {
   final found = boxesOf<RenderObject3d>(
     surface,
   ).where((box) => box.node.name == name).toList();
@@ -99,7 +99,7 @@ typedef FramesWatched = ({int ticks, List<int> laidOut, List<String> rebuilt});
 /// it is raised, and there is one place every piece of it passes: a box
 /// marked for layout asks its surface for a visual update, and at that
 /// moment the surface needs a flush. So this listens on
-/// `Layout3dSurface.onNeedVisualUpdate` — which a node-tier write or a
+/// `RenderSurface3d.onNeedVisualUpdate` — which a node-tier write or a
 /// repaint also calls, with nothing to flush — and records the frames on
 /// which the surface was dirty when it was called. That catches dirt from a
 /// tick and dirt from a rebuild alike. The builds are counted through
@@ -107,7 +107,7 @@ typedef FramesWatched = ({int ticks, List<int> laidOut, List<String> rebuilt});
 /// reports to as it rebuilds, and a ticker of its own counts the frames.
 Future<FramesWatched> watchFrames(
   WidgetTester tester,
-  Layout3dSurface surface, {
+  RenderSurface3d surface, {
   int frames = 60,
   Duration step = const Duration(milliseconds: 16),
 }) async {
@@ -142,7 +142,7 @@ Future<FramesWatched> watchFrames(
 /// [allowBuilds], if any widget was rebuilt.
 Future<void> expectNothingLaidOut(
   WidgetTester tester,
-  Layout3dSurface surface, {
+  RenderSurface3d surface, {
   int frames = 60,
   Duration step = const Duration(milliseconds: 16),
   bool allowBuilds = false,
@@ -175,21 +175,22 @@ class PumpedSurface {
   /// what a state actually cost.
   final List<int> builds;
 
-  Layout3dSurface get surface => controller.surface!;
+  RenderSurface3d get surface => controller.surface!;
 
   /// Every decorated box in the tree, outermost first.
-  List<DecoratedBox3d> get panels => boxesOf<DecoratedBox3d>(surface);
+  List<RenderDecoratedBox3d> get panels =>
+      boxesOf<RenderDecoratedBox3d>(surface);
 
   /// The outermost panel, which is the component's own surface.
-  DecoratedBox3d get panel => panels.first;
+  RenderDecoratedBox3d get panel => panels.first;
 
   BoxDecoration3d get decoration => panel.decoration as BoxDecoration3d;
 
   StateLayer3d get layer => panel.stateLayer;
 
-  Semantics3d get semantics => outermostOf<Semantics3d>(surface);
+  RenderSemantics3d get semantics => outermostOf<RenderSemantics3d>(surface);
 
-  TapTarget3d get target => outermostOf<TapTarget3d>(surface);
+  RenderTapTarget3d get target => outermostOf<RenderTapTarget3d>(surface);
 
   Layout3dPointer? _pointer;
 
@@ -211,11 +212,11 @@ Future<PumpedSurface> pumpComponent(
 }) async {
   final controller = Layout3dController();
   final builds = <int>[0];
-  final Widget surface = SceneLayout3d(
+  final Widget surface = Surface3d(
     parent: Node(),
     size: size,
     controller: controller,
-    child: SceneTheme3d(
+    child: Theme3d(
       data: theme,
       child: _Counting(builds, build, centred: centred),
     ),
@@ -239,6 +240,6 @@ class _Counting extends StatelessWidget {
   Widget build(BuildContext context) {
     builds[0]++;
     final child = builder();
-    return centred ? SceneCenter3d(child: child) : child;
+    return centred ? Center3d(child: child) : child;
   }
 }

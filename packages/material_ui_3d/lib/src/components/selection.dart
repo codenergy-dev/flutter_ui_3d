@@ -28,11 +28,11 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneIgnorePointer3d,
-        SceneSemantics3d,
-        SceneSizedBox3d,
-        SceneStack3d,
-        SceneTapTarget3d,
+        IgnorePointer3d,
+        Semantics3d,
+        SizedBox3d,
+        Stack3d,
+        TapTarget3d,
         SingleChildRenderObjectWidget3d;
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
@@ -65,7 +65,7 @@ const Color _none = Color(0x00000000);
 /// 18dp of ink in a 40dp wash in a 48dp touch target, which is three
 /// rectangles for one control and is what Material specifies. All three are
 /// in [CheckboxStyle3d], and the reason they are three rather than one is the
-/// rule every component here obeys: a `TapTarget3d` reaches past its own
+/// rule every component here obeys: a `RenderTapTarget3d` reaches past its own
 /// extent and its parent does not, so the reach has to sit outside every box
 /// whose size it would otherwise grow.
 ///
@@ -169,8 +169,8 @@ class Checkbox3d extends StatelessWidget {
   /// What a screen reader announces this checkbox as.
   ///
   /// **State it.** Nothing here gathers a label from a label beside it: a
-  /// `Semantics3d` publishes what it is given and nothing else, so a checkbox
-  /// in a row with a `SceneText3d` announces itself as an unnamed checkbox
+  /// `RenderSemantics3d` publishes what it is given and nothing else, so a
+  /// checkbox in a row with a `Text3d` announces itself as an unnamed checkbox
   /// unless it is told. The `checked` state is published for you.
   final String? semanticLabel;
 
@@ -226,7 +226,7 @@ class Checkbox3d extends StatelessWidget {
         onTap: tap,
       ),
       children: <Widget>[
-        SceneSizedBox3d(
+        SizedBox3d(
           width: metrics.dp(tokens.size),
           height: metrics.dp(tokens.size),
           child: Material3d(
@@ -257,7 +257,7 @@ class Checkbox3d extends StatelessWidget {
 /// RadioGroup3d<Delivery>(
 ///   groupValue: _delivery,
 ///   onChanged: (value) => setState(() => _delivery = value),
-///   child: const SceneRow3d(
+///   child: const Row3d(
 ///     children: <Widget>[
 ///       Radio3d<Delivery>(
 ///         value: Delivery.standard,
@@ -426,7 +426,7 @@ class Radio3d<T> extends StatelessWidget {
         onTap: tap,
       ),
       children: <Widget>[
-        SceneSizedBox3d(
+        SizedBox3d(
           width: metrics.dp(tokens.outerSize),
           height: metrics.dp(tokens.outerSize),
           child: Material3d(
@@ -439,7 +439,7 @@ class Radio3d<T> extends StatelessWidget {
           ),
         ),
         if (resolved.hasDot)
-          SceneSizedBox3d(
+          SizedBox3d(
             width: metrics.dp(tokens.innerSize),
             height: metrics.dp(tokens.innerSize),
             child: Material3d(
@@ -646,7 +646,7 @@ class _Switch3dState extends State<Switch3d> with TickerProviderStateMixin {
     _position.duration = theme.motion.medium2;
     _press.duration = theme.motion.short2;
 
-    final extent = SceneSizedBox3d(
+    final extent = SizedBox3d(
       width: metrics.dp(tokens.trackWidth),
       height: metrics.dp(tokens.trackHeight),
     );
@@ -677,8 +677,8 @@ class _Switch3dState extends State<Switch3d> with TickerProviderStateMixin {
     );
 
     final icon = widget.thumbIcon;
-    final thumb = SceneIgnorePointer3d(
-      child: _SceneSwitchThumb3d(
+    final thumb = IgnorePointer3d(
+      child: _SwitchThumb3d(
         slide: _slide,
         position: _position,
         press: _press,
@@ -694,7 +694,7 @@ class _Switch3dState extends State<Switch3d> with TickerProviderStateMixin {
         pressed: tokens.pressedThumbSize,
         stretchWidth: tokens.transitionalThumbWidth,
         stretchHeight: tokens.transitionalThumbHeight,
-        child: SceneSizedBox3d(
+        child: SizedBox3d(
           width: metrics.dp(tokens.thumbSize),
           height: metrics.dp(tokens.thumbSize),
           child: Material3d(
@@ -716,14 +716,14 @@ class _Switch3dState extends State<Switch3d> with TickerProviderStateMixin {
       ),
     );
 
-    final drawn = SceneStack3d(
+    final drawn = Stack3d(
       alignment: Alignment3d.frontCenter,
       depthStep: metrics.dp(tokens.depthStep),
       children: <Widget>[track, thumb],
     );
-    if (inTile) return SceneIgnorePointer3d(child: drawn);
+    if (inTile) return IgnorePointer3d(child: drawn);
 
-    final announced = SceneSemantics3d(
+    final announced = Semantics3d(
       properties: SemanticsProperties(
         toggled: value,
         enabled: enabled,
@@ -737,7 +737,7 @@ class _Switch3dState extends State<Switch3d> with TickerProviderStateMixin {
     // Outermost, and doing real work: a switch is 32dp tall against a 48dp
     // minimum, so the reach is eight logical pixels above and below that no
     // box in the layout knows about.
-    return SceneTapTarget3d(child: announced);
+    return TapTarget3d(child: announced);
   }
 }
 
@@ -814,8 +814,8 @@ class _Switch3dState extends State<Switch3d> with TickerProviderStateMixin {
 /// [RenderObject3d.nodeTransform] for how big it is drawn, scaled about its own
 /// centre. Every figure it is given is in logical pixels, converted through
 /// the surface's metrics when it is written.
-class _SwitchThumb3d extends RenderProxyBox3d {
-  _SwitchThumb3d({
+class _RenderSwitchThumb3d extends RenderProxyBox3d {
+  _RenderSwitchThumb3d({
     required Animation<double> slide,
     required AnimationController position,
     required Animation<double> press,
@@ -918,8 +918,8 @@ class _SwitchThumb3d extends RenderProxyBox3d {
   }
 }
 
-class _SceneSwitchThumb3d extends SingleChildRenderObjectWidget3d {
-  const _SceneSwitchThumb3d({
+class _SwitchThumb3d extends SingleChildRenderObjectWidget3d {
+  const _SwitchThumb3d({
     required this.slide,
     required this.position,
     required this.press,
@@ -947,22 +947,23 @@ class _SceneSwitchThumb3d extends SingleChildRenderObjectWidget3d {
   final double stretchHeight;
 
   @override
-  _SwitchThumb3d createLayout(BuildContext context) => _SwitchThumb3d(
-    slide: slide,
-    position: position,
-    press: press,
-    rtl: rtl,
-    travel: travel,
-    drawn: drawn,
-    unselected: unselected,
-    selected: selected,
-    pressed: pressed,
-    stretchWidth: stretchWidth,
-    stretchHeight: stretchHeight,
-  );
+  _RenderSwitchThumb3d createLayout(BuildContext context) =>
+      _RenderSwitchThumb3d(
+        slide: slide,
+        position: position,
+        press: press,
+        rtl: rtl,
+        travel: travel,
+        drawn: drawn,
+        unselected: unselected,
+        selected: selected,
+        pressed: pressed,
+        stretchWidth: stretchWidth,
+        stretchHeight: stretchHeight,
+      );
 
   @override
-  void updateLayout(BuildContext context, _SwitchThumb3d layout) {
+  void updateLayout(BuildContext context, _RenderSwitchThumb3d layout) {
     layout
       ..rtl = rtl
       ..travel = travel
@@ -1024,7 +1025,7 @@ class _SelectionControl3d extends StatelessWidget {
     final metrics = Layout3dMetricsScope.of(context);
     final inTile = ControlInTile3d.isIn(context);
 
-    final size = SceneSizedBox3d(
+    final size = SizedBox3d(
       width: metrics.dp(extent),
       height: metrics.dp(extent),
     );
@@ -1057,25 +1058,25 @@ class _SelectionControl3d extends StatelessWidget {
             ),
     );
 
-    final drawn = SceneStack3d(
+    final drawn = Stack3d(
       alignment: Alignment3d.frontCenter,
       depthStep: metrics.dp(depthStep),
       children: <Widget>[
         surface,
         // The ink answers no ray: everything a pointer needs to find is the
-        // well behind it, and a `Text3d` mark would otherwise answer on its
-        // own account.
-        for (final child in children) SceneIgnorePointer3d(child: child),
+        // well behind it, and a `RenderText3d` mark would otherwise answer on
+        // its own account.
+        for (final child in children) IgnorePointer3d(child: child),
       ],
     );
-    if (inTile) return SceneIgnorePointer3d(child: drawn);
+    if (inTile) return IgnorePointer3d(child: drawn);
 
-    final announced = SceneSemantics3d(properties: properties, child: drawn);
+    final announced = Semantics3d(properties: properties, child: drawn);
 
     // Outermost, for the reason every component here puts it there: a target
     // reaches past its own extent and its parent does not. A checkbox is
     // 40dp against a 48dp minimum, so the reach is four logical pixels on
     // every side — including the corners, which is where it is thinnest.
-    return SceneTapTarget3d(child: announced);
+    return TapTarget3d(child: announced);
   }
 }

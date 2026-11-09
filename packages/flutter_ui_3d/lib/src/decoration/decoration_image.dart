@@ -47,7 +47,7 @@ import '../metrics.dart';
 /// [BoxFit.scaleDown]**, which is what `paintImage` defaults to.
 ///
 /// ```dart
-/// DecoratedBox3d(
+/// RenderDecoratedBox3d(
 ///   decoration: BoxDecoration3d(
 ///     borderRadius: const BorderRadius3d.circular(12),
 ///     image: DecorationImage3d(
@@ -251,8 +251,8 @@ TextureSource? uploadImageTexture(ImageTexture3dPixels pixels) =>
 /// and a layout pass cannot wait for any of it. So a box asks for this
 /// synchronously, gets an object with nothing in it, and is told twice —
 /// **once when the size is known, and once when the texture is**, because
-/// those two answers have different customers. [Image3d] sizes itself to the
-/// first; the painter binds the second.
+/// those two answers have different customers. [RenderImage3d] sizes itself to
+/// the first; the painter binds the second.
 ///
 /// It is deliberately **not** a counter, which is where this diverges from
 /// [GlyphAtlas3d]. An atlas needs `generation`, `revision` and

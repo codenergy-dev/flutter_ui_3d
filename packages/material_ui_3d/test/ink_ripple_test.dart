@@ -14,7 +14,7 @@ import 'package:flutter/widgets.dart'
 import 'package:flutter_scene/scene.dart' show Node;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart'
-    show DecoratedBox3d, Offset3d, Ripple3d, Size3d;
+    show RenderDecoratedBox3d, Offset3d, Ripple3d, Size3d;
 import 'package:flutter_ui_3d/widgets.dart';
 import 'package:material_ui_3d/material_ui_3d.dart';
 
@@ -30,11 +30,11 @@ class Inset {
   Inset(this.controller, this.child, this.builds);
 
   final Layout3dController controller;
-  final TestBox child;
+  final RenderTestBox child;
   final List<int> builds;
 
-  Layout3dSurface get surface => controller.surface!;
-  DecoratedBox3d get panel => decoratedBoxIn(surface);
+  RenderSurface3d get surface => controller.surface!;
+  RenderDecoratedBox3d get panel => decoratedBoxIn(surface);
   Ripple3d? get ripple => panel.stateLayer.ripple;
 
   /// One pointer for the whole control, not one per access: a
@@ -50,17 +50,17 @@ class Inset {
 
 Future<Inset> pumpInset(WidgetTester tester) async {
   final controller = Layout3dController();
-  late TestBox child;
+  late RenderTestBox child;
   final builds = <int>[0];
 
   await tester.pumpWidget(
-    SceneLayout3d(
+    Surface3d(
       parent: Node(),
       size: const Size3d(4, 4, 0.5),
       controller: controller,
-      child: SceneTheme3d(
+      child: Theme3d(
         data: Theme3dData.light,
-        child: SceneCenter3d(
+        child: Center3d(
           child: Material3d(
             alignment: null,
             padding: const EdgeInsets3d.symmetric(horizontal: 40, vertical: 40),
@@ -70,7 +70,7 @@ Future<Inset> pumpInset(WidgetTester tester) async {
                 return InkWell3d(
                   focusOnPointerDown: false,
                   onTap: () {},
-                  child: SceneTestBox(const Size3d(1, 1, 0), (b) => child = b),
+                  child: TestBox(const Size3d(1, 1, 0), (b) => child = b),
                 );
               },
             ),

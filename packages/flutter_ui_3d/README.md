@@ -70,14 +70,14 @@ installs the drawing seams for you in one call.
 
 
 ```dart
-final surface = Layout3dSurface(
+final surface = RenderSurface3d(
   constraints: Constraints3d.tight(const Size3d(4, 3, 0.5)),
-  child: Column3d(
+  child: RenderColumn3d(
     mainAxisAlignment: MainAxisAlignment3d.center,
     spacing: 0.2,
     children: [
-      NodeBox3d(content: Node(mesh: Mesh(cubeGeometry, material))),
-      NodeBox3d(content: await loadScene('assets/lamp.glb')),
+      RenderNodeBox3d(content: Node(mesh: Mesh(cubeGeometry, material))),
+      RenderNodeBox3d(content: await loadScene('assets/lamp.glb')),
     ],
   ),
 );
@@ -98,8 +98,8 @@ surface.plane.rotation = Quaternion.axisAngle(Vector3(0, 1, 0), 0.4);
 Layouts do their arithmetic in **layout space**: `x` right, `y` **down**, `z`
 **away from the viewer**, with a box occupying `[0, width] x [0, height] x
 [0, depth]` from its origin corner. That is Flutter's coordinate system with a
-third axis added, which is why `Column3d`, `Align3d`, and `Stack3d` behave
-exactly like their Flutter counterparts.
+third axis added, which is why `RenderColumn3d`, `RenderAlign3d`, and
+`RenderStack3d` behave exactly like their Flutter counterparts.
 
 The scene does not see those coordinates. A `LayoutBasis3d` on the surface
 maps them into the plane node's space, once, at the root:
@@ -121,12 +121,12 @@ write a basis of your own. flutter_scene builds its camera basis with
 `right = up × forward`, so for a camera in front of a plane the direction that
 appears to the **right** on screen is world `-x`, not `+x`. The built-in bases
 map layout "right" to the direction that actually reads as right, which makes
-them orientation-reversing. That never mirrors content: a `NodeBox3d` applies
-the inverse basis to what it holds, so a model keeps the orientation it was
-authored with and only its *placement* is mapped.
+them orientation-reversing. That never mirrors content: a `RenderNodeBox3d`
+applies the inverse basis to what it holds, so a model keeps the orientation it
+was authored with and only its *placement* is mapped.
 
 `LayoutBasis3d.fromMatrix` takes any invertible matrix if the plane should sit
-at some other angle. `Layout3dSurface.origin` says which point of the
+at some other angle. `RenderSurface3d.origin` says which point of the
 laid-out box sits at the plane node's origin, and defaults to the centre. The
 plane node itself is an ordinary scene node: its `position` is in the
 engine's coordinates, not in layout space.
@@ -134,9 +134,9 @@ engine's coordinates, not in layout space.
 ## How the plane gets a screen, and what a logical pixel is worth
 
 A surface is unbounded on all three axes until something bounds it, and a
-scene, unlike a window, bounds nothing. That is why a `ListView3d` on a bare
-surface asserts: nothing has told it how tall its window is. Flutter never has
-this problem, because the screen bounds everything.
+scene, unlike a window, bounds nothing. That is why a `RenderListView3d` on a
+bare surface asserts: nothing has told it how tall its window is. Flutter never
+has this problem, because the screen bounds everything.
 
 A **camera-bound** surface is the missing screen. Put the plane a fixed
 distance in front of the camera, oriented to it, and the view frustum at that
@@ -144,7 +144,7 @@ distance has an exact world width and height, which are the surface's
 constraints:
 
 ```dart
-final surface = Layout3dSurface(child: panel);
+final surface = RenderSurface3d(child: panel);
 const binding = Layout3dCameraBinding.screenFilling(distance: 2, depth: 0.2);
 
 // Once a frame, before rendering.
@@ -157,10 +157,10 @@ Declaratively it is two arguments, and the widget runs itself off the enclosing
 ticking anything:
 
 ```dart
-SceneLayout3d(
+Surface3d(
   camera: camera,
   binding: const Layout3dCameraBinding.screenFilling(distance: 2, depth: 0.2),
-  child: SceneColumn3d(children: [...]),
+  child: Column3d(children: [...]),
 )
 ```
 
@@ -210,12 +210,12 @@ the whole subtree, because a box sized in dp is a different box afterwards and
 nothing else would tell it so.
 
 A camera-bound surface derives the number; anything else states it. Imperatively
-that is `Layout3dSurface.metrics`, declaratively `SceneLayout3d.metrics`, and
+that is `RenderSurface3d.metrics`, declaratively `Surface3d.metrics`, and
 `Layout3dCameraBinding.fixedDensity` is the same statement worn as a binding
 for an application that drives everything through one:
 
 ```dart
-SceneLayout3d(
+Surface3d(
   size: const Size3d(4, 3, 0.2),
   // A panel on a wall is not a screen: two hundred logical pixels to the unit,
   // stated rather than derived.
@@ -233,14 +233,14 @@ refuses a `size`.
 `Layout3dMetrics.textScaler` is the accessibility scale, and it is a
 `TextScaler` rather than a number for Flutter's own reason: the scaling is not
 linear across sizes, so a platform that grows 14dp body copy by 1.8 need not
-grow a 57dp display line at all. **You do not set it.** `SceneLayout3d` reads
+grow a 57dp display line at all. **You do not set it.** `Surface3d` reads
 `MediaQuery.textScalerOf(context)` and writes it onto the surface, so a label
 three boxes deep grows when the person using the application has asked for
 larger type:
 
 ```dart
 // Nothing here mentions the text scale. That is the point.
-SceneLayout3d(
+Surface3d(
   size: const Size3d(4, 3, 0.2),
   metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.005),
   child: screen,
@@ -254,12 +254,12 @@ should deliberately ignore the platform. The friction is on purpose: the
 alternative is a panel whose type cannot grow, and nothing telling you.
 
 Under the two text boxes it lands differently, and the split is worth knowing
-if you write a renderer. A `Text3d` holds one style, so the scaler still comes
-out as a single multiplier — `metrics.textScaleFor(style.fontSize)` — which it
-applies to a paragraph measured at the style's own size; the measurement
-survives a change of scale and the font is never consulted again. A
-`RichText3d` holds spans of several sizes and cannot do that, so its painter
-takes the scaler and each span is measured at its own scaled size.
+if you write a renderer. A `RenderText3d` holds one style, so the scaler still
+comes out as a single multiplier — `metrics.textScaleFor(style.fontSize)` —
+which it applies to a paragraph measured at the style's own size; the
+measurement survives a change of scale and the font is never consulted again. A
+`RenderRichText3d` holds spans of several sizes and cannot do that, so its
+painter takes the scaler and each span is measured at its own scaled size.
 
 One label can do something else with the setting, and some have to. An icon
 is a glyph of a font, and Flutter's never grows with type; a component that
@@ -268,18 +268,18 @@ keeps its hierarchy — a navigation bar whose 12sp labels sit under 24dp icons
 
 ```dart
 // One label: the reader's setting does not reach it.
-SceneText3d(glyph, textScaler: TextScaler.noScaling)
+Text3d(glyph, textScaler: TextScaler.noScaling)
 
 // Every label built below: it grows, and stops at 1.3.
-SceneTextScaling3d.clamped(maxScaleFactor: 1.3, child: labels)
+TextScaling3d.clamped(maxScaleFactor: 1.3, child: labels)
 ```
 
-`SceneTextScaling3d` is `MediaQuery.withClampedTextScaling` without a second
+`TextScaling3d` is `MediaQuery.withClampedTextScaling` without a second
 home for the setting: the surface still owns the scaler, and the scope carries
-what the labels below it do with it, which `SceneText3d` and `SceneRichText3d`
+what the labels below it do with it, which `Text3d` and `RichText3d`
 hand to their box as `textScaler`. A clamp inside a clamp narrows it. An
-imperative `Text3d` has no `BuildContext` and sees none of this — give it a
-`textScaler` directly.
+imperative `RenderText3d` has no `BuildContext` and sees none of this — give it
+a `textScaler` directly.
 
 ### Reading the contract from a `build` method
 
@@ -289,19 +289,19 @@ so the surface publishes the same value to the widgets under it:
 ```dart
 Widget build(BuildContext context) {
   final metrics = Layout3dMetricsScope.of(context);
-  return ScenePadding3d(
+  return Padding3d(
     padding: metrics.dpInsets(const EdgeInsets3d.all(16)),   // 16dp
-    child: SceneSizedBox3d(height: metrics.dp(56), child: child),
+    child: SizedBox3d(height: metrics.dp(56), child: child),
   );
 }
 ```
 
-This is how a component library states a spec figure. `ScenePadding3d` and
-`SceneSizedBox3d` take world units — every box in this package does — and the
+This is how a component library states a spec figure. `Padding3d` and
+`SizedBox3d` take world units — every box in this package does — and the
 conversion happens once, in the build method that knows the figure is 16dp.
 Decorations are the exception that hides the problem: `BorderRadius3d`,
 `bevel`, `border` and `elevation` are converted by the painter at paint time,
-so a `SceneDecoratedBox3d` takes dp whether or not anything read the scope.
+so a `DecoratedBox3d` takes dp whether or not anything read the scope.
 
 ### The screen a surface stands in for
 
@@ -318,7 +318,7 @@ return narrowLayout;
 the camera, which by the binding's arithmetic is the same thing — and
 `orientation` comes off it. An axis the surface was given no bound on reports
 infinity, because a plane that shrink-wraps its content has no screen size
-until the content decides; `SceneLayoutBuilder3d` is what answers a question
+until the content decides; `LayoutBuilder3d` is what answers a question
 about the room a box actually got.
 
 `padding` is the part the platform has already spent: the notch, the status
@@ -326,13 +326,13 @@ bar, the home indicator. **Only a surface that stands in for the view has
 one.** That is `Layout3dCameraBinding.screenFilling` and nothing else — a
 panel hanging on a wall in a room does not have a notch, and the question does
 not apply to it rather than answering zero by accident. Consume it with
-`SceneSafeArea3d`, which is Flutter's `SafeArea`: it pads by the inset,
+`SafeArea3d`, which is Flutter's `SafeArea`: it pads by the inset,
 converted through the unit contract, and republishes the data with what it
 consumed removed, so a second one inside it pads nothing.
 
 ```dart
-SceneSafeArea3d(
-  child: SceneColumn3d(children: [appBar, body]),
+SafeArea3d(
+  child: Column3d(children: [appBar, body]),
 )
 ```
 
@@ -386,7 +386,7 @@ that has an opinion declares the key:
 const themeSlot = Layout3dSlot<Theme3dData>('material3d.theme');
 
 // In the application.
-SceneLayout3d(
+Surface3d(
   size: const Size3d(4, 3, 0.2),
   slots: {themeSlot: Theme3dData.light()},
   child: screen,
@@ -396,11 +396,11 @@ SceneLayout3d(
 final theme = slot(themeSlot) ?? Theme3dData.light();
 ```
 
-`SceneSlotProvider3d` writes the same value from *inside* the tree, which is
+`SlotProvider3d` writes the same value from *inside* the tree, which is
 where a library's own theme widget will want to sit — it is usually an
 `InheritedWidget` for the widget layer as well, and the two halves should be
-one widget. `Layout3dSurface.setSlot` is the imperative form, and
-`SlotProvider3d` the imperative box.
+one widget. `RenderSurface3d.setSlot` is the imperative form, and
+`RenderSlotProvider3d` the imperative box.
 
 Three rules, each of which costs time to discover otherwise:
 
@@ -453,17 +453,17 @@ Three things are worth knowing before you reach for any of this:
 
 ## Text
 
-`Text3d` is a string laid out as a box. It is a leaf, like `NodeBox3d`, and it
-is the first thing in this package that answers the measurement protocol with
-something real: it reports intrinsic widths that mean what they say, and it
-states a baseline.
+`RenderText3d` is a string laid out as a box. It is a leaf, like
+`RenderNodeBox3d`, and it is the first thing in this package that answers the
+measurement protocol with something real: it reports intrinsic widths that mean
+what they say, and it states a baseline.
 
 ```dart
-Row3d(
+RenderRow3d(
   crossAxisAlignment: CrossAxisAlignment3d.baseline,
   children: [
-    Text3d('Save', style: const TextStyle(fontSize: 14)),
-    Text3d('⌘S', style: const TextStyle(fontSize: 11)),
+    RenderText3d('Save', style: const TextStyle(fontSize: 14)),
+    RenderText3d('⌘S', style: const TextStyle(fontSize: 11)),
   ],
 )
 ```
@@ -491,11 +491,11 @@ else — no shaping, no `Paragraph.layout`, no font.
 That matters more here than it would in Flutter. A box in this package is
 relaid out far more often than a `RenderParagraph` is: whenever a scroll
 offset changes the room an item gets, whenever the surface resizes, on every
-frame of an animation, and *twice more* whenever an `IntrinsicWidth3d` above
-it asks its question, because answering an intrinsic walks the whole subtree
-and then the subtree is laid out again for real. With shaping on that path, a
-`Column3d(crossAxisAlignment: stretch)` of labels under an `IntrinsicWidth3d`
-is unaffordable; without it, it costs a few additions.
+frame of an animation, and *twice more* whenever a `RenderIntrinsicWidth3d`
+above it asks its question, because answering an intrinsic walks the whole
+subtree and then the subtree is laid out again for real. With shaping on that
+path, a `RenderColumn3d(crossAxisAlignment: stretch)` of labels under a
+`RenderIntrinsicWidth3d` is unaffordable; without it, it costs a few additions.
 
 The measurements are cached by (string, style), which pays because UI text
 repeats: a list of labels shares its words, a column of numbers shares its
@@ -515,7 +515,7 @@ logical pixels, and they agree exactly.
 Where the trade does not hold, swap the policy rather than the box:
 
 ```dart
-Text3d(arabic, style: style, measurement: const ParagraphTextMeasurement3d())
+RenderText3d(arabic, style: style, measurement: const ParagraphTextMeasurement3d())
 ```
 
 That hands every layout back to the platform — one `ui.Paragraph` per layout
@@ -531,21 +531,21 @@ a word too wide for its line — which Flutter does and CSS does not.
 ### Drawing it: the glyph atlas
 
 Measurement and rasterization are separated on purpose, and the seam between
-them is `Text3dRenderer`. A `Text3d` with no renderer lays out, sizes itself,
-answers intrinsics and states a baseline, and puts nothing in the scene —
-which is a useful object on its own, and is what every one of this package's
+them is `Text3dRenderer`. A `RenderText3d` with no renderer lays out, sizes
+itself, answers intrinsics and states a baseline, and puts nothing in the scene
+— which is a useful object on its own, and is what every one of this package's
 headless tests measures.
 
 The renderer that ships is `AtlasText3dRenderer`, and it is the one a
 component library wants:
 
 ```dart
-Text3d('Save', style: labelStyle, renderer: AtlasText3dRenderer())
+RenderText3d('Save', style: labelStyle, renderer: AtlasText3dRenderer())
 ```
 
 **A renderer is owned by the box that holds it**, and that is the rule to
-carry away: `Text3d` disposes it when a different one is set and when the box
-itself is disposed. So a screen of labels wants a renderer *each*, never one
+carry away: `RenderText3d` disposes it when a different one is set and when the
+box itself is disposed. So a screen of labels wants a renderer *each*, never one
 instance passed around — the first label to leave the tree would dispose it
 and every other label would quietly stop drawing. The thing worth sharing is
 the atlas underneath, and that is shared already.
@@ -556,11 +556,11 @@ do, so the widget layer inherits it, the way it inherits a `DefaultTextStyle`:
 ```dart
 DefaultTextRenderer3d(
   factory: AtlasText3dRenderer.new,
-  child: SceneView.declarative(children: [SceneLayout3d(child: screen)]),
+  child: SceneView.declarative(children: [Surface3d(child: screen)]),
 )
 ```
 
-Every `SceneText3d` below that calls the factory once and owns what comes
+Every `Text3d` below that calls the factory once and owns what comes
 back; one that states its own `renderer` overrides it, exactly as one that
 states its own `style` overrides the ambient style. The inherited value is a
 *factory* and not a renderer for the ownership reason above — an inherited
@@ -568,7 +568,7 @@ instance would be a shared one — so keep the function stable: a tear-off like
 `AtlasText3dRenderer.new`, or a field on a `State`. A closure written inline in
 `build` is a new function every build, and every label in the tree would
 rebuild its renderer. In the imperative layer the same seam is
-`Text3d.rendererFactory`.
+`RenderText3d.rendererFactory`.
 
 One texture holds every glyph a style has been asked to draw at one
 resolution, and each label is one mesh of textured quads out of it. A screen
@@ -683,12 +683,12 @@ Latin, Greek and Cyrillic are right. A style's `foreground` and `background`
 paints are not honoured either: a glyph is rasterized white so that one atlas
 serves every colour, and the colour is applied by the material.
 
-### RichText3d, the escape hatch
+### RenderRichText3d, the escape hatch
 
 When the atlas is the wrong tool, hand the whole problem back to Flutter.
 
 ```dart
-RichText3d(
+RenderRichText3d(
   TextSpan(
     style: const TextStyle(fontSize: 14, color: Color(0xFF202020)),
     children: [
@@ -709,13 +709,13 @@ screen.
 
 Measurement is exact and headless all the same: the size, the intrinsics and
 the baseline come from a `TextPainter`, the same object a Flutter `Text`
-measures with, so a `RichText3d` participates in the layout protocol whether
-or not there is a GPU to draw it on. What it does need in order to *draw* is a
-`SceneView`: the hosted subtree lives inside the widget that displays the
-scene, which is where its tickers run and where the capture happens. Pointer
-input is not forwarded into that subtree — this package dispatches its own
-pointers against the layout tree, and a hit on a `RichText3d` stops at the box
-exactly as it stops at a `Text3d`.
+measures with, so a `RenderRichText3d` participates in the layout protocol
+whether or not there is a GPU to draw it on. What it does need in order to
+*draw* is a `SceneView`: the hosted subtree lives inside the widget that
+displays the scene, which is where its tickers run and where the capture
+happens. Pointer input is not forwarded into that subtree — this package
+dispatches its own pointers against the layout tree, and a hit on a
+`RenderRichText3d` stops at the box exactly as it stops at a `RenderText3d`.
 
 A paragraph has a thickness too, and it does not get it from the atlas —
 there is no atlas here. Its capture is a `gpu.Texture` with no readable copy,
@@ -729,15 +729,15 @@ admin" comes out with a blue-grey edge, an orange one on `Ada` and a green one
 on `admin`.
 
 `glyphDepth` is the dial and `depth` is not: `depth` is what the box
-*reserves*, the way a `SizedBox3d`'s is, and extruding the box rather than the
-letters was tried and photographed doing something worse — see
+*reserves*, the way a `RenderSizedBox3d`'s is, and extruding the box rather than
+the letters was tried and photographed doing something worse — see
 [docs/traps.md](../../docs/traps.md).
 
 Three things to know before leaving it on:
 
 ```dart
 // A paragraph that is there to be read rather than looked at.
-RichText3d(span, glyphDepth: 0.0)
+RenderRichText3d(span, glyphDepth: 0.0)
 ```
 
 A `WidgetSpan`'s content gets no wall, because a `TextPainter` paints a
@@ -750,12 +750,12 @@ reported rather than silently built.
 ## Sizing real 3D content
 
 The hard part of a 3D layout is getting arbitrary content, primitives,
-imported models, whole subtrees, to answer "how big are you?". `NodeBox3d`
+imported models, whole subtrees, to answer "how big are you?". `RenderNodeBox3d`
 answers it from the engine's own measurement, `Node.combinedLocalBounds`,
 mapped out of scene space by the surface basis:
 
 ```dart
-NodeBox3d(
+RenderNodeBox3d(
   content: model,               // any Node, app-owned
   fit: BoxFit3d.contain,        // none, contain, fill, scaleDown
   alignment: Alignment3d.center,
@@ -766,7 +766,7 @@ NodeBox3d(
   measures as `fallbackSize`.
 * `explicitSize` states the content's extent outright and skips measuring. It
   is a *measurement*, not a sizing request: to make a model occupy a
-  particular size, put it in a `SizedBox3d` and let `fit` scale it.
+  particular size, put it in a `RenderSizedBox3d` and let `fit` scale it.
 * Override `readContentBounds` to measure content some other way.
 * The box owns the content node's `localTransform`, centring the measured
   bounds in the box and undoing the surface basis so the model keeps the
@@ -781,7 +781,7 @@ fixed the size.
 
 ```dart
 // A model, whatever its authored size, occupying 0.3 on a side.
-SizedBox3d.cube(0.3, child: NodeBox3d(content: model, fit: BoxFit3d.contain))
+RenderSizedBox3d.cube(0.3, child: RenderNodeBox3d(content: model, fit: BoxFit3d.contain))
 ```
 
 `contentScale` reports what the fit actually did, for when a model comes out
@@ -790,16 +790,16 @@ measurement is responsible.
 
 ## Making a box visible
 
-`NodeBox3d` takes content that already exists and scales it into the room
+`RenderNodeBox3d` takes content that already exists and scales it into the room
 available. A panel needs the opposite: geometry that is *told* the size and
 produces the right shape at it, because scaling a rounded panel distorts its
 corners and a card with a 12dp radius needs 12dp at every size.
 
-`DecoratedBox3d` is that box. It lays its child out exactly as a pass-through
-would and then hands its own size to a painter:
+`RenderDecoratedBox3d` is that box. It lays its child out exactly as a
+pass-through would and then hands its own size to a painter:
 
 ```dart
-DecoratedBox3d(
+RenderDecoratedBox3d(
   decoration: const BoxDecoration3d(
     color: Color(0xFF1B6EF3),
     borderRadius: BorderRadius3d.circular(12),
@@ -807,16 +807,16 @@ DecoratedBox3d(
     elevation: 3,
     surfaceTint: Color(0xFF6750A4),
   ),
-  child: Padding3d(
+  child: RenderPadding3d(
     padding: const EdgeInsets3d.all(0.12),
-    child: Text3d('Continue'),
+    child: RenderText3d('Continue'),
   ),
 )
 ```
 
 **Every figure on a `BoxDecoration3d` is in logical pixels**, not world units —
 a 12dp corner, a 1dp outline, a 3dp elevation — and the metrics turn them into
-units at paint time. That is the same bargain `Text3d` strikes with
+units at paint time. That is the same bargain `RenderText3d` strikes with
 `TextStyle.fontSize`, and it is what makes one decoration correct on a
 camera-bound surface and on a wall panel whose scale the author picked.
 
@@ -836,9 +836,11 @@ Everything downstream follows from that:
 
 * A size change scales a shared slab and rewrites parameters. It never
   rebuilds geometry.
-* A colour, radius, border or elevation change never relayouts — `DecoratedBox3d.decoration` marks nothing dirty for layout, because a decoration has no say in any extent.
+* A colour, radius, border or elevation change never relayouts —
+  `RenderDecoratedBox3d.decoration` marks nothing dirty for layout, because a
+  decoration has no say in any extent.
 * A **state layer** (hover, focus, press, drag) is one uniform.
-  `DecoratedBox3d.stateLayer` writes it and asks for a frame; it does not
+  `RenderDecoratedBox3d.stateLayer` writes it and asks for a frame; it does not
   even repaint through the layout pipeline.
 * A **press ripple** is two more. `StateLayer3d.ripple` carries a `Ripple3d`
   — where the press landed, how far the circle has grown and how strong it is
@@ -907,7 +909,7 @@ application has them, and here they are **parts of the decoration** rather
 than things drawn over it.
 
 ```dart
-DecoratedBox3d(
+RenderDecoratedBox3d(
   decoration: BoxDecoration3d(
     borderRadius: const BorderRadius3d.circular(16),
     gradient: const LinearGradient(
@@ -923,16 +925,16 @@ DecoratedBox3d(
 )
 ```
 
-`Image3d` — `SceneImage3d`, with `.asset`, `.network` and `.memory`
+`RenderImage3d` — `Image3d`, with `.asset`, `.network` and `.memory`
 constructors — is a box that wears one of these and sizes itself to the
 picture, the way Flutter's `Image` does. It takes a `borderRadius` of its own,
 which is what a `ClipRRect` would have been:
 
 ```dart
-SceneSizedBox3d(
+SizedBox3d(
   width: metrics.dp(40),
   height: metrics.dp(40),
-  child: SceneImage3d.asset(
+  child: Image3d.asset(
     'assets/avatar.jpg',
     fit: BoxFit.cover,
     borderRadius: const BorderRadius3d.circular(20),   // a circle
@@ -941,8 +943,8 @@ SceneSizedBox3d(
 ```
 
 **Why a decoration rather than a textured quad**, which is the design decision
-worth knowing before you go looking for an `Image3d` that is a leaf: there is
-no rounded clip in this package. `Clip3dRegion` is an intersection of planes
+worth knowing before you go looking for a `RenderImage3d` that is a leaf: there
+is no rounded clip in this package. `Clip3dRegion` is an intersection of planes
 and so convex, and a corner radius is *carved by the panel shader* rather than
 clipped. A picture drawn as geometry of its own would sit square inside a
 rounded card and square inside a circular avatar, and nothing could cut it.
@@ -1004,9 +1006,9 @@ callback is Flutter's (`Decoration.createBoxPainter` has taken one since the
 beginning) and it is the seam any painter with a late resource should use:
 nothing is laid out again, because a picture was never a layout input.
 
-The one place it *is* a layout input is `Image3d`, which has no size of its
-own until the picture has one — so a box with loose constraints is empty for a
-frame and then pushes its neighbours aside once. Give it a `SceneSizedBox3d`
+The one place it *is* a layout input is `RenderImage3d`, which has no size of
+its own until the picture has one — so a box with loose constraints is empty for
+a frame and then pushes its neighbours aside once. Give it a `SizedBox3d`
 when the layout must not move, which is Flutter's advice for the same reason.
 
 Two costs worth knowing. A picture is uploaded with a mip chain, which is what
@@ -1045,10 +1047,10 @@ this is still how the engine behaves.
 
 ### It does not draw on its own either
 
-Like `Text3d`, a `DecoratedBox3d` with no painter lays out, sizes itself and
-hit-tests exactly as it otherwise would, and puts nothing in the scene.
-Producing geometry needs a GPU context, which a headless test does not have
-and neither does a surface built before `Scene.initializeStaticResources()`
+Like `RenderText3d`, a `RenderDecoratedBox3d` with no painter lays out, sizes
+itself and hit-tests exactly as it otherwise would, and puts nothing in the
+scene. Producing geometry needs a GPU context, which a headless test does not
+have and neither does a surface built before `Scene.initializeStaticResources()`
 resolves. `Decoration3dPainter` is the seam.
 
 The package ships the shader as `assets/box_decoration3d.fmat` and
@@ -1123,14 +1125,14 @@ generates whatever it likes inside its painter.
 
 ### Clipping, and the contract for it
 
-`ClipBox3d` clips its child to its own extent. Layout is untouched — it is a
-pass-through — and two things happen, at different prices:
+`RenderClipBox3d` clips its child to its own extent. Layout is untouched — it is
+a pass-through — and two things happen, at different prices:
 
 ```dart
-SizedBox3d(
+RenderSizedBox3d(
   width: 2,
   height: 2,
-  child: ClipBox3d(child: Column3d(children: rows)),
+  child: RenderClipBox3d(child: RenderColumn3d(children: rows)),
 )
 ```
 
@@ -1145,26 +1147,27 @@ SizedBox3d(
   for whole boxes, useless for a box that is half in, and free.
 
 **A label is on the second tier and not the first.** A glyph's material reads
-no clip planes, so a `Text3d` or a `RichText3d` half out of a window draws
-whole. What it does do is hide itself once its clip excludes all of it,
+no clip planes, so a `RenderText3d` or a `RenderRichText3d` half out of a window
+draws whole. What it does do is hide itself once its clip excludes all of it,
 whenever it is laid out or moved — so a label on a box that is half across a
 window, a page of a page view in the middle of a turn, is not drawn a page's
 width outside the panel while the cards around it are cut cleanly. It shows
 itself again only if it was the one that hid itself. And note what supplies
 the window: **a scroll view does not clip on its own**; wrap it in a
-`ClipBox3d` for its edges to cut anything.
+`RenderClipBox3d` for its edges to cut anything.
 
 **A clip only cuts anything once it has been published to the boxes under it**,
 and that is not automatic. A box packs its plane block while it paints, at the
-end of its own `performLayout`, and a `ClipBox3d` takes its size *from its
+end of its own `performLayout`, and a `RenderClipBox3d` takes its size *from its
 child* — so on the layout that creates them every descendant asks before the
 clip box has an extent and gets an unbounded block. `RenderObject3d.clipRegion`
 answers correctly from the moment the pass ends, which is why this was dead for
 months while every arithmetic test passed. `refreshClipRegion` and
-`refreshClipSubtree` are the hooks that close it: `ClipBox3d` sweeps its subtree
-once it has a size, `RenderObject3d.place` walks whatever it just moved, and
-`CustomScrollView3d` republishes over every sliver a pinned header covers. If
-you write a box that discovers a clip late, republish — nothing warns you.
+`refreshClipSubtree` are the hooks that close it: `RenderClipBox3d` sweeps its
+subtree once it has a size, `RenderObject3d.place` walks whatever it just moved,
+and `RenderCustomScrollView3d` republishes over every sliver a pinned header
+covers. If you write a box that discovers a clip late, republish — nothing warns
+you.
 
 `clipDepth` is off by default, so a raised card inside a scrolling list still
 stands proud of it instead of being sliced off at the surface. Nesting
@@ -1175,22 +1178,22 @@ and `toPlaneBlock` throws rather than clipping less than it was asked to.
 
 ### Hiding without decorating
 
-`Visibility3d` hides its child and keeps its space; `Offstage3d` hides it and
-gives the space back, reporting zero size and no baseline. Both work by the
-scene node's `visible` flag, which hit testing already honours, so an
-invisible box is unpointable as well as unseen. Toggling a `Visibility3d` does
-not relayout; toggling an `Offstage3d` does, because the size it reports
-depends on it.
+`RenderVisibility3d` hides its child and keeps its space; `RenderOffstage3d`
+hides it and gives the space back, reporting zero size and no baseline. Both
+work by the scene node's `visible` flag, which hit testing already honours, so
+an invisible box is unpointable as well as unseen. Toggling a
+`RenderVisibility3d` does not relayout; toggling a `RenderOffstage3d` does,
+because the size it reports depends on it.
 
 ### Fading a subtree
 
-`Opacity3d` draws everything below it at a fraction of its strength, and the
-value composes the way two nested `Opacity` widgets do:
+`RenderOpacity3d` draws everything below it at a fraction of its strength, and
+the value composes the way two nested `Opacity` widgets do:
 
 ```dart
-Opacity3d(
+RenderOpacity3d(
   opacity: enabled ? 1.0 : 0.38,
-  child: Column3d(children: controls),
+  child: RenderColumn3d(children: controls),
 )
 ```
 
@@ -1198,8 +1201,8 @@ It reaches everything this package draws — a panel, a label's glyphs, and the
 wall around those glyphs — through `RenderObject3d.inheritedOpacity`, which is
 computed by walking up exactly as `clipRegion` is. Changing it lays nothing
 out and rebuilds no geometry: it walks the subtree writing one `fade` uniform
-per box that draws, which is what makes `FadeTransition3d`,
-`SceneAnimatedOpacity3d` and `Motion3d.opacity` affordable.
+per box that draws, which is what makes `RenderFadeTransition3d`,
+`AnimatedOpacity3d` and `Motion3d.opacity` affordable.
 
 **It is coverage, not alpha, and you should know that before you use it.**
 A faded box keeps roughly `opacity` of its fragments, chosen by an ordered
@@ -1223,82 +1226,82 @@ that is a little generous in the middle. The pictures and the numbers are in
 
 Two things it does not do. **It does not take anything out of reach** — a
 subtree at zero opacity still answers a ray, exactly as Flutter's `Opacity`
-does; wrap it in an `IgnorePointer3d` if it should stop being pressable. And
-**it cannot fade geometry the package did not build**: a `NodeBox3d` holds
-content with materials of its own, so it takes an `onFade` callback and
+does; wrap it in a `RenderIgnorePointer3d` if it should stop being pressable.
+And **it cannot fade geometry the package did not build**: a `RenderNodeBox3d`
+holds content with materials of its own, so it takes an `onFade` callback and
 asserts in debug when it is inside a faded subtree without one.
 
 ## What is in the box
 
 | Layout | Flutter counterpart |
 | --- | --- |
-| `Layout3dSurface` | the root, plus `RenderView`'s job of starting layout |
+| `RenderSurface3d` | the root, plus `RenderView`'s job of starting layout |
 | `RenderObject3d`, `RenderSingleChild3d`, `RenderMultiChild3d`, `RenderProxyBox3d` | `RenderObject` and `RenderBox` folded into one, and their friends |
 | `Constraints3d`, `Size3d`, `Offset3d`, `Alignment3d`, `EdgeInsets3d` | `BoxConstraints`, `Size`, `Offset`, `Alignment`, `EdgeInsets` |
 | `AlignmentDirectional3d`, `EdgeInsetsDirectional3d`, and the `…Geometry3d` bases | `AlignmentDirectional`, `EdgeInsetsDirectional`, `AlignmentGeometry`, `EdgeInsetsGeometry` |
-| `Container3d`, `Padding3d`, `Align3d`, `Center3d` | `Container`, `Padding`, `Align`, `Center` |
-| `SizedBox3d`, `ConstrainedBox3d`, `Transform3d` | `SizedBox`, `ConstrainedBox`, `Transform` |
-| `Row3d`, `Column3d`, `Depth3d`, `Flexible3d`, `Expanded3d`, `Spacer3d` | `Row`, `Column`, `Flexible`, `Expanded`, `Spacer` |
-| `Stack3d`, `Positioned3d`, `Positioned3d.directional` | `Stack`, `Positioned`, `Positioned.directional` |
-| `Wrap3d` | `Wrap` |
-| `LimitedBox3d`, `UnconstrainedBox3d`, `OverflowBox3d`, `FractionallySizedBox3d` | `LimitedBox`, `UnconstrainedBox`, `OverflowBox`, `FractionallySizedBox` |
-| `AspectRatio3d`, `FittedBox3d`, `IndexedStack3d` | `AspectRatio`, `FittedBox`, `IndexedStack` |
-| `Table3d`, `TableColumnWidth3d` and its four policies | `Table`, `TableColumnWidth` and its own |
-| `LayoutBuilder3d` | `LayoutBuilder` |
-| `CustomMultiChildLayout3d`, `MultiChildLayout3dDelegate`, `LayoutId3d` | `CustomMultiChildLayout`, `MultiChildLayoutDelegate`, `LayoutId` |
-| `Flow3d`, `Flow3dDelegate` | `Flow`, `FlowDelegate`, at node-transform cost rather than repaint cost |
+| `RenderContainer3d`, `RenderPadding3d`, `RenderAlign3d`, `RenderCenter3d` | `Container`, `Padding`, `Align`, `Center` |
+| `RenderSizedBox3d`, `RenderConstrainedBox3d`, `RenderTransform3d` | `SizedBox`, `ConstrainedBox`, `Transform` |
+| `RenderRow3d`, `RenderColumn3d`, `RenderDepth3d`, `RenderFlexible3d`, `RenderExpanded3d`, `RenderSpacer3d` | `Row`, `Column`, `Flexible`, `Expanded`, `Spacer` |
+| `RenderStack3d`, `RenderPositioned3d`, `RenderPositioned3d.directional` | `Stack`, `Positioned`, `Positioned.directional` |
+| `RenderWrap3d` | `Wrap` |
+| `RenderLimitedBox3d`, `RenderUnconstrainedBox3d`, `RenderOverflowBox3d`, `RenderFractionallySizedBox3d` | `LimitedBox`, `UnconstrainedBox`, `OverflowBox`, `FractionallySizedBox` |
+| `RenderAspectRatio3d`, `RenderFittedBox3d`, `RenderIndexedStack3d` | `AspectRatio`, `FittedBox`, `IndexedStack` |
+| `RenderTable3d`, `TableColumnWidth3d` and its four policies | `Table`, `TableColumnWidth` and its own |
+| `RenderLayoutBuilder3d` | `LayoutBuilder` |
+| `RenderCustomMultiChildLayout3d`, `MultiChildLayout3dDelegate`, `RenderLayoutId3d` | `CustomMultiChildLayout`, `MultiChildLayoutDelegate`, `LayoutId` |
+| `RenderFlow3d`, `Flow3dDelegate` | `Flow`, `FlowDelegate`, at node-transform cost rather than repaint cost |
 | `Layout3dCameraBinding` | what `View` does for a Flutter tree: the thing that bounds it |
 | `Layout3dMetrics`, `VisualDensity3d` | `MediaQuery.textScaler` and the unit rate a window does not need, `VisualDensity` |
-| `MediaQuery3d`, `MediaQuery3dData`, `SceneSafeArea3d` | `MediaQuery`, `MediaQueryData`, `SafeArea` |
-| `Viewport3d`, `ListView3d`, `GridView3d`, `Scroll3dController` | `SingleChildScrollView`, `ListView`, `GridView`, `ScrollController` |
+| `MediaQuery3d`, `MediaQuery3dData`, `SafeArea3d` | `MediaQuery`, `MediaQueryData`, `SafeArea` |
+| `RenderViewport3d`, `RenderListView3d`, `RenderGridView3d`, `Scroll3dController` | `SingleChildScrollView`, `ListView`, `GridView`, `ScrollController` |
 | `Scroll3dPhysics`, `ClampingScroll3dPhysics`, `BouncingScroll3dPhysics` | `ScrollPhysics` and its two familiar shapes |
-| `PageView3d`, `PageScroll3dPhysics` | `PageView`, `PageScrollPhysics` |
+| `RenderPageView3d`, `PageScroll3dPhysics` | `PageView`, `PageScrollPhysics` |
 | `ensureVisible3d`, `offsetToReveal3d` | `Scrollable.ensureVisible`, `RenderAbstractViewport.getOffsetToReveal` |
 | `Grid3dDelegate`, `Grid3dLayout` | `SliverGridDelegate`, `SliverGridLayout` |
-| `CustomScrollView3d`, `Sliver3d` | `CustomScrollView` + `Viewport`, `RenderSliver` |
-| `SliverList3d`, `SliverGrid3d`, `SliverToBoxAdapter3d` | `SliverList`, `SliverGrid`, `SliverToBoxAdapter` |
-| `SliverPadding3d` | `SliverPadding` |
-| `SliverPersistentHeader3d`, `SliverPersistentHeader3dDelegate` | `SliverPersistentHeader`, `SliverPersistentHeaderDelegate` |
-| `BoxScrollView3d`, `SliverMultiBoxAdaptor3d` | `BoxScrollView`, `RenderSliverMultiBoxAdaptor` |
+| `RenderCustomScrollView3d`, `RenderSliver3d` | `CustomScrollView` + `Viewport`, `RenderSliver` |
+| `RenderSliverList3d`, `RenderSliverGrid3d`, `RenderSliverToBoxAdapter3d` | `SliverList`, `SliverGrid`, `SliverToBoxAdapter` |
+| `RenderSliverPadding3d` | `SliverPadding` |
+| `RenderSliverPersistentHeader3d`, `SliverPersistentHeader3dDelegate` | `SliverPersistentHeader`, `SliverPersistentHeaderDelegate` |
+| `RenderBoxScrollView3d`, `RenderSliverMultiBoxAdaptor3d` | `BoxScrollView`, `RenderSliverMultiBoxAdaptor` |
 | `SliverConstraints3d`, `SliverGeometry3d` | `SliverConstraints`, `SliverGeometry` |
-| `IntrinsicWidth3d`, `IntrinsicHeight3d`, `IntrinsicDepth3d` | `IntrinsicWidth`, `IntrinsicHeight` |
-| `Baseline3d`, `CrossAxisAlignment3d.baseline` | `Baseline`, `CrossAxisAlignment.baseline` |
-| `IgnorePointer3d`, `AbsorbPointer3d` | `IgnorePointer`, `AbsorbPointer` |
+| `RenderIntrinsicWidth3d`, `RenderIntrinsicHeight3d`, `RenderIntrinsicDepth3d` | `IntrinsicWidth`, `IntrinsicHeight` |
+| `RenderBaseline3d`, `CrossAxisAlignment3d.baseline` | `Baseline`, `CrossAxisAlignment.baseline` |
+| `RenderIgnorePointer3d`, `RenderAbsorbPointer3d` | `IgnorePointer`, `AbsorbPointer` |
 | `Ray3d`, `HitTestResult3d`, `Layout3dPointer` | `hitTest`, `BoxHitTestResult`, and `GestureBinding`'s dispatch |
-| `Listener3d`, `HitTestTarget3d`, `HitTestBehavior3d` | `Listener` + `MouseRegion`, `HitTestTarget`, `HitTestBehavior` |
-| `GestureDetector3d`, `HitTestArea3d`, `TapTarget3d` | `GestureDetector`, a bare hit-test region, Material's 48dp target |
-| `Focus3d`, `Focus3dTraversal`, `FocusScope3d` | `Focus`, `FocusTraversalPolicy`, `FocusScope` |
-| `Shortcuts3d`, `Actions3d` | `Shortcuts`, `Actions`, and `WidgetsApp`'s default bindings — walked over the layout tree |
-| `Draggable3d`, `DragTarget3d` | `Draggable`, `DragTarget`, on a session of our own rather than `MultiDragGestureRecognizer` |
+| `RenderListener3d`, `HitTestTarget3d`, `HitTestBehavior3d` | `Listener` + `MouseRegion`, `HitTestTarget`, `HitTestBehavior` |
+| `RenderGestureDetector3d`, `RenderHitTestArea3d`, `RenderTapTarget3d` | `GestureDetector`, a bare hit-test region, Material's 48dp target |
+| `RenderFocus3d`, `Focus3dTraversal`, `RenderFocusScope3d` | `Focus`, `FocusTraversalPolicy`, `FocusScope` |
+| `RenderShortcuts3d`, `RenderActions3d` | `Shortcuts`, `Actions`, and `WidgetsApp`'s default bindings — walked over the layout tree |
+| `RenderDraggable3d`, `RenderDragTarget3d` | `Draggable`, `DragTarget`, on a session of our own rather than `MultiDragGestureRecognizer` |
 | `Drag3dSession`, `Drag3dTarget`, `Drag3dDetails`, `Drag3dEvent` | the drag machinery Flutter keeps inside `Draggable`, made a seam |
 | `Drag3dStartMode`, `Drag3dAnchor`, `Drag3dAutoscroll` | `Draggable`'s long-press variants, `DragAnchorStrategy`, `EdgeDraggingAutoScroller` |
-| `Dismissible3d`, `Dismiss3dDirection` | `Dismissible`, `DismissDirection` |
-| `ReorderableList3d`, `SliverReorderableList3d`, `Reorder3dCallback` | `ReorderableListView`, `SliverReorderableList`, `ReorderCallback` — with `newIndex` meaning where the item ends up |
-| `Overlay3d`, `Overlay3dEntry`, `OverlayLayer3d` | `Overlay`, `OverlayEntry`, and the 3D question Flutter does not have |
-| `ModalBarrier3d`, `Navigator3d`, `Route3d` | `ModalBarrier`, `Navigator`, `Route` |
+| `RenderDismissible3d`, `Dismiss3dDirection` | `Dismissible`, `DismissDirection` |
+| `RenderReorderableList3d`, `RenderSliverReorderableList3d`, `Reorder3dCallback` | `ReorderableListView`, `SliverReorderableList`, `ReorderCallback` — with `newIndex` meaning where the item ends up |
+| `RenderOverlay3d`, `Overlay3dEntry`, `OverlayLayer3d` | `Overlay`, `OverlayEntry`, and the 3D question Flutter does not have |
+| `RenderModalBarrier3d`, `Navigator3d`, `Route3d` | `ModalBarrier`, `Navigator`, `Route` |
 | `Route3dTransition`, `TimedRoute3dTransition`, `Route3d.transition`, `Route3d.animation` | `TransitionRoute`'s controller and the duration-and-curve half of `PageRouteBuilder` |
-| `Motion3d`, `MotionTransition3d`, `SceneMotionTransition3d` | `SlideTransition`, `ScaleTransition`, `RotationTransition` and `FadeTransition`, as one value and one box |
-| `Hero3d`, `SceneHero3d`, `Hero3dFit` | `Hero`, with the flight built rather than reparented |
+| `Motion3d`, `RenderMotionTransition3d`, `MotionTransition3d` | `SlideTransition`, `ScaleTransition`, `RotationTransition` and `FadeTransition`, as one value and one box |
+| `RenderHero3d`, `Hero3d`, `Hero3dFit` | `Hero`, with the flight built rather than reparented |
 | `WidgetOverlay3dEntry`, `WidgetPageRoute3d` | an entry and a route whose content is a widget subtree |
 | `RenderObject3d.anchorOffsetTo` | `CompositedTransformTarget` and `CompositedTransformFollower`, as one call on the node tier |
 | `Layout3dPointerGroup` | routing a ray across surfaces, which a screen does not need |
-| `SceneInput3d`, `Input3dHost` | the `Listener` an application would otherwise write, with the rays and the surfaces owned for it |
+| `Input3d`, `Input3dHost` | the `Listener` an application would otherwise write, with the rays and the surfaces owned for it |
 | `PointerScroll3d`, `Scroll3dController.pointerScroll` | `Scrollable`'s pointer-signal handling and `ScrollPosition.pointerScroll` |
-| `NodeBox3d` | the leaf that holds content |
-| `Text3d`, `TextMeasurement3d` | `Text`, and the `TextPainter` behind it |
-| `AtlasText3dRenderer`, `RichText3d` | the two halves of `RenderParagraph.paint`: glyphs from an atlas, or Flutter's own raster |
-| `DecoratedBox3d`, `BoxDecoration3d`, `Border3d`, `BorderRadius3d` | `DecoratedBox`, `BoxDecoration`, `Border`, `BorderRadius` |
-| `Image3d`, `DecorationImage3d`, `ImageTexture3d` | `Image`, `DecorationImage`, the image stream behind both |
+| `RenderNodeBox3d` | the leaf that holds content |
+| `RenderText3d`, `TextMeasurement3d` | `Text`, and the `TextPainter` behind it |
+| `AtlasText3dRenderer`, `RenderRichText3d` | the two halves of `RenderParagraph.paint`: glyphs from an atlas, or Flutter's own raster |
+| `RenderDecoratedBox3d`, `BoxDecoration3d`, `Border3d`, `BorderRadius3d` | `DecoratedBox`, `BoxDecoration`, `Border`, `BorderRadius` |
+| `RenderImage3d`, `DecorationImage3d`, `ImageTexture3d` | `Image`, `DecorationImage`, the image stream behind both |
 | `Decoration3dPainter`, `Decoration3dPainterCache`, `StateLayer3d` | `BoxPainter`, and Material's state layers |
-| `ClipBox3d`, `Clip3dRegion`, `ClipPlane3d` | `ClipRect`, and the clip stack behind it |
-| `Visibility3d`, `Offstage3d` | `Visibility`, `Offstage` |
-| `Opacity3d`, `FadeTransition3d`, `SceneAnimatedOpacity3d` | `Opacity`, `FadeTransition`, `AnimatedOpacity` — as coverage rather than a `saveLayer` |
+| `RenderClipBox3d`, `Clip3dRegion`, `ClipPlane3d` | `ClipRect`, and the clip stack behind it |
+| `RenderVisibility3d`, `RenderOffstage3d` | `Visibility`, `Offstage` |
+| `RenderOpacity3d`, `RenderFadeTransition3d`, `AnimatedOpacity3d` | `Opacity`, `FadeTransition`, `AnimatedOpacity` — as coverage rather than a `saveLayer` |
 | `Size3dTween` and its siblings | `SizeTween`, `EdgeInsetsTween`, `AlignmentTween`, `DecorationTween` |
-| `ImplicitlyAnimatedLayout3dWidget`, `SceneAnimatedContainer3d` | `ImplicitlyAnimatedWidget`, `AnimatedContainer` |
-| `RenderObject3d.nodeOffset`, `NodeTransform3d`, `SceneAnimatedSlide3d` | geometry that moves with no layout behind it, which Flutter has no cheap answer for |
+| `ImplicitlyAnimatedLayout3dWidget`, `AnimatedContainer3d` | `ImplicitlyAnimatedWidget`, `AnimatedContainer` |
+| `RenderObject3d.nodeOffset`, `RenderNodeTransform3d`, `AnimatedSlide3d` | geometry that moves with no layout behind it, which Flutter has no cheap answer for |
 
-`Depth3d` is the axis Flutter does not have: a flex that stacks children away
-from the viewer.
+`RenderDepth3d` is the axis Flutter does not have: a flex that stacks children
+away from the viewer.
 
 ## The declarative layer
 
@@ -1313,15 +1316,15 @@ import 'package:flutter_ui_3d/widgets.dart';
 
 SceneView.declarative(
   children: [
-    SceneLayout3d(
+    Surface3d(
       size: const Size3d(4, 3, 0.5),
       position: Vector3(0, 1, 0),
-      child: SceneColumn3d(
+      child: Column3d(
         mainAxisAlignment: MainAxisAlignment3d.center,
         spacing: 0.2,
         children: [
-          SceneNodeBox3d(content: cube),
-          SceneExpanded3d(child: SceneNodeBox3d(content: banner)),
+          NodeBox3d(content: cube),
+          Expanded3d(child: NodeBox3d(content: banner)),
         ],
       ),
     ),
@@ -1329,29 +1332,30 @@ SceneView.declarative(
 )
 ```
 
-Every layout has a widget with the same name under a `Scene` prefix
-(`SceneRow3d`, `SceneStack3d`, `ScenePositioned3d`, `SceneListView3d`, ...).
+Every render object has a widget with Flutter's plain name, and the render
+object is that name with `Render` in front: `Row3d` and `RenderRow3d`, `Stack3d`
+and `RenderStack3d`, `Positioned3d`, `ListView3d`, and so on.
 The scrolling ones carry the imperative layer's second constructor too:
-`SceneListView3d.builder`, `SceneGridView3d.builder`,
-`SceneSliverList3d.builder` and `SceneSliverGrid3d.builder` build a *widget*
+`ListView3d.builder`, `GridView3d.builder`,
+`SliverList3d.builder` and `SliverGrid3d.builder` build a *widget*
 per item as the window reaches it, so a long list costs the dozen rows on
 screen. See *Scrolling* below for what a built item does and does not keep.
 A handful of widgets have no imperative counterpart because they *are* the
-widget layer: `SceneAnimatedContainer3d` and its siblings are stateful, and
-`SceneAnimatedSlide3d` owns the controller behind a node-only animation. See
-*Animation* below. `SceneText3d` is the one that gains most from being a widget: it has a
-`BuildContext` to ask, so it picks up the ambient `DefaultTextStyle`,
+widget layer: `AnimatedContainer3d` and its siblings are stateful, and
+`AnimatedSlide3d` owns the controller behind a node-only animation. See
+*Animation* below. `Text3d` is the one that gains most from being a widget: it
+has a `BuildContext` to ask, so it picks up the ambient `DefaultTextStyle`,
 `DefaultTextRenderer3d` and `Directionality` the way a Flutter `Text` does —
 from the widget tree the scene is hosted in, not from anything inside the
-scene. `SceneRichText3d` reads the ambient `Directionality` too, but not the
+scene. `RichText3d` reads the ambient `Directionality` too, but not the
 style: the spans carry their own. The one thing a `BuildContext` reads from *inside* the scene is the
 surface's unit contract, `Layout3dMetricsScope.of(context)`, which is how a
 figure written in logical pixels becomes the world units every one of these
 widgets takes; see *Reading the contract from a `build` method* above.
 
 Two of them are not quite mirrors, and both are worth knowing before you reach
-for them. `SceneClipBox3d` is the ordinary widget form of `ClipBox3d`, with
-`clipDepth` and `cullNodes`. `SceneSliverPersistentHeader3d` is **not** a
+for them. `ClipBox3d` is the ordinary widget form of `RenderClipBox3d`, with
+`clipDepth` and `cullNodes`. `SliverPersistentHeader3d` is **not** a
 delegate: it takes a `child` and its `minExtent` and `maxExtent` directly. A
 delegate is asked to *build* on every layout the header does, which while
 scrolling is every frame, and a widget cannot answer that — a subtree is
@@ -1366,12 +1370,12 @@ with the window and one that sizes itself does not. What that costs is
 the imperative header is the escape hatch for a bar that has to change what it
 *is* as it collapses.
 
-`SceneDecoratedBox3d` is the one that makes a declarative tree *visible*, and
-it is the widget form of `DecoratedBox3d` with the same two properties and
+`DecoratedBox3d` is the one that makes a declarative tree *visible*, and
+it is the widget form of `RenderDecoratedBox3d` with the same two properties and
 the same promise about them:
 
 ```dart
-SceneDecoratedBox3d(
+DecoratedBox3d(
   decoration: const BoxDecoration3d(
     color: Color(0xFF1B6EF3),
     borderRadius: BorderRadius3d.circular(12),
@@ -1380,9 +1384,9 @@ SceneDecoratedBox3d(
   stateLayer: hovered
       ? const StateLayer3d(color: Color(0xFFFFFFFF), opacity: 0.08)
       : StateLayer3d.none,
-  child: const ScenePadding3d(
+  child: const Padding3d(
     padding: EdgeInsets3d.all(0.12),
-    child: SceneText3d('Continue'),
+    child: Text3d('Continue'),
   ),
 )
 ```
@@ -1393,61 +1397,60 @@ the whole reason the properties are setters on the box rather than
 constructor arguments to a new one, and it is what makes hovering a screen of
 controls free rather than a stutter.
 
-There is deliberately no `decoration` on `SceneContainer3d`, though Flutter's
+There is deliberately no `decoration` on `Container3d`, though Flutter's
 `Container` has one. Flutter's is a *composition* — it builds a small tree, and
 `DecoratedBox` stays the single implementation of what a decoration is — while
-`Container3d` is one box, so a decoration on it would be a second copy of the
-painter lifecycle, and Flutter's own semantics (the decoration sits inside the
-margin and around the padding) is a rectangle that is not the box's own size.
-Composing the two says which rectangle is the panel:
+`RenderContainer3d` is one box, so a decoration on it would be a second copy of
+the painter lifecycle, and Flutter's own semantics (the decoration sits inside
+the margin and around the padding) is a rectangle that is not the box's own
+size. Composing the two says which rectangle is the panel:
 
 ```dart
 // A panel with space inside it.
-SceneDecoratedBox3d(decoration: d, child: SceneContainer3d(padding: p, child: c));
+DecoratedBox3d(decoration: d, child: Container3d(padding: p, child: c));
 // A panel with space around it.
-SceneContainer3d(margin: m, child: SceneDecoratedBox3d(decoration: d, child: c));
+Container3d(margin: m, child: DecoratedBox3d(decoration: d, child: c));
 ```
 
 Attach a `Layout3dController` to reach the surface imperatively: it hands back
-the `Layout3dSurface` and its plane `Node`, which is what a raycast or a
+the `RenderSurface3d` and its plane `Node`, which is what a raycast or a
 hand-written transform needs. Anything below the root — a measured size, a
 scroll position — is reached by keeping a reference to the object itself (a
 `Scroll3dController` you passed in, say), not through the controller.
 
-### Why the names carry both a prefix and a suffix
+### Why the names carry a suffix, and sometimes a prefix
 
-`Column3d` and `SceneColumn3d` are not two names for one thing. They are the
-two layers, and the two affixes answer different questions:
+`Column3d` and `RenderColumn3d` are not two names for one thing. They are the
+two layers, named the way Flutter names its own:
 
-* **`3d`** says *this is the three-dimensional counterpart of the Flutter
-  class with the same name*. `Column3d` is to `Column` what `Constraints3d` is
-  to `BoxConstraints`.
-* **`Scene`** says *this is the widget that mounts the object named after it*.
+* **`3d`** says *this is the three-dimensional counterpart of the Flutter class
+  with the same name*. `Column3d` is to `Column` what `Constraints3d` is to
+  `BoxConstraints`.
+* **`Render`** says *this is the render object that the widget of the same name
+  mounts*, as `RenderPadding` is to `Padding`.
 
-The second is flutter_scene's own convention, not one invented here: `Node` is
-the object and `SceneNode` is the widget that mounts it, and the same holds for
-`Mesh`/`SceneMesh` and `Model`/`SceneModel`. `SceneColumn3d` parses exactly
-like `SceneNode` — the widget for a `Column3d`. (A handful of flutter_scene
-types carry the prefix for a different reason: `ScenePointer` and
-`SceneRaycastHit` are named for pointing *into a scene*, not for being
-widgets.)
+The widget gets the plain name because the widget is what most code writes.
+Where Flutter folds several widgets into one render object, this package keeps
+one render class per widget, so the pairs line up: `Row3d` and `RenderRow3d`,
+not `Row3d` and `RenderFlex3d`.
 
-Dropping the suffix in the widget layer looks tidier until you write a line of
-it. The value types cannot lose it — `Size3d`, `EdgeInsets3d`, `Alignment3d`
-and `Axis3d` are the arguments both layers take — so the affix does not go
-away, it only stops being regular:
+Dropping the suffix from the widgets looks tidier until you write a line of it.
+`Padding` and `Column` already belong to Flutter, and the value types cannot
+lose it either — `Size3d`, `EdgeInsets3d`, `Alignment3d` and `Axis3d` are the
+arguments both layers take — so the suffix does not go away, it only stops being
+regular:
 
 ```dart
-ScenePadding3d(padding: EdgeInsets3d.all(0.2), child: SceneColumn3d(...))
-ScenePadding(padding: EdgeInsets3d.all(0.2), child: SceneColumn(...))   // less
+Padding3d(padding: EdgeInsets3d.all(0.2), child: Column3d(...))
+Padding(padding: EdgeInsets3d.all(0.2), child: Column(...))   // Flutter's
 ```
 
 ## Wrapping
 
-`Wrap3d` is what a flex is not: given more children than fit, a `Row3d`
-overflows, a wrap breaks. Children run along `direction` until the next one
-would not fit and then a new run starts, offset across the first cross axis,
-which is Flutter's algorithm unchanged.
+`RenderWrap3d` is what a flex is not: given more children than fit, a
+`RenderRow3d` overflows, a wrap breaks. Children run along `direction` until the
+next one would not fit and then a new run starts, offset across the first cross
+axis, which is Flutter's algorithm unchanged.
 
 The third axis is where 3D asks a question Flutter does not have to answer.
 A wrap could break into layers as well as runs; this one does not. The second
@@ -1456,10 +1459,10 @@ of them needs, placed by `depthAxisAlignment`. Runs stack on one axis only,
 so a wrap of models stays a readable plane of them rather than a cloud.
 
 ```dart
-Wrap3d(
+RenderWrap3d(
   spacing: 0.1,
   runSpacing: 0.15,
-  children: [for (final model in models) SizedBox3d.cube(0.4, child: ...)],
+  children: [for (final model in models) RenderSizedBox3d.cube(0.4, child: ...)],
 )
 ```
 
@@ -1467,34 +1470,34 @@ Wrap3d(
 
 A row in Arabic starts at the right. Everything that arranges children along
 the plane's horizontal axis takes Flutter's `textDirection`, and everything
-along its vertical axis Flutter's `verticalDirection`: `Row3d`, `Column3d` and
-`Depth3d`, `Wrap3d`, `Table3d`, and every box that places a child with an
-alignment or insets it with a padding. The rules are Flutter's, flip for flip —
-including the one that surprises people, that an overflowing right-to-left row
-keeps its *last* child at the left edge and pushes its first out past the
-right, because Flutter walks a flipped line from its top-left child rather than
-mirroring the left-to-right result.
+along its vertical axis Flutter's `verticalDirection`: `RenderRow3d`,
+`RenderColumn3d` and `RenderDepth3d`, `RenderWrap3d`, `RenderTable3d`, and every
+box that places a child with an alignment or insets it with a padding. The rules
+are Flutter's, flip for flip — including the one that surprises people, that an
+overflowing right-to-left row keeps its *last* child at the left edge and pushes
+its first out past the right, because Flutter walks a flipped line from its
+top-left child rather than mirroring the left-to-right result.
 
 What is new is saying *start* rather than *left*. `EdgeInsetsDirectional3d`
 and `AlignmentDirectional3d` are the directional kinds, and a box resolves them
 when it lays out:
 
 ```dart
-Padding3d(
+RenderPadding3d(
   // 16 before the icon and 24 after it, whichever side "before" is on.
   padding: const EdgeInsetsDirectional3d.only(start: 0.16, end: 0.24),
   textDirection: TextDirection.rtl,
-  child: Row3d(textDirection: TextDirection.rtl, children: [icon, label]),
+  child: RenderRow3d(textDirection: TextDirection.rtl, children: [icon, label]),
 )
 ```
 
 **From a `build` method you do not pass it at all.** The widget forms read the
 ambient `Directionality`, as Flutter's do, so a scene under a right-to-left
 `MaterialApp` mirrors every row, padding and alignment without a line of code —
-and `SceneRow3d(textDirection: ...)` still overrides it where a row must not
+and `Row3d(textDirection: ...)` still overrides it where a row must not
 follow the language, a media player's transport controls, say.
-`ScenePositionedDirectional3d` is the ambient form of
-`Positioned3d.directional`.
+`PositionedDirectional3d` is the ambient form of
+`RenderPositioned3d.directional`.
 
 Three things about it that are this package's own:
 
@@ -1511,27 +1514,27 @@ Three things about it that are this package's own:
 - **No direction means left to right.** Flutter asserts when a flex needs a
   direction and has none; a layout here has always been allowed to say
   nothing, so the imperative layer resolves null as left to right, which is
-  also what `Text3d` falls back to.
+  also what `RenderText3d` falls back to.
 
-A horizontal `ListView3d` does not start at the right in right to left, which
-Flutter's does. That is not a direction nobody threaded: no scroll view here
-has `reverse` at all, and it will come with that.
+A horizontal `RenderListView3d` does not start at the right in right to left,
+which Flutter's does. That is not a direction nobody threaded: no scroll view
+here has `reverse` at all, and it will come with that.
 
 ## Building from the room you got
 
 Three boxes hand the decision back to you when the algebra of rows, stacks and
 wraps does not have the shape you want.
 
-`LayoutBuilder3d` builds a *different subtree* depending on the constraints it
-was given, which is what a responsive component is made of: show the label
-only if it fits, put the navigation at the side of a wide panel and along the
-bottom of a narrow one.
+`RenderLayoutBuilder3d` builds a *different subtree* depending on the
+constraints it was given, which is what a responsive component is made of: show
+the label only if it fits, put the navigation at the side of a wide panel and
+along the bottom of a narrow one.
 
 ```dart
-SceneLayoutBuilder3d(
+LayoutBuilder3d(
   builder: (context, constraints) => constraints.maxWidth > 6
-      ? SceneRow3d(children: [rail, body])
-      : SceneColumn3d(children: [body, bar]),
+      ? Row3d(children: [rail, body])
+      : Column3d(children: [body, bar]),
 )
 ```
 
@@ -1547,13 +1550,13 @@ lay out. When the constraints change, the child is reconciled rather than
 rebuilt from nothing, so state, focus nodes and painters below it survive a
 resize.
 
-`CustomMultiChildLayout3d` is the other escape hatch: children tagged with
-`LayoutId3d`, and a `MultiChildLayout3dDelegate` that lays each one out and
-positions it by name. It is what a `Scaffold3d` is — the body gets the room
+`RenderCustomMultiChildLayout3d` is the other escape hatch: children tagged with
+`RenderLayoutId3d`, and a `MultiChildLayout3dDelegate` that lays each one out
+and positions it by name. It is what a `Scaffold3d` is — the body gets the room
 the bar left over — and the delegate API is Flutter's, with `Size3d`,
 `Offset3d` and `Constraints3d` substituted.
 
-`Flow3d` is cheaper here than in Flutter. Its delegate places children by
+`RenderFlow3d` is cheaper here than in Flutter. Its delegate places children by
 writing *node* transforms rather than by laying anything out, so an
 arrangement can animate every frame — a menu fanning out, a carousel curving
 toward the back of the plane — without a box being measured again. It is the
@@ -1566,66 +1569,66 @@ would always find the last child.
 
 There is no clipping here, which is the first thing to know. A scene has no
 scissor rectangle to hide content behind, so a scrolling view hides what leaves
-its window by making the node invisible, one whole child at a time. `ListView3d`
-and `GridView3d` do that; `Viewport3d`, which slides a single child, does not —
-its child is one node, and half a node cannot be hidden. A tall child in a
-`Viewport3d` therefore stands out through the ends of the window. Reach for it
-when the content is a little longer than the plane, and for anything else reach
-for a list.
+its window by making the node invisible, one whole child at a time.
+`RenderListView3d` and `RenderGridView3d` do that; `RenderViewport3d`, which
+slides a single child, does not — its child is one node, and half a node cannot
+be hidden. A tall child in a `RenderViewport3d` therefore stands out through the
+ends of the window. Reach for it when the content is a little longer than the
+plane, and for anything else reach for a list.
 
-`ListView3d` shows the window of its content at a `Scroll3dController`
+`RenderListView3d` shows the window of its content at a `Scroll3dController`
 offset. Built from an explicit list of children, every child is laid out and
-the ones outside the window have their nodes hidden. `ListView3d.builder`
+the ones outside the window have their nodes hidden. `RenderListView3d.builder`
 builds items on demand: with `itemExtent` nothing off-screen is ever built,
 and without it items are measured once as they are first scrolled past, with
 the total extent estimated from the average, the same approximation
 `SliverList` makes.
 
-The declarative layer has the same two shapes. `SceneListView3d(children: ...)`
-builds every child when the enclosing widget builds; `SceneListView3d.builder`
+The declarative layer has the same two shapes. `ListView3d(children: ...)`
+builds every child when the enclosing widget builds; `ListView3d.builder`
 builds an item when the window reaches it and lets it go when the window and its
-cache have left it, and so do `SceneGridView3d.builder`,
-`SceneSliverList3d.builder` and `SceneSliverGrid3d.builder`. A built item is an
+cache have left it, and so do `GridView3d.builder`,
+`SliverList3d.builder` and `SliverGrid3d.builder`. A built item is an
 ordinary widget in an ordinary element tree — it reads inherited state, keeps
 its own `State`, and rebuilds on its own — which is the whole point: a long
 list of stateful rows is not expressible with a `RenderObject3dItemBuilder`,
 because that hands back a layout object rather than a widget.
 
 ```dart
-SceneListView3d.builder(
+ListView3d.builder(
   itemCount: rows.length,
   itemExtent: 0.6,
-  itemBuilder: (context, index) => SceneContainer3d(
+  itemBuilder: (context, index) => Container3d(
     padding: const EdgeInsets3d.all(0.05),
-    child: SceneText3d(rows[index].label),
+    child: Text3d(rows[index].label),
   ),
 )
 ```
 
 Two things to know about a built item. By default it is **not kept alive**:
 scrolling far enough disposes it and its `State` goes with it. Wrap the ones
-that have something to lose in a `SceneKeepAlive3d` and the view parks them
+that have something to lose in a `KeepAlive3d` and the view parks them
 instead — off the layout tree, so nothing lays them out, draws them or points
 at them, but whole when the window comes back:
 
 ```dart
-SceneListView3d.builder(
+ListView3d.builder(
   itemCount: questions.length,
   itemExtent: 0.6,
-  itemBuilder: (context, index) => SceneKeepAlive3d(
+  itemBuilder: (context, index) => KeepAlive3d(
     child: AnswerRow(question: questions[index]),
   ),
 )
 ```
 
-The `SceneKeepAlive3d` has to be the item itself, at the top of what
+The `KeepAlive3d` has to be the item itself, at the top of what
 `itemBuilder` returns: the view asks the child it holds, and there is no
 counterpart to Flutter's `AutomaticKeepAlive` listening for a notification
 from deeper in. A kept item stays in memory for as long as the view does, so
 keep the handful with a form or a scroll position in them and let the labels
 go.
 
-And each item has to resolve to a layout — a `Scene*3d` widget, under as many
+And each item has to resolve to a layout — one of the `3d` widgets, under as many
 builders, providers and stateful widgets as you like — because what the list
 places is a box on the plane; a Flutter `Text` in there is an error rather
 than a silently empty row. There is no widget form of `prototypeItem`, either:
@@ -1638,28 +1641,29 @@ surface bounds every axis for you, which is the easiest way to stop hearing
 about it; see *How the plane gets a screen* above. Along the scroll
 axis it needs nothing: with no window to fill it is as long as its content and
 has nothing left to scroll. That matters here more than it does in Flutter,
-where the screen bounds everything: a `Layout3dSurface` is unbounded on all
+where the screen bounds everything: a `RenderSurface3d` is unbounded on all
 three axes unless you say otherwise, so a list on a bare surface has to be
-given a size somewhere — `constraints:` on the surface, or a `SizedBox3d`
+given a size somewhere — `constraints:` on the surface, or a `RenderSizedBox3d`
 around the list.
 
 ```dart
-Layout3dSurface(
+RenderSurface3d(
   // Without this the list has no width to hand its items, and says so.
   constraints: Constraints3d.tight(const Size3d(0.8, 1.3, 0.3)),
-  child: ListView3d(children: cards),
+  child: RenderListView3d(children: cards),
 )
 ```
 
-Neither view is a layout of its own kind. A `ListView3d` *is* a scrolling
-window over a single `SliverList3d`, and a `GridView3d` over a single
-`SliverGrid3d`, which is the shape Flutter's are: there is no `RenderListView`
-in Flutter, and a `ListView`'s items are placed by a `RenderSliverList` inside
-a `RenderViewport`. So where an item goes is decided in one place rather than
-copied into two. It changes nothing a caller writes — `children`, `add`,
-`remove`, `itemCount` and `refresh` still mean the items, and a hit still finds
-the list itself as its `Scrollable3d` — and it shows only if you go looking, in
-`list.sliver` and in the extra node a ray passes through on its way in.
+Neither view is a layout of its own kind. A `RenderListView3d` *is* a scrolling
+window over a single `RenderSliverList3d`, and a `RenderGridView3d` over a
+single `RenderSliverGrid3d`, which is the shape Flutter's are: there is no
+`RenderListView` in Flutter, and a `ListView`'s items are placed by a
+`RenderSliverList` inside a `RenderViewport`. So where an item goes is decided
+in one place rather than copied into two. It changes nothing a caller writes —
+`children`, `add`, `remove`, `itemCount` and `refresh` still mean the items, and
+a hit still finds the list itself as its `Scrollable3d` — and it shows only if
+you go looking, in `list.sliver` and in the extra node a ray passes through on
+its way in.
 
 One consequence is worth stating, because it is the one thing that changed with
 it: `cacheExtent` decides what is *built and kept*, not what is drawn. An item
@@ -1675,10 +1679,10 @@ an item instead: the list builds one, lays it out, and uses its extent for
 every item there is.
 
 ```dart
-ListView3d.builder(
+RenderListView3d.builder(
   itemCount: 5000,
-  prototypeItem: () => NodeBox3d(content: sampleCard),
-  itemBuilder: (index) => NodeBox3d(content: cards[index]),
+  prototypeItem: () => RenderNodeBox3d(content: sampleCard),
+  itemBuilder: (index) => RenderNodeBox3d(content: cards[index]),
 )
 ```
 
@@ -1689,22 +1693,22 @@ the items, its node never enters the scene, and it is measured again only when
 the room an item gets changes. *Slivers*, below, spells out what all this
 saves you from.
 
-`GridView3d` lays cells out on a grid a `Grid3dDelegate` decides from the room
-across the scroll axis — `Grid3dDelegateWithFixedCrossAxisCount` for "three
+`RenderGridView3d` lays cells out on a grid a `Grid3dDelegate` decides from the
+room across the scroll axis — `Grid3dDelegateWithFixedCrossAxisCount` for "three
 across", `Grid3dDelegateWithMaxCrossAxisExtent` for "as many as fit under this
-size". Because every cell position is arithmetic, `GridView3d.builder` is
+size". Because every cell position is arithmetic, `RenderGridView3d.builder` is
 *exactly* lazy: it knows the total extent of ten thousand cells without
 building one, where a list of free-sized items can only estimate.
 
 ```dart
-GridView3d.builder(
+RenderGridView3d.builder(
   gridDelegate: const Grid3dDelegateWithFixedCrossAxisCount(
     crossAxisCount: 3,
     crossAxisSpacing: 0.08,
     mainAxisSpacing: 0.08,
   ),
   itemCount: models.length,
-  itemBuilder: (index) => NodeBox3d(content: models[index], fit: BoxFit3d.contain),
+  itemBuilder: (index) => RenderNodeBox3d(content: models[index], fit: BoxFit3d.contain),
 )
 ```
 
@@ -1766,20 +1770,20 @@ A wheel has a method of its own, `pointerScroll`, because a wheel is not a
 finger: it jumps rather than dragging, stops at the ends whatever the physics
 would allow — there is no finger to let go of, so nothing would spring an
 overscrolled list back — and then lets the physics settle, which is what snaps
-a page view to a page after a notch. `SceneInput3d` calls it for you; see
+a page view to a page after a notch. `Input3d` calls it for you; see
 *A wheel, a trackpad and a key* below. Anything else — a thumbstick, a
 scripted camera move — drives `Scroll3dController.offset` directly, or
 `applyUserOffset` if it wants the physics applied to it as though it were a
 finger.
 
-A `PageView3d` is a list with two things decided for it: every item is exactly
-as long as the window, and the release settles on an item boundary instead of
-wherever friction left it. The snapping is `PageScroll3dPhysics`, which the
-view puts on the position it creates for itself; hand it a controller of your
-own and the physics is yours to choose. The stride is the window by default,
-and stating one — `PageScroll3dPhysics(pageExtent: cardExtent + spacing)` —
-snaps a plain `ListView3d` to something that is not a whole page, which is how
-a carousel with peeking neighbours is built.
+A `RenderPageView3d` is a list with two things decided for it: every item is
+exactly as long as the window, and the release settles on an item boundary
+instead of wherever friction left it. The snapping is `PageScroll3dPhysics`,
+which the view puts on the position it creates for itself; hand it a controller
+of your own and the physics is yours to choose. The stride is the window by
+default, and stating one — `PageScroll3dPhysics(pageExtent: cardExtent +
+spacing)` — snaps a plain `RenderListView3d` to something that is not a whole
+page, which is how a carousel with peeking neighbours is built.
 
 ## Slivers
 
@@ -1791,12 +1795,12 @@ scrolled past, how much of the viewport is still unfilled — and reports what i
 filled.
 
 ```dart
-CustomScrollView3d(
+RenderCustomScrollView3d(
   controller: scroll,
   slivers: [
-    SliverToBoxAdapter3d(child: NodeBox3d(content: title)),
-    SliverGrid3d(gridDelegate: threeAcross, children: thumbnails),
-    SliverList3d.builder(itemCount: 5000, itemExtent: 0.4, itemBuilder: row),
+    RenderSliverToBoxAdapter3d(child: RenderNodeBox3d(content: title)),
+    RenderSliverGrid3d(gridDelegate: threeAcross, children: thumbnails),
+    RenderSliverList3d.builder(itemCount: 5000, itemExtent: 0.4, itemBuilder: row),
   ],
 )
 ```
@@ -1805,8 +1809,8 @@ This is the protocol the list and the grid are built on — each is one of these
 views holding one sliver — and what it buys over them is the thing neither can
 do: **several sections on one scroll position**. A header, a grid and a list
 scroll together as one surface, each asked only about the part of the window it
-can see. `SliverToBoxAdapter3d` is the glue — everything else in this package is a
-box, and that is how a box takes its turn.
+can see. `RenderSliverToBoxAdapter3d` is the glue — everything else in this
+package is a box, and that is how a box takes its turn.
 
 `SliverConstraints3d` and `SliverGeometry3d` are the two halves. The names keep
 Flutter's spelling, `paintExtent` included, even though nothing here paints:
@@ -1816,11 +1820,11 @@ match. Read "paint" as "the part of the window the viewer can see".
 A sliver is still a `RenderObject3d`. It owns a scene node, it is placed by the
 viewport, and it is hit-tested like anything else; its box is the part of it
 the viewer can actually see, derived from the geometry it reported. Writing one
-means extending `Sliver3d` and setting `geometry` in `performSliverLayout`,
-where `constraints.paintPortion` and `constraints.cachePortion` do the
-arithmetic. `scrollOffsetCorrection` is honoured: a sliver that discovers
-mid-layout that the content is not where the offset assumed can move the
-viewport and have the pass run again.
+means extending `RenderSliver3d` and setting `geometry` in
+`performSliverLayout`, where `constraints.paintPortion` and
+`constraints.cachePortion` do the arithmetic. `scrollOffsetCorrection` is
+honoured: a sliver that discovers mid-layout that the content is not where the
+offset assumed can move the viewport and have the pass run again.
 
 That last one is a facility for slivers you write; none of the built-in ones
 use it. They do not need to: a list here measures forward from its first item
@@ -1828,21 +1832,22 @@ and keeps the running total, so where an item sits is always exact and nothing
 ever has to be walked back.
 
 What that costs is worth knowing before you build a long list of unequal items.
-`SliverList3d.builder` without an `itemExtent` knows the length of the part it
-has measured and guesses the rest from the average, so the *reachable range*
-moves as you scroll: the end recedes if the early items were short, and pulls
-in — taking the position with it — if they were long. And because the running
-total starts at the first item, scrolling straight to the middle of a long list
-measures everything before it in one pass; in debug, a pass that measures more
-than five hundred items only to throw them away again says so rather than
-merely dropping a frame. (Measuring hundreds of items the window then *shows*
-is not that, and passes quietly.)
+`RenderSliverList3d.builder` without an `itemExtent` knows the length of the
+part it has measured and guesses the rest from the average, so the *reachable
+range* moves as you scroll: the end recedes if the early items were short, and
+pulls in — taking the position with it — if they were long. And because the
+running total starts at the first item, scrolling straight to the middle of a
+long list measures everything before it in one pass; in debug, a pass that
+measures more than five hundred items only to throw them away again says so
+rather than merely dropping a frame. (Measuring hundreds of items the window
+then *shows* is not that, and passes quietly.)
 
 Both symptoms come from one gap — the list cannot know how long an item is
 without building it — so both close the moment you fill it. A `prototypeItem`
 fills it from the content, an `itemExtent` fills it from a number you supply,
 and either turns the length into arithmetic: the range stops moving and jumping
-anywhere costs nothing. Both are on `SliverList3d` and `ListView3d` alike.
+anywhere costs nothing. Both are on `RenderSliverList3d` and `RenderListView3d`
+alike.
 
 For a list whose items genuinely do differ, there is a smaller answer.
 `contentExtentEstimator` is a callback taking the item count and returning the
@@ -1850,7 +1855,7 @@ total extent, for an application that knows the real total because it knows the
 data. Offsets stay measured, and exact; what stops moving is the range:
 
 ```dart
-SliverList3d.builder(
+RenderSliverList3d.builder(
   itemCount: chapters.length,
   contentExtentEstimator: (count) => library.totalHeight,
   itemBuilder: (index) => chapterCard(chapters[index]),
@@ -1859,17 +1864,17 @@ SliverList3d.builder(
 
 ### Persistent headers
 
-A `SliverPersistentHeader3d` is a section that stays at the leading edge while
-the rest scrolls past it, shrinking as it goes: the sliver a `SliverAppBar` is
-built on. Its content comes from a delegate, which states how tall the header
-is at rest and how far it may collapse, and builds the content for a given
-*shrink offset*:
+A `RenderSliverPersistentHeader3d` is a section that stays at the leading edge
+while the rest scrolls past it, shrinking as it goes: the sliver a
+`SliverAppBar` is built on. Its content comes from a delegate, which states how
+tall the header is at rest and how far it may collapse, and builds the content
+for a given *shrink offset*:
 
 ```dart
 class _Bar extends SliverPersistentHeader3dDelegate {
   _Bar(this._panel, this._metrics);
 
-  final DecoratedBox3d _panel;
+  final RenderDecoratedBox3d _panel;
   final Layout3dMetrics _metrics;
 
   // Both extents are along the scroll axis, in layout units, so a bar stated
@@ -1891,10 +1896,10 @@ class _Bar extends SliverPersistentHeader3dDelegate {
   bool shouldRebuild(_Bar old) => !identical(old._panel, _panel);
 }
 
-CustomScrollView3d(
+RenderCustomScrollView3d(
   slivers: [
-    SliverPersistentHeader3d(delegate: _Bar(panel, metrics), pinned: true),
-    SliverList3d.builder(itemCount: 500, itemBuilder: row),
+    RenderSliverPersistentHeader3d(delegate: _Bar(panel, metrics), pinned: true),
+    RenderSliverList3d.builder(itemCount: 500, itemBuilder: row),
   ],
 )
 ```
@@ -1922,7 +1927,7 @@ answer that, and a pinned header wants both:
 
 * **The header is lifted toward the viewer** by `lift`, one logical pixel by
   default, so content passes *behind* it. It is written to the scene node
-  alone — `ParentData3d.sceneOffset`, the same trade `Stack3d.depthStep`
+  alone — `ParentData3d.sceneOffset`, the same trade `RenderStack3d.depthStep`
   makes — so the header's box does not move and hit testing is untouched. For
   an opaque bar spanning the cross axis this is already the 2D picture.
 
@@ -1969,22 +1974,23 @@ so the axis is a parameter instead, and the `Size3d` beside it carries what
 the box would be offered on the *other two*. Its component along the queried
 axis is the thing being asked about, and is ignored.
 
-The answers come from the leaves. A `NodeBox3d` reports the extent of the
-content it holds and a `Text3d` reports what its string needs (the widest
+The answers come from the leaves. A `RenderNodeBox3d` reports the extent of the
+content it holds and a `RenderText3d` reports what its string needs (the widest
 unbreakable word as the minimum, the whole string on one line as the maximum),
 which are real measurements of real content; every box
-above it either adds to that (`Padding3d` its insets, `Container3d` its
-padding and margin) or holds it down (`SizedBox3d` its fixed extents, without
-even asking the child), and a `Column3d` adds its children up along its axis
-and overlaps them across it.
+above it either adds to that (`RenderPadding3d` its insets, `RenderContainer3d`
+its padding and margin) or holds it down (`RenderSizedBox3d` its fixed extents,
+without even asking the child), and a `RenderColumn3d` adds its children up
+along its axis and overlaps them across it.
 
-`IntrinsicWidth3d` — with `IntrinsicHeight3d` and `IntrinsicDepth3d` for the
-other two axes — is what the question is usually for. It asks its child what
-it wants and then hands it exactly that, tightly:
+`RenderIntrinsicWidth3d` — with `RenderIntrinsicHeight3d` and
+`RenderIntrinsicDepth3d` for the other two axes — is what the question is
+usually for. It asks its child what it wants and then hands it exactly that,
+tightly:
 
 ```dart
-IntrinsicWidth3d(
-  child: Column3d(
+RenderIntrinsicWidth3d(
+  child: RenderColumn3d(
     crossAxisAlignment: CrossAxisAlignment3d.stretch,
     children: cards,   // every card as wide as the widest one
   ),
@@ -2006,29 +2012,29 @@ instead of on their edges. Flutter has one, running across a box at the foot
 of its text. Here a box can declare one on any axis, because there are three
 ways to stand side by side.
 
-`Text3d` states a real one — the first line's alphabetic baseline, along the
-vertical — so two labels of different sizes in a baseline-aligned row sit on
+`RenderText3d` states a real one — the first line's alphabetic baseline, along
+the vertical — so two labels of different sizes in a baseline-aligned row sit on
 the same line without being told anything:
 
 ```dart
-Row3d(
+RenderRow3d(
   crossAxisAlignment: CrossAxisAlignment3d.baseline,
   children: [
-    Text3d('Title', style: const TextStyle(fontSize: 20)),
-    Text3d('new', style: const TextStyle(fontSize: 11)),
+    RenderText3d('Title', style: const TextStyle(fontSize: 20)),
+    RenderText3d('new', style: const TextStyle(fontSize: 11)),
   ],
 )
 ```
 
 Nothing else in a scene reports one, because a model has no notion of where
-its text sits. `Baseline3d` is what states one by hand:
+its text sits. `RenderBaseline3d` is what states one by hand:
 
 ```dart
-Row3d(
+RenderRow3d(
   crossAxisAlignment: CrossAxisAlignment3d.baseline,
   children: [
-    Baseline3d(baseline: 0.4, child: NodeBox3d(content: title)),
-    Baseline3d(baseline: 0.4, child: NodeBox3d(content: badge)),
+    RenderBaseline3d(baseline: 0.4, child: RenderNodeBox3d(content: title)),
+    RenderBaseline3d(baseline: 0.4, child: RenderNodeBox3d(content: badge)),
   ],
 )
 ```
@@ -2038,8 +2044,8 @@ is as thick as the deepest baseline plus the most that hangs below one, which
 is generally more than its thickest child. A child with no baseline sits at
 the start of the line, exactly as in Flutter. Which cross axis the alignment
 applies to is the usual rule — `crossAxisAlignment` is the first cross axis
-and `depthAxisAlignment` the second — so a `Row3d` can carry a line on `y` and
-another on `z` at the same time.
+and `depthAxisAlignment` the second — so a `RenderRow3d` can carry a line on `y`
+and another on `z` at the same time.
 
 ## Pointing at it
 
@@ -2068,12 +2074,12 @@ so the box on top wins. A ray that misses a box never reaches its children,
 and **the stretch of the ray inside a box is all its children can be found
 in** — the 3D form of the `size.contains(position)` gate, and what keeps a
 list item scrolled out of the window unreachable. A box that only arranges
-others is not itself a target; `NodeBox3d` and the scrolling views are.
-`IgnorePointer3d` takes a subtree out of reach, `AbsorbPointer3d` stands in
-front of it. A hidden node is never hit.
+others is not itself a target; `RenderNodeBox3d` and the scrolling views are.
+`RenderIgnorePointer3d` takes a subtree out of reach, `RenderAbsorbPointer3d`
+stands in front of it. A hidden node is never hit.
 
-`Transform3d` is the deliberate exception: it neither answers hits itself nor
-gates them on its own extent, because its size is measured in the frame
+`RenderTransform3d` is the deliberate exception: it neither answers hits itself
+nor gates them on its own extent, because its size is measured in the frame
 *before* the transform. Flutter's `RenderTransform` makes the same choice for
 the same reason.
 
@@ -2105,7 +2111,7 @@ still over them — the ordinary capture rule, and the reason running off the en
 of a list does not drop the drag. Each box on the path that implements
 `HitTestTarget3d` is handed the event, deepest first.
 
-`Listener3d` is the box that reports events as they come (`onPointerDown`,
+`RenderListener3d` is the box that reports events as they come (`onPointerDown`,
 `onPointerMove`, `onPointerUp`, `onPointerCancel`, `onPointerHover`, and —
 folded in from `MouseRegion`, since hover here is a walk of the same path —
 `onPointerEnter` and `onPointerExit`). What it hands you is a `PointerEvent3d`,
@@ -2126,19 +2132,19 @@ used exactly as they are.
 ### Letting the widget layer wire it
 
 Everything above is the mechanism, and an application should not have to
-assemble it. `SceneInput3d` wraps the `SceneView` and owns the whole of it —
+assemble it. `Input3d` wraps the `SceneView` and owns the whole of it —
 the listener, the rays, the group, and which surfaces are in it:
 
 ```dart
-SceneInput3d(
+Input3d(
   camera: camera,
   onHit: (hit) => setState(() => _under = hit.result.target?.name),
   child: SceneView(
     scene,
     camera: camera,
     children: [
-      SceneLayout3d(zOrder: 0.2, size: const Size3d(3.5, 4.8, 0.6), child: screen),
-      SceneLayout3d(basis: LayoutBasis3d.xz, size: const Size3d(4.6, 2.6, 0.6), child: table),
+      Surface3d(zOrder: 0.2, size: const Size3d(3.5, 4.8, 0.6), child: screen),
+      Surface3d(basis: LayoutBasis3d.xz, size: const Size3d(4.6, 2.6, 0.6), child: table),
     ],
   ),
 )
@@ -2146,7 +2152,7 @@ SceneInput3d(
 
 That is the whole of it. **A surface announces itself when it mounts** and
 takes itself out when it goes, so there is nothing to register from a tick and
-no window in which a freshly built panel is unpressable. A `SceneOverlay3d`
+no window in which a freshly built panel is unpressable. An `Overlay3d`
 below announces its overlay the same way, and the entries themselves are
 brought up to date immediately before each event rather than once a frame — so
 a dialog opened from a press is pressable straight away, and one that closes
@@ -2161,8 +2167,8 @@ so that relationship is never restated either. `absorbsPointer: false` is the
 other half — a surface that is dispatched to and does not end the walk, which
 is what a readout floating over the scene wants.
 
-The camera is published to everything below, so a `SceneLayout3d` with a
-camera binding and a `SceneOverlay3d` with a billboarded dialog need not be
+The camera is published to everything below, so a `Surface3d` with a
+camera binding and an `Overlay3d` with a billboarded dialog need not be
 handed one of their own. `onHit` reports what a press, a hover or a scroll
 found — and whether it took hold of a scrolling view, which is the one piece
 of news the path does not carry. It is not called for a move, because a move goes
@@ -2173,12 +2179,12 @@ more than twenty parameters, and a widget that forwarded them would be a list
 that rots every time the engine grows one. Keep the view you know — its
 `onTick`, its loading gate, its camera builder — and let this own the input.
 
-Reach the host from inside the subtree with `SceneInput3d.of(context)`, or
+Reach the host from inside the subtree with `Input3d.of(context)`, or
 from the widget that built it with an `Input3dController`.
 
 ### A wheel, a trackpad and a key
 
-The three inputs a desktop reaches for first, and `SceneInput3d` routes all of
+The three inputs a desktop reaches for first, and `Input3d` routes all of
 them with nothing more to write.
 
 **A wheel goes where a press would have gone**, then to the innermost view that
@@ -2210,7 +2216,7 @@ neither. The imperative half is `Layout3dPointer.resolveScroll` and
 `panZoomStart`/`panZoomUpdate`/`panZoomEnd`, on a group or a single pointer.
 
 **A key goes to the focus, not to the cursor**, so it reaches a box without
-passing through `SceneInput3d` at all; *Keys*, below, is how. What the host adds
+passing through `Input3d` at all; *Keys*, below, is how. What the host adds
 is the way in, the way across and the way out — the three things a keyboard
 needs that no single surface can know.
 
@@ -2236,41 +2242,42 @@ after the scene. A window that is nothing but the scene has no such widget,
 and the traversal comes straight back in at the other end — Tab goes round
 the whole scene. The seam underneath is `PipelineOwner3d.onFocusTraversalEdge`,
 which the default Tab action asks before wrapping a tree; an application
-placing surfaces without a `SceneInput3d` can answer it itself.
+placing surfaces without an `Input3d` can answer it itself.
 
 ### Claiming the target
 
 By default a box that merely arranges others is not a target, so the padding
 that gives a button its shape is a hole. `HitTestBehavior3d` closes it, on
-`Listener3d`, on `GestureDetector3d`, or on a bare `HitTestArea3d`:
+`RenderListener3d`, on `RenderGestureDetector3d`, or on a bare
+`RenderHitTestArea3d`:
 
 ```dart
-HitTestArea3d(                       // opaque: the whole face is the target
-  child: Padding3d(
+RenderHitTestArea3d(                       // opaque: the whole face is the target
+  child: RenderPadding3d(
     padding: EdgeInsets3d.symmetric(horizontal: metrics.dp(24)),
-    child: IgnorePointer3d(child: Text3d('Continue')),
+    child: RenderIgnorePointer3d(child: RenderText3d('Continue')),
   ),
 )
 ```
 
-The `IgnorePointer3d` is the usual companion: a `Text3d` answers hit tests on
-its own account, and a component that wants to be one target takes its label
-out of the way. `translucent` is the third setting — the box hears the pointer
-and the ray carries on to whatever stands behind it.
+The `RenderIgnorePointer3d` is the usual companion: a `RenderText3d` answers hit
+tests on its own account, and a component that wants to be one target takes its
+label out of the way. `translucent` is the third setting — the box hears the
+pointer and the ray carries on to whatever stands behind it.
 
-`TapTarget3d` is the other direction: Material's rule that anything pressable
-is at least 48dp across, without spending layout on it. The box stays its
-child's size and its neighbours stay put; it simply answers a ray that passes
-within half the shortfall. So a 24dp icon in a dense toolbar is a 48dp target
-and the toolbar is still dense.
+`RenderTapTarget3d` is the other direction: Material's rule that anything
+pressable is at least 48dp across, without spending layout on it. The box stays
+its child's size and its neighbours stay put; it simply answers a ray that
+passes within half the shortfall. So a 24dp icon in a dense toolbar is a 48dp
+target and the toolbar is still dense.
 
 ### Gestures, and the arena
 
-`GestureDetector3d` owns Flutter's own recognizers and hands them the
+`RenderGestureDetector3d` owns Flutter's own recognizers and hands them the
 synthesized events:
 
 ```dart
-GestureDetector3d(
+RenderGestureDetector3d(
   onTapDown: (_) => panel.stateLayer = pressed,
   onTapCancel: () => panel.stateLayer = StateLayer3d.none,
   onTap: submit,
@@ -2283,7 +2290,7 @@ The arena is Flutter's too, and it has to be: a `GestureRecognizer` reaches for
 What is private is the *pointer id* — each sequence is given one well above the
 range the engine hands out, so a gesture on the plane cannot collide in the
 arena with the real pointer that produced it, which the widget tree around the
-`SceneView` is still handling. A tree with a `GestureDetector3d` in it
+`SceneView` is still handling. A tree with a `RenderGestureDetector3d` in it
 therefore needs the binding initialized: `runApp` has done it already, and a
 test wants `TestWidgetsFlutterBinding.ensureInitialized()`.
 
@@ -2301,8 +2308,8 @@ somewhere* above.
 
 `details.localPosition` on a recognizer's callbacks is in dp in the box's own
 frame, exact for a box parallel to the surface, which every box is unless a
-`Transform3d` turned one. A control that needs the exact point at any angle
-reads `PointerEvent3d.localPosition` from a `Listener3d` instead.
+`RenderTransform3d` turned one. A control that needs the exact point at any
+angle reads `PointerEvent3d.localPosition` from a `RenderListener3d` instead.
 
 ### Hover, and state layers
 
@@ -2311,12 +2318,12 @@ was on last time, sending `onPointerExit` to what it left, deepest first, and
 `onPointerEnter` to what it entered, outermost first — so a card knows before
 its label does. `exit()` takes the pointer off the surface entirely.
 
-That is what drives `DecoratedBox3d.stateLayer`, and neither end of it touches
-layout: the enter and exit are a walk of a recorded path, and setting a state
-layer writes one uniform and asks for a frame.
+That is what drives `RenderDecoratedBox3d.stateLayer`, and neither end of it
+touches layout: the enter and exit are a walk of a recorded path, and setting a
+state layer writes one uniform and asks for a frame.
 
 ```dart
-Listener3d(
+RenderListener3d(
   behavior: HitTestBehavior3d.opaque,
   onPointerEnter: (_) => panel.stateLayer = hovered,
   onPointerExit: (_) => panel.stateLayer = StateLayer3d.none,
@@ -2326,7 +2333,7 @@ Listener3d(
 
 ### Focus
 
-`Focus3d` ties a Flutter `FocusNode` to a box. The node graph is Flutter's
+`RenderFocus3d` ties a Flutter `FocusNode` to a box. The node graph is Flutter's
 unchanged — listen to the node, ask it for `hasPrimaryFocus`, request focus
 through it — and what the box adds is *which geometry* the focus belongs to, so a highlight can be drawn on it and traversal can reason about
 where it is. A press inside one focuses it, which on a plane nothing else
@@ -2341,21 +2348,22 @@ take the keyboard from the widgets around it. That scope skips Flutter's
 traversal deliberately, because Flutter's policies read a `Rect` off a
 `RenderObject` and a box on a plane has neither.
 
-A modal wants its own scope, and `FocusScope3d` is it: wrap a subtree in one
-and everything inside asks *that* scope for focus rather than the surface's,
-so a dialog cannot hand focus to the page behind it. `Focus3d.enclosingScope`
-is the walk that finds it, and `Overlay3dEntry` puts one in for you when the
-entry is modal — and focuses it when the entry opens, so a key goes to the
-dialog rather than to the button behind the barrier that opened it.
+A modal wants its own scope, and `RenderFocusScope3d` is it: wrap a subtree in
+one and everything inside asks *that* scope for focus rather than the surface's,
+so a dialog cannot hand focus to the page behind it.
+`RenderFocus3d.enclosingScope` is the walk that finds it, and `Overlay3dEntry`
+puts one in for you when the entry is modal — and focuses it when the entry
+opens, so a key goes to the dialog rather than to the button behind the barrier
+that opened it.
 
 Traversal inside a surface is `Focus3dTraversal`: `next` and `previous` walk
 tree order, and `inDirection` projects every candidate onto the surface plane
 and picks the way a reader would — a box sharing the source's band first, and
 the nearest of those. Every method takes the root to search from, which is
 where trapping lives: `Focus3dTraversal.traversalRootFor(box)` gives the
-nearest enclosing `FocusScope3d`, or the root of the tree when there is none,
-so a `Tab` handler written against it walks the dialog while a dialog is up
-and the whole page when it is not. It is a first cut, and it is honest about
+nearest enclosing `RenderFocusScope3d`, or the root of the tree when there is
+none, so a `Tab` handler written against it walks the dialog while a dialog is
+up and the whole page when it is not. It is a first cut, and it is honest about
 being one: it is right for a screen of controls on one plane, and it says
 nothing about content facing different ways, or about traversal *between*
 surfaces, which stays open now that detached overlay entries have made a
@@ -2366,41 +2374,41 @@ second surface a real thing.
 Flutter's key bindings are `Shortcuts`, which turns a key into an `Intent`, and
 `Actions`, which says what an intent does for the widgets below it. Neither
 widget can reach a box on a plane, and not for want of a feature: an action is
-looked up from `primaryFocus.context`, which a `Focus3d`'s node does not have,
-and a key walks the *focus* tree, where a `Focus3d`'s ancestors are its scopes
-rather than the boxes around it. So the walk is done over the layout tree
-instead, by `Shortcuts3d` and `Actions3d` — and **the vocabulary stays
-Flutter's**: the activators, the intents and the actions are Flutter's own
-classes, so a `CallbackAction` or a `SingleActivator` written for a screen
-works here unchanged.
+looked up from `primaryFocus.context`, which a `RenderFocus3d`'s node does not
+have, and a key walks the *focus* tree, where a `RenderFocus3d`'s ancestors are
+its scopes rather than the boxes around it. So the walk is done over the layout
+tree instead, by `RenderShortcuts3d` and `RenderActions3d` — and **the
+vocabulary stays Flutter's**: the activators, the intents and the actions are
+Flutter's own classes, so a `CallbackAction` or a `SingleActivator` written for
+a screen works here unchanged.
 
 ```dart
-Shortcuts3d(
+RenderShortcuts3d(
   shortcuts: const <ShortcutActivator, Intent>{
     SingleActivator(LogicalKeyboardKey.delete): DeleteIntent(),
   },
-  child: Actions3d(
+  child: RenderActions3d(
     actions: <Type, Action<Intent>>{
       DeleteIntent: CallbackAction<DeleteIntent>(onInvoke: (_) => remove()),
     },
-    child: Focus3d(child: row),
+    child: RenderFocus3d(child: row),
   ),
 )
 ```
 
-A key reaching the focused box goes up from it, nearest first. A `Focus3d`
-with an `onKeyEvent` hears it — including a `Focus3d` around a whole region,
-which is the bubbling Flutter's `Focus` has and a flat focus tree could not
-give — and a `Shortcuts3d` that maps it names an intent, whose action is the
-nearest `Actions3d` binding for that type. A nearer binding that is disabled
-is not skipped over: the key goes on up, unhandled, exactly as in Flutter.
-`Actions3d.maybeInvoke(box, intent)` fires an intent with no key behind it,
-for a gamepad or a command menu.
+A key reaching the focused box goes up from it, nearest first. A `RenderFocus3d`
+with an `onKeyEvent` hears it — including a `RenderFocus3d` around a whole
+region, which is the bubbling Flutter's `Focus` has and a flat focus tree could
+not give — and a `RenderShortcuts3d` that maps it names an intent, whose action
+is the nearest `RenderActions3d` binding for that type. A nearer binding that is
+disabled is not skipped over: the key goes on up, unhandled, exactly as in
+Flutter. `RenderActions3d.maybeInvoke(box, intent)` fires an intent with no key
+behind it, for a gamepad or a command menu.
 
-Every walk ends at `Shortcuts3d.defaults` and `Actions3d.defaults`, which are
-`WidgetsApp`'s: Tab and Shift-Tab walk `Focus3dTraversal` inside the focused
-box's scope, so a dialog cycles itself; the arrows move focus on the plane;
-Page Up, Page Down and the control-arrows scroll the enclosing list by
+Every walk ends at `RenderShortcuts3d.defaults` and `RenderActions3d.defaults`,
+which are `WidgetsApp`'s: Tab and Shift-Tab walk `Focus3dTraversal` inside the
+focused box's scope, so a dialog cycles itself; the arrows move focus on the
+plane; Page Up, Page Down and the control-arrows scroll the enclosing list by
 Flutter's line and page. Enter and Space map to `ActivateIntent` and Escape to
 `DismissIntent`, and neither has a default action, as in Flutter: a control
 binds the first — the Material catalogue's `InkWell3d` does — and an overlay
@@ -2409,43 +2417,43 @@ enabled while `dismissible` is true. Switch a default off by mapping its key
 nearer the focus to `DoNothingAndStopPropagationIntent`.
 
 Both boxes pass a ray straight to their child without gating it on their own
-extent, so wrapping one round a `TapTarget3d` does not cut off the target's
-reach. A detached overlay entry is a surface of its own, and its walk ends at
-its own root rather than passing through the panel that opened it.
+extent, so wrapping one round a `RenderTapTarget3d` does not cut off the
+target's reach. A detached overlay entry is a surface of its own, and its walk
+ends at its own root rather than passing through the panel that opened it.
 
 All of these boxes have widget forms, like every other layout here:
-`SceneListener3d`, `SceneGestureDetector3d`, `SceneHitTestArea3d`,
-`SceneTapTarget3d`, `SceneFocus3d`, `SceneShortcuts3d` and `SceneActions3d`.
+`Listener3d`, `GestureDetector3d`, `HitTestArea3d`,
+`TapTarget3d`, `Focus3d`, `Shortcuts3d` and `Actions3d`.
 
 ## Overlays: what "in front" means
 
 A dialog, a menu, a snack bar and a tooltip are one mechanism wearing four
 coats: put something above everything else, possibly outside the bounds of
-whatever asked for it, dismissible from outside. `Overlay3d` is that
+whatever asked for it, dismissible from outside. `RenderOverlay3d` is that
 mechanism. It is a stack whose ordinary children are the base content and
 whose *entries* are what has been put in front, last one nearest the viewer,
 inserted from anywhere at any time — a dialog opened from a button's callback
 is not part of that button's subtree, and outlives it.
 
 ```dart
-final overlay = Overlay3d(children: [page]);
+final overlay = RenderOverlay3d(children: [page]);
 surface.child = overlay;
 
 late final Overlay3dEntry entry;
 entry = Overlay3dEntry(
   modal: true,
   onDismiss: () => entry.remove(),
-  builder: (_) => Container3d(
+  builder: (_) => RenderContainer3d(
     size: const Size3d(1.2, 0.8, 0.05),
     decoration: panelDecoration,
-    child: Text3d('Delete this?', renderer: renderer),
+    child: RenderText3d('Delete this?', renderer: renderer),
   ),
 );
 overlay.insertEntry(entry);
 ```
 
-A descendant finds it without being handed anything: `Overlay3d.of(box)` walks
-up the layout tree, and `SceneOverlay3d.of(context)` does the same through the
+A descendant finds it without being handed anything: `RenderOverlay3d.of(box)`
+walks up the layout tree, and `Overlay3d.of(context)` does the same through the
 element tree in the declarative layer.
 
 In two dimensions "in front" needs no explanation — later paints over earlier.
@@ -2456,23 +2464,23 @@ is chosen per entry through `Overlay3dEntry.layer`.
 overlay, laid out against the overlay's own constraints, and its *geometry* is
 pulled toward the viewer so it does not fight the panel for the depth buffer.
 The lift is written to `ParentData3d.sceneOffset`, the same mechanism
-`Stack3d.depthStep` uses, which is why it moves the geometry and nothing else:
-the entry's box stays where the overlay put it, a `Positioned3d` inside it
-still pins to the face it named, and a ray still finds the entry by its place
-in the stack rather than by how far it was lifted. One surface, one layout
-pass, hit ordering already correct. The limits are real: the entry cannot
+`RenderStack3d.depthStep` uses, which is why it moves the geometry and nothing
+else: the entry's box stays where the overlay put it, a `RenderPositioned3d`
+inside it still pins to the face it named, and a ray still finds the entry by
+its place in the stack rather than by how far it was lifted. One surface, one
+layout pass, hit ordering already correct. The limits are real: the entry cannot
 escape the overlay's box, so a menu cannot overhang the panel's edge, and the
 lift spends the panel's own thickness. It defaults to eight logical pixels
 taken through the tree's metrics, because a separation stated in world units
 is the wrong separation at another density.
 
-**Detached** gives the entry a `Layout3dSurface` of its own, hung under the
+**Detached** gives the entry a `RenderSurface3d` of its own, hung under the
 overlay's node so it still follows the panel when the panel turns, and
 bindable to a camera on its own account. That second half is the thing Flutter
 has no analogue of: with `OverlayLayer3d.detached(binding:
 Layout3dCameraBinding.billboard())` the dialog faces the viewer while the
-panel behind it stays angled, and `Overlay3d.updateCameraBindings` — driven
-per frame, or by `SceneOverlay3d` off the scene's own clock — is what keeps it
+panel behind it stays angled, and `RenderOverlay3d.updateCameraBindings` —
+driven per frame, or by `Overlay3d` off the scene's own clock — is what keeps it
 there. Its constraints are derived from the host by default: as wide and as
 tall as the overlay, and *unbounded in depth*, because escaping the panel's
 depth budget is half the reason to detach at all.
@@ -2485,12 +2493,12 @@ surface added with `absorbs: false` is dispatched to and the walk carries on,
 which is what a HUD that must not block the world wants. A press captures the
 surfaces that answered it, so sliding a drag off the dialog and onto the panel
 behind does not hand the drag over. `group.syncDetachedEntries(overlay)`
-keeps the group in step as dialogs open and close — and under a
-`SceneInput3d` nothing calls it by hand: a `SceneOverlay3d` registers its
+keeps the group in step as dialogs open and close — and under an
+`Input3d` nothing calls it by hand: an `Overlay3d` registers its
 overlay and the host syncs it before each event.
 
-The barrier is `ModalBarrier3d`: it fills what it is given, answers every ray
-itself — which is what stops one reaching the content behind — and calls
+The barrier is `RenderModalBarrier3d`: it fills what it is given, answers every
+ray itself — which is what stops one reaching the content behind — and calls
 `onDismiss` when a tap both starts and ends on it, so a tap on the dialog does
 not dismiss it. `Overlay3dEntry(modal: true)` puts one in. A scrim in a scene
 is not an alpha wash over a display list, because there is no display list: it
@@ -2505,8 +2513,8 @@ between it and whatever stands in front of it — `Overlay3dEntry(modal: true)`
 builds its barrier and its content into a stack with **no** step, which is
 right for a barrier with nothing in it and wrong for a decorated scrim.
 
-A modal entry also traps focus, by wrapping its content in a `FocusScope3d`;
-removing it hands focus back to whatever held it before.
+A modal entry also traps focus, by wrapping its content in a
+`RenderFocusScope3d`; removing it hands focus back to whatever held it before.
 
 A lift is measured from the **panel's front face**, and an in-plane entry is
 pinned there: the overlay's alignment places it across and no longer in depth,
@@ -2553,7 +2561,7 @@ final chosen = await navigator.push(
 Everything else about the entry is unchanged — the layer and its lift, the
 barrier, the focus trap, the ordering — and the subtree is reconciled by the
 same element machinery as the rest of the tree, so a `StatefulWidget` inside a
-dialog keeps its state. It only works under a `SceneOverlay3d`, which is what
+dialog keeps its state. It only works under an `Overlay3d`, which is what
 listens for the entry and mounts it. **The content arrives one frame after the
 entry does**: inserting one marks the overlay for a rebuild rather than editing
 the tree in place, exactly as Flutter's `Overlay` does, so a test pumps once
@@ -2561,9 +2569,9 @@ after opening.
 
 ### Anchoring one box to another
 
-An entry is placed by the overlay's own `Stack3d.alignment`, which is in the
-middle of the panel and nowhere near the button that asked for a menu. There is
-no `CompositedTransformTarget` here. `RenderObject3d.anchorOffsetTo` is the
+An entry is placed by the overlay's own `RenderStack3d.alignment`, which is in
+the middle of the panel and nowhere near the button that asked for a menu. There
+is no `CompositedTransformTarget` here. `RenderObject3d.anchorOffsetTo` is the
 arithmetic instead — the anchor's point taken into world space through
 `worldTransform` and back out in the follower's own frame:
 
@@ -2584,7 +2592,7 @@ re-anchoring after a scroll is another assignment rather than an accumulation
 that drifts. And it leaves **depth** alone by default, keeping whatever lift
 the follower already has: correcting depth too would land the follower on the
 anchor's own plane and hand the depth test a coin toss, which is a lesson
-`Draggable3d` learned from a render probe.
+`RenderDraggable3d` learned from a render probe.
 
 The consequence worth knowing before writing a test: `screenCenter` and
 `screenPointOf` undo `nodeOffset` too, so they report where layout put an
@@ -2602,7 +2610,7 @@ bool hitTest(HitTestResult3d result, {required Ray3d ray}) =>
     super.hitTest(result, ray: ray.shifted(nodeOffset));
 ```
 
-That is `material_ui_3d`'s `Follower3d`, and Flutter's
+That is `material_ui_3d`'s `RenderFollower3d`, and Flutter's
 `CompositedTransformFollower` does the same with its own offset. An animation
 leaves it out on purpose: a sliding thumb should still be pressed where layout
 put its slot.
@@ -2623,16 +2631,16 @@ is this drag over, and which of them wants it* — and it dispatches the enter,
 move, leave and drop that follow from a change to that answer.
 
 ```dart
-Draggable3d<Photo>(
+RenderDraggable3d<Photo>(
   data: photo,
-  feedbackBuilder: (_) => Container3d(
+  feedbackBuilder: (_) => RenderContainer3d(
     size: const Size3d(0.6, 0.4, 0.02),
     decoration: cardDecoration,
   ),
   child: thumbnail,
 )
 
-DragTarget3d<Photo>(
+RenderDragTarget3d<Photo>(
   onWillAccept: (photo, _) => photo.album != album,
   onEnter: (_, _) => panel.stateLayer = hovered,
   onLeave: (_, _) => panel.stateLayer = StateLayer3d.none,
@@ -2647,12 +2655,13 @@ DragTarget3d<Photo>(
 The payload keeps its generic; the machinery does not see it. A drag is found
 through a hit-test path of bare `RenderObject3d`s and may have to cross
 surfaces, so the seam underneath is the non-generic `Drag3dTarget` — the same
-shape `HitTestTarget3d` is under `Listener3d`. **The type test happens inside
-the target**, where `DragTarget3d<T>` answers `willAcceptDrag3d` with
-`details.data is T`, which is also where Flutter puts it. The practical value is
-that a component can implement `Drag3dTarget` directly and be a drop zone in
-four lines without inheriting a generic class it does not want. The inherited
-cost is Flutter's too: a `DragTarget3d<Object>` accepts everything.
+shape `HitTestTarget3d` is under `RenderListener3d`. **The type test happens
+inside the target**, where `RenderDragTarget3d<T>` answers `willAcceptDrag3d`
+with `details.data is T`, which is also where Flutter puts it. The practical
+value is that a component can implement `Drag3dTarget` directly and be a drop
+zone in four lines without inheriting a generic class it does not want. The
+inherited cost is Flutter's too: a `RenderDragTarget3d<Object>` accepts
+everything.
 
 ### It recognizes its own drag
 
@@ -2680,11 +2689,11 @@ threshold of its own has to keep the two apart, and this one does.
 ### The feedback is moved, never re-laid-out
 
 At the moment a drag is recognized, the session builds
-`Draggable3d.feedbackBuilder`'s subtree, wraps it in an `IgnorePointer3d`, and
-puts it into the nearest `Overlay3d` above — in-plane by default, which is one
-surface and one layout pass and already lifts the card toward the viewer;
-`OverlayLayer3d.detached` is the opt-in for a drag that has to leave the panel
-it started on.
+`RenderDraggable3d.feedbackBuilder`'s subtree, wraps it in a
+`RenderIgnorePointer3d`, and puts it into the nearest `RenderOverlay3d` above —
+in-plane by default, which is one surface and one layout pass and already lifts
+the card toward the viewer; `OverlayLayer3d.detached` is the opt-in for a drag
+that has to leave the panel it started on.
 
 After that, **every move writes one `Offset3d` onto the feedback's
 `nodeOffset`.** Nothing is re-laid out, nothing is rebuilt, no uniform changes;
@@ -2697,8 +2706,8 @@ child is a layout. There is no way around either, and the test suite asserts
 `needsFlush` is false for every move in between.
 
 Note *which* channel. `ParentData3d.sceneOffset` belongs to the parent, and
-`Overlay3d` is a `Stack3d` whose `depthStep` rewrites it on every placement, so
-an offset stored there is silently erased.
+`RenderOverlay3d` is a `RenderStack3d` whose `depthStep` rewrites it on every
+placement, so an offset stored there is silently erased.
 
 The correction that makes the feedback cover the card it came from is a
 question about the **plane** only. Depth is the layer's business —
@@ -2708,10 +2717,11 @@ the source box and cancel it. The default lift is eight logical pixels, which
 is a depth-buffer separation rather than a distance, so rows with real
 thickness want a bigger one.
 
-The `IgnorePointer3d` is mandatory rather than tidy. Hit testing deliberately
-ignores `nodeOffset`, so feedback moved that way is invisible to the ray moving
-it and cannot steal its own drop — but its *laid-out* position is still
-hit-testable, and a `Text3d` inside it would answer there on its own account.
+The `RenderIgnorePointer3d` is mandatory rather than tidy. Hit testing
+deliberately ignores `nodeOffset`, so feedback moved that way is invisible to
+the ray moving it and cannot steal its own drop — but its *laid-out* position is
+still hit-testable, and a `RenderText3d` inside it would answer there on its own
+account.
 
 ### Which target a drop lands on
 
@@ -2731,13 +2741,13 @@ over* are two different questions, and conflating them is what makes a
 drag-and-drop impossible.
 
 Because a drop follows the ray, it inherits the depth-ordering trap: a drop
-target thicker than the `Stack3d.depthStep` separating it from its neighbours
-can win the ray while looking like it is behind. Keep drop targets thin
-relative to the step. Feedback stays on the plane it was picked up from —
+target thicker than the `RenderStack3d.depthStep` separating it from its
+neighbours can win the ray while looking like it is behind. Keep drop targets
+thin relative to the step. Feedback stays on the plane it was picked up from —
 `Drag3dAnchor.targetPlane` is reserved and behaves as `originPlane`, and its
 dartdoc says why the mechanism that was planned for it is the wrong one.
 
-### Dismissible3d
+### RenderDismissible3d
 
 The thinnest consumer, and the one that needs no drop target at all: an axis, a
 fraction threshold, a fling threshold, a background, a secondary background,
@@ -2756,18 +2766,19 @@ underneath — child, background, secondary background — because an ordered li
 is what the declarative layer can mirror; the constructor asserts that a
 background needs a child and a secondary background needs a background. And the
 backgrounds are **coplanar** with the child: `backgroundDepthStep` defaults to
-zero exactly as `Stack3d.depthStep` does, which is right for a flat Material
-row and wrong the moment either has depth.
+zero exactly as `RenderStack3d.depthStep` does, which is right for a flat
+Material row and wrong the moment either has depth.
 
 ### Reorderable lists
 
-`ReorderableList3d` is the viewport around a `SliverReorderableList3d`, exactly
-as `ListView3d` is around a `SliverList3d`, so placement is not written twice.
-Each item is wrapped in a `Draggable3d` of its own, which is how the whole of
-the machinery above is bought rather than rebuilt.
+`RenderReorderableList3d` is the viewport around a
+`RenderSliverReorderableList3d`, exactly as `RenderListView3d` is around a
+`RenderSliverList3d`, so placement is not written twice. Each item is wrapped in
+a `RenderDraggable3d` of its own, which is how the whole of the machinery above
+is bought rather than rebuilt.
 
 ```dart
-ReorderableList3d(
+RenderReorderableList3d(
   itemCount: photos.length,
   itemExtent: 0.4,
   itemBuilder: (index) => row(photos[index]),
@@ -2800,8 +2811,8 @@ assumes otherwise:
   anything: `itemCount` and `itemBuilder`, and `refresh` when the data changes
   — or, in the widget form, a `setState`, which rebuilds the items standing
   and is the refresh.
-- **The widget form asks what a drag carries.** `SceneReorderableList3d` and
-  `SceneSliverReorderableList3d` take a required `feedbackBuilder` returning a
+- **The widget form asks what a drag carries.** `ReorderableList3d` and
+  `SliverReorderableList3d` take a required `feedbackBuilder` returning a
   `RenderObject3d`, where the imperative list defaults to a second copy of the
   item. A widget item cannot be copied: building one goes through the list's
   element, inside a build scope, and lays a render box out, which is legal
@@ -2811,20 +2822,20 @@ assumes otherwise:
 
 An item held at the edge of the window scrolls the list under it.
 `Drag3dAutoscroll` says how deep the band is and how fast, in dp, and a
-`ReorderableList3d` turns it on by default because a reorder is the case where
-a drag has to be able to reach a slot that is not on screen; `Draggable3d`
-leaves it off, as Flutter's `Draggable` does. It runs on a ticker rather than
-on the move stream, because **a finger parked at the edge sends no move
-events** — and the tick does not only scroll, it re-resolves the drag, because
-the window moving under a stationary pointer changes which slot the item would
-land in and nothing else would notice.
+`RenderReorderableList3d` turns it on by default because a reorder is the case
+where a drag has to be able to reach a slot that is not on screen;
+`RenderDraggable3d` leaves it off, as Flutter's `Draggable` does. It runs on a
+ticker rather than on the move stream, because **a finger parked at the edge
+sends no move events** — and the tick does not only scroll, it re-resolves the
+drag, because the window moving under a stationary pointer changes which slot
+the item would land in and nothing else would notice.
 
 ## Animation
 
 Nothing in this package animates on its own, and everything in it is
 animatable. The declarative layouts are ordinary Flutter widgets, so an
 `AnimationController` driving `setState`, or an `AnimatedBuilder` around a
-`SceneContainer3d`, works today; every value type — `Size3d`, `Offset3d`,
+`Container3d`, works today; every value type — `Size3d`, `Offset3d`,
 `EdgeInsets3d`, `Alignment3d`, `Constraints3d`, `BorderRadius3d`,
 `BoxDecoration3d`, `StateLayer3d` — has a static `lerp`, and a `Tween` over
 each of them (`Size3dTween` and friends) so the ordinary
@@ -2833,15 +2844,15 @@ each of them (`Size3dTween` and friends) so the ordinary
 What matters here is *which* of three paths an animation takes, because they
 differ by more than a constant factor. **Relayout cost compounds in three
 dimensions**: a dirty box is measured again, and a box measured again may ask
-a `Text3d` to shape a string or a decoration to rebuild geometry. Pick the
+a `RenderText3d` to shape a string or a decoration to rebuild geometry. Pick the
 cheapest path the animation actually needs.
 
 ### Repaint only: a colour, a corner, an elevation
 
-`DecoratedBox3d.decoration` and `.stateLayer` are setters that write shader
-uniforms and **never touch layout**. A card whose colour crossfades, a button
-whose elevation lifts, a control whose hover overlay fades in — all of that is
-this path, and it costs nothing but the uniforms:
+`RenderDecoratedBox3d.decoration` and `.stateLayer` are setters that write
+shader uniforms and **never touch layout**. A card whose colour crossfades, a
+button whose elevation lifts, a control whose hover overlay fades in — all of
+that is this path, and it costs nothing but the uniforms:
 
 ```dart
 final tween = BoxDecoration3dTween(begin: resting, end: pressed);
@@ -2861,11 +2872,11 @@ answer for that; here it is one `Matrix4` on one scene node.
 
 Every box has `RenderObject3d.nodeOffset` and `RenderObject3d.nodeTransform`:
 plain setters that rewrite the node's transform and ask the host for a frame,
-without calling `markNeedsLayout`. `NodeTransform3d` is the box that drives them
-from an `Animation`, and `SceneAnimatedSlide3d` is its declarative front:
+without calling `markNeedsLayout`. `RenderNodeTransform3d` is the box that
+drives them from an `Animation`, and `AnimatedSlide3d` is its declarative front:
 
 ```dart
-SceneAnimatedSlide3d(
+AnimatedSlide3d(
   duration: const Duration(milliseconds: 120),
   // Toward the viewer is negative depth.
   offset: pressed ? const Offset3d(0, 0, 0.01) : Offset3d.zero,
@@ -2878,19 +2889,19 @@ rebuilds nothing. Layout, intrinsics and hit testing never see it, which is
 the point: a hover lift or a press depression should not move the thing you
 are aiming at. `worldTransform` undoes the nudge for exactly that reason. If
 the animation *should* carry the touch target with it, it is not this path —
-animate a real inset with `SceneAnimatedPositioned3d` and pay for the
+animate a real inset with `AnimatedPositioned3d` and pay for the
 relayout.
 
 This is the same distinction `ParentData3d.sceneOffset` draws for
-`Stack3d.depthStep`, and the two compose. Use `nodeOffset` rather than
+`RenderStack3d.depthStep`, and the two compose. Use `nodeOffset` rather than
 `sceneOffset` for an animation: `sceneOffset` belongs to the parent, and a
 stack rewrites it on every placement.
 
 **A fade is on this tier too, by a different route.** It is not a node
 transform — there is no such thing as a node opacity in the engine, and there
 never needed to be — it is an *inherited value*, republished down the subtree
-as one `fade` uniform per box that draws. `FadeTransition3d` drives it from an
-`Animation` and `SceneAnimatedOpacity3d` is its declarative front, with the
+as one `fade` uniform per box that draws. `RenderFadeTransition3d` drives it
+from an `Animation` and `AnimatedOpacity3d` is its declarative front, with the
 same bargain: a target change costs one rebuild, and the run rebuilds nothing
 and lays nothing out. See *Fading a subtree* for what it costs in the picture.
 
@@ -2899,8 +2910,8 @@ and lays nothing out. See *Fading a subtree* for what it costs in the picture.
 A route has a clock of its own, `Route3d.animation`, which reads 0 while the
 route is away and 1 once it is here. `Route3dTransition` winds it and nothing
 else; what the movement *looks* like is a `Motion3d` — where the content
-stands before it has arrived — applied by a `MotionTransition3d` on the node
-tier:
+stands before it has arrived — applied by a `RenderMotionTransition3d` on the
+node tier:
 
 ```dart
 final navigator = Navigator3d(
@@ -2959,11 +2970,11 @@ animates.
 right when the entry builds the barrier (`modal: true`) and wrong when the
 content carries its own — a dim that slides in with the dialog it dims is not
 a transition anyone asked for. Content of that shape writes the
-`SceneMotionTransition3d` by hand, around the dialog and inside the scrim.
+`MotionTransition3d` by hand, around the dialog and inside the scrim.
 
 **And `Motion3d.opacity` fades the subtree as it arrives**, which is the one
-part of a motion that is not the node tier: the transition imposes an
-`Opacity3d` on what it carries, so the panel, the label on it and the wall
+part of a motion that is not the node tier: the transition imposes a
+`RenderOpacity3d` on what it carries, so the panel, the label on it and the wall
 around that label's letters all fade together. `Motion3d.fade()` is the
 plainest arrival there is, and `Motion3d(scale: 0.85, opacity: 0)` is a
 dialog. Read *Fading a subtree* for what that costs — it is coverage rather
@@ -2971,18 +2982,18 @@ than a `saveLayer`, exact at both ends and a little generous in the middle.
 
 ### A hero that flies between two routes
 
-`Hero3d` matches a box on the route that is arriving with one carrying the
+`RenderHero3d` matches a box on the route that is arriving with one carrying the
 same `tag` on the route it covers, and flies between them while the route's
 own clock runs:
 
 ```dart
-RenderObject3d avatar() => Image3d(image: photo, fit: BoxFit.cover);
+RenderObject3d avatar() => RenderImage3d(image: photo, fit: BoxFit.cover);
 
 // On the page:
-SceneHero3d(
+Hero3d(
   tag: photo.id,
   flightBuilder: (_) => avatar(),
-  child: SceneImage3d(image: photo, fit: BoxFit.cover),
+  child: Image3d(image: photo, fit: BoxFit.cover),
 )
 
 // And on the route it opens, the same tag around a bigger box.
@@ -2991,13 +3002,13 @@ SceneHero3d(
 **What flies is built, not moved**, and that is the one thing to understand
 before writing one. Flutter's `Hero` lifts the hero's own subtree into the
 overlay for the duration of the flight; this package cannot, for the reason
-`Draggable3d` found first — building a second copy of a widget-built child
+`RenderDraggable3d` found first — building a second copy of a widget-built child
 lays a render box out, and a flight begins in the middle of a route
 transition. So a hero names a `flightBuilder`, the way a draggable names a
 `feedbackBuilder`, and the thing is written twice. The idiom that makes that
 cheap is one small function called from both places, as above. Note that a
 flight builder returns a `RenderObject3d` rather than a `Widget` even in the
-declarative `SceneHero3d`: the flight belongs to an overlay entry inserted
+declarative `Hero3d`: the flight belongs to an overlay entry inserted
 from inside a transition, where there is no element to build into.
 
 Four more things are worth knowing.
@@ -3018,8 +3029,8 @@ is what a flight carrying type wants. When the two ends share an aspect ratio
 the two are identical, which is the common case.
 
 **Both ends hide while the flight is up**, on the same `node.visible` flag
-`Visibility3d` writes, so a hero mid-flight is unpointable as well as unseen.
-They hide when the flight has managed to place itself and not before, so
+`RenderVisibility3d` writes, so a hero mid-flight is unpointable as well as
+unseen. They hide when the flight has managed to place itself and not before, so
 there is never a frame with nothing in it.
 
 **A flight ignores the route's own motion.** It lands where *layout* put the
@@ -3034,12 +3045,12 @@ grows and fades is no trouble at all.
 ### Implicit: a size, a padding, an alignment
 
 When the layout really did change, `ImplicitlyAnimatedLayout3dWidget` is the
-base and `SceneAnimatedContainer3d`, `SceneAnimatedAlign3d`,
-`SceneAnimatedPositioned3d` and `SceneAnimatedSizedBox3d` are the widgets, all
+base and `AnimatedContainer3d`, `AnimatedAlign3d`,
+`AnimatedPositioned3d` and `AnimatedSizedBox3d` are the widgets, all
 with Flutter's `forEachTween` contract:
 
 ```dart
-SceneAnimatedContainer3d(
+AnimatedContainer3d(
   duration: const Duration(milliseconds: 200),
   curve: Curves.easeOut,
   width: selected ? 2.0 : 1.0,
@@ -3050,12 +3061,12 @@ SceneAnimatedContainer3d(
 
 These dirty layout on every frame, and that is correct — the boxes really are
 different sizes. It stays affordable because of two decisions made elsewhere
-in this package: `Text3d` prepares a string once and refits it to any width
-without consulting the font again, and `BoxDecoration3d` is a shader
+in this package: `RenderText3d` prepares a string once and refits it to any
+width without consulting the font again, and `BoxDecoration3d` is a shader
 parameterized by size rather than a mesh rebuilt at each one. **Both of those
-guarantees are yours to lose.** Putting a new `Text3d.text`, a new
-`NodeBox3d.content`, a rebuilt `GeometryBuilder` mesh, or a change to
-`Layout3dSurface.metrics` on a per-frame path defeats them: the last one
+guarantees are yours to lose.** Putting a new `RenderText3d.text`, a new
+`RenderNodeBox3d.content`, a rebuilt `GeometryBuilder` mesh, or a change to
+`RenderSurface3d.metrics` on a per-frame path defeats them: the last one
 relayouts the entire subtree by design, and belongs to a window resize, not
 to a frame.
 
@@ -3076,19 +3087,19 @@ debugDumpRenderObject3dTree(surface);
 ```
 
 ```
-Column3d#b0dd0
+RenderColumn3d#b0dd0
  │ constraints: Constraints3d(w: 4.0..4.0, h: 3.0..3.0, d: 1.0..1.0)
  │ size: Size3d(4.000, 3.000, 1.000)
  │ direction: vertical
  │ mainAxisAlignment: center
  │
- └─child: Padding3d#a16bc
+ └─child: RenderPadding3d#a16bc
    │ constraints: Constraints3d(w: 0.0..4.0, h: 0.0..Infinity, d: 0.0..1.0)
    │ size: Size3d(2.000, 2.000, 1.000)
    │ offset: Offset3d(1.000, 0.500, 0.000)
    │ padding: EdgeInsets3d(0.5, 0.5, 0.5, 0.5, 0.5, 0.5)
    │
-   └─child: SizedBox3d#dbb42
+   └─child: RenderSizedBox3d#dbb42
        constraints: Constraints3d(w: 0.0..3.0, h: 0.0..Infinity, d: 0.0..0.0)
        size: Size3d(1.000, 1.000, 0.000)
        offset: Offset3d(0.500, 0.500, 0.500)
@@ -3133,18 +3144,18 @@ It is now an error that names both ends of the problem:
 ```
 A RenderPadding was placed between two 3D layout widgets.
 The Padding widget creates a render object of its own, so everything below
-it — starting with SizedBox3d — is not part of the layout tree at all.
+it — starting with RenderSizedBox3d — is not part of the layout tree at all.
 Only widgets that create no render object may sit between two 3D layout
 widgets … For layout, use the 3D widget with the same name —
-ScenePadding3d for Padding, SceneSizedBox3d for SizedBox.
+Padding3d for Padding, SizedBox3d for SizedBox.
 ```
 
 ### Overflow, and why depth is the one that bites
 
-A box whose content did not fit reports it. `Flex3d` reports the children it
-could not fit on any of the three axes, and `UnconstrainedBox3d` reports a
-child it measured without limits and then could not hold — the same two places
-Flutter draws its yellow-and-black stripes, for the same reasons.
+A box whose content did not fit reports it. `RenderFlex3d` reports the children
+it could not fit on any of the three axes, and `RenderUnconstrainedBox3d`
+reports a child it measured without limits and then could not hold — the same
+two places Flutter draws its yellow-and-black stripes, for the same reasons.
 
 Depth is why this matters more here than in Flutter. A row 40 pixels too wide
 is at least visibly clipped; a card whose content is a millimetre too deep is
@@ -3153,7 +3164,7 @@ overflow. So the report names the edge the content came out of, `back`
 included:
 
 ```
-A Depth3d overflowed the back by 3.000.
+A RenderDepth3d overflowed the back by 3.000.
 ```
 
 Reports go through `FlutterError.reportError` by default, so an overflow fails
@@ -3178,12 +3189,12 @@ surface.flush();                     // the flush is what syncs the overlay
 
 Every laid-out box hangs a wireframe of its own extent under its scene node,
 in `LineSegmentsGeometry`, and the second flag adds the two things that are
-otherwise entirely invisible: the baseline a `Baseline3d` or a
+otherwise entirely invisible: the baseline a `RenderBaseline3d` or a
 `CrossAxisAlignment3d.baseline` moved content by, and a line from the parent's
 origin corner back to this box's, which is what tells a misplaced child from a
 mis-sized one. Clearing the flag and flushing again takes every line back out
-of the scene. A culled or hidden subtree draws nothing, so what a `ListView3d`
-has scrolled out of its window has no lines either.
+of the scene. A culled or hidden subtree draws nothing, so what a
+`RenderListView3d` has scrolled out of its window has no lines either.
 
 The overlay is one shared unit cube and one shared unit segment, scaled per
 box, so a box that animates its size rebuilds nothing — the same economy
@@ -3197,17 +3208,17 @@ test *would* have drawn.
 ### Accessibility
 
 Scene content is opaque to a screen reader: a button built out of geometry is,
-to the platform, a picture. `Semantics3d` is the way out, and what a component
-author writes is Flutter's own `SemanticsProperties`, unchanged:
+to the platform, a picture. `RenderSemantics3d` is the way out, and what a
+component author writes is Flutter's own `SemanticsProperties`, unchanged:
 
 ```dart
-SceneSemantics3d(
+Semantics3d(
   properties: const SemanticsProperties(
     label: 'Continue',
     button: true,
     textDirection: TextDirection.ltr,
   ),
-  child: SceneGestureDetector3d(onTap: submit, child: continueButton),
+  child: GestureDetector3d(onTap: submit, child: continueButton),
 )
 ```
 
@@ -3219,11 +3230,11 @@ turns, and disappears when the control is culled.
 Two decisions in it are worth knowing. **The bounds come from layout, not from
 the geometry.** Left alone, a `SemanticsComponent` projects whatever meshes
 happen to hang under the node, which for a control is the icon and the label
-rather than the target they sit in; `Semantics3d` overrides them with the
+rather than the target they sit in; `RenderSemantics3d` overrides them with the
 box's own `size`, so the rectangle is the padded control the layout protocol
 produced. **Traversal order is layout order**, without anything being said:
 reading order follows the scene graph, and here the scene graph *is* the
-layout tree, so a `Column3d` of controls reads top to bottom for the same
+layout tree, so a `RenderColumn3d` of controls reads top to bottom for the same
 reason it lays out that way. Set `sortOrder` only where that is wrong.
 
 Focus and semantics have to be declared on the same boxes or the two trees
@@ -3234,11 +3245,11 @@ three. `debugFocusableBoxesWithoutSemantics` is the check:
 expect(debugFocusableBoxesWithoutSemantics(surface), isEmpty);
 ```
 
-One caveat while building controls: `TapTarget3d` grows the region a *ray*
+One caveat while building controls: `RenderTapTarget3d` grows the region a *ray*
 reaches without growing the box, so a semantics rectangle taken from the box
 is smaller than the touch target around it. Put the minimum size in the layout
-(a `ConstrainedBox3d`, a `SizedBox3d`) as well when the target has to be
-announced at its full size.
+(a `RenderConstrainedBox3d`, a `RenderSizedBox3d`) as well when the target has
+to be announced at its full size.
 
 ## Testing a screen
 
@@ -3252,9 +3263,9 @@ import 'package:flutter_ui_3d/testing.dart';
 
 testWidgets('the settings destination opens the settings', (tester) async {
   await tester.pumpSurface3d(
-    SceneTheme3d(
+    Theme3d(
       data: Theme3dData.light,
-      child: SceneOverlay3d(child: const MailScreen()),
+      child: Overlay3d(child: const MailScreen()),
     ),
     size: const Size3d(3.6, 8, 0.6),
   );
@@ -3264,18 +3275,18 @@ testWidgets('the settings destination opens the settings', (tester) async {
 
   expect(find3d.bySemanticsLabel('Volume'), findsOne);
   expect(find3d.bySemanticsLabel('Volume'), isReachable3d);
-  expect(find3d.bySubtype<Text3d>(), standsOnItsPanel3d);
+  expect(find3d.bySubtype<RenderText3d>(), standsOnItsPanel3d);
 });
 ```
 
-`pumpSurface3d` mounts the screen on one surface under a `SceneInput3d`, with a
+`pumpSurface3d` mounts the screen on one surface under an `Input3d`, with a
 camera looking straight at the surface's front face — from above, for a
 surface on the ground. Nothing draws; a `SceneView` needs a GPU `flutter test`
 does not have, and its place is taken by a box the size of the view, which is
 all the input host reads. `pumpScene3d` does the same for several surfaces,
 and takes the camera the application uses when the question is about a panel
 turned the way the application turns it. A screen that builds its own
-`SceneInput3d` is pumped with `pumpWidget` as usual; everything else finds the
+`Input3d` is pumped with `pumpWidget` as usual; everything else finds the
 host above it.
 
 `find3d` searches every box on every surface in the widget tree, including a
@@ -3313,7 +3324,7 @@ what it would reach instead:
 
 ```
 tap3d() cannot press the box with semantics label "Settings": a press at
-(500.7, 541.2) reaches DecoratedBox3d#72ad6 first, on the same surface, and the
+(500.7, 541.2) reaches RenderDecoratedBox3d#72ad6 first, on the same surface, and the
 press never gets to the box.
 ```
 
@@ -3341,8 +3352,8 @@ applies to *every* box the finder found, so over a whole screen it is a lint.
   `hasSizeDp(depth: greaterThan(1))` is "not a screen one logical pixel deep",
   which one was.
 - **`standsOnItsPanel3d`** — the box is not laid out behind the front face of
-  the nearest `DecoratedBox3d` above it, measured where both are drawn. A slab
-  is opaque, and content inside one is hidden however right its layout is;
+  the nearest `RenderDecoratedBox3d` above it, measured where both are drawn. A
+  slab is opaque, and content inside one is hidden however right its layout is;
   that is what an `EdgeInsets3d.all` inside a card does, and a slider shipped
   hidden that way while every test that asked whether it was *there* passed.
 
@@ -3360,31 +3371,31 @@ photographs the gallery on a GPU for exactly that reason — see its README.
   **starts** — at the front, the face nearest the viewer — because the viewer
   is on one side of the depth axis: a line inside a slab is as deep as the
   slab, and a label centred in that depth is a label inside the surface it is
-  written on. A `Depth3d` is the exception and knows it, since its second
+  written on. A `RenderDepth3d` is the exception and knows it, since its second
   cross axis is vertical rather than depth.
-* **`Flexible3d` and `Positioned3d` are layouts, not parent-data widgets.**
-  They sit in the tree as real boxes, and the enclosing flex or stack reads
-  their properties off them.
-* **`Stack3d.depthStep`** pulls each successive child's geometry toward the
-  viewer, which is how "later children paint on top" is spelled when the
+* **`RenderFlexible3d` and `RenderPositioned3d` are layouts, not parent-data
+  widgets.** They sit in the tree as real boxes, and the enclosing flex or stack
+  reads their properties off them.
+* **`RenderStack3d.depthStep`** pulls each successive child's geometry toward
+  the viewer, which is how "later children paint on top" is spelled when the
   children are real geometry that would otherwise be coplanar. It moves the
   content in the scene and nothing in the layout: the boxes stay where the
-  stack put them, a `Positioned3d` still lands on the face it pinned, and a
-  ray still finds the last child first — the same answer the separated
+  stack put them, a `RenderPositioned3d` still lands on the face it pinned, and
+  a ray still finds the last child first — the same answer the separated
   geometry gives the eye.
-* **List items are not stretched by default.** `ListView3d` centres its items
-  across the cross axes; ask for `CrossAxisAlignment3d.stretch` for the
+* **List items are not stretched by default.** `RenderListView3d` centres its
+  items across the cross axes; ask for `CrossAxisAlignment3d.stretch` for the
   Flutter behaviour.
-* **A wrap breaks into runs, never into layers.** The depth axis of a `Wrap3d`
-  aligns children rather than wrapping them.
-* **`GridView3d` is exactly lazy**, because a grid's cell positions are
+* **A wrap breaks into runs, never into layers.** The depth axis of a
+  `RenderWrap3d` aligns children rather than wrapping them.
+* **`RenderGridView3d` is exactly lazy**, because a grid's cell positions are
   arithmetic. It knows how long ten thousand cells are without building one.
 * **A sliver has no growth direction and no centre child.** Slivers run one
   way from the start of the viewport; there is no reverse list and no
   `center` key yet.
 * **A pinned header stands in front of the content, it does not paint over
   it.** Nothing paints here, so a row scrolling under a bar is geometry that
-  is really there. A `SliverPersistentHeader3d` answers with both a small
+  is really there. A `RenderSliverPersistentHeader3d` answers with both a small
   push toward the viewer and a clip plane the viewport publishes; see
   *Persistent headers*.
 * **Hit testing walks with a ray, not a point**, so an entry reports where
@@ -3397,16 +3408,16 @@ photographs the gallery on a GPU for exactly that reason — see its README.
   fighting the widget-level gesture the same finger is driving.
 * **A baseline belongs to an axis, and something has to declare it.**
   Flutter's runs across a box at the foot of its text, and text reports it;
-  nothing in a scene does, so `Baseline3d` states one outright. There is no
-  `TextBaseline`, because alphabetic against ideographic means nothing here.
-* **A `Wrap3d` cannot say how thick it would be.** Its intrinsic extent across
-  the runs is the one-run answer, which is a lower bound: knowing better means
-  knowing how many runs it would break into, and Flutter answers that with a
-  dry layout this package does not have.
+  nothing in a scene does, so `RenderBaseline3d` states one outright. There is
+  no `TextBaseline`, because alphabetic against ideographic means nothing here.
+* **A `RenderWrap3d` cannot say how thick it would be.** Its intrinsic extent
+  across the runs is the one-run answer, which is a lower bound: knowing better
+  means knowing how many runs it would break into, and Flutter answers that with
+  a dry layout this package does not have.
 * **No painting.** These layouts arrange content; they never draw. A visible
-  panel is a mesh in a `NodeBox3d`.
-* **A `Positioned3d` axis with nothing pinned is capped by the stack.** Flutter
-  leaves it unconstrained, which in 2D means an over-large child merely
+  panel is a mesh in a `RenderNodeBox3d`.
+* **A `RenderPositioned3d` axis with nothing pinned is capped by the stack.**
+  Flutter leaves it unconstrained, which in 2D means an over-large child merely
   overflows on screen; in 3D it means geometry standing out through the plane,
   and depth is exactly the axis a 2D habit forgets.
 
@@ -3416,19 +3427,19 @@ photographs the gallery on a GPU for exactly that reason — see its README.
   thinner than the inset that leaves the content no depth at all. Panels
   usually want `EdgeInsets3d.symmetric(horizontal: ..., vertical: ...)`.
 * **A plane needs depth for content to stand in.** Give the surface a real
-  thickness and pin the backing slab to its back face (`Positioned3d(back: 0,
-  depth: ...)`) rather than making the plane as thin as the slab.
+  thickness and pin the backing slab to its back face (`RenderPositioned3d(back:
+  0, depth: ...)`) rather than making the plane as thin as the slab.
 * **The plane node moves in scene coordinates.** `surface.plane.position` is
   an ordinary engine transform; only what is *inside* the layout speaks layout
   space.
 * **An aspect ratio is between two named axes, not all three.**
-  `AspectRatio3d(aspectRatio: 16 / 9)` is width : height, the 2D habit, and
-  the depth axis is passed through untouched. Say `axis:` and `relativeTo:`
+  `RenderAspectRatio3d(aspectRatio: 16 / 9)` is width : height, the 2D habit,
+  and the depth axis is passed through untouched. Say `axis:` and `relativeTo:`
   for any other pairing. Scaling a whole subtree into a shape is a different
-  operation, and it is `FittedBox3d`.
-* **A `Table3d` is a plane of cells.** Rows and columns, with depth as an
-  alignment axis rather than a third index — the choice `Wrap3d` already made.
-  Cells are given in row-major order, `columnCount` to a row.
+  operation, and it is `RenderFittedBox3d`.
+* **A `RenderTable3d` is a plane of cells.** Rows and columns, with depth as an
+  alignment axis rather than a third index — the choice `RenderWrap3d` already
+  made. Cells are given in row-major order, `columnCount` to a row.
 * **A scrolling view on an unbounded depth axis has no depth.** It takes the
   depth it is given, and an unbounded axis gives it none, so items thicker
   than nothing stand out of the front of a view that is only as deep as a
@@ -3456,8 +3467,8 @@ expect(frame.coverageAt(capture.centerOf('left'), radius: 10), greaterThan(0.8))
 ```
 
 Forty-four scenes. The first of them are cuboids and spheres arranged by
-`Row3d`, `Column3d`, `Stack3d`, `Padding3d`, `ListView3d`, `ClipBox3d` and the
-`xz` basis, plus two
+`RenderRow3d`, `RenderColumn3d`, `RenderStack3d`, `RenderPadding3d`,
+`RenderListView3d`, `RenderClipBox3d` and the `xz` basis, plus two
 that hold a drag in flight while the frame is captured — the only way to check
 that a lifted card really does win the depth test, and that a detached feedback
 entry really does draw outside the panel it came from. It is also the only
@@ -3490,57 +3501,59 @@ it has no Flutter GPU context. An application's tests are too, and
 In the order the pieces depend on each other.
 
 **1. Hit-testing and input.** ~~Done~~: `RenderObject3d.hitTest` walks the tree
-with a `Ray3d`, `Layout3dSurface.hitTestRay` brings a camera ray into layout
+with a `Ray3d`, `RenderSurface3d.hitTestRay` brings a camera ray into layout
 space, and `Layout3dPointer` dispatches along the path it captured — raw
-events to `Listener3d`, gestures to `GestureDetector3d` through Flutter's own
-arena, enter and exit to whatever the pointer crossed, and a drag to the
-scrolling view it grabbed. `Focus3d` is the focus half, with `Focus3dTraversal`
-moving between boxes on the plane and `FocusScope3d` trapping it inside a modal.
-See *Pointing at it* above. Routing a ray *across* surfaces is done —
-`Layout3dPointerGroup`, see *Overlays* — and so is drag-and-drop across them,
-which is the one search that deliberately ignores capture; see *Dragging things
-around*. What is left is moving focus across surfaces, and a directional policy
-that is genuinely three-dimensional rather than one that projects onto the plane
-first.
+events to `RenderListener3d`, gestures to `RenderGestureDetector3d` through
+Flutter's own arena, enter and exit to whatever the pointer crossed, and a drag
+to the scrolling view it grabbed. `RenderFocus3d` is the focus half, with
+`Focus3dTraversal` moving between boxes on the plane and `RenderFocusScope3d`
+trapping it inside a modal. See *Pointing at it* above. Routing a ray *across*
+surfaces is done — `Layout3dPointerGroup`, see *Overlays* — and so is
+drag-and-drop across them, which is the one search that deliberately ignores
+capture; see *Dragging things around*. What is left is moving focus across
+surfaces, and a directional policy that is genuinely three-dimensional rather
+than one that projects onto the plane first.
 
-**2. More layouts.** ~~Done~~: `Wrap3d` breaks into runs, `GridView3d` lays
-cells out on a grid a `Grid3dDelegate` decides, and the rest of Flutter's
-catalogue is here — `LimitedBox3d`, `UnconstrainedBox3d`, `OverflowBox3d`,
-`FractionallySizedBox3d`, `AspectRatio3d`, `FittedBox3d`, `IndexedStack3d`,
-`Table3d`, `CustomMultiChildLayout3d`, `Flow3d`, `PageView3d` and the
-`LayoutBuilder3d` that lets any of them be chosen from the room available.
-See *Building from the room you got* above. The family that needed
-drag-and-drop is here too — `Draggable3d`, `DragTarget3d`, `Dismissible3d`,
-`ReorderableList3d` and `SliverReorderableList3d` over a `Drag3dSession` that
-searches across surfaces, with `SceneReorderableList3d` and
-`SceneSliverReorderableList3d` the widget forms of the last two; see *Dragging
-things around*. What is left of it is `Drag3dAnchor.targetPlane`, which is
-reserved and says in its own dartdoc why the mechanism planned for it was the
-wrong one.
+**2. More layouts.** ~~Done~~: `RenderWrap3d` breaks into runs,
+`RenderGridView3d` lays cells out on a grid a `Grid3dDelegate` decides, and the
+rest of Flutter's catalogue is here — `RenderLimitedBox3d`,
+`RenderUnconstrainedBox3d`, `RenderOverflowBox3d`,
+`RenderFractionallySizedBox3d`, `RenderAspectRatio3d`, `RenderFittedBox3d`,
+`RenderIndexedStack3d`, `RenderTable3d`, `RenderCustomMultiChildLayout3d`,
+`RenderFlow3d`, `RenderPageView3d` and the `RenderLayoutBuilder3d` that lets any
+of them be chosen from the room available. See *Building from the room you got*
+above. The family that needed drag-and-drop is here too — `RenderDraggable3d`,
+`RenderDragTarget3d`, `RenderDismissible3d`, `RenderReorderableList3d` and
+`RenderSliverReorderableList3d` over a `Drag3dSession` that searches across
+surfaces, with `ReorderableList3d` and `SliverReorderableList3d` the widget
+forms of the last two; see *Dragging things around*. What is left of it is
+`Drag3dAnchor.targetPlane`, which is reserved and says in its own dartdoc why
+the mechanism planned for it was the wrong one.
 
-**3. Slivers.** ~~Mostly done~~: `CustomScrollView3d` drives the protocol, with
-`SliverList3d`, `SliverGrid3d` and `SliverToBoxAdapter3d` on top of it and
-`scrollOffsetCorrection` honoured, and `SliverPersistentHeader3d` pinning,
-floating or scrolling away on top of `overlap` and `paintOrigin`, which is what
-a `SliverAppBar3d` is built on. `ListView3d` and `GridView3d` are views of this
-kind over a single sliver, as Flutter's are, so placement is written once. See
-*Slivers* above. What is left of the protocol is small and independent:
-`SliverFillRemaining3d`, a reverse growth direction and a `center` sliver
-(`SliverPadding3d` is here). Building **widgets** lazily is done:
-`SceneListView3d.builder` and its three siblings inflate an item as the window
-reaches it, through a `RenderObject3dChildManager` the view consults and a
-`RenderObjectElement` that implements it inside a build scope, the way
-`SliverMultiBoxAdaptorElement` does, and `KeepAlive3d` parks an item the window
-has left instead of releasing it. What is left of that is `AutomaticKeepAlive3d`
-— keeping is asked for at the top of an item, and nothing bubbles up from
-inside it — and the key remapping that would let a keyed reorder move an
-element instead of rebuilding it in place (a `GlobalKey` already moves).
+**3. Slivers.** ~~Mostly done~~: `RenderCustomScrollView3d` drives the protocol,
+with `RenderSliverList3d`, `RenderSliverGrid3d` and `RenderSliverToBoxAdapter3d`
+on top of it and `scrollOffsetCorrection` honoured, and
+`RenderSliverPersistentHeader3d` pinning, floating or scrolling away on top of
+`overlap` and `paintOrigin`, which is what a `SliverAppBar3d` is built on.
+`RenderListView3d` and `RenderGridView3d` are views of this kind over a single
+sliver, as Flutter's are, so placement is written once. See *Slivers* above.
+What is left of the protocol is small and independent: `SliverFillRemaining3d`,
+a reverse growth direction and a `center` sliver (`RenderSliverPadding3d` is
+here). Building **widgets** lazily is done: `ListView3d.builder` and its three
+siblings inflate an item as the window reaches it, through a
+`RenderObject3dChildManager` the view consults and a `RenderObjectElement` that
+implements it inside a build scope, the way `SliverMultiBoxAdaptorElement` does,
+and `RenderKeepAlive3d` parks an item the window has left instead of releasing
+it. What is left of that is `AutomaticKeepAlive3d` — keeping is asked for at the
+top of an item, and nothing bubbles up from inside it — and the key remapping
+that would let a keyed reorder move an element instead of rebuilding it in place
+(a `GlobalKey` already moves).
 
-**4. Text.** ~~Done~~: `Text3d` lays a string out as a box, sizes itself,
+**4. Text.** ~~Done~~: `RenderText3d` lays a string out as a box, sizes itself,
 answers intrinsics and states a baseline, over a prepare/layout split whose
 fast half consults no font; `AtlasText3dRenderer` draws it out of a shared
-glyph atlas, and `RichText3d` hands the paragraph back to Flutter for what an
-atlas cannot assemble. See *Text* above. What is left is sharpness at
+glyph atlas, and `RenderRichText3d` hands the paragraph back to Flutter for what
+an atlas cannot assemble. See *Text* above. What is left is sharpness at
 distance — the atlas holds ordinary coverage rasters, so a label rasterized
 for arm's length softens as the panel comes toward the camera, and a signed
 distance field or a second bucket is what would fix it — and selection and
@@ -3548,18 +3561,18 @@ editing, which are further out still.
 
 **5. Intrinsic sizing.** ~~Done~~: `RenderObject3d.getMinIntrinsicExtent` and
 `getMaxIntrinsicExtent` ask the question one axis at a time,
-`IntrinsicWidth3d` and its two siblings are the boxes built on it, and
-`Baseline3d` with `CrossAxisAlignment3d.baseline` is the baseline half. See
-*Measuring* above. What is left is a dry layout, the speculative *sizing* pass
-that Flutter added on top of intrinsics; it is what would let a `Wrap3d`
-report how thick it would be at a given width instead of the one-run lower
-bound it reports now.
+`RenderIntrinsicWidth3d` and its two siblings are the boxes built on it, and
+`RenderBaseline3d` with `CrossAxisAlignment3d.baseline` is the baseline half.
+See *Measuring* above. What is left is a dry layout, the speculative *sizing*
+pass that Flutter added on top of intrinsics; it is what would let a
+`RenderWrap3d` report how thick it would be at a given width instead of the
+one-run lower bound it reports now.
 
 **6. Geometry that follows a box.** ~~Done, bar the pixels~~:
-`DecoratedBox3d` and `BoxDecoration3d` describe a panel, the painter cache
+`RenderDecoratedBox3d` and `BoxDecoration3d` describe a panel, the painter cache
 shares one mesh across every panel with the same shape, elevation lifts the
 geometry toward the viewer, and a state layer is a uniform that never dirties
-layout, and `SceneDecoratedBox3d` is the widget form of it. See *Making a box
+layout, and `DecoratedBox3d` is the widget form of it. See *Making a box
 visible* and *The declarative layer* above. The shader ships as
 `assets/box_decoration3d.fmat` and is compiled by this package's own build
 hook, so an application inherits it; `BoxDecoration3dPainter` drives it, and
@@ -3576,31 +3589,31 @@ would cast its whole rectangular slab because a shadow pass never runs the
 surface shader — and clip planes are published to every material through
 `Clip3dRegion` but only the shipped panel shader reads them.
 
-**7. Overlays.** ~~Done~~: `Overlay3d` holds entries in front of its base
+**7. Overlays.** ~~Done~~: `RenderOverlay3d` holds entries in front of its base
 content, each one either lifted toward the viewer on the host surface or on a
-surface of its own, with `ModalBarrier3d` for the scrim, `FocusScope3d` for
-the focus a modal traps, `Layout3dPointerGroup` for routing a ray across
-surfaces, and `Navigator3d` for the route stack over the whole of it. See
-*Overlays* above. The three things this once said were left have all landed:
-`WidgetOverlay3dEntry` and `WidgetPageRoute3d` give an entry a widget subtree,
-traversal crosses surfaces through `Input3dHost` and
+surface of its own, with `RenderModalBarrier3d` for the scrim,
+`RenderFocusScope3d` for the focus a modal traps, `Layout3dPointerGroup` for
+routing a ray across surfaces, and `Navigator3d` for the route stack over the
+whole of it. See *Overlays* above. The three things this once said were left
+have all landed: `WidgetOverlay3dEntry` and `WidgetPageRoute3d` give an entry a
+widget subtree, traversal crosses surfaces through `Input3dHost` and
 `PipelineOwner3d.onFocusTraversalEdge`, and `TimedRoute3dTransition` with
 `Motion3d` fills the transition hook — see *A route that arrives* above. What
-is left is a `Hero3d`, which needs a flight built by a builder rather than a
-subtree carried across, for the same reason `Draggable3d`'s feedback is
+is left is a `RenderHero3d`, which needs a flight built by a builder rather than
+a subtree carried across, for the same reason `RenderDraggable3d`'s feedback is
 built.
 
 **8. Animation and scroll physics.** ~~Done~~: three paths, cheapest first —
 decoration setters that only repaint, `RenderObject3d.nodeOffset` and
 `nodeTransform` for geometry that moves without any box changing size (with
-`NodeTransform3d`, `SceneAnimatedSlide3d` and now `MotionTransition3d` over
-them), and `ImplicitlyAnimatedLayout3dWidget` with `SceneAnimatedContainer3d`
+`RenderNodeTransform3d`, `AnimatedSlide3d` and now `RenderMotionTransition3d`
+over them), and `ImplicitlyAnimatedLayout3dWidget` with `AnimatedContainer3d`
 and its siblings for the animations that really do relayout. On the scroll side,
 `Scroll3dPhysics` with clamping and bouncing, a release that flings from a
 velocity `Layout3dPointer` tracks on the grabbed view's plane, and
 `animateTo`, `fling` and `ensureVisible3d` on the controller, and
-`Opacity3d` with `FadeTransition3d` and `SceneAnimatedOpacity3d` over it —
-one `fade` uniform per box that draws, and no relayout. See *Animation*,
+`RenderOpacity3d` with `RenderFadeTransition3d` and `AnimatedOpacity3d` over it
+— one `fade` uniform per box that draws, and no relayout. See *Animation*,
 *Fading a subtree* and *Physics, flings, and going somewhere* above. What is
 left is the overscroll effects a scene could have instead of a glow —
 bending, tilting or compressing the content — which
@@ -3610,24 +3623,24 @@ builds.
 **9. Diagnostics and accessibility.** ~~Done~~: every box is a
 `DiagnosticableTree`, so `toStringDeep` and `debugDumpRenderObject3dTree` print
 what came down and what went up; an ordinary Flutter render object interposed
-between two `Scene*3d` widgets is now an error that names both ends of it rather
-than a silently missing subtree; `Flex3d` and `UnconstrainedBox3d` report an
-overflow with the axis and the amount; `debugPaintLayout3dSize` hangs a
-wireframe of every box's extent under its node, with baselines and placement
-offsets behind a second flag; and `Semantics3d` publishes a control to assistive
-technology with the bounds layout gave it; and the reader's own font setting
-reaches a label on a plane, through `Layout3dMetrics.textScaler` and the ambient
-`MediaQuery` a `SceneLayout3d` reads. See *Debugging what you cannot see* and
-*The reader's own font setting* above. What is left is a visual inspector, which
-belongs to the Flutter Scene Editor rather than here.
+between two of these widgets is now an error that names both ends of it rather
+than a silently missing subtree; `RenderFlex3d` and `RenderUnconstrainedBox3d`
+report an overflow with the axis and the amount; `debugPaintLayout3dSize` hangs
+a wireframe of every box's extent under its node, with baselines and placement
+offsets behind a second flag; and `RenderSemantics3d` publishes a control to
+assistive technology with the bounds layout gave it; and the reader's own font
+setting reaches a label on a plane, through `Layout3dMetrics.textScaler` and the
+ambient `MediaQuery` a `Surface3d` reads. See *Debugging what you cannot see*
+and *The reader's own font setting* above. What is left is a visual inspector,
+which belongs to the Flutter Scene Editor rather than here.
 
 **What is next.** Nothing in this list depends on anything else in it any
-more, so the order is a matter of what a caller reaches for first: a `Hero3d`;
-text a person can type, which is the largest thing missing; a distance-field
-glyph atlas for type that stays sharp as a panel approaches; and a runtime
-depth-write flag in the engine, which is the one upstream ask this package
-still has — it is what a *fully* general transparent slab needs, and it is
-not what `Opacity3d` needed, which is a story in
+more, so the order is a matter of what a caller reaches for first: a
+`RenderHero3d`; text a person can type, which is the largest thing missing; a
+distance-field glyph atlas for type that stays sharp as a panel approaches; and
+a runtime depth-write flag in the engine, which is the one upstream ask this
+package still has — it is what a *fully* general transparent slab needs, and it
+is not what `RenderOpacity3d` needed, which is a story in
 `plans/2026_09_16_a_box_that_fades.md`.
 
 ## License

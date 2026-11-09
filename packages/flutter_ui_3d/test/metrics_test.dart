@@ -202,9 +202,9 @@ void main() {
     test('metrics reach a deep child through the owner', () {
       final box = DpBox(100, 40);
       final surface = laidOut(
-        Padding3d(
+        RenderPadding3d(
           padding: const EdgeInsets3d.all(0.1),
-          child: Center3d(child: box),
+          child: RenderCenter3d(child: box),
         ),
         metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.005),
       );
@@ -216,7 +216,7 @@ void main() {
 
     test('changing the metrics relayouts the tree', () {
       final box = DpBox(100, 40);
-      final surface = laidOut(Center3d(child: box));
+      final surface = laidOut(RenderCenter3d(child: box));
       expect(box.layoutCount, 1);
       expect(box.size.width, closeTo(1.0, 1e-12));
 
@@ -229,7 +229,7 @@ void main() {
 
     test('assigning an equal contract writes nothing', () {
       final box = DpBox(100, 40);
-      final surface = laidOut(Center3d(child: box));
+      final surface = laidOut(RenderCenter3d(child: box));
       surface.metrics = const Layout3dMetrics();
       expect(surface.needsFlush, isFalse);
       surface.flush();

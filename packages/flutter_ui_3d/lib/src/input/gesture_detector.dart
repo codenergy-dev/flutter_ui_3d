@@ -37,7 +37,7 @@ import 'listener.dart';
 /// they do on a screen, and the finger decides which one it meant.
 ///
 /// ```dart
-/// GestureDetector3d(
+/// RenderGestureDetector3d(
 ///   onTapDown: (details) => panel.stateLayer = pressed,
 ///   onTapCancel: () => panel.stateLayer = StateLayer3d.none,
 ///   onTap: () {
@@ -55,7 +55,7 @@ import 'listener.dart';
 /// the surface, both in dp, because that is the currency Flutter's
 /// recognizers are tuned in — `kTouchSlop` has to mean 18dp rather than 18
 /// world units. Multiply by `metrics.unitsPerLogicalPixel` to get back to
-/// layout units, or reach for [Listener3d] and
+/// layout units, or reach for [RenderListener3d] and
 /// [PointerEvent3d.localPosition], which is in units and stays exact for a
 /// box seen at any angle.
 ///
@@ -73,14 +73,14 @@ import 'listener.dart';
 ///  * One drag rather than three: [onPanStart] and friends. A view that
 ///    scrolls is a [Scrollable3d] and competes for the pointer through
 ///    `Layout3dPointer` rather than through a recognizer of its own.
-class GestureDetector3d extends RenderProxyBoxWithHitTestBehavior3d
+class RenderGestureDetector3d extends RenderProxyBoxWithHitTestBehavior3d
     implements HitTestTarget3d {
   /// Creates a gesture detector.
   ///
   /// Every callback is a plain mutable field: set one after construction and
   /// the recognizer behind it appears on the next press. Nothing here touches
   /// layout.
-  GestureDetector3d({
+  RenderGestureDetector3d({
     this.onTapDown,
     this.onTapUp,
     this.onTap,

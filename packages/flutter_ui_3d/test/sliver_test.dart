@@ -5,7 +5,7 @@ import 'support.dart';
 
 /// A sliver of a fixed length that reports what it was asked, so the
 /// viewport's bookkeeping can be read off it directly.
-class ProbeSliver3d extends Sliver3d {
+class ProbeSliver3d extends RenderSliver3d {
   ProbeSliver3d(this.extent, {super.name});
 
   final double extent;
@@ -28,7 +28,7 @@ class ProbeSliver3d extends Sliver3d {
 
 /// A sliver that asks the viewport to move the scroll offset once, the way a
 /// section that discovers its content is elsewhere would.
-class CorrectingSliver3d extends Sliver3d {
+class CorrectingSliver3d extends RenderSliver3d {
   CorrectingSliver3d(this.extent, this.correction, {super.name});
 
   final double extent;
@@ -53,11 +53,11 @@ class CorrectingSliver3d extends Sliver3d {
   }
 }
 
-List<TestBox> items(int count, [Size3d size = const Size3d(1, 2, 1)]) =>
-    List.generate(count, (index) => TestBox(size, name: 'item$index'));
+List<RenderTestBox> items(int count, [Size3d size = const Size3d(1, 2, 1)]) =>
+    List.generate(count, (index) => RenderTestBox(size, name: 'item$index'));
 
-Layout3dSurface viewportOf(
-  CustomScrollView3d view, {
+RenderSurface3d viewportOf(
+  RenderCustomScrollView3d view, {
   Size3d size = const Size3d(4, 10, 2),
 }) => laidOut(view, constraints: Constraints3d.tight(size));
 
@@ -121,14 +121,14 @@ void main() {
         // declarative layer hands over plain widgets. Caught at adoption, the
         // message can name the fix; caught during layout it was a bare cast
         // failure with no idea what to do about it.
-        final view = CustomScrollView3d();
+        final view = RenderCustomScrollView3d();
         expect(
-          () => view.add(TestBox(const Size3d(1, 1, 1))),
+          () => view.add(RenderTestBox(const Size3d(1, 1, 1))),
           throwsA(
             isA<AssertionError>().having(
               (error) => error.message,
               'message',
-              contains('SliverToBoxAdapter3d'),
+              contains('RenderSliverToBoxAdapter3d'),
             ),
           ),
         );
@@ -138,7 +138,7 @@ void main() {
     test('lays its slivers out one after another', () {
       final first = ProbeSliver3d(4);
       final second = ProbeSliver3d(3);
-      final view = CustomScrollView3d(slivers: [first, second]);
+      final view = RenderCustomScrollView3d(slivers: [first, second]);
       viewportOf(view);
 
       expect(first.offset, Offset3d.zero);
@@ -151,7 +151,7 @@ void main() {
     });
 
     test('adds their scroll extents into one scroll range', () {
-      final view = CustomScrollView3d(
+      final view = RenderCustomScrollView3d(
         slivers: [ProbeSliver3d(8), ProbeSliver3d(9)],
       );
       viewportOf(view);
@@ -164,7 +164,7 @@ void main() {
     test('one position moves every section', () {
       final first = ProbeSliver3d(8);
       final second = ProbeSliver3d(9);
-      final view = CustomScrollView3d(slivers: [first, second]);
+      final view = RenderCustomScrollView3d(slivers: [first, second]);
       final surface = viewportOf(view);
 
       view.controller.jumpTo(5);
@@ -181,7 +181,7 @@ void main() {
     test('a section scrolled clean off reports nothing and is hidden', () {
       final first = ProbeSliver3d(8);
       final second = ProbeSliver3d(20);
-      final view = CustomScrollView3d(slivers: [first, second]);
+      final view = RenderCustomScrollView3d(slivers: [first, second]);
       final surface = viewportOf(view);
 
       view.controller.jumpTo(10);
@@ -196,7 +196,7 @@ void main() {
     test('the window a section sees shrinks as earlier ones fill it', () {
       final first = ProbeSliver3d(4);
       final second = ProbeSliver3d(4);
-      final view = CustomScrollView3d(slivers: [first, second]);
+      final view = RenderCustomScrollView3d(slivers: [first, second]);
       viewportOf(view);
 
       expect(first.windows.last.remainingPaintExtent, 10);
@@ -205,7 +205,7 @@ void main() {
 
     test('a cache extent reaches beyond the window on both sides', () {
       final sliver = ProbeSliver3d(40);
-      final view = CustomScrollView3d(cacheExtent: 3, slivers: [sliver]);
+      final view = RenderCustomScrollView3d(cacheExtent: 3, slivers: [sliver]);
       final surface = viewportOf(view);
 
       // At the very start there is nothing above to cache.
@@ -222,7 +222,7 @@ void main() {
     test('shrink-wraps when the scroll axis has no edge', () {
       final first = ProbeSliver3d(8);
       final second = ProbeSliver3d(6);
-      final view = CustomScrollView3d(slivers: [first, second]);
+      final view = RenderCustomScrollView3d(slivers: [first, second]);
       laidOut(
         view,
         constraints: const Constraints3d.tightFor(width: 4, depth: 2),
@@ -239,7 +239,7 @@ void main() {
 
     test('applies a scroll offset correction and lays out again', () {
       final correcting = CorrectingSliver3d(30, 5);
-      final view = CustomScrollView3d(slivers: [correcting]);
+      final view = RenderCustomScrollView3d(slivers: [correcting]);
       viewportOf(view);
 
       expect(correcting.passes, 2);
@@ -249,7 +249,7 @@ void main() {
 
     test('pulls the offset back in when the content shrinks under it', () {
       final sliver = ProbeSliver3d(40);
-      final view = CustomScrollView3d(slivers: [sliver]);
+      final view = RenderCustomScrollView3d(slivers: [sliver]);
       final surface = viewportOf(view);
 
       view.controller.jumpTo(30);
@@ -265,7 +265,7 @@ void main() {
     });
 
     test('is opaque, so a drag between sections still scrolls it', () {
-      final view = CustomScrollView3d(
+      final view = RenderCustomScrollView3d(
         slivers: [ProbeSliver3d(4), ProbeSliver3d(4)],
       );
       final surface = viewportOf(view);
@@ -278,11 +278,13 @@ void main() {
     });
   });
 
-  group('SliverToBoxAdapter3d', () {
+  group('RenderSliverToBoxAdapter3d', () {
     test('gives a box its turn in the scroll', () {
-      final box = TestBox(const Size3d(1, 6, 1));
-      final adapter = SliverToBoxAdapter3d(child: box);
-      final view = CustomScrollView3d(slivers: [adapter, ProbeSliver3d(6)]);
+      final box = RenderTestBox(const Size3d(1, 6, 1));
+      final adapter = RenderSliverToBoxAdapter3d(child: box);
+      final view = RenderCustomScrollView3d(
+        slivers: [adapter, ProbeSliver3d(6)],
+      );
       viewportOf(view);
 
       expect(adapter.geometry.scrollExtent, 6);
@@ -292,10 +294,10 @@ void main() {
     });
 
     test('slides its child as it scrolls past', () {
-      final box = TestBox(const Size3d(1, 6, 1));
-      final view = CustomScrollView3d(
+      final box = RenderTestBox(const Size3d(1, 6, 1));
+      final view = RenderCustomScrollView3d(
         slivers: [
-          SliverToBoxAdapter3d(child: box),
+          RenderSliverToBoxAdapter3d(child: box),
           ProbeSliver3d(20),
         ],
       );
@@ -308,24 +310,24 @@ void main() {
     });
 
     test('an empty adapter takes no room', () {
-      final adapter = SliverToBoxAdapter3d();
-      viewportOf(CustomScrollView3d(slivers: [adapter]));
+      final adapter = RenderSliverToBoxAdapter3d();
+      viewportOf(RenderCustomScrollView3d(slivers: [adapter]));
 
       expect(adapter.geometry.scrollExtent, 0);
     });
   });
 
-  group('SliverList3d', () {
+  group('RenderSliverList3d', () {
     test('a shrunken itemCount shortens the measured content with it', () {
       // The measured prefix is what the list knows about where its items sit,
       // and it outlives a change to how many there are. Left alone, a list
       // that had measured ten items went on reporting all ten as its length
       // after being told there were five.
-      final list = SliverList3d.builder(
+      final list = RenderSliverList3d.builder(
         itemCount: 10,
-        itemBuilder: (index) => TestBox(const Size3d(1, 2, 1)),
+        itemBuilder: (index) => RenderTestBox(const Size3d(1, 2, 1)),
       );
-      final view = CustomScrollView3d(slivers: [list]);
+      final view = RenderCustomScrollView3d(slivers: [list]);
       final surface = viewportOf(view, size: const Size3d(4, 20, 2));
       expect(list.geometry.scrollExtent, 20);
 
@@ -336,8 +338,8 @@ void main() {
 
     test('stacks its items along the scroll axis', () {
       final boxes = items(4);
-      final list = SliverList3d(spacing: 1, children: boxes);
-      final view = CustomScrollView3d(slivers: [list]);
+      final list = RenderSliverList3d(spacing: 1, children: boxes);
+      final view = RenderCustomScrollView3d(slivers: [list]);
       viewportOf(view);
 
       expect(boxes[0].offset.y, 0);
@@ -350,10 +352,10 @@ void main() {
 
     test('follows another sliver rather than starting from the top', () {
       final boxes = items(8);
-      final view = CustomScrollView3d(
+      final view = RenderCustomScrollView3d(
         slivers: [
           ProbeSliver3d(4),
-          SliverList3d(children: boxes),
+          RenderSliverList3d(children: boxes),
         ],
       );
       final surface = viewportOf(view);
@@ -373,15 +375,15 @@ void main() {
 
     test('a fixed item extent builds only the window', () {
       final built = <int>[];
-      final list = SliverList3d.builder(
+      final list = RenderSliverList3d.builder(
         itemCount: 500,
         itemExtent: 2,
         itemBuilder: (index) {
           built.add(index);
-          return TestBox(const Size3d(1, 2, 1));
+          return RenderTestBox(const Size3d(1, 2, 1));
         },
       );
-      final view = CustomScrollView3d(slivers: [list]);
+      final view = RenderCustomScrollView3d(slivers: [list]);
       viewportOf(view);
 
       // A window of 10 over items of 2: six rows, and the whole extent known
@@ -392,11 +394,11 @@ void main() {
     });
 
     test('measures as it goes when the items size themselves', () {
-      final list = SliverList3d.builder(
+      final list = RenderSliverList3d.builder(
         itemCount: 100,
-        itemBuilder: (index) => TestBox(const Size3d(1, 2, 1)),
+        itemBuilder: (index) => RenderTestBox(const Size3d(1, 2, 1)),
       );
-      final view = CustomScrollView3d(slivers: [list]);
+      final view = RenderCustomScrollView3d(slivers: [list]);
       viewportOf(view);
 
       // Six measured, the rest estimated from their average stride.
@@ -405,12 +407,13 @@ void main() {
     });
 
     test('releases what scrolls away and builds what arrives', () {
-      final list = SliverList3d.builder(
+      final list = RenderSliverList3d.builder(
         itemCount: 50,
         itemExtent: 2,
-        itemBuilder: (index) => TestBox(const Size3d(1, 2, 1), name: '$index'),
+        itemBuilder: (index) =>
+            RenderTestBox(const Size3d(1, 2, 1), name: '$index'),
       );
-      final view = CustomScrollView3d(slivers: [list]);
+      final view = RenderCustomScrollView3d(slivers: [list]);
       final surface = viewportOf(view);
       final first = list.children.first;
 
@@ -423,20 +426,20 @@ void main() {
 
     test('a prototypeItem makes the offsets arithmetic again', () {
       final built = <int>[];
-      final prototypes = <TestBox>[];
-      final list = SliverList3d.builder(
+      final prototypes = <RenderTestBox>[];
+      final list = RenderSliverList3d.builder(
         itemCount: 5000,
         prototypeItem: () {
-          final box = TestBox(const Size3d(1, 2, 1), name: 'prototype');
+          final box = RenderTestBox(const Size3d(1, 2, 1), name: 'prototype');
           prototypes.add(box);
           return box;
         },
         itemBuilder: (index) {
           built.add(index);
-          return TestBox(const Size3d(1, 2, 1));
+          return RenderTestBox(const Size3d(1, 2, 1));
         },
       );
-      final view = CustomScrollView3d(slivers: [list]);
+      final view = RenderCustomScrollView3d(slivers: [list]);
       final surface = viewportOf(view);
 
       // One item measured, and the whole length known from it.
@@ -458,13 +461,14 @@ void main() {
     test('a contentExtentEstimator states the length the list cannot', () {
       // Five items 10 long and thirty-five 1 long: measuring forward from the
       // first says the whole list is 400 long, and keeps changing its mind.
-      final list = SliverList3d.builder(
+      final list = RenderSliverList3d.builder(
         itemCount: 40,
         contentExtentEstimator: (count) => 85,
-        itemBuilder: (index) =>
-            TestBox(index < 5 ? const Size3d(1, 10, 1) : const Size3d(1, 1, 1)),
+        itemBuilder: (index) => RenderTestBox(
+          index < 5 ? const Size3d(1, 10, 1) : const Size3d(1, 1, 1),
+        ),
       );
-      final view = CustomScrollView3d(slivers: [list]);
+      final view = RenderCustomScrollView3d(slivers: [list]);
       final surface = viewportOf(view);
       expect(list.geometry.scrollExtent, 85);
 
@@ -474,21 +478,21 @@ void main() {
     });
 
     test('an empty list is a sliver of no length', () {
-      final list = SliverList3d();
-      viewportOf(CustomScrollView3d(slivers: [list]));
+      final list = RenderSliverList3d();
+      viewportOf(RenderCustomScrollView3d(slivers: [list]));
 
       expect(list.geometry.scrollExtent, 0);
       expect(list.geometry.visible, isFalse);
     });
   });
 
-  group('SliverGrid3d', () {
+  group('RenderSliverGrid3d', () {
     const twoAcross = Grid3dDelegateWithFixedCrossAxisCount(crossAxisCount: 2);
 
-    test('lays cells out on the same grid a GridView3d would', () {
+    test('lays cells out on the same grid a RenderGridView3d would', () {
       final cells = items(4, Size3d.zero);
-      final grid = SliverGrid3d(gridDelegate: twoAcross, children: cells);
-      viewportOf(CustomScrollView3d(slivers: [grid]));
+      final grid = RenderSliverGrid3d(gridDelegate: twoAcross, children: cells);
+      viewportOf(RenderCustomScrollView3d(slivers: [grid]));
 
       // Two cells across 4 wide, square: 2 by 2.
       expect(grid.gridLayout!.cellCrossAxisExtent, 2);
@@ -500,15 +504,15 @@ void main() {
 
     test('is exactly lazy', () {
       final built = <int>[];
-      final grid = SliverGrid3d.builder(
+      final grid = RenderSliverGrid3d.builder(
         gridDelegate: twoAcross,
         itemCount: 1000,
         itemBuilder: (index) {
           built.add(index);
-          return TestBox(Size3d.zero);
+          return RenderTestBox(Size3d.zero);
         },
       );
-      viewportOf(CustomScrollView3d(slivers: [grid]));
+      viewportOf(RenderCustomScrollView3d(slivers: [grid]));
 
       // 500 rows of 2, known without building any of them.
       expect(grid.geometry.scrollExtent, 1000);
@@ -516,13 +520,15 @@ void main() {
     });
 
     test('takes its turn after a list', () {
-      final grid = SliverGrid3d(
+      final grid = RenderSliverGrid3d(
         gridDelegate: twoAcross,
         children: items(2, Size3d.zero),
       );
-      final view = CustomScrollView3d(
+      final view = RenderCustomScrollView3d(
         slivers: [
-          SliverToBoxAdapter3d(child: TestBox(const Size3d(1, 3, 1))),
+          RenderSliverToBoxAdapter3d(
+            child: RenderTestBox(const Size3d(1, 3, 1)),
+          ),
           grid,
         ],
       );

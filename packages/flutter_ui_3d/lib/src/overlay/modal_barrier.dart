@@ -19,23 +19,24 @@ import '../rendering/object.dart';
 /// to dismiss what is above it.
 ///
 /// The 3D analogue of Flutter's `ModalBarrier`, and the same two jobs. The
-/// first is absorption, which [AbsorbPointer3d] would also do — a barrier is
-/// an absorber that answers for itself rather than for a subtree. The second
+/// first is absorption, which [RenderAbsorbPointer3d] would also do — a barrier
+/// is an absorber that answers for itself rather than for a subtree. The second
 /// is dismissal: a tap that starts *and ends* on the barrier is a tap
 /// outside, and calls [onDismiss]. A press that starts on the barrier and
 /// slides onto the content still ends on the barrier, because the path is
 /// captured at the press, which is the same rule Flutter's barrier keeps.
 ///
 /// A tap on the content never reaches here at all: the content is a later
-/// sibling in the [Overlay3d]'s stack, so the ray finds it first and stops.
+/// sibling in the [RenderOverlay3d]'s stack, so the ray finds it first and
+/// stops.
 ///
 /// ## What a scrim is, in a scene
 ///
 /// A dimmed background is not an alpha wash over a display list here; there
 /// is no display list. It is geometry: a slab, [thickness] deep, carrying
 /// whatever [child] the caller decorates it with — usually a
-/// [DecoratedBox3d]. Leaving [child] null gives a barrier that blocks input
-/// and shows nothing, which is what a menu wants.
+/// [RenderDecoratedBox3d]. Leaving [child] null gives a barrier that blocks
+/// input and shows nothing, which is what a menu wants.
 ///
 /// **A translucent scrim *is* expressible**, and this class used to say it was
 /// not. `assets/box_decoration3d.fmat` declares `blending: alpha`, so a
@@ -58,9 +59,10 @@ import '../rendering/object.dart';
 /// [thickness] defaults to zero, so a barrier is a plane rather than a box:
 /// a ray still reaches it (a zero-extent slab is intersected on both faces),
 /// and nothing behind it is displaced.
-class ModalBarrier3d extends RenderSingleChild3d implements HitTestTarget3d {
+class RenderModalBarrier3d extends RenderSingleChild3d
+    implements HitTestTarget3d {
   /// Creates a barrier that fills what it is given.
-  ModalBarrier3d({
+  RenderModalBarrier3d({
     this.onDismiss,
     bool dismissible = true,
     double thickness = 0.0,
@@ -80,8 +82,9 @@ class ModalBarrier3d extends RenderSingleChild3d implements HitTestTarget3d {
 
   /// Whether a tap on the barrier calls [onDismiss].
   ///
-  /// Costs nothing to flip, for the same reason [AbsorbPointer3d.absorbing]
-  /// does: dispatch reads it as the event arrives.
+  /// Costs nothing to flip, for the same reason
+  /// [RenderAbsorbPointer3d.absorbing] does: dispatch reads it as the event
+  /// arrives.
   // ignore: unnecessary_getters_setters
   bool get dismissible => _dismissible;
 

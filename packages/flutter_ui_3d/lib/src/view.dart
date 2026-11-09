@@ -9,7 +9,7 @@ import 'package:flutter/widgets.dart' show MediaQueryData;
 /// A scene is not a window, so nothing in it has these numbers naturally —
 /// which is the whole reason [Layout3dCameraBinding] exists. This is what a
 /// binding reads, handed to it once per frame by whoever drives it:
-/// `SceneLayout3d` composes one from the enclosing `MediaQuery` and the view's
+/// `Surface3d` composes one from the enclosing `MediaQuery` and the view's
 /// own box, and an imperative host passes one of its own.
 ///
 /// ```dart

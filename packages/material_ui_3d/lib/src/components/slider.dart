@@ -41,13 +41,13 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneActions3d,
-        SceneIgnorePointer3d,
-        SceneSemantics3d,
-        SceneShortcuts3d,
-        SceneSizedBox3d,
-        SceneStack3d,
-        SceneTapTarget3d,
+        Actions3d,
+        IgnorePointer3d,
+        Semantics3d,
+        Shortcuts3d,
+        SizedBox3d,
+        Stack3d,
+        TapTarget3d,
         SingleChildRenderObjectWidget3d;
 
 import '../theme/theme.dart';
@@ -81,9 +81,9 @@ const Color _none = Color(0x00000000);
 /// the gesture arena. Two of Flutter's four recognizers do not fire in this
 /// build at all, which is why `PointerSequence3d.addArenaMember` exists —
 /// the drag plan named "a knob, a slider, a rotation handle" as its
-/// customers, and this is the first of them. [SliderGesture3d] is the member:
-/// it enters the arena on the press, claims the pointer the moment the finger
-/// crosses the touch slop along the slider's own axis, and is rejected
+/// customers, and this is the first of them. [RenderSliderGesture3d] is the
+/// member: it enters the arena on the press, claims the pointer the moment the
+/// finger crosses the touch slop along the slider's own axis, and is rejected
 /// without a fuss when the list crosses its slop first.
 ///
 /// A press that never moves is a **tap**, and Material's slider jumps to
@@ -94,7 +94,7 @@ const Color _none = Color(0x00000000);
 /// ## Nothing about a drag lays anything out
 ///
 /// The thumb's position is a `nodeOffset` and the active track's length is a
-/// `nodeTransform` — [SceneNodeShift3d] writes both, and neither calls
+/// `nodeTransform` — [NodeShift3d] writes both, and neither calls
 /// `markNeedsLayout`. That second one is the part worth knowing, because the
 /// obvious way to fill a track is to give a box a width and change it, which
 /// is a relayout on every frame of the drag. A node transform pivots on the
@@ -238,7 +238,7 @@ class Slider3d extends StatelessWidget {
     // `textDirection` is what it announces in.
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
 
-    final inactive = SceneSizedBox3d(
+    final inactive = SizedBox3d(
       width: metrics.dp(travel),
       height: metrics.dp(tokens.trackHeight),
       child: Material3d(
@@ -254,10 +254,10 @@ class Slider3d extends StatelessWidget {
     // right to left, about its left end and then moved along by the part it
     // does not cover, which leaves its right end where layout put it. One
     // matrix; no box changes size, so nothing is laid out again.
-    final active = SceneNodeShift3d(
+    final active = NodeShift3d(
       shift: Offset3d(rtl ? metrics.dp(travel) * (1.0 - at) : 0.0, 0.0, 0.0),
       scaleX: at,
-      child: SceneSizedBox3d(
+      child: SizedBox3d(
         width: metrics.dp(travel),
         height: metrics.dp(tokens.trackHeight),
         child: Material3d(
@@ -270,13 +270,13 @@ class Slider3d extends StatelessWidget {
       ),
     );
 
-    final thumb = SceneNodeShift3d(
+    final thumb = NodeShift3d(
       shift: Offset3d(
         metrics.dp(travel) * (rtl ? 0.5 - at : at - 0.5),
         0.0,
         0.0,
       ),
-      child: SceneSizedBox3d(
+      child: SizedBox3d(
         width: metrics.dp(tokens.thumbSize),
         height: metrics.dp(tokens.thumbSize),
         child: Material3d(
@@ -304,21 +304,21 @@ class Slider3d extends StatelessWidget {
         enabled: enabled,
         focusNode: focusNode,
         autofocus: autofocus,
-        child: SceneSizedBox3d(
+        child: SizedBox3d(
           width: metrics.dp(extent),
           height: metrics.dp(tokens.stateLayerSize),
         ),
       ),
     );
 
-    final body = SceneSliderGesture3d(
+    final body = SliderGesture3d(
       enabled: enabled,
       padding: metrics.dp(tokens.thumbSize / 2.0),
       textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
       onChanged: changed == null ? null : (f) => changed(valueFor(f)),
       onChangeStart: onChangeStart,
       onChangeEnd: onChangeEnd,
-      child: SceneStack3d(
+      child: Stack3d(
         alignment: Alignment3d.frontCenter,
         depthStep: metrics.dp(tokens.depthStep),
         children: <Widget>[
@@ -326,9 +326,9 @@ class Slider3d extends StatelessWidget {
           // the enclosing `Material3d`, so a slider inside a card would
           // otherwise light the card up.
           ink,
-          SceneIgnorePointer3d(child: inactive),
-          SceneIgnorePointer3d(child: active),
-          SceneIgnorePointer3d(child: thumb),
+          IgnorePointer3d(child: inactive),
+          IgnorePointer3d(child: active),
+          IgnorePointer3d(child: thumb),
         ],
       ),
     );
@@ -336,9 +336,9 @@ class Slider3d extends StatelessWidget {
     // Around the gesture box and so above the ink well's focus box, which is
     // where a key walk starts. Neither box gates a ray on its own extent, so
     // wrapping the pointer region costs the pointer nothing.
-    final keyed = SceneShortcuts3d(
+    final keyed = Shortcuts3d(
       shortcuts: _arrows,
-      child: SceneActions3d(
+      child: Actions3d(
         actions: <Type, Action<Intent>>{
           _AdjustSlider3dIntent: CallbackAction<_AdjustSlider3dIntent>(
             onInvoke: (intent) => _adjust(intent, rtl: rtl),
@@ -348,7 +348,7 @@ class Slider3d extends StatelessWidget {
       ),
     );
 
-    final announced = SceneSemantics3d(
+    final announced = Semantics3d(
       properties: SemanticsProperties(
         slider: true,
         enabled: enabled,
@@ -359,7 +359,7 @@ class Slider3d extends StatelessWidget {
       child: keyed,
     );
 
-    return SceneTapTarget3d(child: announced);
+    return TapTarget3d(child: announced);
   }
 
   static String _percent(double value) => '${(value * 100).round()}%';
@@ -444,10 +444,10 @@ class _AdjustSlider3dIntent extends Intent {
 ///    on the track lands.
 ///  * **A member cannot be added after the close**, so the entry is taken
 ///    during the down dispatch, before anything knows whether it is wanted.
-class SliderGesture3d extends RenderProxyBoxWithHitTestBehavior3d
+class RenderSliderGesture3d extends RenderProxyBoxWithHitTestBehavior3d
     implements HitTestTarget3d {
   /// Creates a slider's pointer region.
-  SliderGesture3d({
+  RenderSliderGesture3d({
     this.enabled = true,
     this.padding = 0.0,
     this.textDirection = TextDirection.ltr,
@@ -455,7 +455,7 @@ class SliderGesture3d extends RenderProxyBoxWithHitTestBehavior3d
     this.onChangeStart,
     this.onChangeEnd,
     super.behavior = HitTestBehavior3d.opaque,
-    super.name = 'SliderGesture3d',
+    super.name = 'RenderSliderGesture3d',
   }) : assert(padding >= 0.0);
 
   /// Whether presses are answered at all.
@@ -528,7 +528,7 @@ class SliderGesture3d extends RenderProxyBoxWithHitTestBehavior3d
   }
 }
 
-/// One press on a [SliderGesture3d], competing for the pointer.
+/// One press on a [RenderSliderGesture3d], competing for the pointer.
 ///
 /// The same shape as `_Drag3dGesture` in the layout package, which is the
 /// other hand-rolled arena member built on this seam: accumulate travel,
@@ -542,7 +542,7 @@ class _SliderPress3d implements GestureArenaMember {
     required this.metricsScale,
   });
 
-  final SliderGesture3d owner;
+  final RenderSliderGesture3d owner;
 
   /// Where the press landed, in the slider's own frame, in world units.
   final Offset3d origin;
@@ -638,10 +638,10 @@ class _SliderPress3d implements GestureArenaMember {
       '${_won ? ', won' : ''})';
 }
 
-/// The declarative form of [SliderGesture3d].
-class SceneSliderGesture3d extends SingleChildRenderObjectWidget3d {
+/// The declarative form of [RenderSliderGesture3d].
+class SliderGesture3d extends SingleChildRenderObjectWidget3d {
   /// Creates a slider's pointer region around [child].
-  const SceneSliderGesture3d({
+  const SliderGesture3d({
     super.key,
     this.enabled = true,
     this.padding = 0.0,
@@ -671,17 +671,18 @@ class SceneSliderGesture3d extends SingleChildRenderObjectWidget3d {
   final VoidCallback? onChangeEnd;
 
   @override
-  SliderGesture3d createLayout(BuildContext context) => SliderGesture3d(
-    enabled: enabled,
-    padding: padding,
-    textDirection: textDirection,
-    onChanged: onChanged,
-    onChangeStart: onChangeStart,
-    onChangeEnd: onChangeEnd,
-  );
+  RenderSliderGesture3d createLayout(BuildContext context) =>
+      RenderSliderGesture3d(
+        enabled: enabled,
+        padding: padding,
+        textDirection: textDirection,
+        onChanged: onChanged,
+        onChangeStart: onChangeStart,
+        onChangeEnd: onChangeEnd,
+      );
 
   @override
-  void updateLayout(BuildContext context, SliderGesture3d layout) {
+  void updateLayout(BuildContext context, RenderSliderGesture3d layout) {
     layout
       ..enabled = enabled
       ..padding = padding

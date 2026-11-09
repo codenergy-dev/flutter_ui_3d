@@ -28,7 +28,7 @@ import 'rendering/object.dart';
 /// unchanged:
 ///
 /// ```dart
-/// Semantics3d(
+/// RenderSemantics3d(
 ///   properties: SemanticsProperties(
 ///     label: 'Continue',
 ///     button: true,
@@ -36,7 +36,7 @@ import 'rendering/object.dart';
 ///     onTap: submit,
 ///     textDirection: TextDirection.ltr,
 ///   ),
-///   child: DecoratedBox3d(decoration: buttonSurface, child: label),
+///   child: RenderDecoratedBox3d(decoration: buttonSurface, child: label),
 /// )
 /// ```
 ///
@@ -58,12 +58,12 @@ import 'rendering/object.dart';
 /// **Traversal order is layout order**, without anything being said. Reading
 /// order follows the scene graph, and in this package the scene graph *is* the
 /// layout tree: a child's node is its parent's node's child, added in layout
-/// order, by [RenderObject3d.adoptChild]. So a `Column3d` of controls reads top
-/// to bottom, and a `Row3d` reads leading to trailing, for the same reason they
-/// lay out that way. Set [sortOrder] only where that is wrong.
-class Semantics3d extends RenderProxyBox3d {
+/// order, by [RenderObject3d.adoptChild]. So a `RenderColumn3d` of controls
+/// reads top to bottom, and a `RenderRow3d` reads leading to trailing, for the
+/// same reason they lay out that way. Set [sortOrder] only where that is wrong.
+class RenderSemantics3d extends RenderProxyBox3d {
   /// Creates a box publishing [properties] for its subtree.
-  Semantics3d({
+  RenderSemantics3d({
     required SemanticsProperties properties,
     double? sortOrder,
     bool enabled = true,
@@ -137,11 +137,11 @@ class Semantics3d extends RenderProxyBox3d {
     owner?.requestVisualUpdate();
   }
 
-  /// The nearest [Semantics3d] at or above [layout], or null.
-  static Semantics3d? of(RenderObject3d layout) {
+  /// The nearest [RenderSemantics3d] at or above [layout], or null.
+  static RenderSemantics3d? of(RenderObject3d layout) {
     RenderObject3d? node = layout;
     while (node != null) {
-      if (node is Semantics3d) return node;
+      if (node is RenderSemantics3d) return node;
       node = node.parent;
     }
     return null;
@@ -184,7 +184,7 @@ class Semantics3d extends RenderProxyBox3d {
   }
 }
 
-/// Every focusable box under [root] that no [Semantics3d] speaks for.
+/// Every focusable box under [root] that no [RenderSemantics3d] speaks for.
 ///
 /// The agreement this checks is not a style rule: a box that can take focus
 /// is, by definition, a control, and a control a screen reader cannot see is
@@ -192,16 +192,16 @@ class Semantics3d extends RenderProxyBox3d {
 /// declared on the same boxes or the two trees disagree — keyboard traversal
 /// visits five things and the reader announces three.
 ///
-/// A [Focus3d] counts as covered when a [Semantics3d] sits above it (the
-/// usual shape: semantics wrap the whole control, focus sits inside it) or
+/// A [RenderFocus3d] counts as covered when a [RenderSemantics3d] sits above it
+/// (the usual shape: semantics wrap the whole control, focus sits inside it) or
 /// anywhere below it. Call it in a test over a catalogue's page, or from a
 /// debug menu:
 ///
 /// ```dart
 /// expect(debugFocusableBoxesWithoutSemantics(surface), isEmpty);
 /// ```
-List<Focus3d> debugFocusableBoxesWithoutSemantics(RenderObject3d root) {
-  final missing = <Focus3d>[];
+List<RenderFocus3d> debugFocusableBoxesWithoutSemantics(RenderObject3d root) {
+  final missing = <RenderFocus3d>[];
   for (final focus in const Focus3dTraversal().focusableDescendants(root)) {
     if (_hasSemanticsAbove(focus, root) || _hasSemanticsBelow(focus)) continue;
     missing.add(focus);
@@ -212,7 +212,7 @@ List<Focus3d> debugFocusableBoxesWithoutSemantics(RenderObject3d root) {
 bool _hasSemanticsAbove(RenderObject3d box, RenderObject3d root) {
   RenderObject3d? node = box;
   while (node != null) {
-    if (node is Semantics3d) return true;
+    if (node is RenderSemantics3d) return true;
     if (identical(node, root)) return false;
     node = node.parent;
   }
@@ -223,7 +223,7 @@ bool _hasSemanticsBelow(RenderObject3d box) {
   var found = false;
   void visit(RenderObject3d child) {
     if (found) return;
-    if (child is Semantics3d) {
+    if (child is RenderSemantics3d) {
       found = true;
       return;
     }

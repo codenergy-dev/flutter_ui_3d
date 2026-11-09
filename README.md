@@ -8,7 +8,7 @@ rules — the actual rules, not an approximation of them — and spends them on
 real geometry in a [flutter_scene](https://pub.dev/packages/flutter_scene)
 scene.
 
-A `Column3d` is a `Column`. It measures its children, distributes the free
+A `RenderColumn3d` is a `Column`. It measures its children, distributes the free
 space, and positions them. The difference is that a box has three extents
 instead of two, a position is a point in space, and the output of layout is a
 tree of scene `Node` transforms rather than a display list.
@@ -118,17 +118,17 @@ class _FirstScreenState extends State<FirstScreen> {
     scene,
     camera: camera,
     children: [
-      SceneLayout3d(
+      Surface3d(
         size: const Size3d(3.5, 2.4, 0.6),
-        child: SceneTheme3d(
+        child: Theme3d(
           data: Theme3dData.dark,
           textRendererFactory: AtlasText3dRenderer.new,
           child: Scaffold3d(
-            appBar: const AppBar3d(title: SceneText3d('Inbox')),
-            body: SceneCenter3d(
+            appBar: const AppBar3d(title: Text3d('Inbox')),
+            body: Center3d(
               child: FilledButton3d(
                 onPressed: () => debugPrint('pressed'),
-                child: const SceneText3d('Continue'),
+                child: const Text3d('Continue'),
               ),
             ),
           ),
@@ -140,8 +140,8 @@ class _FirstScreenState extends State<FirstScreen> {
 ```
 
 Three lines in there are the whole setup. `initializeMaterial3d()` installs
-the painter; `SceneLayout3d` is the surface, a plane in the scene that a
-layout tree hangs below; and `SceneTheme3d` publishes the tokens and says
+the painter; `Surface3d` is the surface, a plane in the scene that a
+layout tree hangs below; and `Theme3d` publishes the tokens and says
 which renderer draws a label. Everything under it is ordinary Flutter: a
 `Scaffold3d` with an app bar and a body, rebuilt with `setState` like any
 other widget.
@@ -168,18 +168,18 @@ glTF models instead of paint operations.
 
 ## A first surface
 
-Everything hangs off a `Layout3dSurface`. Give it constraints and a child tree,
+Everything hangs off a `RenderSurface3d`. Give it constraints and a child tree,
 add its `plane` to the scene, and flush:
 
 ```dart
-final surface = Layout3dSurface(
+final surface = RenderSurface3d(
   constraints: Constraints3d.tight(const Size3d(4, 3, 0.5)),
-  child: Column3d(
+  child: RenderColumn3d(
     mainAxisAlignment: MainAxisAlignment3d.center,
     spacing: 0.2,
     children: [
-      NodeBox3d(content: Node(mesh: Mesh(cubeGeometry, material))),
-      NodeBox3d(content: await loadScene('assets/lamp.glb')),
+      RenderNodeBox3d(content: Node(mesh: Mesh(cubeGeometry, material))),
+      RenderNodeBox3d(content: await loadScene('assets/lamp.glb')),
     ],
   ),
 );
@@ -188,10 +188,10 @@ scene.root.add(surface.plane);
 surface.flush();
 ```
 
-`NodeBox3d` is the bridge: it takes any scene `Node`, measures its actual
+`RenderNodeBox3d` is the bridge: it takes any scene `Node`, measures its actual
 bounds, and hands that size up the tree like any other box. A model that is
-0.8 units wide participates in a `Row3d` exactly the way a `Text` participates
-in a `Row`.
+0.8 units wide participates in a `RenderRow3d` exactly the way a `Text`
+participates in a `Row`.
 
 Because everything laid out hangs below one node, moving that node carries the
 whole arrangement:
@@ -212,12 +212,12 @@ one genuinely 3D idea you have to hold.
 ![The same layout tree on an upright plane and on the ground plane](docs/basis.svg)
 
 ```dart
-Layout3dSurface(basis: LayoutBasis3d.xy, ...);  // a panel facing the viewer
-Layout3dSurface(basis: LayoutBasis3d.xz, ...);  // the same tree, on the ground
+RenderSurface3d(basis: LayoutBasis3d.xy, ...);  // a panel facing the viewer
+RenderSurface3d(basis: LayoutBasis3d.xz, ...);  // the same tree, on the ground
 ```
 
-The arithmetic is identical. A `Column3d` still stacks along layout's `y`. What
-changes is where `y` points: on the ground plane, "down the column" walks
+The arithmetic is identical. A `RenderColumn3d` still stacks along layout's `y`.
+What changes is where `y` points: on the ground plane, "down the column" walks
 toward the viewer, so the same code that builds a menu builds a row of tiles
 laid out on a table. This is why the protocol was worth porting rather than
 reinventing — the hard part was always the measuring and the space
@@ -235,7 +235,7 @@ Bind a surface to the camera and the number stops being a guess — it is
 ![A camera-bound surface derives the dp-to-world-unit rate from the frustum](docs/units.svg)
 
 ```dart
-SceneLayout3d(
+Surface3d(
   camera: camera,
   binding: const Layout3dCameraBinding.screenFilling(distance: 6),
   child: ...,
@@ -269,13 +269,13 @@ you describe a Flutter screen, rebuilt with `setState`, and scrolled with a
 controller:
 
 ```dart
-SceneLayout3d(
+Surface3d(
   camera: camera,
-  child: SceneListView3d.builder(
+  child: ListView3d.builder(
     itemCount: products.length,
-    itemBuilder: (context, i) => SceneSizedBox3d(
+    itemBuilder: (context, i) => SizedBox3d(
       height: 0.6,
-      child: SceneNodeBox3d(content: products[i].model),
+      child: NodeBox3d(content: products[i].model),
     ),
   ),
 )
@@ -288,16 +288,16 @@ physics.
 ## What is in the box
 
 The protocol is essentially complete. Constraints, intrinsics and baselines;
-`Row3d`, `Column3d`, `Stack3d`, `Wrap3d`, `Table3d`, `Flow3d`,
-`CustomMultiChildLayout3d` and `LayoutBuilder3d`; the full sliver protocol with
-`CustomScrollView3d`, lazy lists and grids, and persistent headers that pin and
-float; text measurement that matches Skia's line breaking exactly; decoration
-with corners, borders, elevation, state layers and press ripples; plane
-clipping; ray-based
-hit testing with real gesture recognition, hover and focus traversal; overlays,
-modal barriers and a route stack; tweens, implicit animation and scroll
-physics; and a diagnostics layer with tree dumps, overflow reporting and debug
-wireframes.
+`RenderRow3d`, `RenderColumn3d`, `RenderStack3d`, `RenderWrap3d`,
+`RenderTable3d`, `RenderFlow3d`, `RenderCustomMultiChildLayout3d` and
+`RenderLayoutBuilder3d`; the full sliver protocol with
+`RenderCustomScrollView3d`, lazy lists and grids, and persistent headers that
+pin and float; text measurement that matches Skia's line breaking exactly;
+decoration with corners, borders, elevation, state layers and press ripples;
+plane clipping; ray-based hit testing with real gesture recognition, hover and
+focus traversal; overlays, modal barriers and a route stack; tweens, implicit
+animation and scroll physics; and a diagnostics layer with tree dumps, overflow
+reporting and debug wireframes.
 
 The [package README](packages/flutter_ui_3d/README.md) is the deep
 reference for all of it — it goes box by box, and it is honest about where this
@@ -309,14 +309,15 @@ you build a component.
 
 **It arranges, and it draws only what you ask it to.** Two seams stand between
 a laid-out tree and a picture: `BoxDecoration3d.painterFactory` is null until
-something sets it, and a `Text3d` takes a renderer and has none by default.
-That is deliberate — a package cannot install either without loading a
+something sets it, and a `RenderText3d` takes a renderer and has none by
+default. That is deliberate — a package cannot install either without loading a
 compiled shader before it knows there is a GPU — and both now have an
 implementation shipped behind them, `BoxDecoration3dPainter` over the panel
-shader and `AtlasText3dRenderer` over a shared glyph atlas, with `RichText3d`
-beside it for what an atlas cannot assemble. `initializeMaterial3d()` installs
-them; two lines install them by hand. What stays yours is a painter or a
-renderer of your *own*, which is what having a seam there is for.
+shader and `AtlasText3dRenderer` over a shared glyph atlas, with
+`RenderRichText3d` beside it for what an atlas cannot assemble.
+`initializeMaterial3d()` installs them; two lines install them by hand. What
+stays yours is a painter or a renderer of your *own*, which is what having a
+seam there is for.
 
 Open, each for a stated reason rather than for lack of time:
 
@@ -373,7 +374,7 @@ by the state it is in.
 | **Overlays** | `Dialog3d`, `AlertDialog3d`, `Menu3d`, `PopupMenuButton3d`, `SnackBar3d`, `Tooltip3d`, `BottomSheet3d`, and a drawer through `showDrawer3d` |
 | **Selection** | `Checkbox3d`, `Radio3d`, `Switch3d`, `Slider3d`, and the rows that are one: `CheckboxListTile3d`, `SwitchListTile3d`, `RadioListTile3d` |
 | **Progress** | `LinearProgressIndicator3d`, `CircularProgressIndicator3d` |
-| **The rest** | `Material3d`, `InkWell3d`, `Icon3d`, `Theme3dData`, `SceneTheme3d` |
+| **The rest** | `Material3d`, `InkWell3d`, `Icon3d`, `Theme3dData`, `Theme3d` |
 
 Theming is Material 3's, transcribed: forty-six colour roles, the fifteen-style
 type scale, the shape and elevation scales, the state-layer opacities. The

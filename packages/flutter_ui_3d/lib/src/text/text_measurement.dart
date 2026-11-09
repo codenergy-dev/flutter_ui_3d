@@ -87,7 +87,7 @@ class TextMeasurementCache3d {
 /// package at all. A box here is relaid out far more often than a Flutter
 /// `RenderParagraph` is — whenever a scroll offset changes the room an item
 /// gets, whenever the surface resizes, on every frame of an animation, and
-/// *twice more* whenever an [IntrinsicWidth3d] above it asks its question,
+/// *twice more* whenever a [RenderIntrinsicWidth3d] above it asks its question,
 /// because answering an intrinsic walks the whole subtree and then the
 /// subtree is laid out again for real. Shaping on each of those would make
 /// this package's own intrinsics unusable over labels.
@@ -162,7 +162,7 @@ class SegmentedTextMeasurement3d extends TextMeasurement3d {
   SegmentedTextMeasurement3d({TextMeasurementCache3d? cache})
     : cache = cache ?? TextMeasurementCache3d();
 
-  /// The instance every [Text3d] uses unless told otherwise.
+  /// The instance every [RenderText3d] uses unless told otherwise.
   static final SegmentedTextMeasurement3d shared = SegmentedTextMeasurement3d();
 
   /// Where measured strings are kept.
@@ -651,9 +651,9 @@ class SegmentedTextMeasurement3d extends TextMeasurement3d {
 /// have to agree with a Flutter `Text` to the pixel.
 ///
 /// The cost is the thing the two-phase design exists to avoid, so reach for it
-/// per box rather than globally: a `Text3d` on a scrolling list re-lays out
-/// whenever its room changes, and each of those is a shaping pass. The handle
-/// from [prepare] still caches the intrinsics and the line box, so
+/// per box rather than globally: a `RenderText3d` on a scrolling list re-lays
+/// out whenever its room changes, and each of those is a shaping pass. The
+/// handle from [prepare] still caches the intrinsics and the line box, so
 /// [RenderObject3d.getMinIntrinsicExtent] and the baseline stay free either
 /// way.
 class ParagraphTextMeasurement3d extends TextMeasurement3d {

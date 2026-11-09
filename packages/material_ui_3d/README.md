@@ -15,7 +15,7 @@ those honestly. The other half is a long, ordinary list of components.
 
 **The catalogue is here.** The token layer and the theme that carries it; the
 primitive every component is made of — `Material3d` is the surface, `InkWell3d`
-makes it interactive, `Icon3d` draws a glyph, `SceneTextStyle3d` styles a group
+makes it interactive, `Icon3d` draws a glyph, `TextStyle3d` styles a group
 of labels; Material's seven buttons over one `ButtonStyle3d`, and the segmented button
 (`SegmentedButton3d`); the surfaces and
 rows (`Card3d`, `ListTile3d`, `ExpansionTile3d`, `Divider3d`, `Chip3d`,
@@ -78,8 +78,8 @@ to write: the layout package compiles the panel shader itself, for whatever
 application depends on it.
 
 Three things stand between an empty app and the screen below —
-`initializeMaterial3d()`, a `SceneLayout3d` to be the surface, and a
-`SceneTheme3d` to carry the tokens and say which renderer draws a label:
+`initializeMaterial3d()`, a `Surface3d` to be the surface, and a
+`Theme3d` to carry the tokens and say which renderer draws a label:
 
 ```dart
 Future<void> main() async {
@@ -93,17 +93,17 @@ SceneView(
   scene,
   camera: camera,
   children: [
-    SceneLayout3d(
+    Surface3d(
       size: const Size3d(3.5, 2.4, 0.6),
-      child: SceneTheme3d(
+      child: Theme3d(
         data: Theme3dData.dark,
         textRendererFactory: AtlasText3dRenderer.new,
         child: Scaffold3d(
-          appBar: const AppBar3d(title: SceneText3d('Inbox')),
-          body: SceneCenter3d(
+          appBar: const AppBar3d(title: Text3d('Inbox')),
+          body: Center3d(
             child: FilledButton3d(
               onPressed: () => debugPrint('pressed'),
-              child: const SceneText3d('Continue'),
+              child: const Text3d('Continue'),
             ),
           ),
         ),
@@ -113,7 +113,7 @@ SceneView(
 )
 ```
 
-Everything under `SceneTheme3d` is ordinary Flutter — rebuilt with `setState`,
+Everything under `Theme3d` is ordinary Flutter — rebuilt with `setState`,
 scrolled with a controller, pressed with a finger. The rest of this file is
 the reference for what you can put there, and *Getting a theme in place* below
 covers the same setup in more detail, including how a component of your own
@@ -138,8 +138,8 @@ Five of the families are Material's, transcribed:
   roles differ from the baseline. That is the generator working, not failing.
   Override any role afterwards with `copyWith`.
 - **`Typography3d`** — the fifteen-style type scale, as Flutter `TextStyle`s,
-  which `Text3d` consumes directly. Sizes are in logical pixels and stay that
-  way; `Text3d` multiplies by the metrics to reach world units.
+  which `RenderText3d` consumes directly. Sizes are in logical pixels and stay
+  that way; `RenderText3d` multiplies by the metrics to reach world units.
 - **`ShapeScale3d`** — the corner radii, `none` through `full`.
 - **`Elevation3d`** — the six levels, 0 to 12dp.
 - **`MotionScheme3d`** — sixteen durations, from 50ms to a second, and nine
@@ -169,7 +169,7 @@ component resolves it the same way:
 
 ### Two rules come with a thickness, and they cost real time
 
-**A thickness fights the depth ordering.** `Stack3d.depthStep` pulls each
+**A thickness fights the depth ordering.** `RenderStack3d.depthStep` pulls each
 successive child toward the viewer by a fixed amount, but a slab is centred on
 its own plane and reaches half its thickness forward — so two stacked children
 are genuinely separated only when the step exceeds the *mean* of their
@@ -191,7 +191,7 @@ The scale's own numbers clear its own step with half again to spare. A theme
 that makes components deeper has to raise the step with them, and `separates`
 is how a component says so out loud instead of discovering it as a stack that
 draws backwards. Note that `Thickness3d.depthStep` is in logical pixels while
-`Stack3d.depthStep` is in world units — convert at the point of use, with
+`RenderStack3d.depthStep` is in world units — convert at the point of use, with
 `metrics.dp(...)`, the way every other Material figure crosses that boundary.
 
 **A thickness is not free at the edges.** A 4dp-thick card with a 12dp corner
@@ -247,7 +247,7 @@ each. The second half of setup is therefore a widget rather than a call, and
 it goes in beside the theme:
 
 ```dart
-SceneTheme3d(
+Theme3d(
   data: Theme3dData.light,
   textRendererFactory: AtlasText3dRenderer.new,   // the other half
   child: screen,
@@ -274,7 +274,7 @@ own.
 
 ## Material3d, and everything that is one
 
-`Material3d` is a `SceneDecoratedBox3d` with the theme resolved into it. It
+`Material3d` is a `DecoratedBox3d` with the theme resolved into it. It
 owns the colour, the shape, the elevation, the state layer, and the token
 Material does not have because a screen has none of it — the thickness. Every
 property is nullable and falls back to the theme, so a bare one is a flat
@@ -290,11 +290,11 @@ Material3d(
   alignment: null,
   child: InkWell3d(
     onTap: _submit,
-    child: ScenePadding3d(
+    child: Padding3d(
       padding: metrics.dpInsets(
         const EdgeInsets3d.symmetric(horizontal: 24, vertical: 10),
       ),
-      child: const SceneText3d('Continue'),
+      child: const Text3d('Continue'),
     ),
   ),
 )
@@ -302,7 +302,7 @@ Material3d(
 
 Everything it takes is in logical pixels, including its own `padding` and the
 thickness, which it converts through `Layout3dMetricsScope.of(context)` — so
-**a `Material3d` has to be built inside a `SceneLayout3d`**, and asserts when
+**a `Material3d` has to be built inside a `Surface3d`**, and asserts when
 it is not.
 
 **An interactive surface puts its padding inside the well**, as above, and
@@ -310,7 +310,7 @@ not in `Material3d.padding`. A panel answers a ray on its own account, so a
 padding outside the well is a rim that takes a press and does nothing with
 it — every button, chip and tile in this catalogue had one until phase 4 of
 [the components plan](plans/2026_09_21_the_components_a_screen_still_needs.md)
-pressed a control near its edge. `ScenePadding3d` takes world units, which is
+pressed a control near its edge. `Padding3d` takes world units, which is
 why the example converts.
 
 `contentColor` does two jobs, which is why it is one property: it is the
@@ -339,7 +339,7 @@ its face still wants `Thickness3d.stepOver`.
 `InkWell3d` drives the surface's state layer through an `InkController3d` that
 the enclosing `Material3d` publishes, and never through `setState`. That is
 not a micro-optimisation; it is the design of the whole decoration layer.
-`DecoratedBox3d.stateLayer` is a setter that writes one shader uniform and
+`RenderDecoratedBox3d.stateLayer` is a setter that writes one shader uniform and
 touches layout nowhere, so a pointer crossing a list of twenty tiles costs
 twenty uniform writes and no layout at all. An ink well that rebuilt on every
 hover would throw that away and take the repaint-only tier with it. The
@@ -361,7 +361,7 @@ shader uniform **every frame**, and it stays exactly where the hover is:
 Material3d(                     // creates the ticker the ripple runs on
   child: InkWell3d(             // says where the press landed
     onTap: submit,
-    child: const SceneText3d('Continue'),
+    child: const Text3d('Continue'),
   ),
 )
 ```
@@ -422,15 +422,15 @@ Every Material button is here, and they are all the same widget:
 
 ```dart
 FilledButton3d(onPressed: _save, semanticLabel: 'Save',
-    child: const SceneText3d('Save')),
+    child: const Text3d('Save')),
 FilledTonalButton3d(onPressed: _share, semanticLabel: 'Share',
-    child: const SceneText3d('Share')),
+    child: const Text3d('Share')),
 OutlinedButton3d(onPressed: _cancel, semanticLabel: 'Cancel',
-    child: const SceneText3d('Cancel')),
+    child: const Text3d('Cancel')),
 TextButton3d(onPressed: _more, semanticLabel: 'More',
-    child: const SceneText3d('More')),
+    child: const Text3d('More')),
 ElevatedButton3d(onPressed: _open, semanticLabel: 'Open',
-    child: const SceneText3d('Open')),
+    child: const Text3d('Open')),
 IconButton3d(icon: Icons.close, onPressed: _dismiss, semanticLabel: 'Close'),
 FloatingActionButton3d(onPressed: _compose, semanticLabel: 'Compose',
     child: const Icon3d(Icons.edit)),
@@ -464,21 +464,21 @@ class _ButtonDemoState extends State<ButtonDemo> {
   var _saved = false;
 
   @override
-  Widget build(BuildContext context) => SceneLayout3d(
+  Widget build(BuildContext context) => Surface3d(
     parent: widget.parent,
     size: const Size3d(4, 3, 0.5),
-    child: SceneTheme3d(
+    child: Theme3d(
       data: Theme3dData.light,
       textRendererFactory: AtlasText3dRenderer.new,
-      child: SceneCenter3d(
-        child: SceneRow3d(
+      child: Center3d(
+        child: Row3d(
           mainAxisSize: MainAxisSize3d.min,
           spacing: 0.16,
           children: <Widget>[
             FilledButton3d(
               onPressed: () => setState(() => _saved = true),
               semanticLabel: 'Save',
-              child: const SceneText3d('Save'),
+              child: const Text3d('Save'),
             ),
             // Disabled once it has been saved. There is no opacity anywhere
             // in this stack, so it is drawn in different colours instead:
@@ -486,7 +486,7 @@ class _ButtonDemoState extends State<ButtonDemo> {
             TextButton3d(
               onPressed: _saved ? null : () {},
               semanticLabel: 'Discard',
-              child: const SceneText3d('Discard'),
+              child: const Text3d('Discard'),
             ),
           ],
         ),
@@ -497,7 +497,7 @@ class _ButtonDemoState extends State<ButtonDemo> {
 ```
 
 The `spacing` is in **world units**, not logical pixels, and that is the unit
-contract rather than an oversight: `SceneRow3d` belongs to the layout package,
+contract rather than an oversight: `Row3d` belongs to the layout package,
 where every extent is a world unit. Convert a specification figure with
 `Layout3dMetricsScope.of(context).dp(16)` — the buttons' own figures are dp
 because a `ButtonStyle3d` is a token set and `Button3d` converts them.
@@ -517,7 +517,7 @@ FilledButton3d(
   style: ButtonStyle3d.of(Theme3d.of(context), ButtonVariant3d.filled)
       .copyWith(shape: theme.shape.small),
   onPressed: _save,
-  child: const SceneText3d('Save'),
+  child: const Text3d('Save'),
 )
 ```
 
@@ -541,11 +541,11 @@ A Material button is 40dp tall and answers a finger over 48dp. Those are not
 in conflict: the extra reach is in the **hit test** rather than in the extent,
 so a row of buttons stays 40dp tall and nothing moves apart to make room.
 
-The rule that makes it work is the one to remember. A `TapTarget3d` reaches
-past its own extent and **every ancestor gates a ray on its own extent**, so
-anything wrapped around the target at the button's own size rejects a press in
-the margin before the target ever sees it. `Button3d` therefore puts the
-target outermost — outside the panel *and* outside the semantics box — and
+The rule that makes it work is the one to remember. A `RenderTapTarget3d`
+reaches past its own extent and **every ancestor gates a ray on its own
+extent**, so anything wrapped around the target at the button's own size rejects
+a press in the margin before the target ever sees it. `Button3d` therefore puts
+the target outermost — outside the panel *and* outside the semantics box — and
 asks the ink well inside for `minimumSize: Size3d.zero`, so there is one
 target rather than two nested ones disagreeing about where the control is.
 
@@ -575,11 +575,11 @@ size.
 ### Announcing itself
 
 Every button publishes `button: true`, its enabled state and its `onTap`
-through `Semantics3d`. **State the `semanticLabel`.** `Semantics3d` publishes
-what it is given and does not gather a label from the labels below it the way
-Flutter's `Semantics(container: true)` merge does — there is no semantics tree
-under a scene node to fold up — so a button without one announces itself as a
-button with no name.
+through `RenderSemantics3d`. **State the `semanticLabel`.** `RenderSemantics3d`
+publishes what it is given and does not gather a label from the labels below it
+the way Flutter's `Semantics(container: true)` merge does — there is no
+semantics tree under a scene node to fold up — so a button without one announces
+itself as a button with no name.
 
 **The `textDirection` beside it is not optional, and you do not have to supply
 it.** `SemanticsData` asserts that a non-empty label carries a reading
@@ -588,9 +588,9 @@ headless `flutter test` never runs and a screen reader runs on every frame. So
 every component here resolves null to the enclosing `Directionality`, exactly
 as Flutter's own `Semantics` widget does, and falls back to `ltr` when a
 surface is mounted with nothing above it to ask. Pass `textDirection`
-explicitly only when a particular string reads the other way. A `Semantics3d`
-you write **yourself**, in the imperative layer, has no `BuildContext` and must
-state its own.
+explicitly only when a particular string reads the other way. A
+`RenderSemantics3d` you write **yourself**, in the imperative layer, has no
+`BuildContext` and must state its own.
 
 **That `textDirection` is what a component announces in, not how it is laid
 out.** The layout follows the ambient `Directionality`, as Flutter's components
@@ -631,7 +631,7 @@ in this stack — a clip region is an intersection of planes, and so convex —
 but each segment is a `Material3d` of its own anyway, for its own wash, so the
 two end ones are drawn with the stadium's radius on their outer corners and
 square inside. The fill comes out the shape Flutter's clip leaves, cut by the
-panel's own signed distance field: the answer `SceneImage3d` found for a
+panel's own signed distance field: the answer `Image3d` found for a
 picture in a rounded card, a second time. The outline and the rules between
 segments are one transparent slab in front, which takes no press.
 
@@ -650,7 +650,7 @@ Everything above is a control. This is what a screen is made of.
 ElevatedCard3d(
   onTap: _open,
   semanticLabel: 'Yesterday',
-  child: SceneColumn3d(
+  child: Column3d(
     mainAxisSize: MainAxisSize3d.min,
     children: <Widget>[
       ListTile3d.text(
@@ -697,7 +697,7 @@ viewer, so a badge resting on a 24dp icon's plane would have the icon's
 corner standing through it. `BadgeStyle3d.depthStep` clears that wall, on the
 node tier. It may be wider than its child — a three-digit count on a 24dp
 icon — which is why it is placed by a box of its own rather than by a
-`Positioned3d`: a stack caps a positioned child at its own size. And it
+`RenderPositioned3d`: a stack caps a positioned child at its own size. And it
 announces nothing unless given a `semanticLabel`, because "3" is not a thing a
 reader can act on and only the application knows what it counts.
 
@@ -715,9 +715,9 @@ children are revealed under it, on Flutter's 200ms and `Curves.easeIn`, with a
 rule of `outline` above and below an open tile. **It is the one animation in
 the catalogue that lays out on every frame**, and it should: the tile grows,
 the rows under it move, and only layout moves them. What it keeps is that a
-frame of the reveal builds nothing and measures no text — a box writes an
-`Align3d`'s height factor from the clock, and the chevron turns on the node
-tier. The children leave the tree once a close finishes, unless
+frame of the reveal builds nothing and measures no text — a box writes a
+`RenderAlign3d`'s height factor from the clock, and the chevron turns on the
+node tier. The children leave the tree once a close finishes, unless
 `maintainState`.
 
 ### A card inside a scrolling list keeps its depth
@@ -730,10 +730,10 @@ stands proud of the list everywhere else, which is what a card in a scroll
 view should do and is not what a naive box clip would give you.
 `examples/render_probe`'s `card_in_clipped_list` is the picture of it.
 
-`ClipBox3d(clipDepth: true)` bounds the thickness as well — and it still will
-not slice a raised card off flush with the list, because the planes are in the
-box's own frame and an elevation moves the slab's *node*, outside that frame.
-A depth clip cuts a box's layout depth, never its lift.
+`RenderClipBox3d(clipDepth: true)` bounds the thickness as well — and it still
+will not slice a raised card off flush with the list, because the planes are in
+the box's own frame and an elevation moves the slab's *node*, outside that
+frame. A depth clip cuts a box's layout depth, never its lift.
 
 ### The tile, the heights, and the density
 
@@ -749,13 +749,13 @@ The figures are checked against Flutter rather than transcribed: the tests
 pump a real `ListTile` and read the height it lays out at.
 
 **It takes its title as a string, and that is the interesting part.** A
-`Semantics3d` publishes what it is given and gathers nothing, so a component
-states its own label — which is a formality for a button and a real question
-for a row with a title *and* a subtitle. `ListTile3d.text(title:, subtitle:)`
-builds the labels **and** the announcement, `'Inbox, 12 unread'`, which is
-what Flutter's semantics merge would have produced. The general constructor
-takes widgets and a `semanticLabel`, and a tile written that way with no label
-announces a row with no name.
+`RenderSemantics3d` publishes what it is given and gathers nothing, so a
+component states its own label — which is a formality for a button and a real
+question for a row with a title *and* a subtitle. `ListTile3d.text(title:,
+subtitle:)` builds the labels **and** the announcement, `'Inbox, 12 unread'`,
+which is what Flutter's semantics merge would have produced. The general
+constructor takes widgets and a `semanticLabel`, and a tile written that way
+with no label announces a row with no name.
 
 ### A 1dp line, and why it has a thickness
 
@@ -793,7 +793,7 @@ section break.
 
 ```dart
 FilterChip3d(
-  label: const SceneText3d('Unread'),
+  label: const Text3d('Unread'),
   selected: _unreadOnly,
   onSelected: (value) => setState(() => _unreadOnly = value),
   semanticLabel: 'Unread only',
@@ -801,10 +801,10 @@ FilterChip3d(
 ```
 
 A chip is **32dp tall** — the smallest control in the catalogue and sixteen
-short of Material's minimum touch target — which is where the `TapTarget3d`
-reach stops being a formality and starts doing real work. A chip answers a
-finger 8dp above and below itself while a row of chips stays 32dp tall and
-nothing moves apart to make room.
+short of Material's minimum touch target — which is where the
+`RenderTapTarget3d` reach stops being a formality and starts doing real work. A
+chip answers a finger 8dp above and below itself while a row of chips stays 32dp
+tall and nothing moves apart to make room.
 
 Selection is a **token substitution**, not a wash: a selected chip is a filled
 `secondaryContainer` with no outline, an unselected one transparent inside an
@@ -816,8 +816,8 @@ two cannot disagree.
 `onDeleted` puts a delete affordance in the trailing slot. It is a plain
 gesture with its own semantics rather than a nested `InkWell3d`, and the
 reason is a rule worth knowing before you try to improve it: a second
-`TapTarget3d` inside the chip's panel would be gated by the panel — a target
-reaches past its own extent, its ancestors do not — so its reach would be
+`RenderTapTarget3d` inside the chip's panel would be gated by the panel — a
+target reaches past its own extent, its ancestors do not — so its reach would be
 silently inert; and an ink well there would find the *enclosing* surface's ink
 controller and light the whole chip up. What works is the innermost recognizer
 winning the arena, which it does, exactly as in Flutter.
@@ -835,13 +835,13 @@ laid out between. `ChipStyle3d.pressElevation` is the figure.
 
 `Scaffold3d` is the screen. It owns three things and merely positions
 everything else: the backing every screen has, the arrangement — a
-`CustomMultiChildLayout3d`, exactly as Flutter's `Scaffold` is one, with the
-body given whatever the bars left over — and the **depths**.
+`RenderCustomMultiChildLayout3d`, exactly as Flutter's `Scaffold` is one, with
+the body given whatever the bars left over — and the **depths**.
 
 ```dart
 Scaffold3d(
   appBar: AppBar3d.text(title: 'Inbox'),
-  body: SceneListView3d(children: rows),
+  body: ListView3d(children: rows),
   bottomNavigationBar: NavigationBar3d(
     selectedIndex: _index,
     destinations: const <NavigationDestination3d>[
@@ -867,10 +867,10 @@ application that wants a full-view screen says so once, where it mounts the
 surface:
 
 ```dart
-SceneLayout3d(
+Surface3d(
   camera: camera,
   binding: const Layout3dCameraBinding.screenFilling(distance: 2),
-  child: SceneTheme3d(
+  child: Theme3d(
     data: Theme3dData.light,
     textRendererFactory: AtlasText3dRenderer.new,
     child: Scaffold3d(appBar: bar, body: body),
@@ -898,23 +898,23 @@ with half again to spare. `Scaffold3d.liftFor` is that arrangement as
 arithmetic, so anything mounted over a screen can state its own lift against
 it rather than guessing.
 
-The body is inside a `SceneClipBox3d`, and it has to be: a list is taller than
+The body is inside a `ClipBox3d`, and it has to be: a list is taller than
 the room it was given, and without a window its rows draw over the bars rather
 than ending at them. The window clips the **face and not the depth**, so a
 raised card in the body still stands proud of the screen.
 
 **Where that lift is written matters more than the figure.** It goes on the node
 tier — each slot is *positioned* at z zero and its geometry is moved forward
-by a `NodeShift3d` — and not into the position the arrangement gives the slot,
-which is what it used to be. Toward the viewer is negative z, so a slot lifted
-by its position sits outside its parent's own extent, and
+by a `RenderNodeShift3d` — and not into the position the arrangement gives the
+slot, which is what it used to be. Toward the viewer is negative z, so a slot
+lifted by its position sits outside its parent's own extent, and
 `RenderObject3d.hitTest` clamps the ray to the stretch inside each box before it
 asks that box's children. A screen lifted that way drew perfectly and **could
 not be pressed anywhere**: the scaffold's own backing answered every hit. The
 node tier draws identically and keeps the boxes where layout put them, which is
-what a ray looks for. `Stack3d.depthStep` has always separated its children that
-way, for the same reason, and `ParentData3d.sceneOffset` says so in as many
-words.
+what a ray looks for. `RenderStack3d.depthStep` has always separated its
+children that way, for the same reason, and `ParentData3d.sceneOffset` says so
+in as many words.
 
 The backing is a **sibling** of the arrangement rather than its parent, for the
 other half of the same story: a `Material3d`'s thickness is a *tight* depth
@@ -936,11 +936,11 @@ under, and it is a sliver — so it goes in the body's own scroll view, never in
 the `appBar` slot:
 
 ```dart
-SceneCustomScrollView3d(
+CustomScrollView3d(
   controller: _scroll,
   slivers: <Widget>[
     SliverAppBar3d.text(title: 'Inbox', pinned: true),
-    SceneSliverList3d(children: rows),
+    SliverList3d(children: rows),
   ],
 )
 ```
@@ -952,11 +952,11 @@ the title takes there: `small` and `centerAligned` at 64dp, `medium` at 112 and
 
 **Two mechanisms keep a row out of a sliver bar, and neither is enough alone.**
 The bar's geometry is pulled toward the viewer by `lift`, so content passes
-behind it; and `CustomScrollView3d` publishes a clip plane at the bar's
+behind it; and `RenderCustomScrollView3d` publishes a clip plane at the bar's
 trailing edge, which is what cuts a row *in half* there. `SliverAppBar3d`
 defaults the lift to the theme's `thickness.depthStep` rather than to
-`SliverPersistentHeader3d`'s one logical pixel, for the arithmetic above: one
-pixel separates two decals, not two slabs.
+`RenderSliverPersistentHeader3d`'s one logical pixel, for the arithmetic above:
+one pixel separates two decals, not two slabs.
 
 That clip is the claim this package's plans had made twice and nobody had
 photographed. When phase 5 finally did, it was **not happening** — a viewport
@@ -997,7 +997,7 @@ IconButton3d(
       selectedIndex: _screen,
       onDestinationSelected: (index) {
         setState(() => _screen = index);
-        Navigator3d.of(SceneOverlay3d.of(context))?.pop();
+        Navigator3d.of(Overlay3d.of(context))?.pop();
       },
       semanticLabel: 'Mail',
       children: const <Widget>[
@@ -1035,12 +1035,12 @@ the body, so a body under both is told only about the notch at its sides, and
 the floating action button stays 16dp clear of whatever is below it and of
 the trailing inset. An app bar that is not at the top of anything says
 `primary: false`. A screen with no bars is told about everything and puts
-`SceneSafeArea3d` where it wants the room.
+`SafeArea3d` where it wants the room.
 
 **Type grows with the reader's setting, and three things do not follow it all
 the way.** Icons do not grow at all, because Flutter's never do. A navigation
 bar's labels stop at 1.3 and an app bar's title at 1.34, Flutter's own
-ceilings, through the layout package's `SceneTextScaling3d.clamped`, so the
+ceilings, through the layout package's `TextScaling3d.clamped`, so the
 bars keep their hierarchy at any setting. Everything else — buttons, chips,
 tiles, menus, dialogs — has a *minimum* height rather than a fixed one and
 grows with its label; `test/type_that_grows_test.dart` lays a screen's worth
@@ -1053,10 +1053,10 @@ turned, over one `NavigationStyle3d` in two variants — 80dp either way, a bar
 raised to level 2 on `surfaceContainer` and a rail flat on `surface`.
 
 A destination takes its label as a **`String`**, not a widget, and that is the
-phase-4 rule applied rather than a shortcut: a `Semantics3d` gathers nothing
-from below, so a destination that took a widget would have to be told its own
-name twice. One string builds the visible label and the announcement, and they
-cannot disagree.
+phase-4 rule applied rather than a shortcut: a `RenderSemantics3d` gathers
+nothing from below, so a destination that took a widget would have to be told
+its own name twice. One string builds the visible label and the announcement,
+and they cannot disagree.
 
 Material's selection indicator — the pill behind the selected icon — needed no
 new machinery. A stadium is a rounded rectangle whose radius clears half its
@@ -1075,12 +1075,12 @@ all — the horizontal one is what a list needs, and until there was a rail
 nothing had two things to separate:
 
 ```dart
-SceneRow3d(
+Row3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
     NavigationRail3d(selectedIndex: _index, destinations: destinations),
     const VerticalDivider3d(),
-    SceneExpanded3d(child: body),
+    Expanded3d(child: body),
   ],
 )
 ```
@@ -1096,11 +1096,11 @@ the surface or above it:
 ```dart
 DefaultTabController(
   length: 2,
-  child: SceneColumn3d(
+  child: Column3d(
     crossAxisAlignment: CrossAxisAlignment3d.stretch,
     children: <Widget>[
       const TabBar3d(tabs: <Tab3d>[Tab3d(text: 'Inbox'), Tab3d(text: 'Sent')]),
-      SceneExpanded3d(child: TabBarView3d(children: <Widget>[inbox, sent])),
+      Expanded3d(child: TabBarView3d(children: <Widget>[inbox, sent])),
     ],
   ),
 )
@@ -1129,19 +1129,19 @@ its own window, as Flutter's does by default. Two things to know:
 
 ## The overlays: dialogs, menus, snack bars, tooltips and sheets
 
-Everything that goes *in front* of a screen goes through `Overlay3d`, which
-belongs to the surface rather than to the `Scaffold3d` — so a dialog can outlive
-the screen that opened it and a barrier can cover the whole panel. What an
-application has to do is put one there, and hang a messenger inside it:
+Everything that goes *in front* of a screen goes through `RenderOverlay3d`,
+which belongs to the surface rather than to the `Scaffold3d` — so a dialog can
+outlive the screen that opened it and a barrier can cover the whole panel. What
+an application has to do is put one there, and hang a messenger inside it:
 
 ```dart
-SceneLayout3d(
+Surface3d(
   camera: camera,
   binding: const Layout3dCameraBinding.screenFilling(distance: 2),
-  child: SceneTheme3d(
+  child: Theme3d(
     data: Theme3dData.light,
     textRendererFactory: AtlasText3dRenderer.new,
-    child: SceneOverlay3d(
+    child: Overlay3d(
       camera: camera,
       child: ScaffoldMessenger3d(
         child: Scaffold3d(appBar: bar, body: body),
@@ -1168,14 +1168,14 @@ Future<void> _confirmDelete(BuildContext context) async {
         TextButton3d(
           semanticLabel: 'Cancel',
           onPressed: () =>
-              Navigator3d.of(SceneOverlay3d.of(context))?.pop(false),
-          child: const SceneText3d('Cancel'),
+              Navigator3d.of(Overlay3d.of(context))?.pop(false),
+          child: const Text3d('Cancel'),
         ),
         TextButton3d(
           semanticLabel: 'Delete',
           onPressed: () =>
-              Navigator3d.of(SceneOverlay3d.of(context))?.pop(true),
-          child: const SceneText3d('Delete'),
+              Navigator3d.of(Overlay3d.of(context))?.pop(true),
+          child: const Text3d('Delete'),
         ),
       ],
     ),
@@ -1247,9 +1247,9 @@ the dialog, which needs a real `thickness.depthStep` between them.
 **The 32% is spent as coverage rather than as a blend**, and that is the part
 worth reading before you write a scrim of your own. The slab draws in its
 colour at full strength and keeps 32% of its fragments — the same screen-door
-`Opacity3d` fades a subtree with. It has to, because a *blended* slab in front
-of a screen is composited in whatever order the translucent pass sorts it, and
-every panel and every glyph here writes depth: a 32%-alpha scrim did not dim
+`RenderOpacity3d` fades a subtree with. It has to, because a *blended* slab in
+front of a screen is composited in whatever order the translucent pass sorts it,
+and every panel and every glyph here writes depth: a 32%-alpha scrim did not dim
 the screen unevenly, it **erased** whatever the sort put after it. An app bar's
 title came out as a bare outline while the navigation bar's labels were
 untouched. Four treatments were built over the gallery and photographed, the
@@ -1263,9 +1263,9 @@ opaque scrim colour hides the screen rather than dimming it.
 
 The lift is the other half. A `Scaffold3d` has already spent four depth steps
 on its own slots by the time anything is put in front of it, and the frontmost
-of them is a slab in its own right, so `Overlay3d.defaultLift` — eight logical
-pixels, a depth-buffer separation between two things with no thickness — is
-about a seventh of what is needed. Every overlay here takes its lift from
+of them is a slab in its own right, so `RenderOverlay3d.defaultLift` — eight
+logical pixels, a depth-buffer separation between two things with no thickness —
+is about a seventh of what is needed. Every overlay here takes its lift from
 `Scaffold3d.overlayLift(theme.thickness.depthStep)`, which is one step in front
 of `Scaffold3dSlot.values.last`. That is 60dp at the baseline scale, and it is
 arithmetic rather than a figure: adding a slot to the scaffold moves the
@@ -1276,9 +1276,10 @@ overlays with it.
 An overlay entry is placed by the overlay's own alignment, which is in the
 middle of the panel and nowhere near the button that asked for a menu. There is
 no `CompositedTransformTarget` here; there is `RenderObject3d.anchorOffsetTo`,
-which this package drives through `Anchor3d` (around the trigger) and
-`Follower3d` (around the menu). It answers a `nodeOffset`, so anchoring is the
-node tier: one matrix, no relayout, and re-anchoring every frame costs nothing.
+which this package drives through `RenderAnchor3d` (around the trigger) and
+`RenderFollower3d` (around the menu). It answers a `nodeOffset`, so anchoring is
+the node tier: one matrix, no relayout, and re-anchoring every frame costs
+nothing.
 
 It **follows** rather than closing. Three hooks, because the ways a button can
 move are not one kind of event: the follower re-anchors when it is placed, when
@@ -1309,9 +1310,9 @@ PopupMenuButton3d<String>(
 
 ### The messenger queues, and waiting costs nothing
 
-`ScaffoldMessenger3d` is Flutter's, in the shape a catalogue over `Overlay3d`
-can have it: one bar at a time, a duration per bar, and a future per bar
-carrying **why** it went away.
+`ScaffoldMessenger3d` is Flutter's, in the shape a catalogue over
+`RenderOverlay3d` can have it: one bar at a time, a duration per bar, and a
+future per bar carrying **why** it went away.
 
 ```dart
 final shown = ScaffoldMessenger3d.of(context).show(
@@ -1352,7 +1353,7 @@ style — a `Motion3d` saying *what moves*, two durations and two curves saying
 
 ```dart
 // Every overlay in the catalogue, twice as slow.
-SceneTheme3d(
+Theme3d(
   data: Theme3dData.light.copyWith(
     motion: MotionScheme3d.baseline.copyWith(
       short3: const Duration(milliseconds: 300),   // the dialog
@@ -1367,12 +1368,12 @@ SceneTheme3d(
 Three things about it are worth knowing before you build on it.
 
 **The motion is not the clock, and the split is load-bearing here.** A route
-carries a `Route3dTransition` and the content carries a `MotionTransition3d`,
-and this catalogue is the first thing to pay for keeping them apart: a modal
-here builds its own scrim, so a transition wrapped around the whole of a
-route's content would slide the dim in with the dialog it dims. The motion
-goes *inside* the barrier, around the content only, and the scrim fades on a
-box of its own.
+carries a `Route3dTransition` and the content carries a
+`RenderMotionTransition3d`, and this catalogue is the first thing to pay for
+keeping them apart: a modal here builds its own scrim, so a transition wrapped
+around the whole of a route's content would slide the dim in with the dialog it
+dims. The motion goes *inside* the barrier, around the content only, and the
+scrim fades on a box of its own.
 
 **The curves are M3's and not Flutter's, on purpose.** Flutter opens a dialog
 on `Curves.easeOut` and a modal sheet on `Easing.legacyDecelerate`, both of
@@ -1422,7 +1423,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
   double _volume = 0.4;
 
   @override
-  Widget build(BuildContext context) => SceneColumn3d(
+  Widget build(BuildContext context) => Column3d(
     crossAxisAlignment: CrossAxisAlignment3d.start,
     children: <Widget>[
       Checkbox3d(
@@ -1452,9 +1453,9 @@ class _SettingsPanelState extends State<SettingsPanel> {
 ```
 
 Each one **states its own name**, for the reason every component here does: a
-`Semantics3d` publishes what it is given and gathers nothing from the label
-beside it. What it does not need to be told is the state — a checkbox and a
-radio publish `checked`, a switch publishes `toggled`, and a slider publishes
+`RenderSemantics3d` publishes what it is given and gathers nothing from the
+label beside it. What it does not need to be told is the state — a checkbox and
+a radio publish `checked`, a switch publishes `toggled`, and a slider publishes
 `slider` with a formatted `value`. Flutter draws that distinction and it is
 worth keeping: a reader says "ticked" for one and "on" for the other.
 
@@ -1481,8 +1482,8 @@ SwitchListTile3d.text(
 
 **The row is the control, and the switch in it is only its picture.** Flutter
 makes its `SwitchListTile` announce once by merging the row's semantics with
-the switch's, and there is no merge here — a `Semantics3d` gathers nothing —
-so the answer is to have one control to begin with. The switch inside
+the switch's, and there is no merge here — a `RenderSemantics3d` gathers nothing
+— so the answer is to have one control to begin with. The switch inside
 publishes nothing, takes no focus and answers no ray; the row does all of it,
 over its whole rectangle, with the switch's `toggled` and the title as the one
 announcement. `.text` composes that label from the title and the subtitle.
@@ -1499,7 +1500,7 @@ written with a group that holds the value once:
 RadioGroup3d<String>(
   groupValue: _delivery,
   onChanged: (value) => setState(() => _delivery = value ?? _delivery),
-  child: SceneColumn3d(
+  child: Column3d(
     mainAxisSize: MainAxisSize3d.min,
     depthAxisAlignment: CrossAxisAlignment3d.start,
     children: <Widget>[
@@ -1524,9 +1525,9 @@ that is a traversal rule the layout package does not have yet.
 
 A checkbox is **18dp of ink inside a 40dp wash inside a 48dp touch target**.
 That is Material's own arrangement, and here it has to be three separate boxes
-rather than one padded one, because a `TapTarget3d` reaches past its own extent
-and its parent does not. So the reach sits outside the wash, the wash is the
-control's own extent, and the ink is a slab on top of it.
+rather than one padded one, because a `RenderTapTarget3d` reaches past its own
+extent and its parent does not. So the reach sits outside the wash, the wash is
+the control's own extent, and the ink is a slab on top of it.
 
 The consequence is the one this catalogue keeps meeting, at its sharpest here:
 a row of checkboxes is **40dp tall** and answers a finger over 48dp, so there
@@ -1560,7 +1561,7 @@ for. Small type here is not a resolution problem.
 `docs/traps.md` lists three tiers of change — repaint only, node only, and a
 real relayout — and a thumb moving along a track is squarely the second. So a
 slider's thumb is a `nodeOffset` and its *fill* a `nodeTransform`, both written
-by `SceneNodeShift3d`, and neither calls `markNeedsLayout`.
+by `NodeShift3d`, and neither calls `markNeedsLayout`.
 
 A switch's thumb does more, and all of it on the same tier. A toggle is
 Flutter's three motions over `theme.motion.medium2`: the thumb **slides** on an
@@ -1600,13 +1601,13 @@ arena. Two of Flutter's four recognizers do not fire in this build, which is
 why `PointerSequence3d.addArenaMember` exists — the drag plan named "a knob, a
 slider, a rotation handle" as its customers, and this is the first of them.
 
-`SliderGesture3d` is that member, and it is exported on its own because it is
-the reusable half: it enters the arena on the press so a view underneath waits
-for the touch slop rather than scrolling out from under the gesture, claims the
-pointer when the finger crosses the slop along the slider's own axis, and gives
-it up quietly when the list claims first. A press that never moves is a **tap**,
-and it claims at the up — which is legal because what ends an arena is the
-sweep, not the close.
+`RenderSliderGesture3d` is that member, and it is exported on its own because it
+is the reusable half: it enters the arena on the press so a view underneath
+waits for the touch slop rather than scrolling out from under the gesture,
+claims the pointer when the finger crosses the slop along the slider's own axis,
+and gives it up quietly when the list claims first. A press that never moves is
+a **tap**, and it claims at the up — which is legal because what ends an arena
+is the sweep, not the close.
 
 `Slider3d` takes an explicit `width` in logical pixels, defaulting to
 Material's narrowest 144dp, where Flutter's fills whatever room it is given.
@@ -1645,7 +1646,7 @@ scene has nothing to add to.
 parameter for parameter, over one `ProgressIndicatorStyle3d`:
 
 ```dart
-SceneColumn3d(
+Column3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
     LinearProgressIndicator3d(
@@ -1693,7 +1694,7 @@ asks their painters where the lines and the arc went.
 ## Icons are a font, and it was checked rather than assumed
 
 `Icon3d` is one code point of an icon font drawn as a one-character
-`SceneText3d`, out of the same glyph atlas as every label. The catalogue plan
+`Text3d`, out of the same glyph atlas as every label. The catalogue plan
 guessed that would work; `examples/render_probe`'s `icon_glyph` scene proved
 it on a GPU, next to a control with no renderer that draws nothing. So an icon
 costs a handful of triangles, a screen of icons and labels is one texture, and
@@ -1739,13 +1740,13 @@ theme.textStyle(Typography3dToken.labelLarge, color: theme.colorScheme.onPrimary
 ```
 
 For a group of labels that share a role — a list tile's supporting text, a
-section of captions — `SceneTextStyle3d` installs it for a subtree and merges
+section of captions — `TextStyle3d` installs it for a subtree and merges
 rather than replaces, so an enclosing colour survives an inner style that does
 not state one.
 
 ## Getting a theme in place
 
-`SceneTheme3d` installs both halves of the theme channel at once, and both are
+`Theme3d` installs both halves of the theme channel at once, and both are
 needed. The widget layer reads `Theme3d.of(context)`, like any inherited
 widget. The imperative layer cannot: a `RenderObject3d` is not a widget and
 `performLayout` is not a build, so there is no `BuildContext` anywhere near
@@ -1759,13 +1760,13 @@ import 'package:flutter_scene/scene.dart';
 import 'package:flutter_ui_3d/widgets.dart';
 import 'package:material_ui_3d/material_ui_3d.dart';
 
-Widget screen(Node parent) => SceneLayout3d(
+Widget screen(Node parent) => Surface3d(
   parent: parent,
   size: const Size3d(4, 3, 0.5),
-  child: SceneTheme3d(
+  child: Theme3d(
     data: Theme3dData.dark,
     textRendererFactory: AtlasText3dRenderer.new,
-    child: SceneCenter3d(
+    child: Center3d(
       child: Builder(
         builder: (context) {
           final theme = Theme3d.of(context);
@@ -1784,7 +1785,7 @@ Widget screen(Node parent) => SceneLayout3d(
             ),
             child: InkWell3d(
               onTap: () => debugPrint('tapped'),
-              child: const SceneText3d('Continue'),
+              child: const Text3d('Continue'),
             ),
           );
         },
@@ -1819,14 +1820,14 @@ class ThemedSlab extends RenderObject3d {
 }
 ```
 
-`SceneTheme3d` is a layout widget, so it goes *inside* the surface, under a
-`SceneLayout3d` and not above it — the slot is written by a box that has to
+`Theme3d` is a layout widget, so it goes *inside* the surface, under a
+`Surface3d` and not above it — the slot is written by a box that has to
 attach to an owner before it can write anything. To theme a subtree with no
-layout in it, use `Theme3d` on its own; to theme a surface built imperatively,
-hand the slot straight to the surface:
+layout in it, use `InheritedTheme3d` on its own; to theme a surface built
+imperatively, hand the slot straight to the surface:
 
 ```dart
-SceneLayout3d(
+Surface3d(
   slots: {Theme3dData.slot: Theme3dData.dark},   // not a const map, see below
   child: screen,
 )
@@ -1869,18 +1870,18 @@ through `Layout3dMetricsScope.of(context)`:
 
 ```dart
 final metrics = Layout3dMetricsScope.of(context);
-ScenePadding3d(padding: metrics.dpInsets(const EdgeInsets3d.all(16)), ...)
+Padding3d(padding: metrics.dpInsets(const EdgeInsets3d.all(16)), ...)
 ```
 
 `Material3d` does that for you — its `padding` and `thickness` are in logical
-pixels — which is why it has to be built inside a `SceneLayout3d`. A
-`ScenePadding3d` or a `SceneSizedBox3d` you write yourself takes world units
+pixels — which is why it has to be built inside a `Surface3d`. A
+`Padding3d` or a `SizedBox3d` you write yourself takes world units
 and always will, and nothing warns you if you forget to convert.
 
 ## What a theme deliberately does not do
 
 **It does not install a text renderer unless you ask.**
-`SceneTheme3d.textRendererFactory` is null by default; pass one — a
+`Theme3d.textRendererFactory` is null by default; pass one — a
 constructor tear-off such as `AtlasText3dRenderer.new` — and the child is
 wrapped in a `DefaultTextRenderer3d`, so an application says "here is my
 theme, and here is how labels are drawn" in one call. It is not the default
@@ -1905,12 +1906,12 @@ Flutter draws a disabled control by compositing it at 38% opacity. This
 catalogue substitutes colours instead, and it did so originally because there
 was no subtree opacity in this stack at all.
 
-There is one now — `Opacity3d`, in the layout package — and the substitution
-stays, for a better reason than the absence was. Flutter's 38% is a
+There is one now — `RenderOpacity3d`, in the layout package — and the
+substitution stays, for a better reason than the absence was. Flutter's 38% is a
 `saveLayer`: the control is composited and *then* faded, so its label keeps
-its contrast against its own slab. `Opacity3d` is screen-door coverage, which
-fades the label and the slab independently, so a disabled button drawn that
-way would have a label a little too strong against a container a little too
+its contrast against its own slab. `RenderOpacity3d` is screen-door coverage,
+which fades the label and the slab independently, so a disabled button drawn
+that way would have a label a little too strong against a container a little too
 weak — the exact place the approximation is widest. The token substitution has
 no such error, and the figures it uses are the ones Material's specification
 states as the *result* of the 38%.
@@ -1919,7 +1920,7 @@ So a disabled control here is expressed by *substituting tokens*:
 `colorScheme.disabledContent` (`onSurface` at 38%) for the label and the icon,
 `colorScheme.disabledContainer` (`onSurface` at 12%) for the slab behind them.
 What it cannot do is fade an arbitrary child subtree; a component does not
-need that, and an application that does now has `Opacity3d` for it.
+need that, and an application that does now has `RenderOpacity3d` for it.
 
 `ButtonStyle3d.resolve` is where the rule is implemented for the buttons —
 disabled wins every other state, the elevation goes to zero, and the outline
@@ -1992,7 +1993,7 @@ selection moves and so relayouts the bar on every tap.
 
 Two smaller gaps the buttons left. There is no `FilledButton3d.icon` pairing
 an icon with a label, because Material's icon-and-label padding is a third set
-of figures and a `SceneRow3d` inside a button wants its cross-axis constraints
+of figures and a `Row3d` inside a button wants its cross-axis constraints
 stated; put a row in the `child` in the meantime. And there is no `IconTheme`
 to carry an icon size down a subtree — `Material3d` carries the content
 *colour* through a `DefaultTextStyle`, so an icon is the right colour without

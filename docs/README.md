@@ -71,8 +71,9 @@ The entry points:
   built the lane that draws a frame and checks it, and its findings section is
   a good sample of what surprises people here.
 - [Names that say what Flutter calls them](../packages/flutter_ui_3d/plans/2026_11_09_names_that_say_what_flutter_calls_them.md)
-  is **in progress**, in three phases: the packages have their new names, and
-  the render object family and the widgets do not yet.
+  is **completed**, in three phases: the packages, then the render object
+  family, then the widgets, which now carry Flutter's plain names while the
+  render objects carry `Render`.
 - [The Material catalogue plan](../packages/material_ui_3d/plans/2026_09_01_flutter_scene_material3d.md)
   is **completed**, all ten phases of it, and its closing section is the thing
   to read before extending any of the catalogue: what the whole thing proved,
@@ -92,8 +93,8 @@ The entry points:
   — `Layout3dMetricsScope.of(context)`, and the phase-ordering argument that
   says a value read in `build` is not stale by the time the layout uses it.
   Phase 2 left one gap of its own and phase 3 closed it the same way:
-  `TapTarget3d`'s 48dp minimum grew the ray region and delivered no press out
-  in the margin, which is settled in
+  `RenderTapTarget3d`'s 48dp minimum grew the ray region and delivered no press
+  out in the margin, which is settled in
   [a tap target that delivers a press](../packages/flutter_ui_3d/plans/2026_09_02_a_tap_target_that_delivers_a_press.md)
   — the nine-line fix, and the placement rule underneath it that is the half
   worth reading. Phase 3, the seven buttons, is done, and so is phase 4, the
@@ -139,8 +140,9 @@ The entry points:
   raster, because `dart:ui` exposes no outlines and there is no font parser
   here.
   [A paragraph with a side to it](../packages/flutter_ui_3d/plans/2026_09_11_a_paragraph_with_a_side_to_it.md)
-  does the same for `RichText3d`, whose capture has no readable copy, so its
-  silhouette comes from a second CPU rasterization it can sample colours off.
+  does the same for `RenderRichText3d`, whose capture has no readable copy, so
+  its silhouette comes from a second CPU rasterization it can sample colours
+  off.
 - **What is being built next** is
   [what a real application still needs](../packages/flutter_ui_3d/plans/2026_09_11_what_a_real_application_still_needs.md),
   the index of the seventeen plans between a finished catalogue and an
@@ -150,7 +152,7 @@ The entry points:
   than a work item: each row becomes a plan of its own when it is picked up.
   [An application that does not wire its own rays](../packages/flutter_ui_3d/plans/2026_09_11_an_application_that_does_not_wire_its_own_rays.md)
   is the first of them, and it led for the reason the map gave: it is the item
-  every other item is consumed through. `SceneInput3d` wraps the `SceneView`
+  every other item is consumed through. `Input3d` wraps the `SceneView`
   and owns the listener, the rays and the group, a surface announces itself
   when it mounts, and what is in front of what is stated on the surface rather
   than restated from a tick — because geometry cannot answer that question for
@@ -185,14 +187,14 @@ The entry points:
   is the fifth. A picture and a gradient are parts of the *decoration* rather
   than things drawn over it, and the reason is a wall this repository already
   had: there is no rounded clip, so only the signed distance field that carves
-  a card's corners can carve a photograph's. `Image3d` is a box that wears such
-  a decoration and sizes itself to the picture. The asynchronous half is
+  a card's corners can carve a photograph's. `RenderImage3d` is a box that wears
+  such a decoration and sizes itself to the picture. The asynchronous half is
   Flutter's `onChanged` rather than a fourth revision counter — an atlas needs
   counters because its one texture keeps changing under the meshes baked from
   it, and a picture's arrival is a value anyone can compare.
   [An item that keeps its state](../packages/flutter_ui_3d/plans/2026_09_16_an_item_that_keeps_its_state.md)
   is the sixth, and it is two absences that turned out to be one seam: a view
-  wanting a say in the lifetime of a child it did not build. `KeepAlive3d`
+  wanting a say in the lifetime of a child it did not build. `RenderKeepAlive3d`
   parks an item the window has left instead of releasing it — dropped from the
   layout tree rather than hidden in it, so no walk in the package needs an
   exception for it — and `wrapBuiltChild`/`builtChildOf` let a view hold
@@ -222,15 +224,15 @@ The entry points:
   *arrival* rather than at departure, so a route with no transition is where it
   belongs from its first layout — and `TimedRoute3dTransition` winds it. What
   the movement looks like is a separate thing, a `Motion3d` applied by a
-  `MotionTransition3d` on the node tier, and it is placed by whoever builds the
-  route's content rather than by the entry: a route may carry a scrim of its
-  own, and a dim that slides in with the dialog it dims is not a transition.
-  The box re-applies on layout as well as on every tick, because a motion
-  stated as a fraction of a size needs a size the box does not have until it
-  has been laid out. It shipped with **no fade**, and the reason it gave —
+  `RenderMotionTransition3d` on the node tier, and it is placed by whoever
+  builds the route's content rather than by the entry: a route may carry a scrim
+  of its own, and a dim that slides in with the dialog it dims is not a
+  transition. The box re-applies on layout as well as on every tick, because a
+  motion stated as a fraction of a size needs a size the box does not have until
+  it has been laid out. It shipped with **no fade**, and the reason it gave —
   `flutter_scene` has no per-node opacity — turned out to be the wrong reason;
-  see the next entry. `Hero3d` is deferred to a plan of its own, and that plan
-  has since landed — see *A hero that flies between two routes*.
+  see the next entry. `RenderHero3d` is deferred to a plan of its own, and that
+  plan has since landed — see *A hero that flies between two routes*.
 - **A box that fades** is
   [the ninth](../packages/flutter_ui_3d/plans/2026_09_16_a_box_that_fades.md),
   and it is the one plan here written *after* its experiment rather than
@@ -254,12 +256,12 @@ The entry points:
   patched.
 - **A hero that flies between two routes** is
   [the thirteenth](../packages/flutter_ui_3d/plans/2026_09_20_a_hero_that_flies_between_two_routes.md),
-  and it closes the motion lane. `Hero3d` matches a box on an arriving route
-  with one carrying the same tag on the route it covers, and flies between
+  and it closes the motion lane. `RenderHero3d` matches a box on an arriving
+  route with one carrying the same tag on the route it covers, and flies between
   them. **What flies is built rather than reparented** — the constraint
-  `Draggable3d` found first — so a hero names a `flightBuilder` and the thing
-  is written twice. The flight rides `Route3d.animation`, which means it takes
-  the route's duration and curve for free and there is no second ticker to
+  `RenderDraggable3d` found first — so a hero names a `flightBuilder` and the
+  thing is written twice. The flight rides `Route3d.animation`, which means it
+  takes the route's duration and curve for free and there is no second ticker to
   leave spinning; the deferral had called the curve the motion tokens'
   question, and it dissolved rather than being answered. It is laid out once
   and scaled on the node tier, which is the same answer the switch's growing
@@ -307,7 +309,7 @@ The entry points:
   was the navigation bar, whose icons grew with type when Flutter's never do.
   That needed a change here, planned as
   [a label that says how far it grows](../packages/flutter_ui_3d/plans/2026_09_21_a_label_that_says_how_far_it_grows.md):
-  a per-box `textScaler` and `SceneTextScaling3d.clamped`, with the reader's
+  a per-box `textScaler` and `TextScaling3d.clamped`, with the reader's
   setting still living only on the metrics. The safe area half is Flutter's
   `Scaffold` arithmetic, and has no lane that draws it yet — nothing in
   `examples/` stands in for the view.
@@ -349,9 +351,9 @@ The entry points:
   its layout, because a reach that arrives at the centre picks the middle
   segment. And the photograph lane found a frame that would not build with
   semantics on: Flutter checks a `tabBar` node's children, and a
-  `Semantics3d` has none, so the bar wears no role here. The phase also found
-  that a drag takes the nearest scroll view whatever its axis — a tab view of
-  lists does not swipe — which is in [traps.md](traps.md) and is the layout
+  `RenderSemantics3d` has none, so the bar wears no role here. The phase also
+  found that a drag takes the nearest scroll view whatever its axis — a tab view
+  of lists does not swipe — which is in [traps.md](traps.md) and is the layout
   package's to change.
 - **The motion tokens** are
   [the tenth](../packages/material_ui_3d/plans/2026_09_17_the_motion_tokens.md),
@@ -383,11 +385,11 @@ The entry points:
   and the only one here that began as a bug report rather than a piece of
   work: a person opened a dialog on the gallery, looked at the window, and saw
   half a screen dimmed. An overlay's lift had never actually been applied —
-  `Overlay3d` is a `Stack3d` and an `Alignment3d` centres in **depth** as well
-  as across, so a thin entry started in the middle of the panel and half the
-  lift was spent before it began. A scrim sat behind the app bar and behind
-  the floating action button and dimmed neither. An in-plane entry is pinned
-  to the front face now, and `modalFrame3d`'s barrier with it.
+  `RenderOverlay3d` is a `RenderStack3d` and an `Alignment3d` centres in
+  **depth** as well as across, so a thin entry started in the middle of the
+  panel and half the lift was spent before it began. A scrim sat behind the app
+  bar and behind the floating action button and dimmed neither. An in-plane
+  entry is pinned to the front face now, and `modalFrame3d`'s barrier with it.
   **1825 headless tests and 108 render probes passed over it**, and two of
   them asserted it as the contract — the plan's most useful paragraph is about
   that rather than about the fix, which is three lines. It also names what

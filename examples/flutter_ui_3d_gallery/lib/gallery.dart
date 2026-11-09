@@ -19,13 +19,13 @@ import 'package:flutter_ui_3d/widgets.dart'
     show
         AtlasText3dRenderer,
         Input3dHit,
-        SceneInput3d,
-        SceneLayout3d,
-        SceneListView3d,
-        SceneNodeBox3d,
-        SceneOverlay3d,
-        SceneSemantics3d,
-        SceneSizedBox3d;
+        Input3d,
+        Surface3d,
+        ListView3d,
+        NodeBox3d,
+        Overlay3d,
+        Semantics3d,
+        SizedBox3d;
 import 'package:material_ui_3d/material_ui_3d.dart';
 import 'package:vector_math/vector_math.dart' as vm;
 
@@ -73,7 +73,7 @@ class _Gallery3dState extends State<Gallery3d> {
   final Node _panelPivot = Node();
 
   // Geometry is shared between the pieces; only the nodes are per-item,
-  // because a NodeBox3d owns the transform of the content it is given.
+  // because a RenderNodeBox3d owns the transform of the content it is given.
   final Geometry _unitCube = CuboidGeometry(vm.Vector3.all(1));
   final Geometry _ball = SphereGeometry(radius: 0.5);
   final Geometry _ring = TorusGeometry(radius: 0.4, tubeRadius: 0.14);
@@ -152,7 +152,7 @@ class _Gallery3dState extends State<Gallery3d> {
   ///
   /// The whole of this gallery's input wiring. There is no `Listener`, no
   /// `camera.screenPointToRay`, no pointer group filled in from a tick and no
-  /// z-orders restated every frame: `SceneInput3d` owns all of that, and each
+  /// z-orders restated every frame: `Input3d` owns all of that, and each
   /// surface states where it stands on its own widget.
   void _handleHit(Input3dHit hit) {
     // A press, a wheel or two fingers that took hold of the mesh list retire
@@ -164,7 +164,7 @@ class _Gallery3dState extends State<Gallery3d> {
 
   /// Names the thing under the cursor.
   ///
-  /// A Material component states its own name through a `Semantics3d` — a
+  /// A Material component states its own name through a `RenderSemantics3d` — a
   /// tile announces its title, a button its label — so the readout walks the
   /// hit path for the first box that has something to say, and falls back to
   /// a layout's debug name for the raw meshes on the right.
@@ -172,7 +172,7 @@ class _Gallery3dState extends State<Gallery3d> {
     String? found;
     for (final entry in hit.path) {
       final layout = entry.layout;
-      if (layout is Semantics3d) {
+      if (layout is RenderSemantics3d) {
         final label = layout.properties.label;
         if (label != null && label.isNotEmpty) {
           found = label;
@@ -191,7 +191,7 @@ class _Gallery3dState extends State<Gallery3d> {
     // Everything the pointers need, said once: the camera the rays are cast
     // from, and where to report what they found. Each surface below says
     // where it stands and nothing here repeats it.
-    return SceneInput3d(
+    return Input3d(
       camera: camera,
       onHit: _handleHit,
       child: Stack(
@@ -228,14 +228,14 @@ class _Gallery3dState extends State<Gallery3d> {
         // camera: the upright screen, then the table, then the meshes. The
         // snack bars this screen opens are detached surfaces of their own and
         // land a whole step in front of it, with nothing said here.
-        SceneLayout3d(
+        Surface3d(
           parent: _panelPivot,
           zOrder: 0.2,
           size: const Size3d(3.5, 4.8, 0.6),
-          child: _themed(SceneOverlay3d(child: const MaterialScreen())),
+          child: _themed(Overlay3d(child: const MaterialScreen())),
         ),
         // The same catalogue on the ground. Only the basis changes.
-        SceneLayout3d(
+        Surface3d(
           zOrder: 0.1,
           basis: LayoutBasis3d.xz,
           size: const Size3d(4.6, 2.6, 0.6),
@@ -251,28 +251,29 @@ class _Gallery3dState extends State<Gallery3d> {
         ),
         // Not Material at all: the same protocol arranging an application's
         // own meshes, scrolling, on a surface of its own.
-        SceneLayout3d(
+        Surface3d(
           size: const Size3d(1.2, 3.2, 0.4),
           position: vm.Vector3(-3.0, 2.4, 0),
-          child: SceneListView3d(
+          child: ListView3d(
             controller: _scroll,
             itemExtent: 0.5,
             spacing: 0.08,
             children: [
               for (var index = 0; index < 9; index++)
-                SceneSemantics3d(
+                Semantics3d(
                   key: ValueKey(index),
                   properties: SemanticsProperties(
                     label: 'Piece ${index + 1}',
                     // A label with no reading direction is a framework
                     // assertion the moment semantics are switched on. The
                     // catalogue's components fall back to the enclosing
-                    // Directionality; a hand-written Semantics3d states it.
+                    // Directionality; a hand-written RenderSemantics3d states
+                    // it.
                     textDirection: TextDirection.ltr,
                   ),
-                  child: SceneSizedBox3d.cube(
+                  child: SizedBox3d.cube(
                     0.42,
-                    child: SceneNodeBox3d(
+                    child: NodeBox3d(
                       content: _piece(
                         switch (index % 3) {
                           0 => _unitCube,
@@ -314,8 +315,8 @@ class _Gallery3dState extends State<Gallery3d> {
   }
 
   /// The two halves of Material setup that are widgets rather than the one
-  /// call in `main`: the tokens, and the renderer that turns a `Text3d` into
-  /// glyph quads.
+  /// call in `main`: the tokens, and the renderer that turns a `RenderText3d`
+  /// into glyph quads.
   ///
   /// The renderer is a *factory* rather than an instance because a
   /// `Text3dRenderer` is owned and disposed by the label that holds it, so
@@ -328,7 +329,7 @@ class _Gallery3dState extends State<Gallery3d> {
     brightness: _brightness,
     onSeedChanged: (value) => setState(() => _seed = value),
     onBrightnessChanged: (value) => setState(() => _brightness = value),
-    child: SceneTheme3d(
+    child: Theme3d(
       // Generated rather than one of the two baselines, because that is what
       // an application with a brand does — and because the gallery is the
       // only place a person can see whether a generated scheme actually

@@ -29,7 +29,7 @@ Widget _radios(_Choice choice, {Set<int> disabled = const <int>{}}) =>
           choice.reported.add(value);
           setState(() => choice.value = value);
         },
-        child: SceneRow3d(
+        child: Row3d(
           mainAxisSize: MainAxisSize3d.min,
           children: <Widget>[
             for (var i = 0; i < 3; i++)
@@ -44,7 +44,7 @@ Widget _radios(_Choice choice, {Set<int> disabled = const <int>{}}) =>
     );
 
 Widget _tiles(_Choice choice) => StatefulBuilder(
-  builder: (context, setState) => SceneSizedBox3d(
+  builder: (context, setState) => SizedBox3d(
     width: 3,
     child: RadioGroup3d<int>(
       groupValue: choice.value,
@@ -52,7 +52,7 @@ Widget _tiles(_Choice choice) => StatefulBuilder(
         choice.reported.add(value);
         setState(() => choice.value = value);
       },
-      child: SceneColumn3d(
+      child: Column3d(
         mainAxisSize: MainAxisSize3d.min,
         crossAxisAlignment: CrossAxisAlignment3d.stretch,
         depthAxisAlignment: CrossAxisAlignment3d.start,
@@ -66,16 +66,16 @@ Widget _tiles(_Choice choice) => StatefulBuilder(
 );
 
 /// The semantics node announcing [label].
-Semantics3d _announced(Layout3dSurface surface, String label) =>
-    boxesOf<Semantics3d>(
+RenderSemantics3d _announced(RenderSurface3d surface, String label) =>
+    boxesOf<RenderSemantics3d>(
       surface,
     ).firstWhere((box) => box.properties.label == label);
 
 /// The focus box of the control announcing [label].
-Focus3d _focusOf(Layout3dSurface surface, String label) {
-  final found = <Focus3d>[];
+RenderFocus3d _focusOf(RenderSurface3d surface, String label) {
+  final found = <RenderFocus3d>[];
   void walk(RenderObject3d box) {
-    if (box is Focus3d) found.add(box);
+    if (box is RenderFocus3d) found.add(box);
     box.visitChildren(walk);
   }
 
@@ -115,17 +115,17 @@ void main() {
 
   testWidgets('the group publishes nothing of its own', (tester) async {
     // Flutter's wears `radioGroup` on a node whose children are its radios.
-    // A `Semantics3d` has no children in that tree, so a group node here
+    // A `RenderSemantics3d` has no children in that tree, so a group node here
     // would group nothing — and the same absence is what a tab bar's node
     // tripped over, in a frame with semantics on.
     final pumped = await pumpComponent(tester, () => _radios(_Choice()));
     expect(
-      boxesOf<Semantics3d>(
+      boxesOf<RenderSemantics3d>(
         pumped.surface,
       ).where((box) => box.properties.role == SemanticsRole.radioGroup),
       isEmpty,
     );
-    expect(boxesOf<Semantics3d>(pumped.surface), hasLength(3));
+    expect(boxesOf<RenderSemantics3d>(pumped.surface), hasLength(3));
   });
 
   testWidgets('an arrow moves the choice and the focus together', (
@@ -184,13 +184,13 @@ void main() {
       () => RadioGroup3d<int>(
         groupValue: choice.value,
         onChanged: choice.reported.add,
-        child: SceneRow3d(
+        child: Row3d(
           mainAxisSize: MainAxisSize3d.min,
           children: <Widget>[
             TextButton3d(
               semanticLabel: 'Clear',
               onPressed: () => pressed++,
-              child: const SceneText3d('Clear'),
+              child: const Text3d('Clear'),
             ),
             const Radio3d<int>(value: 0, semanticLabel: 'Option 0'),
           ],
@@ -216,7 +216,7 @@ void main() {
     final pumped = await pumpComponent(tester, () => _tiles(choice));
     // One node per row, as without a group: the radio in a row is only its
     // picture.
-    final announced = boxesOf<Semantics3d>(
+    final announced = boxesOf<RenderSemantics3d>(
       pumped.surface,
     ).where((box) => box.properties.label != null).toList();
     expect(announced.map((box) => box.properties.label), <String>[

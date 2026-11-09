@@ -44,14 +44,14 @@ import '../tokens/typography.dart';
 ///  * **The imperative layer** has no `BuildContext` — a `RenderObject3d` is
 ///    not a widget and `performLayout` is not a build — so it reads it out of
 ///    the owner's slot, as [slot], which is what `Layout3dSlot` was added to
-///    `flutter_ui_3d` for. `SceneTheme3d` writes both at once.
+///    `flutter_ui_3d` for. `Theme3d` writes both at once.
 ///
 /// **Writing the slot relayouts the subtree**, by design and correctly: the
 /// tokens decide paddings, type sizes and thicknesses, so a theme change
 /// changes sizes, and nothing else would tell the tree. It follows that
 /// nothing on a per-frame path may write a theme. A hover, a press and a
-/// raised elevation are `DecoratedBox3d.decoration` and `.stateLayer` — the
-/// repaint-only tier — not a new theme.
+/// raised elevation are `RenderDecoratedBox3d.decoration` and `.stateLayer` —
+/// the repaint-only tier — not a new theme.
 ///
 /// ## Density lives in two places, and the theme wins
 ///
@@ -61,7 +61,7 @@ import '../tokens/typography.dart';
 /// setting a theme expects it to be respected. They can therefore disagree,
 /// and the rule is: **[density] is what a component obeys.**
 /// [effectiveConstraints] applies it through the metrics' own arithmetic —
-/// one implementation, two dials, an explicit winner. `SceneTheme3d`
+/// one implementation, two dials, an explicit winner. `Theme3d`
 /// deliberately does not write the surface's metrics to close the gap: the
 /// metrics is the surface's unit contract, and a widget inside the tree
 /// rewriting it would be a theme reaching outside its own vocabulary.
@@ -153,9 +153,9 @@ class Theme3dData {
   /// The [token] style, in [color].
   ///
   /// The one call a component makes to turn a type role into something
-  /// `Text3d` can measure. The scale carries no colour of its own — a colour
-  /// is a `ColorScheme3d` role and depends on what the label is drawn on, not
-  /// on how big it is — so this is where the two families meet.
+  /// `RenderText3d` can measure. The scale carries no colour of its own — a
+  /// colour is a `ColorScheme3d` role and depends on what the label is drawn
+  /// on, not on how big it is — so this is where the two families meet.
   ///
   /// ```dart
   /// theme.textStyle(
@@ -242,7 +242,7 @@ class Theme3dData {
 /// Reading the theme from inside a `RenderObject3d`.
 ///
 /// The imperative half of the theme channel. It reads the same owner slot
-/// `SceneTheme3d` writes, so a box laid out under a themed widget tree sees
+/// `Theme3d` writes, so a box laid out under a themed widget tree sees
 /// the theme without anything being threaded through its constructor — which
 /// is the whole reason `Layout3dSlot` exists.
 extension Layout3dTheme3d on RenderObject3d {

@@ -16,29 +16,29 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/widgets.dart';
 import 'package:material_ui_3d/material_ui_3d.dart';
 
-/// The one [Text3d] in [surface].
-Text3d textIn(Layout3dSurface surface) {
-  final found = <Text3d>[];
+/// The one [RenderText3d] in [surface].
+RenderText3d textIn(RenderSurface3d surface) {
+  final found = <RenderText3d>[];
   void walk(RenderObject3d box) {
-    if (box is Text3d) found.add(box);
+    if (box is RenderText3d) found.add(box);
     box.visitChildren(walk);
   }
 
   walk(surface.child!);
   if (found.length != 1) {
-    throw StateError('expected one Text3d, found ${found.length}');
+    throw StateError('expected one RenderText3d, found ${found.length}');
   }
   return found.single;
 }
 
-Future<Layout3dSurface> pump(WidgetTester tester, Widget child) async {
+Future<RenderSurface3d> pump(WidgetTester tester, Widget child) async {
   final controller = Layout3dController();
   await tester.pumpWidget(
-    SceneLayout3d(
+    Surface3d(
       parent: Node(),
       constraints: Constraints3d.loose(const Size3d(4, 3, 0.5)),
       controller: controller,
-      child: SceneTheme3d(data: Theme3dData.light, child: child),
+      child: Theme3d(data: Theme3dData.light, child: child),
     ),
   );
   return controller.surface!;
@@ -95,7 +95,7 @@ void main() {
     testWidgets('announces nothing unless it is given a label', (tester) async {
       var found = 0;
       void count(RenderObject3d box) {
-        if (box is Semantics3d) found++;
+        if (box is RenderSemantics3d) found++;
         box.visitChildren(count);
       }
 
@@ -112,18 +112,18 @@ void main() {
     });
   });
 
-  group('SceneTextStyle3d', () {
+  group('TextStyle3d', () {
     testWidgets('resolves a token and a role into one style', (tester) async {
       late TextStyle seen;
       await pump(
         tester,
-        SceneTextStyle3d(
+        TextStyle3d(
           style: Typography3dToken.titleMedium,
           color: ColorScheme3d.light.onSurfaceVariant,
           child: Builder(
             builder: (BuildContext context) {
               seen = DefaultTextStyle.of(context).style;
-              return const SceneSizedBox3d.cube(0.1);
+              return const SizedBox3d.cube(0.1);
             },
           ),
         ),
@@ -141,17 +141,17 @@ void main() {
       late TextStyle seen;
       await pump(
         tester,
-        SceneTextStyle3d(
+        TextStyle3d(
           style: Typography3dToken.bodySmall,
           color: const Color(0xFF123456),
-          child: SceneTextStyle3d(
+          child: TextStyle3d(
             // The inner one states a size and no colour, so the colour the
             // outer one set survives.
             style: Typography3dToken.labelSmall,
             child: Builder(
               builder: (BuildContext context) {
                 seen = DefaultTextStyle.of(context).style;
-                return const SceneSizedBox3d.cube(0.1);
+                return const SizedBox3d.cube(0.1);
               },
             ),
           ),

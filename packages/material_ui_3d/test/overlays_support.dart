@@ -1,7 +1,7 @@
 // Shared scaffolding for the phase-6 overlays: dialogs, menus, snack bars,
 // tooltips and sheets.
 //
-// Everything here pumps a real surface with a real `SceneOverlay3d` in it,
+// Everything here pumps a real surface with a real `Overlay3d` in it,
 // because that is the only place an overlay component works: the entries are
 // inserted into the overlay and their content is reconciled by the widget
 // layer one frame later.
@@ -16,7 +16,7 @@ import 'package:material_ui_3d/material_ui_3d.dart';
 import 'package:vector_math/vector_math.dart' show Ray, Vector3;
 
 /// Every box of type [T] in [surface], outermost first.
-List<T> boxesOf<T extends RenderObject3d>(Layout3dSurface surface) {
+List<T> boxesOf<T extends RenderObject3d>(RenderSurface3d surface) {
   final found = <T>[];
   void walk(RenderObject3d box) {
     if (box is T) found.add(box);
@@ -29,7 +29,7 @@ List<T> boxesOf<T extends RenderObject3d>(Layout3dSurface surface) {
 }
 
 /// The one box of type [T] in [surface].
-T oneOf<T extends RenderObject3d>(Layout3dSurface surface) {
+T oneOf<T extends RenderObject3d>(RenderSurface3d surface) {
   final found = boxesOf<T>(surface);
   if (found.length != 1) {
     throw StateError('expected one $T, found ${found.length}');
@@ -37,18 +37,18 @@ T oneOf<T extends RenderObject3d>(Layout3dSurface surface) {
   return found.single;
 }
 
-/// The scrim's panel: the one [DecoratedBox3d] inside the modal barrier.
+/// The scrim's panel: the one [RenderDecoratedBox3d] inside the modal barrier.
 ///
 /// Found by *where it is* rather than by being translucent, which is how
 /// every one of these tests used to find it. A scrim's alpha is spent as
 /// coverage now — the slab draws in an opaque colour and keeps a fraction of
 /// its fragments — so "the panel whose colour is not opaque" finds nothing.
 /// See `scrimCoverage3d`.
-DecoratedBox3d? scrimOf(Layout3dSurface surface) {
-  for (final barrier in boxesOf<ModalBarrier3d>(surface)) {
-    final found = <DecoratedBox3d>[];
+RenderDecoratedBox3d? scrimOf(RenderSurface3d surface) {
+  for (final barrier in boxesOf<RenderModalBarrier3d>(surface)) {
+    final found = <RenderDecoratedBox3d>[];
     void walk(RenderObject3d box) {
-      if (box is DecoratedBox3d) found.add(box);
+      if (box is RenderDecoratedBox3d) found.add(box);
       box.visitChildren(walk);
     }
 
@@ -59,7 +59,7 @@ DecoratedBox3d? scrimOf(Layout3dSurface surface) {
 }
 
 /// How strongly the scrim dims, which is the coverage imposed on it.
-double scrimCoverageOf(Layout3dSurface surface) =>
+double scrimCoverageOf(RenderSurface3d surface) =>
     scrimOf(surface)?.inheritedOpacity ?? 0.0;
 
 /// A surface with a themed overlay in it, and the handles a test wants.
@@ -73,11 +73,12 @@ class PumpedOverlay {
   /// something is handed.
   final BuildContext context;
 
-  Layout3dSurface get surface => controller.surface!;
-  Overlay3d get overlay => overlayController.overlay!;
+  RenderSurface3d get surface => controller.surface!;
+  RenderOverlay3d get overlay => overlayController.overlay!;
 
   /// Every panel in the tree, outermost first.
-  List<DecoratedBox3d> get panels => boxesOf<DecoratedBox3d>(surface);
+  List<RenderDecoratedBox3d> get panels =>
+      boxesOf<RenderDecoratedBox3d>(surface);
 
   Layout3dPointer? _pointer;
 
@@ -103,19 +104,19 @@ Future<PumpedOverlay> pumpOverlay(
       : Directionality(textDirection: textDirection, child: child);
   await tester.pumpWidget(
     directed(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: size,
         metrics: metrics,
         controller: controller,
-        child: SceneTheme3d(
+        child: Theme3d(
           data: theme,
-          child: SceneOverlay3d(
+          child: Overlay3d(
             controller: overlayController,
             child: Builder(
               builder: (context) {
                 captured = context;
-                return child ?? const SceneSizedBox3d.cube(1);
+                return child ?? const SizedBox3d.cube(1);
               },
             ),
           ),
@@ -130,7 +131,7 @@ Future<PumpedOverlay> pumpOverlay(
 ///
 /// A copy of the layout package's own test helper: a test package cannot
 /// import another package's `test/` directory.
-Ray rayAt(Layout3dSurface surface, Offset3d point) {
+Ray rayAt(RenderSurface3d surface, Offset3d point) {
   final toWorld = surface.node.globalTransform;
   final origin = toWorld.transformed3(
     Vector3(point.x, point.y, point.z - 10.0),

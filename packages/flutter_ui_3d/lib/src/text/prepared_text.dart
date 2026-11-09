@@ -91,15 +91,15 @@ class SegmentGraphemes3d {
 /// the prepared handle out at a width is arithmetic over [segments], so a
 /// scroll offset that changes how much room a label gets, a surface that
 /// resizes, an animation that dirties layout every frame, and the two extra
-/// walks an [IntrinsicWidth3d] costs all become free of shaping.
+/// walks a [RenderIntrinsicWidth3d] costs all become free of shaping.
 ///
 /// Do not build one directly: [TextMeasurement3d.prepare] does, and a handle
 /// only means anything to the measurement that produced it.
 ///
-/// Everything on it is in **logical pixels**. A [Text3d] multiplies by
-/// `Text3d.logicalPixelScale` on the way out — the surface's unit rate times
-/// what the reader's font setting grows type of this style's size by — which
-/// is exactly equivalent to having asked for a bigger font, because font
+/// Everything on it is in **logical pixels**. A [RenderText3d] multiplies by
+/// `RenderText3d.logicalPixelScale` on the way out — the surface's unit rate
+/// times what the reader's font setting grows type of this style's size by —
+/// which is exactly equivalent to having asked for a bigger font, because font
 /// metrics are linear in the size.
 class PreparedText3d {
   /// Records a measured string. Called by a [TextMeasurement3d].

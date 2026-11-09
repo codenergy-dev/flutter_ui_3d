@@ -21,8 +21,8 @@ const ltr = TextDirection.ltr;
 void main() {
   final tight10 = Constraints3d.tight(const Size3d(10, 10, 10));
 
-  List<TestBox> boxes(List<double> widths, {double height = 2}) => [
-    for (final width in widths) TestBox(Size3d(width, height, 2)),
+  List<RenderTestBox> boxes(List<double> widths, {double height = 2}) => [
+    for (final width in widths) RenderTestBox(Size3d(width, height, 2)),
   ];
 
   group('EdgeInsetsGeometry3d', () {
@@ -217,11 +217,11 @@ void main() {
     });
   });
 
-  group('Row3d in right to left', () {
+  group('RenderRow3d in right to left', () {
     test('the first child is at the right, and start packs to the right', () {
       final children = boxes([2, 3]);
       laidOut(
-        Row3d(textDirection: rtl, children: children),
+        RenderRow3d(textDirection: rtl, children: children),
         constraints: tight10,
       );
       expect(children[0].offset.x, 8);
@@ -231,7 +231,7 @@ void main() {
     test('end packs to the left', () {
       final children = boxes([2, 3]);
       laidOut(
-        Row3d(
+        RenderRow3d(
           textDirection: rtl,
           mainAxisAlignment: MainAxisAlignment3d.end,
           children: children,
@@ -245,7 +245,7 @@ void main() {
     test('spaceBetween reverses the order and keeps the gaps', () {
       final children = boxes([2, 2, 2]);
       laidOut(
-        Row3d(
+        RenderRow3d(
           textDirection: rtl,
           mainAxisAlignment: MainAxisAlignment3d.spaceBetween,
           children: children,
@@ -258,7 +258,7 @@ void main() {
     test('a lone child under spaceBetween starts, at the right', () {
       final children = boxes([2]);
       laidOut(
-        Row3d(
+        RenderRow3d(
           textDirection: rtl,
           mainAxisAlignment: MainAxisAlignment3d.spaceBetween,
           children: children,
@@ -271,7 +271,7 @@ void main() {
     test('spacing sits between the children the same way', () {
       final children = boxes([2, 2]);
       laidOut(
-        Row3d(textDirection: rtl, spacing: 1, children: children),
+        RenderRow3d(textDirection: rtl, spacing: 1, children: children),
         constraints: tight10,
       );
       expect(children[0].offset.x, 8);
@@ -282,7 +282,7 @@ void main() {
       // Flutter's walk, not a mirror: with no free space the leading gap is
       // zero, so the first child is pushed out past the right.
       final children = boxes([6, 6]);
-      final row = Row3d(textDirection: rtl, children: children);
+      final row = RenderRow3d(textDirection: rtl, children: children);
       laidOut(row, constraints: tight10);
       expect(children[1].offset.x, 0);
       expect(children[0].offset.x, 6);
@@ -291,14 +291,14 @@ void main() {
 
     test('no direction is left to right', () {
       final children = boxes([2, 3]);
-      laidOut(Row3d(children: children), constraints: tight10);
+      laidOut(RenderRow3d(children: children), constraints: tight10);
       expect(children[0].offset.x, 0);
       expect(children[1].offset.x, 2);
     });
 
     test('changing the direction lays the line out again', () {
       final children = boxes([2, 3]);
-      final row = Row3d(children: children);
+      final row = RenderRow3d(children: children);
       final surface = laidOut(row, constraints: tight10);
       row.textDirection = rtl;
       expect(row.needsLayout, isTrue);
@@ -309,7 +309,7 @@ void main() {
     test('verticalDirection up puts the cross start at the bottom', () {
       final children = boxes([2]);
       laidOut(
-        Row3d(
+        RenderRow3d(
           verticalDirection: VerticalDirection.up,
           crossAxisAlignment: CrossAxisAlignment3d.start,
           children: children,
@@ -322,7 +322,7 @@ void main() {
     test('the depth axis never flips', () {
       final children = boxes([2]);
       laidOut(
-        Row3d(
+        RenderRow3d(
           textDirection: rtl,
           verticalDirection: VerticalDirection.up,
           children: children,
@@ -335,11 +335,14 @@ void main() {
     });
   });
 
-  group('Column3d', () {
+  group('RenderColumn3d', () {
     test('verticalDirection up puts the first child at the bottom', () {
       final children = boxes([2, 2]);
       laidOut(
-        Column3d(verticalDirection: VerticalDirection.up, children: children),
+        RenderColumn3d(
+          verticalDirection: VerticalDirection.up,
+          children: children,
+        ),
         constraints: tight10,
       );
       expect(children[0].offset.y, 8);
@@ -355,7 +358,7 @@ void main() {
       ]) {
         final children = boxes([2]);
         laidOut(
-          Column3d(
+          RenderColumn3d(
             textDirection: rtl,
             crossAxisAlignment: alignment,
             children: children,
@@ -369,7 +372,7 @@ void main() {
     test('the main axis ignores the text direction', () {
       final children = boxes([2, 2]);
       laidOut(
-        Column3d(textDirection: rtl, children: children),
+        RenderColumn3d(textDirection: rtl, children: children),
         constraints: tight10,
       );
       expect(children[0].offset.y, 0);
@@ -377,13 +380,13 @@ void main() {
     });
   });
 
-  test('a Depth3d keeps its order and flips both of its cross axes', () {
+  test('a RenderDepth3d keeps its order and flips both of its cross axes', () {
     final children = [
-      TestBox(const Size3d(2, 2, 2)),
-      TestBox(const Size3d(2, 2, 2)),
+      RenderTestBox(const Size3d(2, 2, 2)),
+      RenderTestBox(const Size3d(2, 2, 2)),
     ];
     laidOut(
-      Depth3d(
+      RenderDepth3d(
         textDirection: rtl,
         verticalDirection: VerticalDirection.up,
         crossAxisAlignment: CrossAxisAlignment3d.start,
@@ -396,17 +399,17 @@ void main() {
     expect(children[1].offset, const Offset3d(8, 8, 2));
   });
 
-  group('Wrap3d', () {
+  group('RenderWrap3d', () {
     // Three 4-wide children in 10: two share the first run, one starts the
     // second.
-    List<TestBox> three() => [
-      for (var i = 0; i < 3; i++) TestBox(const Size3d(4, 1, 1)),
+    List<RenderTestBox> three() => [
+      for (var i = 0; i < 3; i++) RenderTestBox(const Size3d(4, 1, 1)),
     ];
 
     test('in right to left each run starts at the right', () {
       final children = three();
       laidOut(
-        Wrap3d(textDirection: rtl, children: children),
+        RenderWrap3d(textDirection: rtl, children: children),
         constraints: const Constraints3d(
           minWidth: 10,
           maxWidth: 10,
@@ -423,9 +426,9 @@ void main() {
       final ltrChildren = three();
       final rtlChildren = three();
       const room = Constraints3d(maxWidth: 10, maxHeight: 10, maxDepth: 10);
-      laidOut(Wrap3d(children: ltrChildren), constraints: room);
+      laidOut(RenderWrap3d(children: ltrChildren), constraints: room);
       laidOut(
-        Wrap3d(textDirection: rtl, children: rtlChildren),
+        RenderWrap3d(textDirection: rtl, children: rtlChildren),
         constraints: room,
       );
       for (var i = 0; i < 3; i++) {
@@ -436,7 +439,10 @@ void main() {
     test('verticalDirection up stacks the runs from the bottom', () {
       final children = three();
       laidOut(
-        Wrap3d(verticalDirection: VerticalDirection.up, children: children),
+        RenderWrap3d(
+          verticalDirection: VerticalDirection.up,
+          children: children,
+        ),
         constraints: tight10,
       );
       expect(children[2].offset.y, 8);
@@ -445,10 +451,10 @@ void main() {
     });
 
     test('the cross alignment trades start for end on a flipped axis', () {
-      final short = TestBox(const Size3d(2, 1, 1));
-      final tall = TestBox(const Size3d(2, 3, 1));
+      final short = RenderTestBox(const Size3d(2, 1, 1));
+      final tall = RenderTestBox(const Size3d(2, 3, 1));
       laidOut(
-        Wrap3d(
+        RenderWrap3d(
           verticalDirection: VerticalDirection.up,
           crossAxisAlignment: WrapCrossAlignment3d.start,
           children: [short, tall],
@@ -464,30 +470,33 @@ void main() {
     });
   });
 
-  test('a Table3d puts its first column at the right in right to left', () {
-    final cells = [
-      TestBox(const Size3d(1, 1, 1)),
-      TestBox(const Size3d(1, 1, 1)),
-    ];
-    laidOut(
-      Table3d(
-        columnCount: 2,
-        textDirection: rtl,
-        columnWidths: const {
-          0: FixedColumnWidth3d(2),
-          1: FixedColumnWidth3d(3),
-        },
-        children: cells,
-      ),
-    );
-    expect(cells[0].offset.x, 3);
-    expect(cells[1].offset.x, 0);
-  });
+  test(
+    'a RenderTable3d puts its first column at the right in right to left',
+    () {
+      final cells = [
+        RenderTestBox(const Size3d(1, 1, 1)),
+        RenderTestBox(const Size3d(1, 1, 1)),
+      ];
+      laidOut(
+        RenderTable3d(
+          columnCount: 2,
+          textDirection: rtl,
+          columnWidths: const {
+            0: FixedColumnWidth3d(2),
+            1: FixedColumnWidth3d(3),
+          },
+          children: cells,
+        ),
+      );
+      expect(cells[0].offset.x, 3);
+      expect(cells[1].offset.x, 0);
+    },
+  );
 
   group('boxes that take a geometry', () {
-    test('Padding3d resolves a directional padding in its direction', () {
-      final child = TestBox(const Size3d(1, 1, 1));
-      final padding = Padding3d(
+    test('RenderPadding3d resolves a directional padding in its direction', () {
+      final child = RenderTestBox(const Size3d(1, 1, 1));
+      final padding = RenderPadding3d(
         padding: const EdgeInsetsDirectional3d.only(start: 1, end: 2),
         textDirection: rtl,
         child: child,
@@ -498,9 +507,9 @@ void main() {
     });
 
     test('a physical padding does not relayout for a new direction', () {
-      final padding = Padding3d(
+      final padding = RenderPadding3d(
         padding: const EdgeInsets3d.only(left: 1),
-        child: TestBox(const Size3d(1, 1, 1)),
+        child: RenderTestBox(const Size3d(1, 1, 1)),
       );
       laidOut(padding);
       padding.textDirection = rtl;
@@ -508,9 +517,9 @@ void main() {
     });
 
     test('a directional padding does', () {
-      final padding = Padding3d(
+      final padding = RenderPadding3d(
         padding: const EdgeInsetsDirectional3d.only(start: 1),
-        child: TestBox(const Size3d(1, 1, 1)),
+        child: RenderTestBox(const Size3d(1, 1, 1)),
       );
       final surface = laidOut(padding);
       padding.textDirection = rtl;
@@ -519,44 +528,47 @@ void main() {
       expect(padding.child!.offset.x, 0);
     });
 
-    test('Align3d, Stack3d and FittedBox3d place at the start', () {
-      final aligned = TestBox(const Size3d(2, 2, 2));
-      laidOut(
-        Align3d(
-          alignment: AlignmentDirectional3d.centerStart,
-          textDirection: rtl,
-          child: aligned,
-        ),
-        constraints: tight10,
-      );
-      expect(aligned.offset.x, 8);
+    test(
+      'RenderAlign3d, RenderStack3d and RenderFittedBox3d place at the start',
+      () {
+        final aligned = RenderTestBox(const Size3d(2, 2, 2));
+        laidOut(
+          RenderAlign3d(
+            alignment: AlignmentDirectional3d.centerStart,
+            textDirection: rtl,
+            child: aligned,
+          ),
+          constraints: tight10,
+        );
+        expect(aligned.offset.x, 8);
 
-      final stacked = TestBox(const Size3d(2, 2, 2));
-      laidOut(
-        Stack3d(
-          alignment: AlignmentDirectional3d.topStartFront,
-          textDirection: rtl,
-          children: [stacked],
-        ),
-        constraints: tight10,
-      );
-      expect(stacked.offset, const Offset3d(8, 0, 0));
+        final stacked = RenderTestBox(const Size3d(2, 2, 2));
+        laidOut(
+          RenderStack3d(
+            alignment: AlignmentDirectional3d.topStartFront,
+            textDirection: rtl,
+            children: [stacked],
+          ),
+          constraints: tight10,
+        );
+        expect(stacked.offset, const Offset3d(8, 0, 0));
 
-      final unconstrained = TestBox(const Size3d(2, 2, 2));
-      laidOut(
-        UnconstrainedBox3d(
-          alignment: AlignmentDirectional3d.centerEnd,
-          textDirection: rtl,
-          child: unconstrained,
-        ),
-        constraints: tight10,
-      );
-      expect(unconstrained.offset.x, 0);
-    });
+        final unconstrained = RenderTestBox(const Size3d(2, 2, 2));
+        laidOut(
+          RenderUnconstrainedBox3d(
+            alignment: AlignmentDirectional3d.centerEnd,
+            textDirection: rtl,
+            child: unconstrained,
+          ),
+          constraints: tight10,
+        );
+        expect(unconstrained.offset.x, 0);
+      },
+    );
 
-    test('Positioned3d.directional pins start to the right', () {
-      final pinned = TestBox(const Size3d(2, 2, 2));
-      final positioned = Positioned3d.directional(
+    test('RenderPositioned3d.directional pins start to the right', () {
+      final pinned = RenderTestBox(const Size3d(2, 2, 2));
+      final positioned = RenderPositioned3d.directional(
         textDirection: rtl,
         start: 1,
         width: 3,
@@ -565,36 +577,41 @@ void main() {
       expect(positioned.right, 1);
       expect(positioned.left, isNull);
       laidOut(
-        Stack3d(children: [TestBox(const Size3d(10, 10, 10)), positioned]),
+        RenderStack3d(
+          children: [RenderTestBox(const Size3d(10, 10, 10)), positioned],
+        ),
       );
       expect(positioned.offset.x, 6);
     });
 
-    test('Container3d resolves its margin, padding and alignment together', () {
-      final child = TestBox(const Size3d(2, 2, 2));
-      laidOut(
-        Container3d(
-          margin: const EdgeInsetsDirectional3d.only(start: 1),
-          padding: const EdgeInsets3d.only(
-            left: 1,
-          ).add(const EdgeInsetsDirectional3d.only(start: 2)),
-          alignment: AlignmentDirectional3d.centerStart,
-          textDirection: rtl,
-          child: child,
-        ),
-        constraints: tight10,
-      );
-      // Margin 1 on the right, padding 1 on the left and 2 on the right: the
-      // content box runs from 1 to 6, and its start is the right.
-      expect(child.offset.x, 5);
-    });
+    test(
+      'RenderContainer3d resolves its margin, padding and alignment together',
+      () {
+        final child = RenderTestBox(const Size3d(2, 2, 2));
+        laidOut(
+          RenderContainer3d(
+            margin: const EdgeInsetsDirectional3d.only(start: 1),
+            padding: const EdgeInsets3d.only(
+              left: 1,
+            ).add(const EdgeInsetsDirectional3d.only(start: 2)),
+            alignment: AlignmentDirectional3d.centerStart,
+            textDirection: rtl,
+            child: child,
+          ),
+          constraints: tight10,
+        );
+        // Margin 1 on the right, padding 1 on the left and 2 on the right: the
+        // content box runs from 1 to 6, and its start is the right.
+        expect(child.offset.x, 5);
+      },
+    );
 
-    test('Transform3d pivots around the start', () {
-      final transform = Transform3d.scale(
+    test('RenderTransform3d pivots around the start', () {
+      final transform = RenderTransform3d.scale(
         scale: Vector3(2, 1, 1),
         alignment: AlignmentDirectional3d.centerStart,
         textDirection: rtl,
-        child: TestBox(const Size3d(10, 10, 10)),
+        child: RenderTestBox(const Size3d(10, 10, 10)),
       );
       laidOut(transform);
       // Pivoting at the right edge, x = 10, a doubling moves the origin to -10.
@@ -608,7 +625,7 @@ void main() {
       Widget child, {
       TextDirection? direction,
     }) {
-      final surface = SceneLayout3d(
+      final surface = Surface3d(
         parent: Node(),
         size: const Size3d(10, 10, 10),
         controller: controller,
@@ -626,9 +643,7 @@ void main() {
       tester,
     ) async {
       final controller = Layout3dController();
-      const row = SceneRow3d(
-        children: [SceneSizedBox3d.cube(2), SceneSizedBox3d.cube(3)],
-      );
+      const row = Row3d(children: [SizedBox3d.cube(2), SizedBox3d.cube(3)]);
 
       await tester.pumpWidget(frame(controller, row));
       expect(childrenOf(controller).first.offset.x, 0);
@@ -645,9 +660,9 @@ void main() {
       await tester.pumpWidget(
         frame(
           controller,
-          const SceneRow3d(
+          const Row3d(
             textDirection: ltr,
-            children: [SceneSizedBox3d.cube(2), SceneSizedBox3d.cube(3)],
+            children: [SizedBox3d.cube(2), SizedBox3d.cube(3)],
           ),
           direction: rtl,
         ),
@@ -660,9 +675,9 @@ void main() {
       await tester.pumpWidget(
         frame(
           controller,
-          const SceneColumn3d(
+          const Column3d(
             verticalDirection: VerticalDirection.up,
-            children: [SceneSizedBox3d.cube(2), SceneSizedBox3d.cube(2)],
+            children: [SizedBox3d.cube(2), SizedBox3d.cube(2)],
           ),
         ),
       );
@@ -676,19 +691,19 @@ void main() {
       await tester.pumpWidget(
         frame(
           controller,
-          const SceneAlign3d(
+          const Align3d(
             alignment: AlignmentDirectional3d.topStart,
-            child: ScenePadding3d(
+            child: Padding3d(
               padding: EdgeInsetsDirectional3d.only(start: 1),
-              child: SceneSizedBox3d.cube(2),
+              child: SizedBox3d.cube(2),
             ),
           ),
           direction: rtl,
         ),
       );
-      final padding = (controller.surface!.child! as Align3d).child!;
+      final padding = (controller.surface!.child! as RenderAlign3d).child!;
       expect(padding.offset.x, 7);
-      expect((padding as Padding3d).child!.offset.x, 0);
+      expect((padding as RenderPadding3d).child!.offset.x, 0);
     });
 
     testWidgets('a wrap and a table read the ambient direction', (
@@ -698,9 +713,7 @@ void main() {
       await tester.pumpWidget(
         frame(
           controller,
-          const SceneWrap3d(
-            children: [SceneSizedBox3d.cube(4), SceneSizedBox3d.cube(4)],
-          ),
+          const Wrap3d(children: [SizedBox3d.cube(4), SizedBox3d.cube(4)]),
           direction: rtl,
         ),
       );
@@ -709,10 +722,10 @@ void main() {
       await tester.pumpWidget(
         frame(
           controller,
-          const SceneTable3d(
+          const Table3d(
             columnCount: 2,
             columnWidths: {0: FixedColumnWidth3d(2), 1: FixedColumnWidth3d(3)},
-            children: [SceneSizedBox3d.cube(1), SceneSizedBox3d.cube(1)],
+            children: [SizedBox3d.cube(1), SizedBox3d.cube(1)],
           ),
           direction: rtl,
         ),
@@ -726,14 +739,14 @@ void main() {
         final controller = Layout3dController();
         Widget stack(TextDirection direction) => frame(
           controller,
-          const SceneStack3d(
+          const Stack3d(
             fit: StackFit3d.expand,
             children: [
-              SceneSizedBox3d.cube(10),
-              ScenePositionedDirectional3d(
+              SizedBox3d.cube(10),
+              PositionedDirectional3d(
                 start: 1,
                 width: 3,
-                child: SceneSizedBox3d.cube(3),
+                child: SizedBox3d.cube(3),
               ),
             ],
           ),
@@ -741,7 +754,7 @@ void main() {
         );
 
         await tester.pumpWidget(stack(rtl));
-        final pinned = childrenOf(controller)[1] as Positioned3d;
+        final pinned = childrenOf(controller)[1] as RenderPositioned3d;
         expect(pinned.offset.x, 6);
 
         await tester.pumpWidget(stack(ltr));
@@ -758,17 +771,17 @@ void main() {
       final controller = Layout3dController();
       Widget container(EdgeInsetsGeometry3d padding) => frame(
         controller,
-        SceneAnimatedContainer3d(
+        AnimatedContainer3d(
           duration: const Duration(milliseconds: 100),
           padding: padding,
-          child: const SceneSizedBox3d.cube(2),
+          child: const SizedBox3d.cube(2),
         ),
         direction: rtl,
       );
 
       await tester.pumpWidget(container(const EdgeInsets3d.only(left: 4)));
       RenderObject3d child() =>
-          (controller.surface!.child! as Container3d).child!;
+          (controller.surface!.child! as RenderContainer3d).child!;
       expect(child().offset.x, 4);
 
       await tester.pumpWidget(

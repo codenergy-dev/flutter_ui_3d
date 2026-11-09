@@ -102,8 +102,8 @@ class CheckboxStyle3d {
   /// Material's checkbox state-layer size, in logical pixels.
   ///
   /// Not the touch target, which is 48dp and comes from
-  /// `TapTarget3d.materialMinimum`. This is the circle the hover, focus and
-  /// press wash fills, and it is the control's own *extent* — so a row of
+  /// `RenderTapTarget3d.materialMinimum`. This is the circle the hover, focus
+  /// and press wash fills, and it is the control's own *extent* — so a row of
   /// checkboxes is 40dp tall and the extra eight are reach that no box in
   /// the layout knows about.
   static const double defaultStateLayerSize = 40.0;

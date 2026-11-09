@@ -30,11 +30,11 @@ all hit-testable:
   geometry, and having both in one frame is what says so.
 
 Hovering names what is under the cursor — a Material component announces
-itself through `Semantics3d`, so the readout says "Ada Lovelace" or "Compose"
-rather than the name of a box — and pressing anything works: the switches
-throw, the slider drags, the chips select, and the floating action button
-raises a snack bar two lines long. A press lands anywhere on a control's face,
-its padding included — which was not true of any button, chip or tile here
+itself through `RenderSemantics3d`, so the readout says "Ada Lovelace" or
+"Compose" rather than the name of a box — and pressing anything works: the
+switches throw, the slider drags, the chips select, and the floating action
+button raises a snack bar two lines long. A press lands anywhere on a control's
+face, its padding included — which was not true of any button, chip or tile here
 until the bottom app bar's corner button turned out not to be pressable.
 
 ## Changing the colours while it is running
@@ -166,7 +166,7 @@ something to draw, and it looked exactly like you would expect.
 `lib/gallery.dart` mounts them: the surfaces, the camera, the pivot node the
 upright screen turns on, and the input.
 
-Input is one `SceneInput3d` around the `SceneView`, and that is the whole of
+Input is one `Input3d` around the `SceneView`, and that is the whole of
 it: no listener, no `screenPointToRay`, no pointer group filled in from the
 tick. Each surface states its own `zOrder` and announces itself when it
 mounts. A pointer here is a ray, and what the host decides is which surface a

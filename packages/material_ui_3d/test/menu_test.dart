@@ -16,7 +16,7 @@ Widget cornerButton(
   List<MenuItem3dEntry<String>> Function(BuildContext) items, {
   void Function(String)? onSelected,
   void Function()? onCanceled,
-}) => ScenePositioned3d(
+}) => Positioned3d(
   left: 0,
   top: 0,
   front: 0,
@@ -25,7 +25,7 @@ Widget cornerButton(
     itemBuilder: items,
     onSelected: onSelected,
     onCanceled: onCanceled,
-    child: const SceneSizedBox3d(width: 0.4, height: 0.4, depth: 0.02),
+    child: const SizedBox3d(width: 0.4, height: 0.4, depth: 0.02),
   ),
 );
 
@@ -115,9 +115,9 @@ void main() {
         tester,
         child: const Menu3d(children: <Widget>[MenuItem3d(label: 'Rename')]),
       );
-      final item = boxesOf<SizedBox3d>(pumped.surface).first;
+      final item = boxesOf<RenderSizedBox3d>(pumped.surface).first;
       expect(item.size.height, closeTo(0.48, 1e-9));
-      final labels = boxesOf<Semantics3d>(
+      final labels = boxesOf<RenderSemantics3d>(
         pumped.surface,
       ).map((box) => box.properties.label).toList();
       expect(labels, contains('Rename'));
@@ -162,10 +162,10 @@ void main() {
       // menu closed with nothing chosen.
       final chosen = <String>[];
       await tester.pumpSurface3d(
-        SceneTheme3d(
+        Theme3d(
           data: Theme3dData.light,
-          child: SceneOverlay3d(
-            child: SceneStack3d(
+          child: Overlay3d(
+            child: Stack3d(
               children: <Widget>[
                 cornerButton(twoItems, onSelected: chosen.add),
               ],
@@ -173,7 +173,7 @@ void main() {
           ),
         ),
       );
-      expect(find3d.bySubtype<Follower3d>(), findsNothing);
+      expect(find3d.bySubtype<RenderFollower3d>(), findsNothing);
 
       await tester.tap3d(find3d.bySemanticsLabel('More'));
       // Settled, not pumped once: a menu grows over three hundred
@@ -183,8 +183,8 @@ void main() {
       // above. A person waits for the menu; so does the test.
       await tester.pumpAndSettle();
 
-      final follower = tester.layout3d<Follower3d>(
-        find3d.bySubtype<Follower3d>(),
+      final follower = tester.layout3d<RenderFollower3d>(
+        find3d.bySubtype<RenderFollower3d>(),
       );
       expect(follower.nodeOffset, isNot(Offset3d.zero));
       expect(find3d.bySemanticsLabel('Delete'), isReachable3d);
@@ -204,8 +204,8 @@ void main() {
       pumped.pointer.up();
       await tester.pump();
 
-      final anchor = oneOf<Anchor3d>(pumped.surface);
-      final follower = oneOf<Follower3d>(pumped.surface);
+      final anchor = oneOf<RenderAnchor3d>(pumped.surface);
+      final follower = oneOf<RenderFollower3d>(pumped.surface);
 
       // The overlay would have centred it: the entry's content fills the
       // panel and the menu inside it is centred, four units from the button.
@@ -234,18 +234,14 @@ void main() {
         child: StatefulBuilder(
           builder: (context, setState) {
             rebuild = setState;
-            return ScenePositioned3d(
+            return Positioned3d(
               left: left,
               top: 0,
               front: 0,
               child: PopupMenuButton3d<String>(
                 semanticLabel: 'More',
                 itemBuilder: twoItems,
-                child: const SceneSizedBox3d(
-                  width: 0.4,
-                  height: 0.4,
-                  depth: 0.02,
-                ),
+                child: const SizedBox3d(width: 0.4, height: 0.4, depth: 0.02),
               ),
             );
           },
@@ -256,7 +252,7 @@ void main() {
       pumped.pointer.up();
       await tester.pump();
 
-      final follower = oneOf<Follower3d>(pumped.surface);
+      final follower = oneOf<RenderFollower3d>(pumped.surface);
       final before = follower.nodeOffset;
 
       rebuild(() => left = 2.0);
@@ -296,9 +292,7 @@ void main() {
         child: StatefulBuilder(
           builder: (context, setState) {
             rebuild = setState;
-            return show
-                ? cornerButton(twoItems)
-                : const SceneSizedBox3d.cube(0.1);
+            return show ? cornerButton(twoItems) : const SizedBox3d.cube(0.1);
           },
         ),
       );
@@ -317,7 +311,7 @@ void main() {
 
     testWidgets('it announces itself as a button', (tester) async {
       final pumped = await pumpOverlay(tester, child: cornerButton(twoItems));
-      final semantics = boxesOf<Semantics3d>(pumped.surface).first;
+      final semantics = boxesOf<RenderSemantics3d>(pumped.surface).first;
       expect(semantics.properties.button, isTrue);
       expect(semantics.properties.label, 'More');
     });
@@ -327,16 +321,16 @@ void main() {
     // cases are regressions: an overflow button in an app bar laid out, drew,
     // announced itself to a screen reader and could not be pressed.
 
-    Future<Layout3dSurface> pumpButton(
+    Future<RenderSurface3d> pumpButton(
       WidgetTester tester, {
       bool trailing = false,
     }) => tester.pumpSurface3d(
-      SceneTheme3d(
+      Theme3d(
         data: Theme3dData.light,
-        child: SceneOverlay3d(
-          child: SceneStack3d(
+        child: Overlay3d(
+          child: Stack3d(
             children: <Widget>[
-              ScenePositioned3d(
+              Positioned3d(
                 left: trailing ? null : 0,
                 right: trailing ? 0 : null,
                 top: 0,
@@ -364,7 +358,7 @@ void main() {
     ) async {
       final surface = await pumpButton(tester);
 
-      for (final target in boxesOf<TapTarget3d>(surface)) {
+      for (final target in boxesOf<RenderTapTarget3d>(surface)) {
         expect(
           target.size.depth,
           greaterThan(0.0),
@@ -375,7 +369,7 @@ void main() {
         );
       }
       expect(
-        boxesOf<TapTarget3d>(surface),
+        boxesOf<RenderTapTarget3d>(surface),
         isNotEmpty,
         reason:
             'the outermost box of the button is a target, as Button3d\'s '
@@ -395,7 +389,9 @@ void main() {
       await tester.tap3d(find3d.bySemanticsLabel('More'));
       await tester.pumpAndSettle();
 
-      final menu = tester.layout3d<Follower3d>(find3d.bySubtype<Follower3d>());
+      final menu = tester.layout3d<RenderFollower3d>(
+        find3d.bySubtype<RenderFollower3d>(),
+      );
       // Hung by its own trailing edge, so it stays on the panel: its trailing
       // edge is the button's, not a menu's width further out.
       final right = menu.drawnOffsetInSurface.x + menu.size.width;

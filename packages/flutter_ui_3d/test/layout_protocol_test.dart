@@ -11,16 +11,16 @@ import 'package:vector_math/vector_math.dart' show Vector3;
 import 'support.dart';
 
 void main() {
-  group('Layout3dSurface', () {
+  group('RenderSurface3d', () {
     test('shrink-wraps its child when unconstrained', () {
-      final child = TestBox(const Size3d(2, 3, 4));
+      final child = RenderTestBox(const Size3d(2, 3, 4));
       final surface = laidOut(child);
       expect(surface.size, const Size3d(2, 3, 4));
       expect(child.lastConstraints, const Constraints3d());
     });
 
     test('passes its configuration down as the root constraints', () {
-      final child = TestBox(const Size3d(20, 20, 20));
+      final child = RenderTestBox(const Size3d(20, 20, 20));
       final surface = laidOut(
         child,
         constraints: Constraints3d.tight(const Size3d(4, 3, 1)),
@@ -30,7 +30,7 @@ void main() {
     });
 
     test('centres the layout box on the plane node by default', () {
-      final child = TestBox(const Size3d(4, 2, 1));
+      final child = RenderTestBox(const Size3d(4, 2, 1));
       laidOut(child);
       // The origin corner of a 4 x 2 x 1 box, centred, sits half an extent
       // away on each axis. Every axis flips on the way into the scene: the
@@ -43,7 +43,7 @@ void main() {
     });
 
     test('origin: topLeftFront puts the corner on the plane node', () {
-      final child = TestBox(const Size3d(4, 2, 1));
+      final child = RenderTestBox(const Size3d(4, 2, 1));
       laidOut(child, origin: Alignment3d.topLeftFront);
       final corner = scenePositionOf(child.node);
       expect(corner.x, 0);
@@ -52,14 +52,14 @@ void main() {
     });
 
     test('the plane node carries the whole tree', () {
-      final child = TestBox(const Size3d(2, 2, 2));
+      final child = RenderTestBox(const Size3d(2, 2, 2));
       final surface = laidOut(child);
       expect(surface.plane.children, contains(surface.node));
       expect(surface.node.children, contains(child.node));
     });
 
     test('lays out on the ground plane when asked', () {
-      final child = TestBox(const Size3d(4, 2, 1));
+      final child = RenderTestBox(const Size3d(4, 2, 1));
       laidOut(child, basis: LayoutBasis3d.xz, origin: Alignment3d.topLeftFront);
       // Nothing moves for the corner itself, but the axes it grows along
       // differ: layout height is now scene z.
@@ -80,9 +80,9 @@ void main() {
         PerspectiveCamera(position: Vector3(0, 0, 6), target: Vector3(0, 0, 0));
 
     test('a row runs left to right on screen', () {
-      final first = TestBox(const Size3d(1, 1, 1));
-      final second = TestBox(const Size3d(1, 1, 1));
-      laidOut(Row3d(children: [first, second]));
+      final first = RenderTestBox(const Size3d(1, 1, 1));
+      final second = RenderTestBox(const Size3d(1, 1, 1));
+      laidOut(RenderRow3d(children: [first, second]));
 
       const view = Size(512, 512);
       final camera = frontCamera();
@@ -98,9 +98,9 @@ void main() {
     });
 
     test('a column runs top to bottom on screen', () {
-      final first = TestBox(const Size3d(1, 1, 1));
-      final second = TestBox(const Size3d(1, 1, 1));
-      laidOut(Column3d(children: [first, second]));
+      final first = RenderTestBox(const Size3d(1, 1, 1));
+      final second = RenderTestBox(const Size3d(1, 1, 1));
+      laidOut(RenderColumn3d(children: [first, second]));
 
       const view = Size(512, 512);
       final camera = frontCamera();
@@ -116,9 +116,12 @@ void main() {
     });
 
     test('the front of a box is nearer the camera than its back', () {
-      final child = TestBox(const Size3d(1, 1, 1));
+      final child = RenderTestBox(const Size3d(1, 1, 1));
       final surface = laidOut(
-        Padding3d(padding: const EdgeInsets3d.only(front: 1), child: child),
+        RenderPadding3d(
+          padding: const EdgeInsets3d.only(front: 1),
+          child: child,
+        ),
         origin: Alignment3d.topLeftFront,
       );
       // Layout z grows away from the viewer, so a child pushed back by a
@@ -136,9 +139,9 @@ void main() {
 
   group('placement', () {
     test('a parent offset becomes a node translation', () {
-      final child = TestBox(const Size3d(1, 1, 1));
+      final child = RenderTestBox(const Size3d(1, 1, 1));
       laidOut(
-        Padding3d(
+        RenderPadding3d(
           padding: const EdgeInsets3d.only(left: 1, top: 2, front: 3),
           child: child,
         ),
@@ -148,11 +151,14 @@ void main() {
     });
 
     test('offsets compose down the node graph', () {
-      final child = TestBox(const Size3d(1, 1, 1));
+      final child = RenderTestBox(const Size3d(1, 1, 1));
       laidOut(
-        Padding3d(
+        RenderPadding3d(
           padding: const EdgeInsets3d.all(1),
-          child: Padding3d(padding: const EdgeInsets3d.all(2), child: child),
+          child: RenderPadding3d(
+            padding: const EdgeInsets3d.all(2),
+            child: child,
+          ),
         ),
         origin: Alignment3d.topLeftFront,
       );
@@ -167,7 +173,7 @@ void main() {
 
   group('dirty tracking', () {
     test('a size change relayouts the subtree that depends on it', () {
-      final child = TestBox(const Size3d(1, 1, 1));
+      final child = RenderTestBox(const Size3d(1, 1, 1));
       final surface = laidOut(child);
       expect(child.layoutCount, 1);
       expect(surface.size, const Size3d(1, 1, 1));
@@ -180,7 +186,7 @@ void main() {
     });
 
     test('flushing with nothing dirty does no work', () {
-      final child = TestBox(const Size3d(1, 1, 1));
+      final child = RenderTestBox(const Size3d(1, 1, 1));
       final surface = laidOut(child);
       surface.flush();
       surface.flush();
@@ -188,16 +194,16 @@ void main() {
     });
 
     test('a tight ancestor absorbs a deep relayout', () {
-      final left = TestBox(const Size3d(1, 1, 1));
-      final right = TestBox(const Size3d(1, 1, 1));
+      final left = RenderTestBox(const Size3d(1, 1, 1));
+      final right = RenderTestBox(const Size3d(1, 1, 1));
       final surface = laidOut(
-        Row3d(
+        RenderRow3d(
           children: [
-            SizedBox3d(
+            RenderSizedBox3d(
               width: 2,
               height: 2,
               depth: 2,
-              child: Align3d(child: left),
+              child: RenderAlign3d(child: left),
             ),
             right,
           ],
@@ -215,7 +221,7 @@ void main() {
     });
 
     test('changing the surface configuration relayouts', () {
-      final child = TestBox(const Size3d(10, 10, 10));
+      final child = RenderTestBox(const Size3d(10, 10, 10));
       final surface = laidOut(child);
       expect(child.size, const Size3d(10, 10, 10));
 
@@ -227,8 +233,8 @@ void main() {
 
   group('tree', () {
     test('adopting a child parents its node', () {
-      final child = TestBox(const Size3d(1, 1, 1));
-      final padding = Padding3d(child: child);
+      final child = RenderTestBox(const Size3d(1, 1, 1));
+      final padding = RenderPadding3d(child: child);
       expect(child.parent, padding);
       expect(padding.node.children, contains(child.node));
 
@@ -238,10 +244,10 @@ void main() {
     });
 
     test('syncChildren adopts, drops, and reorders', () {
-      final a = TestBox(const Size3d(1, 1, 1));
-      final b = TestBox(const Size3d(1, 1, 1));
-      final c = TestBox(const Size3d(1, 1, 1));
-      final row = Row3d(children: [a, b]);
+      final a = RenderTestBox(const Size3d(1, 1, 1));
+      final b = RenderTestBox(const Size3d(1, 1, 1));
+      final c = RenderTestBox(const Size3d(1, 1, 1));
+      final row = RenderRow3d(children: [a, b]);
       row.syncChildren([c, a]);
       expect(row.children, [c, a]);
       expect(b.parent, isNull);
@@ -250,8 +256,8 @@ void main() {
   });
   group('disposal', () {
     test('a disposed layout says so, and refuses to be laid out again', () {
-      final box = TestBox(const Size3d(1, 1, 1));
-      final column = Column3d(children: [box]);
+      final box = RenderTestBox(const Size3d(1, 1, 1));
+      final column = RenderColumn3d(children: [box]);
       laidOut(column);
 
       expect(column.debugDisposed, isFalse);

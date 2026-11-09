@@ -36,7 +36,7 @@ import 'decoration_image.dart';
 /// `p = (GetVertexColor().rgb - 0.5) * 2.0 * half_extent` and evaluates a
 /// rounded-box signed distance there.
 ///
-/// **The slab is authored in layout axes, not scene axes.** A `NodeBox3d`
+/// **The slab is authored in layout axes, not scene axes.** A `RenderNodeBox3d`
 /// undoes the surface basis so a loaded model keeps the orientation it was
 /// authored with; a decoration has no authored orientation to keep, and its
 /// faces should line up with the box it is decorating. So the basis in the
@@ -234,9 +234,9 @@ class BoxDecoration3dPainter implements Decoration3dPainter {
   /// lit by a normal of nothing and comes out **black** — which looks like a
   /// missing texture rather than like missing geometry, and is the one thing
   /// about this shader that a colour probe cannot tell from a defect in the
-  /// picture. A box with no depth is not exotic either: [Image3d] takes the
-  /// depth its constraints allow, and in a loose surface that is none, so an
-  /// ordinary photograph on its own is exactly the case that meets it.
+  /// picture. A box with no depth is not exotic either: [RenderImage3d] takes
+  /// the depth its constraints allow, and in a loose surface that is none, so
+  /// an ordinary photograph on its own is exactly the case that meets it.
   static Matrix4 slabTransformFor(Size3d size) {
     final centre = size.center;
     return Matrix4.translationValues(centre.x, centre.y, centre.z).multiplied(

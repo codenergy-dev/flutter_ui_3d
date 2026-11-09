@@ -29,7 +29,7 @@ const CommonRenderObjectFinders3d find3d = CommonRenderObjectFinders3d._();
 class CommonRenderObjectFinders3d {
   const CommonRenderObjectFinders3d._();
 
-  /// The [Semantics3d] boxes whose label matches [label].
+  /// The [RenderSemantics3d] boxes whose label matches [label].
   ///
   /// A [String] matches a label equal to it and a [RegExp] one it matches
   /// anywhere in. This is the finder to reach for first: a component in a
@@ -37,7 +37,7 @@ class CommonRenderObjectFinders3d {
   /// test written with it survives a change to how the component is built.
   RenderObjectFinder3d bySemanticsLabel(Pattern label) => _PredicateFinder(
     (box) =>
-        box is Semantics3d &&
+        box is RenderSemantics3d &&
         switch (box.properties.label) {
           final String value => _matches(label, value),
           _ => false,
@@ -45,11 +45,13 @@ class CommonRenderObjectFinders3d {
     'semantics label ${_describePattern(label)}',
   );
 
-  /// The [Text3d] and [RichText3d] boxes whose whole text is [text].
+  /// The [RenderText3d] and [RenderRichText3d] boxes whose whole text is
+  /// [text].
   RenderObjectFinder3d text(String text) =>
       _PredicateFinder((box) => _textOf(box) == text, 'text "$text"');
 
-  /// The [Text3d] and [RichText3d] boxes whose text contains [pattern].
+  /// The [RenderText3d] and [RenderRichText3d] boxes whose text contains
+  /// [pattern].
   RenderObjectFinder3d textContaining(Pattern pattern) =>
       _PredicateFinder((box) {
         final text = _textOf(box);
@@ -90,7 +92,7 @@ class CommonRenderObjectFinders3d {
   /// stands for.
   RenderObjectFinder3d focused() => _PredicateFinder((box) {
     final primary = FocusManager.instance.primaryFocus;
-    return primary != null && identical(Focus3d.layoutFor(primary), box);
+    return primary != null && identical(RenderFocus3d.layoutFor(primary), box);
   }, 'keyboard focus');
 
   /// The boxes [matching] finds below a box [of] finds.
@@ -238,8 +240,8 @@ Iterable<RenderObject3d> _everyBox() sync* {
 }
 
 String? _textOf(RenderObject3d box) => switch (box) {
-  Text3d() => box.data,
-  RichText3d() => box.text.toPlainText(),
+  RenderText3d() => box.data,
+  RenderRichText3d() => box.text.toPlainText(),
   _ => null,
 };
 

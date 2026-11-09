@@ -31,9 +31,9 @@ TabController _controller({int initialIndex = 0, int length = 3}) =>
     );
 
 /// A bar 3 units wide at the top of a column, the shape a screen gives one.
-Widget _bar(Widget bar) => SceneSizedBox3d(
+Widget _bar(Widget bar) => SizedBox3d(
   width: 3,
-  child: SceneColumn3d(
+  child: Column3d(
     mainAxisSize: MainAxisSize3d.min,
     crossAxisAlignment: CrossAxisAlignment3d.stretch,
     children: <Widget>[bar],
@@ -42,14 +42,14 @@ Widget _bar(Widget bar) => SceneSizedBox3d(
 
 /// A bar over pages, 3 units by 2.
 Widget _barOverPages(TabController controller, List<Widget> pages) =>
-    SceneSizedBox3d(
+    SizedBox3d(
       width: 3,
       height: 2,
-      child: SceneColumn3d(
+      child: Column3d(
         crossAxisAlignment: CrossAxisAlignment3d.stretch,
         children: <Widget>[
           TabBar3d(controller: controller, tabs: _tabs),
-          SceneExpanded3d(
+          Expanded3d(
             child: TabBarView3d(controller: controller, children: pages),
           ),
         ],
@@ -57,22 +57,22 @@ Widget _barOverPages(TabController controller, List<Widget> pages) =>
     );
 
 /// The tab bar's own box.
-RenderMultiChild3d _barBox(Layout3dSurface surface) =>
+RenderMultiChild3d _barBox(RenderSurface3d surface) =>
     namedBox(surface, 'TabBar3d') as RenderMultiChild3d;
 
 /// The indicator: the third child of the bar's box.
-RenderObject3d _indicator(Layout3dSurface surface) =>
+RenderObject3d _indicator(RenderSurface3d surface) =>
     _barBox(surface).childAt(2);
 
 /// The box a label measured, by its index.
-RenderObject3d _label(Layout3dSurface surface, int index) =>
+RenderObject3d _label(RenderSurface3d surface, int index) =>
     namedBox(surface, 'TabBar3d label $index');
 
-RenderObject3d _slot(Layout3dSurface surface, int index) =>
+RenderObject3d _slot(RenderSurface3d surface, int index) =>
     namedBox(surface, 'TabBar3d tab $index');
 
 /// [box]'s left edge in the bar's frame.
-double _xInBar(Layout3dSurface surface, RenderObject3d box) {
+double _xInBar(RenderSurface3d surface, RenderObject3d box) {
   final bar = _barBox(surface);
   var x = 0.0;
   for (var walk = box; !identical(walk, bar); walk = walk.parent!) {
@@ -83,7 +83,7 @@ double _xInBar(Layout3dSurface surface, RenderObject3d box) {
 
 /// Where the indicator is drawn, as its left and right edges in the bar's
 /// frame: where it was laid out, moved and stretched by its node tier.
-(double, double) _drawn(Layout3dSurface surface) {
+(double, double) _drawn(RenderSurface3d surface) {
   final indicator = _indicator(surface);
   final scale = indicator.nodeTransform?.storage[0] ?? 1.0;
   final left = indicator.offset.x + indicator.nodeOffset.x;
@@ -91,8 +91,8 @@ double _xInBar(Layout3dSurface surface, RenderObject3d box) {
 }
 
 /// The semantics node of the tab announcing [label].
-Semantics3d _announced(Layout3dSurface surface, String label) =>
-    boxesOf<Semantics3d>(
+RenderSemantics3d _announced(RenderSurface3d surface, String label) =>
+    boxesOf<RenderSemantics3d>(
       surface,
     ).firstWhere((box) => box.properties.label == label);
 
@@ -169,9 +169,9 @@ void main() {
       );
       final scheme = _theme.colorScheme;
       Color colourOf(int index) {
-        final found = <Text3d>[];
+        final found = <RenderText3d>[];
         void walk(RenderObject3d box) {
-          if (box is Text3d) found.add(box);
+          if (box is RenderText3d) found.add(box);
           box.visitChildren(walk);
         }
 
@@ -206,7 +206,7 @@ void main() {
       expect(indicator.nodeOffset, Offset3d.zero);
       expect(indicator.nodeTransform, isNull);
       final decoration =
-          boxesOf<DecoratedBox3d>(pumped.surface)
+          boxesOf<RenderDecoratedBox3d>(pumped.surface)
                   .firstWhere(
                     (box) =>
                         (box.decoration as BoxDecoration3d).color ==
@@ -398,7 +398,7 @@ void main() {
         tester,
         () => _bar(TabBar3d(controller: controller, tabs: _tabs)),
       );
-      final tabs = boxesOf<Semantics3d>(
+      final tabs = boxesOf<RenderSemantics3d>(
         pumped.surface,
       ).where((box) => box.properties.role == SemanticsRole.tab).toList();
       expect(tabs.map((box) => box.properties.label), <String>[
@@ -412,10 +412,10 @@ void main() {
         false,
       ]);
       // And no node for the bar: Flutter checks that a tab bar's children
-      // are tabs, and a `Semantics3d` has none, so a `tabBar` node is an empty
-      // bar that stops a frame building once semantics are on.
+      // are tabs, and a `RenderSemantics3d` has none, so a `tabBar` node is an
+      // empty bar that stops a frame building once semantics are on.
       expect(
-        boxesOf<Semantics3d>(
+        boxesOf<RenderSemantics3d>(
           pumped.surface,
         ).where((box) => box.properties.role == SemanticsRole.tabBar),
         isEmpty,
@@ -435,12 +435,12 @@ void main() {
 
   group('TabBarView3d', () {
     List<Widget> pages() => <Widget>[
-      for (var i = 0; i < 3; i++) SceneText3d('Page $i'),
+      for (var i = 0; i < 3; i++) Text3d('Page $i'),
     ];
 
     /// The page view's position, counted in pages.
-    double pageOf(Layout3dSurface surface) {
-      final view = boxesOf<PageView3d>(surface).single;
+    double pageOf(RenderSurface3d surface) {
+      final view = boxesOf<RenderPageView3d>(surface).single;
       return view.controller.offset / view.controller.viewportExtent;
     }
 
@@ -478,7 +478,7 @@ void main() {
         tester,
         () => _barOverPages(controller, pages()),
       );
-      final view = boxesOf<PageView3d>(pumped.surface).single;
+      final view = boxesOf<RenderPageView3d>(pumped.surface).single;
       final middle = view.drawnOffsetInSurface + view.size.center;
       final pointer = pumped.pointer;
       pointer.down(rayAt(pumped.surface, middle));
@@ -527,17 +527,15 @@ void main() {
         tester,
         () => _barOverPages(controller, <Widget>[
           for (var i = 0; i < 3; i++)
-            SceneRow3d(
+            Row3d(
               mainAxisAlignment: MainAxisAlignment3d.spaceBetween,
-              children: <Widget>[
-                SceneText3d('Start $i'),
-                SceneText3d('End $i'),
-              ],
+              children: <Widget>[Text3d('Start $i'), Text3d('End $i')],
             ),
         ]),
       );
-      Text3d label(String text) =>
-          boxesOf<Text3d>(pumped.surface).firstWhere((box) => box.data == text);
+      RenderText3d label(String text) => boxesOf<RenderText3d>(
+        pumped.surface,
+      ).firstWhere((box) => box.data == text);
       controller.animateTo(1);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
@@ -561,7 +559,7 @@ void main() {
         () => _barOverPages(controller, pages()),
       );
       expect(
-        boxesOf<Semantics3d>(
+        boxesOf<RenderSemantics3d>(
           pumped.surface,
         ).where((box) => box.properties.role == SemanticsRole.tabPanel),
         isNotEmpty,

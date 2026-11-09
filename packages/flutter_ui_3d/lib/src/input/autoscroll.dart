@@ -13,7 +13,7 @@ import 'drag.dart';
 /// in world units.
 ///
 /// ```dart
-/// ReorderableList3d(
+/// RenderReorderableList3d(
 ///   autoscroll: const Drag3dAutoscroll(edgeExtent: 72, maxVelocity: 600),
 ///   // ...
 /// )
@@ -114,7 +114,7 @@ class Drag3dAutoscroll {
 ///
 /// ## Owning one
 ///
-/// [Draggable3d] makes one when its `autoscroll` settings are enabled and
+/// [RenderDraggable3d] makes one when its `autoscroll` settings are enabled and
 /// disposes it with the drag. Making one by hand is how a host with a drag
 /// source of its own gets the same behaviour:
 ///

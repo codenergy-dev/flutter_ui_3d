@@ -3,12 +3,12 @@ import 'package:flutter/widgets.dart' show BuildContext, InheritedWidget;
 import '../text/text3d.dart';
 import '../text/text_renderer.dart';
 
-/// The renderer every [SceneText3d] below this widget draws through, unless
+/// The renderer every [Text3d] below this widget draws through, unless
 /// it was handed one of its own.
 ///
 /// The gap this fills is the one `DefaultTextStyle` fills for a style.
-/// [Text3d.renderer] is null by default and a label with no renderer draws
-/// nothing — deliberate, because rasterization needs a GPU context that
+/// [RenderText3d.renderer] is null by default and a label with no renderer
+/// draws nothing — deliberate, because rasterization needs a GPU context that
 /// `flutter test` does not have — so without an inherited default every label
 /// in an application has to be handed an `AtlasText3dRenderer` by hand. Put
 /// one of these above the surface instead:
@@ -16,12 +16,12 @@ import '../text/text_renderer.dart';
 /// ```dart
 /// DefaultTextRenderer3d(
 ///   factory: AtlasText3dRenderer.new,
-///   child: SceneView.declarative(children: [SceneLayout3d(child: screen)]),
+///   child: SceneView.declarative(children: [Surface3d(child: screen)]),
 /// )
 /// ```
 ///
 /// **It carries a factory, not a renderer, and that is not a detail.** A
-/// [Text3dRenderer] handed to a [Text3d] is owned by that box: the box
+/// [Text3dRenderer] handed to a [RenderText3d] is owned by that box: the box
 /// disposes it when it is disposed and when a different one is set. One
 /// inherited *instance* shared by a screen of labels would therefore be
 /// disposed by whichever label left the tree first, and every remaining label
@@ -43,7 +43,7 @@ class DefaultTextRenderer3d extends InheritedWidget {
 
   /// Makes one renderer, for one label.
   ///
-  /// Called once per `SceneText3d` below this widget, and again for all of
+  /// Called once per `Text3d` below this widget, and again for all of
   /// them if this widget is rebuilt with a different function — so keep it
   /// stable. A tear-off of a constructor (`AtlasText3dRenderer.new`) or a
   /// field on a `State` is stable; a closure written inline in `build` is a

@@ -53,7 +53,7 @@ void main() {
       expect(box.border.width, checkboxStyle.outlineWidth);
       expect(box.borderRadius, const BorderRadius3d.circular(2.0));
       expect(
-        boxesOf<Text3d>(it.surface),
+        boxesOf<RenderText3d>(it.surface),
         isEmpty,
         reason: 'no mark, so no glyph at all rather than a transparent one',
       );
@@ -73,7 +73,7 @@ void main() {
         isTrue,
         reason: 'the fill is the edge; an outline round it would compete',
       );
-      final mark = boxesOf<Text3d>(it.surface).single;
+      final mark = boxesOf<RenderText3d>(it.surface).single;
       expect(mark.style.color, theme.colorScheme.onPrimary);
       expect(mark.style.fontSize, checkboxStyle.markSize);
     });
@@ -104,7 +104,7 @@ void main() {
         final box = it.panels[1].decoration as BoxDecoration3d;
         expect(box.color, theme.colorScheme.disabledContent);
         expect(
-          boxesOf<Text3d>(it.surface).single.style.color,
+          boxesOf<RenderText3d>(it.surface).single.style.color,
           theme.colorScheme.surface,
         );
       },
@@ -173,7 +173,7 @@ void main() {
         tester,
         () => Checkbox3d(value: true, onChanged: (_) {}),
       );
-      final steps = oneOf<Stack3d>(
+      final steps = oneOf<RenderStack3d>(
         it.surface,
       ).children.map((child) => child.sceneOffset.z).toList();
       expect(steps.length, 3, reason: 'the wash, the box, and the mark');
@@ -325,7 +325,7 @@ void main() {
         tester,
         () => Switch3d(value: false, onChanged: (_) {}),
       );
-      final steps = oneOf<Stack3d>(
+      final steps = oneOf<RenderStack3d>(
         it.surface,
       ).children.map((child) => child.sceneOffset.z).toList();
       expect(steps, hasLength(2));
@@ -605,7 +605,7 @@ void main() {
       final it = await pumpComponent(
         tester,
         () => _Toggling(
-          builder: (context, setState) => SceneSizedBox3d(
+          builder: (context, setState) => SizedBox3d(
             width: 3.6,
             child: SwitchListTile3d.text(
               title: 'Wi-Fi',
@@ -648,7 +648,7 @@ void main() {
       final box = it.panels[1].decoration as BoxDecoration3d;
       expect(box.color, theme.colorScheme.primary);
       expect(box.border.isNone, isTrue);
-      final mark = oneOf<Text3d>(it.surface);
+      final mark = oneOf<RenderText3d>(it.surface);
       expect(
         mark.data,
         String.fromCharCode(Checkbox3d.defaultIndeterminateIcon.codePoint),
@@ -662,7 +662,7 @@ void main() {
         () => Checkbox3d(value: true, tristate: true, onChanged: (_) {}),
       );
       expect(
-        oneOf<Text3d>(it.surface).data,
+        oneOf<RenderText3d>(it.surface).data,
         String.fromCharCode(Checkbox3d.defaultIcon.codePoint),
       );
     });
@@ -758,7 +758,7 @@ void main() {
       // Exactly one box in the whole control reaches past itself: the ink
       // well's own target sits inside at `Size3d.zero`, which is the
       // arrangement every component here uses.
-      final reaching = boxesOf<TapTarget3d>(
+      final reaching = boxesOf<RenderTapTarget3d>(
         it.surface,
       ).where((t) => t.effectiveMinimumSize.width > t.size.width).toList();
       expect(reaching.length, 1);
@@ -846,11 +846,11 @@ void main() {
       // publishes a checkbox with no name.
       final it = await pumpComponent(
         tester,
-        () => SceneRow3d(
+        () => Row3d(
           mainAxisSize: MainAxisSize3d.min,
           children: <Widget>[
             Checkbox3d(value: false, onChanged: (_) {}),
-            const SceneText3d('Subscribe'),
+            const Text3d('Subscribe'),
           ],
         ),
       );
@@ -941,10 +941,10 @@ void main() {
 ///
 /// A blunt instrument on purpose: the claim is that a toggle lays out
 /// *nothing*, so any box moving is a failure and which one hardly matters.
-int layoutCountOf(Layout3dSurface surface) {
+int layoutCountOf(RenderSurface3d surface) {
   var total = 0;
   void walk(RenderObject3d box) {
-    if (box is TestBox) total += box.layoutCount;
+    if (box is RenderTestBox) total += box.layoutCount;
     box.visitChildren(walk);
   }
 

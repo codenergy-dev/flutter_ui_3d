@@ -18,16 +18,16 @@ import '../rendering/object.dart';
 ///
 /// That matters more here than it sounds, because relayout cost compounds in
 /// three dimensions. A dirty box is re-measured, and a re-measured box may ask
-/// a [Text3d] to shape a string or a decorated box to re-derive a shader's
-/// uniforms. Nothing on this path can reach any of that, by construction:
-/// [RenderObject3d.nodeOffset] and [RenderObject3d.nodeTransform] are plain
-/// setters that rewrite a transform and ask the host for a frame. Use it for
-/// every animation that does not change a size, and reach for
+/// a [RenderText3d] to shape a string or a decorated box to re-derive a
+/// shader's uniforms. Nothing on this path can reach any of that, by
+/// construction: [RenderObject3d.nodeOffset] and [RenderObject3d.nodeTransform]
+/// are plain setters that rewrite a transform and ask the host for a frame. Use
+/// it for every animation that does not change a size, and reach for
 /// [ImplicitlyAnimatedLayout3dWidget] only for the ones that do.
 ///
 /// ## What it is not
 ///
-/// It is not [Transform3d]. That box puts a real change of frame between
+/// It is not [RenderTransform3d]. That box puts a real change of frame between
 /// itself and its child: its child's offsets, the clip it inherits and the
 /// ray that reaches it are all taken through the matrix, and changing it is a
 /// relayout. This box's transform is invisible to every one of those. A ray
@@ -46,15 +46,15 @@ import '../rendering/object.dart';
 ///   begin: Offset3d.zero,
 ///   end: const Offset3d(0, 0, -0.05),
 /// ).animate(pressController);
-/// final button = NodeTransform3d(offsetAnimation: lift, child: chrome);
+/// final button = RenderNodeTransform3d(offsetAnimation: lift, child: chrome);
 /// ```
 ///
 /// A value that is not animated at all needs none of this: every box has
 /// [RenderObject3d.nodeOffset], so a static nudge is a single assignment on the
 /// box itself.
-class NodeTransform3d extends RenderProxyBox3d {
+class RenderNodeTransform3d extends RenderProxyBox3d {
   /// Creates a node-only animation box driven by [offset] and [transform].
-  NodeTransform3d({
+  RenderNodeTransform3d({
     Animation<Offset3d>? offsetAnimation,
     Animation<Matrix4>? transformAnimation,
     super.child,

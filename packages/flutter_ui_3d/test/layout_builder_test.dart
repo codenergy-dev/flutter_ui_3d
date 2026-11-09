@@ -1,4 +1,4 @@
-// The declarative half of the boxes a catalogue asks for: SceneLayoutBuilder3d
+// The declarative half of the boxes a catalogue asks for: LayoutBuilder3d
 // building its child inside the layout pass, and the rest of the new widgets
 // applying a property change without rebuilding the layout object.
 
@@ -49,7 +49,7 @@ class TrackedChildState extends State<TrackedChild> {
 
   @override
   Widget build(BuildContext context) =>
-      const SceneSizedBox3d(width: 1, height: 1, depth: 1);
+      const SizedBox3d(width: 1, height: 1, depth: 1);
 }
 
 /// A flow delegate that steps its children along, for the widget form.
@@ -102,7 +102,7 @@ class TwoPartDelegate extends MultiChildLayout3dDelegate {
 }
 
 void main() {
-  group('SceneLayoutBuilder3d', () {
+  group('LayoutBuilder3d', () {
     testWidgets('builds its child from the constraints it is given', (
       tester,
     ) async {
@@ -110,24 +110,22 @@ void main() {
       final seen = <double>[];
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(8, 4, 1),
           controller: controller,
-          child: SceneLayoutBuilder3d(
+          child: LayoutBuilder3d(
             builder: (context, constraints) {
               seen.add(constraints.maxWidth);
               return constraints.maxWidth > 6
-                  ? const SceneRow3d(
+                  ? const Row3d(
                       children: [
-                        SceneSizedBox3d(width: 2, height: 1, depth: 1),
-                        SceneSizedBox3d(width: 2, height: 1, depth: 1),
+                        SizedBox3d(width: 2, height: 1, depth: 1),
+                        SizedBox3d(width: 2, height: 1, depth: 1),
                       ],
                     )
-                  : const SceneColumn3d(
-                      children: [
-                        SceneSizedBox3d(width: 2, height: 1, depth: 1),
-                      ],
+                  : const Column3d(
+                      children: [SizedBox3d(width: 2, height: 1, depth: 1)],
                     );
             },
           ),
@@ -135,8 +133,8 @@ void main() {
       );
 
       expect(seen, <double>[8]);
-      final builder = rootOf(controller) as LayoutBuilder3d;
-      final built = builder.built! as Flex3d;
+      final builder = rootOf(controller) as RenderLayoutBuilder3d;
+      final built = builder.built! as RenderFlex3d;
       expect(built.direction, Axis3d.horizontal);
       expect(built.childCount, 2);
       expect(builder.size.width, 8);
@@ -149,11 +147,11 @@ void main() {
       final log = <String>[];
       final seen = <double>[];
 
-      Widget frame(double width) => SceneLayout3d(
+      Widget frame(double width) => Surface3d(
         parent: Node(),
         size: Size3d(width, 4, 1),
         controller: controller,
-        child: SceneLayoutBuilder3d(
+        child: LayoutBuilder3d(
           builder: (context, constraints) {
             seen.add(constraints.maxWidth);
             return TrackedChild(label: 'body', log: log);
@@ -195,7 +193,7 @@ void main() {
         StatefulBuilder(
           builder: (context, setState) {
             setOuter = setState;
-            return SceneLayout3d(
+            return Surface3d(
               parent: Node(),
               constraints: const Constraints3d(
                 maxWidth: 8,
@@ -203,16 +201,16 @@ void main() {
                 maxDepth: 1,
               ),
               controller: controller,
-              child: SceneLayoutBuilder3d(
+              child: LayoutBuilder3d(
                 builder: (context, constraints) =>
-                    SceneSizedBox3d(width: extent, height: extent, depth: 1),
+                    SizedBox3d(width: extent, height: extent, depth: 1),
               ),
             );
           },
         ),
       );
 
-      final builder = rootOf(controller) as LayoutBuilder3d;
+      final builder = rootOf(controller) as RenderLayoutBuilder3d;
       expect(builder.built!.size.width, 1);
 
       setOuter(() => extent = 3);
@@ -227,20 +225,20 @@ void main() {
       final controller = Layout3dController();
       final log = <String>[];
 
-      Widget frame({required bool withBuilder}) => SceneLayout3d(
+      Widget frame({required bool withBuilder}) => Surface3d(
         parent: Node(),
         size: const Size3d(8, 4, 1),
         controller: controller,
         child: withBuilder
-            ? SceneLayoutBuilder3d(
+            ? LayoutBuilder3d(
                 builder: (context, constraints) =>
                     TrackedChild(label: 'body', log: log),
               )
-            : const SceneSizedBox3d(width: 1, height: 1, depth: 1),
+            : const SizedBox3d(width: 1, height: 1, depth: 1),
       );
 
       await tester.pumpWidget(frame(withBuilder: true));
-      final builder = rootOf(controller) as LayoutBuilder3d;
+      final builder = rootOf(controller) as RenderLayoutBuilder3d;
       final built = builder.built!;
       expect(built.debugDisposed, isFalse);
 
@@ -263,21 +261,21 @@ void main() {
     ) async {
       final controller = Layout3dController();
 
-      Widget frame(int index) => SceneLayout3d(
+      Widget frame(int index) => Surface3d(
         parent: Node(),
         size: const Size3d(8, 8, 1),
         controller: controller,
-        child: SceneIndexedStack3d(
+        child: IndexedStack3d(
           index: index,
           children: const [
-            SceneSizedBox3d(width: 2, height: 2, depth: 1),
-            SceneSizedBox3d(width: 4, height: 4, depth: 1),
+            SizedBox3d(width: 2, height: 2, depth: 1),
+            SizedBox3d(width: 4, height: 4, depth: 1),
           ],
         ),
       );
 
       await tester.pumpWidget(frame(0));
-      final stack = rootOf(controller) as IndexedStack3d;
+      final stack = rootOf(controller) as RenderIndexedStack3d;
       expect(stack.childAt(0).node.visible, isTrue);
       expect(stack.childAt(1).node.visible, isFalse);
 
@@ -290,23 +288,23 @@ void main() {
     testWidgets('the sizing boxes reach their layouts', (tester) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(8, 8, 1),
           controller: controller,
-          child: const SceneFractionallySizedBox3d(
+          child: const FractionallySizedBox3d(
             widthFactor: 0.5,
-            child: SceneLimitedBox3d(
+            child: LimitedBox3d(
               maxHeight: 3,
-              child: SceneAspectRatio3d(aspectRatio: 2),
+              child: AspectRatio3d(aspectRatio: 2),
             ),
           ),
         ),
       );
 
-      final fractional = rootOf(controller) as FractionallySizedBox3d;
-      final limited = fractional.child! as LimitedBox3d;
-      final ratio = limited.child! as AspectRatio3d;
+      final fractional = rootOf(controller) as RenderFractionallySizedBox3d;
+      final limited = fractional.child! as RenderLimitedBox3d;
+      final ratio = limited.child! as RenderAspectRatio3d;
       expect(fractional.widthFactor, 0.5);
       expect(limited.maxHeight, 3);
       // Half of eight across, and the ratio halves that again downward.
@@ -319,27 +317,27 @@ void main() {
     ) async {
       final controller = Layout3dController();
 
-      Widget frame(double barHeight) => SceneLayout3d(
+      Widget frame(double barHeight) => Surface3d(
         parent: Node(),
         size: const Size3d(8, 8, 1),
         controller: controller,
-        child: SceneCustomMultiChildLayout3d(
+        child: CustomMultiChildLayout3d(
           delegate: TwoPartDelegate(barHeight),
           children: const [
-            SceneLayoutId3d(
+            LayoutId3d(
               id: 'bar',
-              child: SceneSizedBox3d(width: 1, height: 1, depth: 1),
+              child: SizedBox3d(width: 1, height: 1, depth: 1),
             ),
-            SceneLayoutId3d(
+            LayoutId3d(
               id: 'body',
-              child: SceneSizedBox3d(width: 1, height: 1, depth: 1),
+              child: SizedBox3d(width: 1, height: 1, depth: 1),
             ),
           ],
         ),
       );
 
       await tester.pumpWidget(frame(2));
-      final layout = rootOf(controller) as CustomMultiChildLayout3d;
+      final layout = rootOf(controller) as RenderCustomMultiChildLayout3d;
       expect(layout.children.first.size.height, 2);
       expect(layout.children.last.offset.y, 2);
 
@@ -352,21 +350,21 @@ void main() {
     testWidgets('a flow places its children by node transform', (tester) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(8, 8, 1),
           controller: controller,
-          child: const SceneFlow3d(
+          child: const Flow3d(
             delegate: StepFlow(2),
             children: [
-              SceneSizedBox3d(width: 1, height: 1, depth: 1),
-              SceneSizedBox3d(width: 1, height: 1, depth: 1),
+              SizedBox3d(width: 1, height: 1, depth: 1),
+              SizedBox3d(width: 1, height: 1, depth: 1),
             ],
           ),
         ),
       );
 
-      final flow = rootOf(controller) as Flow3d;
+      final flow = rootOf(controller) as RenderFlow3d;
       expect(flow.childAt(1).offset, Offset3d.zero);
       expect(flow.childAt(1).nodeOffset, const Offset3d(2, 0, 0));
     });
@@ -376,23 +374,23 @@ void main() {
     ) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(8, 8, 1),
           controller: controller,
-          child: const SceneTable3d(
+          child: const Table3d(
             columnCount: 2,
             children: [
-              SceneSizedBox3d(width: 1, height: 1, depth: 1),
-              SceneSizedBox3d(width: 1, height: 2, depth: 1),
-              SceneSizedBox3d(width: 1, height: 1, depth: 1),
-              SceneSizedBox3d(width: 1, height: 1, depth: 1),
+              SizedBox3d(width: 1, height: 1, depth: 1),
+              SizedBox3d(width: 1, height: 2, depth: 1),
+              SizedBox3d(width: 1, height: 1, depth: 1),
+              SizedBox3d(width: 1, height: 1, depth: 1),
             ],
           ),
         ),
       );
 
-      final table = rootOf(controller) as Table3d;
+      final table = rootOf(controller) as RenderTable3d;
       expect(table.rowCount, 2);
       expect(table.cellAt(0, 1)!.offset.x, 4);
       expect(table.cellAt(1, 0)!.offset.y, 2);
@@ -401,16 +399,16 @@ void main() {
     testWidgets('a padded sliver moves the section inside it', (tester) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(8, 8, 1),
           controller: controller,
-          child: const SceneCustomScrollView3d(
+          child: const CustomScrollView3d(
             slivers: [
-              SceneSliverPadding3d(
+              SliverPadding3d(
                 padding: EdgeInsets3d.only(top: 1, left: 2),
-                sliver: SceneSliverList3d(
-                  children: [SceneSizedBox3d(width: 1, height: 2, depth: 1)],
+                sliver: SliverList3d(
+                  children: [SizedBox3d(width: 1, height: 2, depth: 1)],
                 ),
               ),
             ],
@@ -418,8 +416,8 @@ void main() {
         ),
       );
 
-      final view = rootOf(controller) as CustomScrollView3d;
-      final padding = view.slivers.first as SliverPadding3d;
+      final view = rootOf(controller) as RenderCustomScrollView3d;
+      final padding = view.slivers.first as RenderSliverPadding3d;
       expect(padding.geometry.scrollExtent, 3);
       expect(padding.sliver!.offset, const Offset3d(2, 1, 0));
     });
@@ -429,20 +427,20 @@ void main() {
       final scroll = Scroll3dController(physics: PageScroll3dPhysics());
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(6, 4, 1),
           controller: controller,
-          child: ScenePageView3d.builder(
+          child: PageView3d.builder(
             controller: scroll,
             itemCount: 20,
             itemBuilder: (context, index) =>
-                const SceneSizedBox3d(width: 1, height: 1, depth: 1),
+                const SizedBox3d(width: 1, height: 1, depth: 1),
           ),
         ),
       );
 
-      final view = rootOf(controller) as PageView3d;
+      final view = rootOf(controller) as RenderPageView3d;
       expect(view.pageExtent, 6);
       // A page each, so what is built is the one on screen and the one whose
       // leading edge is exactly at the far end of the window.

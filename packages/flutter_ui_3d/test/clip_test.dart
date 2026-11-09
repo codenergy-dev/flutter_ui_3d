@@ -1,5 +1,5 @@
-// ClipPlane3d, Clip3dRegion and ClipBox3d: the clip contract the rest of the
-// package consumes.
+// ClipPlane3d, Clip3dRegion and RenderClipBox3d: the clip contract the rest of
+// the package consumes.
 
 import 'dart:ui' show Color;
 
@@ -126,17 +126,22 @@ void main() {
   });
 
   group('the clip a box inherits', () {
-    test('is nothing without a ClipBox3d above it', () {
-      final child = TestBox(const Size3d(1, 1, 0));
-      laidOut(Padding3d(padding: const EdgeInsets3d.all(1), child: child));
+    test('is nothing without a RenderClipBox3d above it', () {
+      final child = RenderTestBox(const Size3d(1, 1, 0));
+      laidOut(
+        RenderPadding3d(padding: const EdgeInsets3d.all(1), child: child),
+      );
       expect(child.clipRegion.isUnbounded, isTrue);
     });
 
     test('arrives in the child\'s own frame', () {
-      final child = TestBox(const Size3d(1, 1, 0));
+      final child = RenderTestBox(const Size3d(1, 1, 0));
       laidOut(
-        ClipBox3d(
-          child: Padding3d(padding: const EdgeInsets3d.all(1), child: child),
+        RenderClipBox3d(
+          child: RenderPadding3d(
+            padding: const EdgeInsets3d.all(1),
+            child: child,
+          ),
         ),
         constraints: Constraints3d.tight(const Size3d(4, 4, 0)),
       );
@@ -149,10 +154,10 @@ void main() {
     });
 
     test('is pulled back through a transform on the way down', () {
-      final child = TestBox(const Size3d(1, 1, 0));
+      final child = RenderTestBox(const Size3d(1, 1, 0));
       laidOut(
-        ClipBox3d(
-          child: Transform3d(
+        RenderClipBox3d(
+          child: RenderTransform3d(
             transform: Matrix4.diagonal3Values(2, 2, 1),
             alignment: Alignment3d.topLeft,
             child: child,
@@ -168,12 +173,12 @@ void main() {
     });
 
     test('reaches the painter of a decorated box inside it', () {
-      final box = DecoratedBox3d(
+      final box = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(),
-        child: TestBox(const Size3d(8, 8, 0)),
+        child: RenderTestBox(const Size3d(8, 8, 0)),
       );
       laidOut(
-        ClipBox3d(child: box),
+        RenderClipBox3d(child: box),
         constraints: Constraints3d.tight(const Size3d(4, 4, 0)),
       );
       expect(box.clipRegion.planes, hasLength(4));
@@ -189,34 +194,39 @@ void main() {
     const style = TextStyle(fontSize: 20);
 
     /// Two pages two units wide in a window two units wide, each with a label
-    /// at either end. The window is a [ClipBox3d], because a scroll view here
-    /// does not clip on its own: a `Scaffold3d`'s body is one, and a
+    /// at either end. The window is a [RenderClipBox3d], because a scroll view
+    /// here does not clip on its own: a `Scaffold3d`'s body is one, and a
     /// `TabBarView3d` puts one around its pages as Flutter's clips its own.
-    ({PageView3d view, List<Text3d> labels, Layout3dSurface surface}) pages() {
-      final labels = <Text3d>[
-        Text3d('L0', style: style, name: 'L0'),
-        Text3d('R0', style: style, name: 'R0'),
-        Text3d('L1', style: style, name: 'L1'),
-        Text3d('R1', style: style, name: 'R1'),
+    ({
+      RenderPageView3d view,
+      List<RenderText3d> labels,
+      RenderSurface3d surface,
+    })
+    pages() {
+      final labels = <RenderText3d>[
+        RenderText3d('L0', style: style, name: 'L0'),
+        RenderText3d('R0', style: style, name: 'R0'),
+        RenderText3d('L1', style: style, name: 'L1'),
+        RenderText3d('R1', style: style, name: 'R1'),
       ];
-      final view = PageView3d(
+      final view = RenderPageView3d(
         children: <RenderObject3d>[
-          Row3d(
+          RenderRow3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceBetween,
             children: <RenderObject3d>[labels[0], labels[1]],
           ),
-          Row3d(
+          RenderRow3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceBetween,
             children: <RenderObject3d>[labels[2], labels[3]],
           ),
         ],
       );
       final surface = laidOut(
-        SizedBox3d(
+        RenderSizedBox3d(
           width: 2,
           height: 1,
           depth: 0,
-          child: ClipBox3d(child: view),
+          child: RenderClipBox3d(child: view),
         ),
         origin: Alignment3d.topLeft,
       );
@@ -276,22 +286,24 @@ void main() {
       // A column that stretches makes a label as wide as the page, and its
       // letters sit at the start of that width: the box is half in while
       // every letter is out. That is what the gallery's "Volume" did.
-      final label = Text3d('Volume', style: style, name: 'Volume');
-      final view = PageView3d(
+      final label = RenderText3d('Volume', style: style, name: 'Volume');
+      final view = RenderPageView3d(
         children: <RenderObject3d>[
-          Column3d(
+          RenderColumn3d(
             crossAxisAlignment: CrossAxisAlignment3d.stretch,
             children: <RenderObject3d>[label],
           ),
-          Column3d(children: <RenderObject3d>[Text3d('x', style: style)]),
+          RenderColumn3d(
+            children: <RenderObject3d>[RenderText3d('x', style: style)],
+          ),
         ],
       );
       final surface = laidOut(
-        SizedBox3d(
+        RenderSizedBox3d(
           width: 2,
           height: 1,
           depth: 0,
-          child: ClipBox3d(child: view),
+          child: RenderClipBox3d(child: view),
         ),
         origin: Alignment3d.topLeft,
       );
@@ -314,18 +326,19 @@ void main() {
     });
   });
 
-  group('ClipBox3d', () {
+  group('RenderClipBox3d', () {
     /// Three stacked unit-tall boxes inside a two-unit window: the first two
     /// fit, the third does not.
-    ({ClipBox3d clip, List<TestBox> items, Layout3dSurface surface}) window() {
-      final items = <TestBox>[
-        TestBox(const Size3d(2, 1, 0), pointable: true, name: 'a'),
-        TestBox(const Size3d(2, 1, 0), pointable: true, name: 'b'),
-        TestBox(const Size3d(2, 1, 0), pointable: true, name: 'c'),
+    ({RenderClipBox3d clip, List<RenderTestBox> items, RenderSurface3d surface})
+    window() {
+      final items = <RenderTestBox>[
+        RenderTestBox(const Size3d(2, 1, 0), pointable: true, name: 'a'),
+        RenderTestBox(const Size3d(2, 1, 0), pointable: true, name: 'b'),
+        RenderTestBox(const Size3d(2, 1, 0), pointable: true, name: 'c'),
       ];
-      final clip = ClipBox3d(child: Column3d(children: items));
+      final clip = RenderClipBox3d(child: RenderColumn3d(children: items));
       final surface = laidOut(
-        SizedBox3d(width: 2, height: 2, depth: 0, child: clip),
+        RenderSizedBox3d(width: 2, height: 2, depth: 0, child: clip),
         origin: Alignment3d.topLeft,
       );
       return (clip: clip, items: items, surface: surface);
@@ -348,11 +361,11 @@ void main() {
     test('what it hid is out of reach of a ray', () {
       final w = window();
       expect(
-        w.surface.hitTestAt(const Offset3d(1, 0.5, 0)).firstOf<TestBox>(),
+        w.surface.hitTestAt(const Offset3d(1, 0.5, 0)).firstOf<RenderTestBox>(),
         same(w.items[0]),
       );
       expect(
-        w.surface.hitTestAt(const Offset3d(1, 2.5, 0)).firstOf<TestBox>(),
+        w.surface.hitTestAt(const Offset3d(1, 2.5, 0)).firstOf<RenderTestBox>(),
         isNull,
       );
     });
@@ -360,16 +373,16 @@ void main() {
     test(
       'a box that is half in is left visible, because a node is all or nothing',
       () {
-        final items = <TestBox>[
-          TestBox(const Size3d(2, 1.5, 0)),
-          TestBox(const Size3d(2, 1.5, 0)),
+        final items = <RenderTestBox>[
+          RenderTestBox(const Size3d(2, 1.5, 0)),
+          RenderTestBox(const Size3d(2, 1.5, 0)),
         ];
         laidOut(
-          SizedBox3d(
+          RenderSizedBox3d(
             width: 2,
             height: 2,
             depth: 0,
-            child: ClipBox3d(child: Column3d(children: items)),
+            child: RenderClipBox3d(child: RenderColumn3d(children: items)),
           ),
         );
         // The second sits at y = 1.5 and runs to 3, so half of it is outside;
@@ -380,16 +393,16 @@ void main() {
     );
 
     test('restores what it hid when the window grows', () {
-      final items = <TestBox>[
-        TestBox(const Size3d(2, 1, 0)),
-        TestBox(const Size3d(2, 1, 0)),
-        TestBox(const Size3d(2, 1, 0)),
+      final items = <RenderTestBox>[
+        RenderTestBox(const Size3d(2, 1, 0)),
+        RenderTestBox(const Size3d(2, 1, 0)),
+        RenderTestBox(const Size3d(2, 1, 0)),
       ];
-      final sized = SizedBox3d(
+      final sized = RenderSizedBox3d(
         width: 2,
         height: 2,
         depth: 0,
-        child: ClipBox3d(child: Column3d(children: items)),
+        child: RenderClipBox3d(child: RenderColumn3d(children: items)),
       );
       final surface = laidOut(sized);
       expect(items[2].node.visible, isFalse);
@@ -400,23 +413,23 @@ void main() {
     });
 
     test('culling can be turned off without giving up the planes', () {
-      final items = <TestBox>[
-        TestBox(const Size3d(2, 1, 0)),
-        TestBox(const Size3d(2, 1, 0)),
-        TestBox(const Size3d(2, 1, 0)),
+      final items = <RenderTestBox>[
+        RenderTestBox(const Size3d(2, 1, 0)),
+        RenderTestBox(const Size3d(2, 1, 0)),
+        RenderTestBox(const Size3d(2, 1, 0)),
       ];
-      final clip = ClipBox3d(
+      final clip = RenderClipBox3d(
         cullNodes: false,
-        child: Column3d(children: items),
+        child: RenderColumn3d(children: items),
       );
-      laidOut(SizedBox3d(width: 2, height: 2, depth: 0, child: clip));
+      laidOut(RenderSizedBox3d(width: 2, height: 2, depth: 0, child: clip));
       expect(items[2].node.visible, isTrue);
       expect(items[2].clipRegion.planes, hasLength(4));
     });
 
     test('depth is left alone unless it is asked for', () {
-      final child = TestBox(const Size3d(2, 2, 0));
-      final clip = ClipBox3d(child: child);
+      final child = RenderTestBox(const Size3d(2, 2, 0));
+      final clip = RenderClipBox3d(child: child);
       laidOut(clip, constraints: Constraints3d.tight(const Size3d(2, 2, 0)));
       expect(child.clipRegion.contains(const Offset3d(1, 1, -5)), isTrue);
 
@@ -429,8 +442,8 @@ void main() {
   group('the clip actually reaches a painter', () {
     // The plane tier of the contract is a shader block, and the block is
     // written when a decorated box paints. A box paints from inside its own
-    // `performLayout` — where an enclosing `ClipBox3d` has not been given a
-    // size yet, because a proxy takes its size *from its child*. So the first
+    // `performLayout` — where an enclosing `RenderClipBox3d` has not been given
+    // a size yet, because a proxy takes its size *from its child*. So the first
     // block every panel under a clip ever got was the unbounded one, and
     // nothing afterwards replaced it: a row half inside a window drew straight
     // through the edge, and the whole tier was dead in a way no arithmetic test
@@ -447,11 +460,13 @@ void main() {
       'a panel under a clip is told the clip on the layout that made it',
       () {
         BoxDecoration3d.painterFactory = (_) => ClipRecorder();
-        final panel = DecoratedBox3d(
+        final panel = RenderDecoratedBox3d(
           decoration: const BoxDecoration3d(color: Color(0xFFFFFFFF)),
         );
         laidOut(
-          ClipBox3d(child: SizedBox3d(width: 4, height: 1, child: panel)),
+          RenderClipBox3d(
+            child: RenderSizedBox3d(width: 4, height: 1, child: panel),
+          ),
           constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
         );
 
@@ -471,20 +486,22 @@ void main() {
       // placement can notice that they are under a different part of the
       // window now.
       BoxDecoration3d.painterFactory = (_) => ClipRecorder();
-      final panel = DecoratedBox3d(
+      final panel = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(color: Color(0xFFFFFFFF)),
       );
       final controller = Scroll3dController();
       final surface = laidOut(
-        ClipBox3d(
-          child: ListView3d(
+        RenderClipBox3d(
+          child: RenderListView3d(
             controller: controller,
             children: <RenderObject3d>[
               for (var i = 0; i < 6; i++)
-                SizedBox3d(
+                RenderSizedBox3d(
                   width: 2,
                   height: 0.5,
-                  child: i == 0 ? panel : TestBox(const Size3d(2, 0.5, 0)),
+                  child: i == 0
+                      ? panel
+                      : RenderTestBox(const Size3d(2, 0.5, 0)),
                 ),
             ],
           ),
@@ -513,11 +530,11 @@ void main() {
       // actually clips, which is one walk up the parent chain that returns
       // immediately when nothing does.
       BoxDecoration3d.painterFactory = (_) => ClipRecorder();
-      final panel = DecoratedBox3d(
+      final panel = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(color: Color(0xFFFFFFFF)),
       );
       laidOut(
-        SizedBox3d(width: 2, height: 1, child: panel),
+        RenderSizedBox3d(width: 2, height: 1, child: panel),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       expect(ClipRecorder.seen, hasLength(1));

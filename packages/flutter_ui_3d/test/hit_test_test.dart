@@ -60,9 +60,9 @@ void main() {
 
   group('walking the tree', () {
     test('finds the item under the point, ancestors behind it', () {
-      final first = TestBox(const Size3d(1, 1, 1), pointable: true);
-      final second = TestBox(const Size3d(1, 1, 1), pointable: true);
-      final column = Column3d(children: [first, second]);
+      final first = RenderTestBox(const Size3d(1, 1, 1), pointable: true);
+      final second = RenderTestBox(const Size3d(1, 1, 1), pointable: true);
+      final column = RenderColumn3d(children: [first, second]);
       final surface = laidOut(
         column,
         constraints: Constraints3d.tight(const Size3d(1, 2, 1)),
@@ -87,11 +87,11 @@ void main() {
     });
 
     test('a box that only arranges others is not itself a target', () {
-      final column = Column3d(
+      final column = RenderColumn3d(
         mainAxisAlignment: MainAxisAlignment3d.spaceBetween,
         children: [
-          TestBox(const Size3d(1, 0.5, 1), pointable: true),
-          TestBox(const Size3d(1, 0.5, 1), pointable: true),
+          RenderTestBox(const Size3d(1, 0.5, 1), pointable: true),
+          RenderTestBox(const Size3d(1, 0.5, 1), pointable: true),
         ],
       );
       final surface = laidOut(
@@ -104,10 +104,10 @@ void main() {
     });
 
     test('the last child of a stack is the one on top', () {
-      final under = TestBox(const Size3d(1, 1, 1), pointable: true);
-      final over = TestBox(const Size3d(1, 1, 1), pointable: true);
+      final under = RenderTestBox(const Size3d(1, 1, 1), pointable: true);
+      final over = RenderTestBox(const Size3d(1, 1, 1), pointable: true);
       final surface = laidOut(
-        Stack3d(children: [under, over]),
+        RenderStack3d(children: [under, over]),
         constraints: Constraints3d.tight(const Size3d(1, 1, 1)),
       );
 
@@ -123,10 +123,10 @@ void main() {
       // than the geometry would put the topmost child in front of the stack's
       // own front face, where the ray is clipped before it ever gets there —
       // and the answer would come back as the child *underneath*.
-      final under = TestBox(const Size3d(1, 1, 0), pointable: true);
-      final over = TestBox(const Size3d(1, 1, 0), pointable: true);
+      final under = RenderTestBox(const Size3d(1, 1, 0), pointable: true);
+      final over = RenderTestBox(const Size3d(1, 1, 0), pointable: true);
       final surface = laidOut(
-        Stack3d(depthStep: 0.01, children: [under, over]),
+        RenderStack3d(depthStep: 0.01, children: [under, over]),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
       );
 
@@ -134,13 +134,13 @@ void main() {
     });
 
     test('a box clips the ray to itself, so overflow is out of reach', () {
-      final badge = TestBox(const Size3d(0.4, 0.4, 0.4), pointable: true);
+      final badge = RenderTestBox(const Size3d(0.4, 0.4, 0.4), pointable: true);
       final surface = laidOut(
-        Stack3d(
+        RenderStack3d(
           children: [
             // Hung off the top right corner, half outside the stack, the way
             // the panel example hangs a badge.
-            Positioned3d(right: -0.2, top: -0.2, child: badge),
+            RenderPositioned3d(right: -0.2, top: -0.2, child: badge),
           ],
         ),
         constraints: Constraints3d.tight(const Size3d(2, 2, 1)),
@@ -157,10 +157,10 @@ void main() {
     });
 
     test('a transform moves what the ray finds, not what layout measured', () {
-      final box = TestBox(const Size3d(1, 4, 1), pointable: true);
+      final box = RenderTestBox(const Size3d(1, 4, 1), pointable: true);
       final surface = laidOut(
-        Center3d(
-          child: Transform3d.rotate(
+        RenderCenter3d(
+          child: RenderTransform3d.rotate(
             axis: Vector3(0, 0, 1),
             angle: 1.5707963267948966,
             child: box,
@@ -189,7 +189,7 @@ void main() {
       // Every box starts at its origin corner, so a real ray always has a
       // finite near face to enter through. A ray with no direction at all
       // has none, and must not hand NaN coordinates down the tree.
-      final surface = laidOut(TestBox(Size3d.infinite, pointable: true));
+      final surface = laidOut(RenderTestBox(Size3d.infinite, pointable: true));
       final result = HitTestResult3d();
 
       surface.hitTest(
@@ -205,8 +205,8 @@ void main() {
     });
 
     test('nothing is hittable before the surface is laid out', () {
-      final surface = Layout3dSurface(
-        child: TestBox(const Size3d(1, 1, 1), pointable: true),
+      final surface = RenderSurface3d(
+        child: RenderTestBox(const Size3d(1, 1, 1), pointable: true),
       );
 
       expect(surface.hitTestAt(Offset3d.zero).isEmpty, isTrue);
@@ -214,14 +214,14 @@ void main() {
   });
 
   group('taking a subtree out of reach', () {
-    test('IgnorePointer3d lets the ray carry on to what is behind', () {
-      final behind = TestBox(const Size3d(1, 1, 1), pointable: true);
-      final front = TestBox(const Size3d(1, 1, 1), pointable: true);
+    test('RenderIgnorePointer3d lets the ray carry on to what is behind', () {
+      final behind = RenderTestBox(const Size3d(1, 1, 1), pointable: true);
+      final front = RenderTestBox(const Size3d(1, 1, 1), pointable: true);
       final surface = laidOut(
-        Stack3d(
+        RenderStack3d(
           children: [
             behind,
-            IgnorePointer3d(child: front),
+            RenderIgnorePointer3d(child: front),
           ],
         ),
         constraints: Constraints3d.tight(const Size3d(1, 1, 1)),
@@ -233,12 +233,12 @@ void main() {
       );
     });
 
-    test('AbsorbPointer3d stops it instead', () {
-      final behind = TestBox(const Size3d(1, 1, 1), pointable: true);
-      final front = TestBox(const Size3d(1, 1, 1), pointable: true);
-      final absorber = AbsorbPointer3d(child: front);
+    test('RenderAbsorbPointer3d stops it instead', () {
+      final behind = RenderTestBox(const Size3d(1, 1, 1), pointable: true);
+      final front = RenderTestBox(const Size3d(1, 1, 1), pointable: true);
+      final absorber = RenderAbsorbPointer3d(child: front);
       final surface = laidOut(
-        Stack3d(children: [behind, absorber]),
+        RenderStack3d(children: [behind, absorber]),
         constraints: Constraints3d.tight(const Size3d(1, 1, 1)),
       );
 
@@ -249,8 +249,8 @@ void main() {
     });
 
     test('a flag flipped after layout takes effect without a relayout', () {
-      final box = TestBox(const Size3d(1, 1, 1), pointable: true);
-      final ignore = IgnorePointer3d(ignoring: false, child: box);
+      final box = RenderTestBox(const Size3d(1, 1, 1), pointable: true);
+      final ignore = RenderIgnorePointer3d(ignoring: false, child: box);
       final surface = laidOut(
         ignore,
         constraints: Constraints3d.tight(const Size3d(1, 1, 1)),
@@ -270,11 +270,11 @@ void main() {
 
   group('scrolling views', () {
     test('take the hit over the gaps between their items', () {
-      final list = ListView3d(
+      final list = RenderListView3d(
         spacing: 1.0,
         children: [
-          TestBox(const Size3d(1, 1, 1), pointable: true),
-          TestBox(const Size3d(1, 1, 1), pointable: true),
+          RenderTestBox(const Size3d(1, 1, 1), pointable: true),
+          RenderTestBox(const Size3d(1, 1, 1), pointable: true),
         ],
       );
       final surface = laidOut(
@@ -291,9 +291,9 @@ void main() {
     });
 
     test('what is culled out of the window is out of reach', () {
-      final visible = TestBox(const Size3d(1, 1, 1), pointable: true);
-      final offScreen = TestBox(const Size3d(1, 1, 1), pointable: true);
-      final list = ListView3d(children: [visible, offScreen]);
+      final visible = RenderTestBox(const Size3d(1, 1, 1), pointable: true);
+      final offScreen = RenderTestBox(const Size3d(1, 1, 1), pointable: true);
+      final list = RenderListView3d(children: [visible, offScreen]);
       final surface = laidOut(
         list,
         constraints: Constraints3d.tight(const Size3d(1, 1, 1)),
@@ -306,8 +306,8 @@ void main() {
     });
 
     test('the list is found from a hit on one of its items', () {
-      final item = TestBox(const Size3d(1, 1, 1), pointable: true);
-      final list = ListView3d(children: [item]);
+      final item = RenderTestBox(const Size3d(1, 1, 1), pointable: true);
+      final list = RenderListView3d(children: [item]);
       final surface = laidOut(
         list,
         constraints: Constraints3d.tight(const Size3d(1, 2, 1)),
@@ -330,7 +330,7 @@ void main() {
         PerspectiveCamera(position: Vector3(0, 0, 5), target: Vector3.zero());
 
     test('the centre of the screen lands on the centre of the plane', () {
-      final box = TestBox(const Size3d(2, 2, 0.2), pointable: true);
+      final box = RenderTestBox(const Size3d(2, 2, 0.2), pointable: true);
       final surface = laidOut(
         box,
         constraints: Constraints3d.tight(const Size3d(2, 2, 0.2)),
@@ -348,7 +348,7 @@ void main() {
     });
 
     test('pointing right of centre lands right of centre in layout space', () {
-      final box = TestBox(const Size3d(4, 4, 0.2), pointable: true);
+      final box = RenderTestBox(const Size3d(4, 4, 0.2), pointable: true);
       final surface = laidOut(
         box,
         constraints: Constraints3d.tight(const Size3d(4, 4, 0.2)),
@@ -372,7 +372,7 @@ void main() {
 
     test('a ray that misses the plane hits nothing', () {
       final surface = laidOut(
-        TestBox(const Size3d(1, 1, 0.2), pointable: true),
+        RenderTestBox(const Size3d(1, 1, 0.2), pointable: true),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0.2)),
       );
       final camera = cameraFacingPlane();
@@ -385,7 +385,7 @@ void main() {
     });
 
     test('the plane can be moved and turned and still be pointed at', () {
-      final box = TestBox(const Size3d(2, 2, 0.2), pointable: true);
+      final box = RenderTestBox(const Size3d(2, 2, 0.2), pointable: true);
       final surface = laidOut(
         box,
         constraints: Constraints3d.tight(const Size3d(2, 2, 0.2)),
@@ -407,12 +407,12 @@ void main() {
   group('Layout3dPointer', () {
     const viewSize = Size(800, 600);
 
-    ({Layout3dSurface surface, ListView3d list, PerspectiveCamera camera})
+    ({RenderSurface3d surface, RenderListView3d list, PerspectiveCamera camera})
     scrollingPanel() {
-      final list = ListView3d(
+      final list = RenderListView3d(
         children: List.generate(
           8,
-          (index) => TestBox(const Size3d(2, 1, 0.1), pointable: true),
+          (index) => RenderTestBox(const Size3d(2, 1, 0.1), pointable: true),
         ),
       );
       final surface = laidOut(
@@ -514,7 +514,7 @@ void main() {
 
     test('a press on content outside any scrolling view grabs nothing', () {
       final surface = laidOut(
-        NodeBox3d(content: Node(), fallbackSize: const Size3d(2, 2, 0.2)),
+        RenderNodeBox3d(content: Node(), fallbackSize: const Size3d(2, 2, 0.2)),
         constraints: Constraints3d.tight(const Size3d(2, 2, 0.2)),
       );
       final camera = PerspectiveCamera(
@@ -528,7 +528,7 @@ void main() {
         isFalse,
       );
       // It still reports what it found, which is the leaf holding content.
-      expect(pointer.lastHit.target, isA<NodeBox3d>());
+      expect(pointer.lastHit.target, isA<RenderNodeBox3d>());
     });
   });
 }

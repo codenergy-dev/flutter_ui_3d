@@ -35,25 +35,25 @@ Widget cardFor(
   ),
 };
 
-/// A `ClipBox3d` in the widget tree.
+/// A `RenderClipBox3d` in the widget tree.
 ///
-/// The layout package publishes `ClipBox3d` imperatively and has no
-/// `SceneClipBox3d` widget yet, so a test that wants a clipped widget subtree
+/// The layout package publishes `RenderClipBox3d` imperatively and has no
+/// `ClipBox3d` widget yet, so a test that wants a clipped widget subtree
 /// writes this four-line adapter. It is exactly what a `Scaffold3d` will need
 /// in phase 5, and it is recorded as a gap in the phase-4 plan notes rather
 /// than fixed here, because a new widget in the layout package wants a plan
 /// of its own.
-class SceneClipBox3d extends SingleChildRenderObjectWidget3d {
-  const SceneClipBox3d({super.key, this.clipDepth = false, super.child});
+class ClipBox3d extends SingleChildRenderObjectWidget3d {
+  const ClipBox3d({super.key, this.clipDepth = false, super.child});
 
   final bool clipDepth;
 
   @override
-  ClipBox3d createLayout(BuildContext context) =>
-      ClipBox3d(clipDepth: clipDepth);
+  RenderClipBox3d createLayout(BuildContext context) =>
+      RenderClipBox3d(clipDepth: clipDepth);
 
   @override
-  void updateLayout(BuildContext context, ClipBox3d layout) {
+  void updateLayout(BuildContext context, RenderClipBox3d layout) {
     layout.clipDepth = clipDepth;
   }
 }
@@ -68,7 +68,7 @@ void main() {
       testWidgets('$variant draws its own tokens', (tester) async {
         final it = await pumpComponent(
           tester,
-          () => cardFor(variant, child: const SceneText3d('Yesterday')),
+          () => cardFor(variant, child: const Text3d('Yesterday')),
         );
         final style = CardStyle3d.of(theme, variant);
 
@@ -91,7 +91,7 @@ void main() {
       testWidgets('$variant is a 4dp slab with a bevelled rim', (tester) async {
         final it = await pumpComponent(
           tester,
-          () => cardFor(variant, child: const SceneText3d('Yesterday')),
+          () => cardFor(variant, child: const Text3d('Yesterday')),
         );
         expect(
           it.panel.size.depth,
@@ -115,7 +115,7 @@ void main() {
         // into a colour; applying it again double-counts.
         final it = await pumpComponent(
           tester,
-          () => cardFor(variant, child: const SceneText3d('Yesterday')),
+          () => cardFor(variant, child: const Text3d('Yesterday')),
         );
         expect(it.decoration.surfaceTint?.a, 0.0);
       });
@@ -141,7 +141,7 @@ void main() {
             theme,
             CardVariant3d.filled,
           ).copyWith(shape: theme.shape.extraLarge),
-          child: const SceneText3d('Yesterday'),
+          child: const Text3d('Yesterday'),
         ),
       );
       expect(it.decoration.borderRadius, theme.shape.extraLarge);
@@ -155,14 +155,14 @@ void main() {
       // lights up under a pointer and is not the card.
       final it = await pumpComponent(
         tester,
-        () => const FilledCard3d(child: SceneText3d('Yesterday')),
+        () => const FilledCard3d(child: Text3d('Yesterday')),
       );
-      final padding = outermostOf<Padding3d>(it.surface);
+      final padding = outermostOf<RenderPadding3d>(it.surface);
       var sawPadding = false;
       var panelIsInside = false;
       void walk(RenderObject3d box) {
         if (identical(box, padding)) sawPadding = true;
-        if (box is DecoratedBox3d && sawPadding) panelIsInside = true;
+        if (box is RenderDecoratedBox3d && sawPadding) panelIsInside = true;
         box.visitChildren(walk);
       }
 
@@ -188,7 +188,7 @@ void main() {
         () => ElevatedCard3d(
           onTap: () {},
           semanticLabel: 'Yesterday',
-          child: const SceneText3d('Yesterday'),
+          child: const Text3d('Yesterday'),
         ),
       );
       final built = it.builds[0];
@@ -212,10 +212,10 @@ void main() {
     ) async {
       final it = await pumpComponent(
         tester,
-        () => const FilledCard3d(child: SceneText3d('Yesterday')),
+        () => const FilledCard3d(child: Text3d('Yesterday')),
       );
-      expect(boxesOf<Focus3d>(it.surface), isEmpty);
-      expect(boxesOf<TapTarget3d>(it.surface), isEmpty);
+      expect(boxesOf<RenderFocus3d>(it.surface), isEmpty);
+      expect(boxesOf<RenderTapTarget3d>(it.surface), isEmpty);
       expect(
         it.semantics.properties.button,
         isNull,
@@ -232,7 +232,7 @@ void main() {
         () => ElevatedCard3d(
           onTap: () => taps++,
           semanticLabel: 'Yesterday',
-          child: const SceneText3d('Yesterday'),
+          child: const Text3d('Yesterday'),
         ),
       );
       final properties = it.semantics.properties;
@@ -252,13 +252,13 @@ void main() {
       // a ray on its own extent.
       final it = await pumpComponent(
         tester,
-        () => ElevatedCard3d(onTap: () {}, child: const SceneText3d('x')),
+        () => ElevatedCard3d(onTap: () {}, child: const Text3d('x')),
       );
       var sawTarget = false;
       var semanticsIsInside = false;
       void walk(RenderObject3d box) {
-        if (box is TapTarget3d) sawTarget = true;
-        if (box is Semantics3d && sawTarget) semanticsIsInside = true;
+        if (box is RenderTapTarget3d) sawTarget = true;
+        if (box is RenderSemantics3d && sawTarget) semanticsIsInside = true;
         box.visitChildren(walk);
       }
 
@@ -279,11 +279,11 @@ void main() {
       // `examples/render_probe`'s `card_in_clipped_list` is it in a picture.
       final it = await pumpComponent(
         tester,
-        () => const SceneClipBox3d(
-          child: SceneSizedBox3d(
+        () => const ClipBox3d(
+          child: SizedBox3d(
             width: 2.0,
             height: 1.0,
-            child: ElevatedCard3d(child: SceneText3d('Yesterday')),
+            child: ElevatedCard3d(child: Text3d('Yesterday')),
           ),
         ),
       );
@@ -311,12 +311,12 @@ void main() {
       // opt-in, and a caller who wants a card sliced flat can have it.
       final it = await pumpComponent(
         tester,
-        () => const SceneClipBox3d(
+        () => const ClipBox3d(
           clipDepth: true,
-          child: SceneSizedBox3d(
+          child: SizedBox3d(
             width: 2.0,
             height: 1.0,
-            child: ElevatedCard3d(child: SceneText3d('Yesterday')),
+            child: ElevatedCard3d(child: Text3d('Yesterday')),
           ),
         ),
       );
@@ -332,7 +332,7 @@ void main() {
       // the list's own thickness would cut that off.
       final it = await pumpComponent(
         tester,
-        () => const ElevatedCard3d(child: SceneText3d('Yesterday')),
+        () => const ElevatedCard3d(child: Text3d('Yesterday')),
       );
       expect(it.decoration.elevation, theme.elevation.level1);
       expect(it.panel.size.depth, closeTo(0.04, 1e-9));

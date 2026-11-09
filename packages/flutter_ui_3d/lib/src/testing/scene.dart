@@ -19,21 +19,21 @@ import '../widgets/framework.dart' show RenderObject3dRootHost;
 import '../widgets/input.dart';
 
 /// A surface found in the widget tree, and the input host it is under.
-class SceneSurface3d {
-  SceneSurface3d(this.surface, this.host);
+class FoundSurface3d {
+  FoundSurface3d(this.surface, this.host);
 
   /// The surface.
-  final Layout3dSurface surface;
+  final RenderSurface3d surface;
 
   /// The host a press on [surface] goes through, or null when the surface is
-  /// not under a [SceneInput3d].
-  final SceneHost3d? host;
+  /// not under an [Input3d].
+  final FoundInputHost3d? host;
 }
 
-/// A [SceneInput3d] found in the widget tree, with what it takes to turn a
+/// An [Input3d] found in the widget tree, with what it takes to turn a
 /// point of the view into a point of the screen.
-class SceneHost3d {
-  SceneHost3d(this.host, this.box, this.viewSize);
+class FoundInputHost3d {
+  FoundInputHost3d(this.host, this.box, this.viewSize);
 
   /// The host.
   final Input3dHost host;
@@ -67,17 +67,17 @@ class SceneHost3d {
 /// overlay's detached entries straight after the surface that holds the
 /// overlay.
 ///
-/// Found through the render tree — every `SceneLayout3d` mounts a
+/// Found through the render tree — every `Surface3d` mounts a
 /// [RenderObject3dRootHost] — so nothing private to the widget is needed, and
 /// a surface registered with a host by hand is added after the ones the tree
 /// holds.
-List<SceneSurface3d> sceneSurfaces3d() {
-  final found = <Layout3dSurface, SceneSurface3d>{};
-  final hosts = <SceneHost3d>[];
+List<FoundSurface3d> sceneSurfaces3d() {
+  final found = <RenderSurface3d, FoundSurface3d>{};
+  final hosts = <FoundInputHost3d>[];
 
-  void addSurface(Layout3dSurface surface, SceneHost3d? host) {
+  void addSurface(RenderSurface3d surface, FoundInputHost3d? host) {
     if (found.containsKey(surface)) return;
-    found[surface] = SceneSurface3d(surface, host);
+    found[surface] = FoundSurface3d(surface, host);
     for (final overlay in _overlaysIn(surface)) {
       for (final entry in overlay.detachedSurfaces) {
         addSurface(entry, host);
@@ -85,15 +85,15 @@ List<SceneSurface3d> sceneSurfaces3d() {
     }
   }
 
-  void visit(Element element, SceneHost3d? host) {
+  void visit(Element element, FoundInputHost3d? host) {
     var current = host;
     final widget = element.widget;
     if (widget is Input3dScope) {
       final box = element
           .findAncestorRenderObjectOfType<RenderPointerListener>();
-      final input = element.findAncestorWidgetOfExactType<SceneInput3d>();
+      final input = element.findAncestorWidgetOfExactType<Input3d>();
       if (box != null) {
-        current = SceneHost3d(widget.host, box, input?.viewSize);
+        current = FoundInputHost3d(widget.host, box, input?.viewSize);
         hosts.add(current);
       }
     }
@@ -116,11 +116,11 @@ List<SceneSurface3d> sceneSurfaces3d() {
   return found.values.toList();
 }
 
-/// Every [Overlay3d] in [surface]'s own tree, outermost first.
-List<Overlay3d> _overlaysIn(Layout3dSurface surface) {
-  final overlays = <Overlay3d>[];
+/// Every [RenderOverlay3d] in [surface]'s own tree, outermost first.
+List<RenderOverlay3d> _overlaysIn(RenderSurface3d surface) {
+  final overlays = <RenderOverlay3d>[];
   void walk(RenderObject3d box) {
-    if (box is Overlay3d) overlays.add(box);
+    if (box is RenderOverlay3d) overlays.add(box);
     box.visitChildren(walk);
   }
 
@@ -129,10 +129,10 @@ List<Overlay3d> _overlaysIn(Layout3dSurface surface) {
 }
 
 /// The surface at the root of [box]'s tree.
-Layout3dSurface? rootSurfaceOf(RenderObject3d box) {
+RenderSurface3d? rootSurfaceOf(RenderObject3d box) {
   RenderObject3d? node = box;
   while (node != null) {
-    if (node is Layout3dSurface && node.parent == null) return node;
+    if (node is RenderSurface3d && node.parent == null) return node;
     node = node.parent;
   }
   return null;
@@ -143,9 +143,9 @@ Layout3dSurface? rootSurfaceOf(RenderObject3d box) {
 String describeBox3d(RenderObject3d box) {
   final short = box.toStringShort();
   final said = switch (box) {
-    Semantics3d() => box.properties.label,
-    Text3d() => box.data,
-    RichText3d() => box.text.toPlainText(),
+    RenderSemantics3d() => box.properties.label,
+    RenderText3d() => box.data,
+    RenderRichText3d() => box.text.toPlainText(),
     _ => null,
   };
   return said == null ? short : '$short "$said"';
@@ -169,7 +169,7 @@ class Reach3d {
   final RenderObject3d box;
 
   /// The host the press goes through, or null when there is none.
-  final SceneHost3d? host;
+  final FoundInputHost3d? host;
 
   /// The box's projected centre, in the view's coordinates, or null when it
   /// has none.
@@ -198,7 +198,7 @@ class Reach3d {
     if (paths.isEmpty) {
       return '$at reaches nothing: no surface answers a ray through that '
           'point, so nothing under it is on a hit-testable path — a '
-          'TapTarget3d, a Listener3d, a scrolling view, a NodeBox3d.';
+          'RenderTapTarget3d, a RenderListener3d, a scrolling view, a RenderNodeBox3d.';
     }
     final front = paths.first;
     final target = front.target!;
@@ -209,7 +209,7 @@ class Reach3d {
     String? label;
     for (final entry in front.path) {
       final layout = entry.layout;
-      if (layout is Semantics3d && layout.properties.label != null) {
+      if (layout is RenderSemantics3d && layout.properties.label != null) {
         label = layout.properties.label;
         break;
       }
@@ -223,7 +223,7 @@ class Reach3d {
   }
 
   /// Aims at [box] through [surfaces].
-  static Reach3d of(RenderObject3d box, List<SceneSurface3d> surfaces) {
+  static Reach3d of(RenderObject3d box, List<FoundSurface3d> surfaces) {
     if (!box.attached || !box.hasSize) {
       return Reach3d._(
         box,
@@ -234,7 +234,7 @@ class Reach3d {
       );
     }
     final root = rootSurfaceOf(box);
-    SceneSurface3d? record;
+    FoundSurface3d? record;
     for (final candidate in surfaces) {
       if (identical(candidate.surface, root)) record = candidate;
     }
@@ -245,10 +245,10 @@ class Reach3d {
         null,
         null,
         const [],
-        '${describeBox3d(box)} is not under a SceneInput3d, so there is no '
+        '${describeBox3d(box)} is not under an Input3d, so there is no '
         'camera to aim a press with. '
         'Pump the screen with tester.pumpSurface3d or '
-        'tester.pumpScene3d, or put a SceneInput3d around it.',
+        'tester.pumpScene3d, or put an Input3d around it.',
       );
     }
     final camera = host.camera;
@@ -258,7 +258,7 @@ class Reach3d {
         host,
         null,
         const [],
-        'the SceneInput3d above ${describeBox3d(box)} has no camera.',
+        'the Input3d above ${describeBox3d(box)} has no camera.',
       );
     }
     final local = box.screenCenter(camera, host.size);
@@ -298,13 +298,13 @@ String _describeOffset(Offset offset) =>
 /// Where [box]'s front, top, left corner is drawn, in [surface]'s layout
 /// frame.
 ///
-/// The box's own nudges — the depth step a `Stack3d` wrote, a node offset, a
-/// node transform — are *kept*: this is where the geometry is, not where
-/// layout put the slot. [RenderObject3d.worldTransform] undoes all three, so
-/// they are put back on top of it; what stays undone is the box's own local
+/// The box's own nudges — the depth step a `RenderStack3d` wrote, a node
+/// offset, a node transform — are *kept*: this is where the geometry is, not
+/// where layout put the slot. [RenderObject3d.worldTransform] undoes all three,
+/// so they are put back on top of it; what stays undone is the box's own local
 /// transform, which is the frame its children sit in rather than the frame it
 /// measures itself in.
-Offset3d drawnCornerIn(Layout3dSurface surface, RenderObject3d box) {
+Offset3d drawnCornerIn(RenderSurface3d surface, RenderObject3d box) {
   final nudge = box.sceneOffset + box.nodeOffset;
   var drawn = box.worldTransform.multiplied(
     Matrix4.translationValues(nudge.x, nudge.y, nudge.z),

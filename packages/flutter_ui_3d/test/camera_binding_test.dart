@@ -12,7 +12,7 @@ import 'package:flutter_scene/scene.dart'
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart';
 import 'package:flutter_ui_3d/widgets.dart'
-    show Layout3dController, SceneLayout3d, SceneSizedBox3d;
+    show Layout3dController, Surface3d, SizedBox3d;
 import 'package:vector_math/vector_math.dart' show Matrix4, Vector2, Vector3;
 
 import 'support.dart';
@@ -94,7 +94,7 @@ Layout3dView viewOf(Size size, {TextScaler? textScaler}) =>
     Layout3dView(size: size, textScaler: textScaler ?? TextScaler.noScaling);
 
 /// Where a layout-space point on [surface] lands in the world.
-Vector3 worldOf(Layout3dSurface surface, Offset3d point) => surface
+Vector3 worldOf(RenderSurface3d surface, Offset3d point) => surface
     .node
     .globalTransform
     .transformed3(Vector3(point.x, point.y, point.z));
@@ -104,7 +104,7 @@ void main() {
 
   group('screenFilling', () {
     test('derives the frustum extents at the plane\'s distance', () {
-      final surface = Layout3dSurface();
+      final surface = RenderSurface3d();
       const binding = Layout3dCameraBinding.screenFilling(distance: 2);
       binding.update(surface, camera: frontCamera(), view: viewOf(viewSize));
 
@@ -121,8 +121,8 @@ void main() {
     });
 
     test('scales with distance for a perspective lens', () {
-      final near = Layout3dSurface();
-      final far = Layout3dSurface();
+      final near = RenderSurface3d();
+      final far = RenderSurface3d();
       const nearBinding = Layout3dCameraBinding.screenFilling(distance: 2);
       const farBinding = Layout3dCameraBinding.screenFilling(distance: 6);
       nearBinding.update(near, camera: frontCamera(), view: viewOf(viewSize));
@@ -134,7 +134,7 @@ void main() {
     });
 
     test('takes depth from the caller, since no frustum supplies it', () {
-      final surface = Layout3dSurface();
+      final surface = RenderSurface3d();
       const binding = Layout3dCameraBinding.screenFilling(
         distance: 2,
         depth: 0.5,
@@ -145,7 +145,9 @@ void main() {
     });
 
     test('the plane covers the view exactly, corner to corner', () {
-      final surface = Layout3dSurface(child: TestBox(const Size3d(1, 1, 0)));
+      final surface = RenderSurface3d(
+        child: RenderTestBox(const Size3d(1, 1, 0)),
+      );
       const binding = Layout3dCameraBinding.screenFilling(distance: 2);
       final camera = frontCamera();
       binding.update(surface, camera: camera, view: viewOf(viewSize));
@@ -167,7 +169,9 @@ void main() {
     });
 
     test('a box of n logical pixels measures n pixels on screen', () {
-      final surface = Layout3dSurface(child: TestBox(const Size3d(1, 1, 0)));
+      final surface = RenderSurface3d(
+        child: RenderTestBox(const Size3d(1, 1, 0)),
+      );
       const binding = Layout3dCameraBinding.screenFilling(distance: 3);
       final camera = frontCamera();
       binding.update(surface, camera: camera, view: viewOf(viewSize));
@@ -193,7 +197,7 @@ void main() {
     });
 
     test('the metrics follow the view height, not the view width', () {
-      final surface = Layout3dSurface();
+      final surface = RenderSurface3d();
       const binding = Layout3dCameraBinding.screenFilling(distance: 2);
       binding.update(surface, camera: frontCamera(), view: viewOf(viewSize));
       final tall = surface.metrics.unitsPerLogicalPixel;
@@ -214,7 +218,7 @@ void main() {
     });
 
     test('passes the dials it cannot derive through to the metrics', () {
-      final surface = Layout3dSurface();
+      final surface = RenderSurface3d();
       const binding = Layout3dCameraBinding.screenFilling(
         distance: 2,
         textScaler: TextScaler.linear(1.4),
@@ -226,7 +230,7 @@ void main() {
     });
 
     test('a degenerate view is a no-op rather than an error', () {
-      final surface = Layout3dSurface();
+      final surface = RenderSurface3d();
       const binding = Layout3dCameraBinding.screenFilling(distance: 2);
       binding.update(surface, camera: frontCamera(), view: viewOf(Size.zero));
       expect(surface.configuration, const Constraints3d());
@@ -235,14 +239,16 @@ void main() {
   });
 
   group('the cost of a moving camera', () {
-    Layout3dSurface bound(
+    RenderSurface3d bound(
       Camera camera, {
       Layout3dCameraBinding binding = const Layout3dCameraBinding.screenFilling(
         distance: 2,
       ),
       Size viewSize = const Size(800, 600),
     }) {
-      final surface = Layout3dSurface(child: TestBox(const Size3d(1, 1, 0)));
+      final surface = RenderSurface3d(
+        child: RenderTestBox(const Size3d(1, 1, 0)),
+      );
       binding.update(surface, camera: camera, view: viewOf(viewSize));
       surface.flush();
       return surface;
@@ -386,9 +392,9 @@ void main() {
 
   group('billboard', () {
     test('writes no constraints, no metrics, and marks no layout dirty', () {
-      final surface = Layout3dSurface(
+      final surface = RenderSurface3d(
         constraints: Constraints3d.tight(const Size3d(4, 3, 0.5)),
-        child: TestBox(const Size3d(1, 1, 1)),
+        child: RenderTestBox(const Size3d(1, 1, 1)),
       );
       surface.plane.localTransform = Matrix4.translationValues(1, 2, -3);
       surface.flush();
@@ -408,7 +414,9 @@ void main() {
     test(
       'keeps the position the application set and takes only the facing',
       () {
-        final surface = Layout3dSurface(child: TestBox(const Size3d(1, 1, 1)));
+        final surface = RenderSurface3d(
+          child: RenderTestBox(const Size3d(1, 1, 1)),
+        );
         surface.plane.localTransform = Matrix4.translationValues(1, 2, -3);
         surface.flush();
 
@@ -426,7 +434,9 @@ void main() {
     );
 
     test('turns to a camera that moved around the plane', () {
-      final surface = Layout3dSurface(child: TestBox(const Size3d(1, 1, 1)));
+      final surface = RenderSurface3d(
+        child: RenderTestBox(const Size3d(1, 1, 1)),
+      );
       surface.flush();
       const binding = Layout3dCameraBinding.billboard();
       binding.update(
@@ -447,7 +457,7 @@ void main() {
   group('fixedDensity', () {
     test('writes the metrics, needs no camera, and touches nothing else', () {
       final box = DpBox(100, 40);
-      final surface = laidOut(Center3d(child: box));
+      final surface = laidOut(RenderCenter3d(child: box));
       const binding = Layout3dCameraBinding.fixedDensity(0.005);
 
       binding.update(surface);
@@ -460,7 +470,7 @@ void main() {
     });
 
     test('carries the dials it is given', () {
-      final surface = Layout3dSurface();
+      final surface = RenderSurface3d();
       const binding = Layout3dCameraBinding.fixedDensity(
         0.005,
         textScaler: TextScaler.linear(1.2),
@@ -475,13 +485,15 @@ void main() {
       // The point of the contract: nothing downstream can tell where the
       // number came from.
       final derivedBox = DpBox(120, 44);
-      final derived = Layout3dSurface(child: Center3d(child: derivedBox));
+      final derived = RenderSurface3d(child: RenderCenter3d(child: derivedBox));
       const screen = Layout3dCameraBinding.screenFilling(distance: 3);
       screen.update(derived, camera: frontCamera(), view: viewOf(viewSize));
       derived.flush();
 
       final authoredBox = DpBox(120, 44);
-      final authored = Layout3dSurface(child: Center3d(child: authoredBox));
+      final authored = RenderSurface3d(
+        child: RenderCenter3d(child: authoredBox),
+      );
       Layout3dCameraBinding.fixedDensity(
         derived.metrics.unitsPerLogicalPixel,
       ).update(authored);
@@ -497,8 +509,8 @@ void main() {
         frontCamera(),
         TestOrthographicProjection(height: 3),
       );
-      final near = Layout3dSurface();
-      final far = Layout3dSurface();
+      final near = RenderSurface3d();
+      final far = RenderSurface3d();
       const Layout3dCameraBinding.screenFilling(
         distance: 1,
       ).update(near, camera: camera, view: viewOf(viewSize));
@@ -518,12 +530,10 @@ void main() {
   });
 
   group('the declarative wiring', () {
-    testWidgets('a bound SceneLayout3d sizes itself from the view', (
-      tester,
-    ) async {
+    testWidgets('a bound Surface3d sizes itself from the view', (tester) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           controller: controller,
           camera: frontCamera(),
@@ -532,7 +542,7 @@ void main() {
             distance: 2,
             depth: 0.5,
           ),
-          child: const SceneSizedBox3d.cube(0.2),
+          child: const SizedBox3d.cube(0.2),
         ),
       );
       // The binding runs after the frame, because it reads the enclosing
@@ -550,12 +560,12 @@ void main() {
     testWidgets('an authored density reaches the boxes below', (tester) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           controller: controller,
           size: const Size3d(4, 3, 0.5),
           binding: const Layout3dCameraBinding.fixedDensity(0.005),
-          child: const SceneSizedBox3d.cube(0.2),
+          child: const SizedBox3d.cube(0.2),
         ),
       );
       await tester.pump();
@@ -566,12 +576,12 @@ void main() {
 
     testWidgets('dropping the binding hands the contract back', (tester) async {
       final controller = Layout3dController();
-      Widget frame({Layout3dCameraBinding? binding}) => SceneLayout3d(
+      Widget frame({Layout3dCameraBinding? binding}) => Surface3d(
         parent: Node(),
         controller: controller,
         size: const Size3d(4, 3, 0.5),
         binding: binding,
-        child: const SceneSizedBox3d.cube(0.2),
+        child: const SizedBox3d.cube(0.2),
       );
 
       await tester.pumpWidget(
@@ -589,7 +599,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           camera: frontCamera(),
           viewSize: viewSize,

@@ -14,14 +14,14 @@ import 'sliver_constraints.dart';
 
 /// A grid of cells in a sliver world, the 3D analogue of [SliverGrid].
 ///
-/// The sliver form of [GridView3d], sharing its [Grid3dDelegate]: the same
-/// delegate lays out a standalone grid or a section of a
-/// `CustomScrollView3d`. Because cell positions are arithmetic, a built grid
-/// is exactly lazy — the scroll extent of ten thousand cells is known without
-/// building one.
-class SliverGrid3d extends SliverMultiBoxAdaptor3d {
+/// The sliver form of [RenderGridView3d], sharing its [Grid3dDelegate]: the
+/// same delegate lays out a standalone grid or a section of a
+/// `RenderCustomScrollView3d`. Because cell positions are arithmetic, a built
+/// grid is exactly lazy — the scroll extent of ten thousand cells is known
+/// without building one.
+class RenderSliverGrid3d extends RenderSliverMultiBoxAdaptor3d {
   /// Creates a grid over an explicit set of children.
-  SliverGrid3d({
+  RenderSliverGrid3d({
     required Grid3dDelegate gridDelegate,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
     List<RenderObject3d> children = const <RenderObject3d>[],
@@ -33,7 +33,7 @@ class SliverGrid3d extends SliverMultiBoxAdaptor3d {
   }
 
   /// Creates a grid that builds its cells on demand.
-  SliverGrid3d.builder({
+  RenderSliverGrid3d.builder({
     required Grid3dDelegate gridDelegate,
     required int itemCount,
     required RenderObject3dItemBuilder itemBuilder,

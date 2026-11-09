@@ -146,7 +146,7 @@ class _ProbePicture extends ImageProvider<_ProbePicture> {
 /// other and from the clear colour.
 const Color _pictureFill = Color(0xFF1B6B3A);
 
-// Every NodeBox3d here uses BoxFit3d.contain rather than the default
+// Every RenderNodeBox3d here uses BoxFit3d.contain rather than the default
 // BoxFit3d.none. It matters more than it looks: with `none` the content keeps
 // its own size inside whatever slot layout gave it, so a box's screen bounds
 // enclose empty space and a probe aimed at "the edge of this box" finds
@@ -154,7 +154,7 @@ const Color _pictureFill = Color(0xFF1B6B3A);
 // thing, which is the premise the whole harness rests on.
 
 /// Geometry is shared across scenes; only nodes are per-item, because a
-/// [NodeBox3d] owns the transform of the content it holds.
+/// [RenderNodeBox3d] owns the transform of the content it holds.
 Geometry get _cube => _cubeGeometry ??= CuboidGeometry(Vector3.all(1));
 Geometry? _cubeGeometry;
 
@@ -245,7 +245,7 @@ const List<(String, Duration)> _rippleMoments = <(String, Duration)>[
 /// measured against.
 ProbeSceneContent _rippleScene(Duration elapsed) {
   const theme = Theme3dData.light;
-  final panel = DecoratedBox3d(
+  final panel = RenderDecoratedBox3d(
     decoration: Material3d.decorationFor(
       theme,
       color: theme.colorScheme.surfaceContainerLow,
@@ -255,7 +255,7 @@ ProbeSceneContent _rippleScene(Duration elapsed) {
     ),
     name: 'panel',
   );
-  final surface = Layout3dSurface(
+  final surface = RenderSurface3d(
     constraints: Constraints3d.tight(const Size3d(3.6, 1.8, 0.1)),
     child: panel,
   );
@@ -287,14 +287,14 @@ ProbeSceneContent _panelScene(
   BoxDecoration3d decoration, {
   StateLayer3d stateLayer = StateLayer3d.none,
 }) {
-  final panel = DecoratedBox3d(
+  final panel = RenderDecoratedBox3d(
     decoration: decoration,
     stateLayer: stateLayer,
     name: 'panel',
   );
   return ProbeSceneContent(
     surfaces: [
-      Layout3dSurface(
+      RenderSurface3d(
         constraints: Constraints3d.tight(const Size3d(3.6, 1.8, 0.1)),
         child: panel,
       ),
@@ -326,7 +326,7 @@ PerspectiveCamera _raisedCamera() =>
 /// runs along the depth axis, so where it lands is exactly the layout-space
 /// point named, whatever basis the surface has. That is what lets a scene
 /// drive a real drag without a camera in the picture.
-Ray _rayAt(Layout3dSurface surface, Offset3d point) {
+Ray _rayAt(RenderSurface3d surface, Offset3d point) {
   final toWorld = surface.node.globalTransform;
   final origin = toWorld.transformed3(
     Vector3(point.x, point.y, point.z - 10.0),
@@ -334,17 +334,17 @@ Ray _rayAt(Layout3dSurface surface, Offset3d point) {
   return Ray.originDirection(origin, toWorld.rotated3(Vector3(0, 0, 1)));
 }
 
-/// Picks a [Draggable3d] up at [from] and carries it to [to], leaving the drag
-/// in flight for the frame to be captured.
+/// Picks a [RenderDraggable3d] up at [from] and carries it to [to], leaving the
+/// drag in flight for the frame to be captured.
 ///
 /// Three steps, and the middle one is the one that is easy to leave out. The
 /// press and the first move recognize the drag and put the feedback into the
 /// overlay — but an overlay entry has no size on the frame it is inserted, so
-/// [Draggable3d] cannot yet work out where the feedback has to sit to cover
-/// the card. A flush gives it one, and the second move is what actually writes
-/// the node offset the probe is here to look at.
+/// [RenderDraggable3d] cannot yet work out where the feedback has to sit to
+/// cover the card. A flush gives it one, and the second move is what actually
+/// writes the node offset the probe is here to look at.
 void _dragAcross(
-  Layout3dSurface surface, {
+  RenderSurface3d surface, {
   required Offset3d from,
   required Offset3d to,
 }) {
@@ -375,32 +375,32 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   // ── Does the protocol place things where it says it does? ────────────
 
   ProbeScene('row_of_cubes', () {
-    final left = NodeBox3d(
+    final left = RenderNodeBox3d(
       fit: BoxFit3d.contain,
       content: _solid(_cube, _amber),
       name: 'left',
     );
-    final middle = NodeBox3d(
+    final middle = RenderNodeBox3d(
       fit: BoxFit3d.contain,
       content: _solid(_cube, _teal),
       name: 'middle',
     );
-    final right = NodeBox3d(
+    final right = RenderNodeBox3d(
       fit: BoxFit3d.contain,
       content: _solid(_cube, _violet),
       name: 'right',
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(4.5, 1.4, 1)),
-          child: Row3d(
+          child: RenderRow3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment3d.center,
             children: [
-              SizedBox3d.cube(1, child: left),
-              SizedBox3d.cube(1, child: middle),
-              SizedBox3d.cube(1, child: right),
+              RenderSizedBox3d.cube(1, child: left),
+              RenderSizedBox3d.cube(1, child: middle),
+              RenderSizedBox3d.cube(1, child: right),
             ],
           ),
         ),
@@ -410,26 +410,26 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   }),
 
   ProbeScene('column_spacing', () {
-    final top = NodeBox3d(
+    final top = RenderNodeBox3d(
       fit: BoxFit3d.contain,
       content: _solid(_cube, _amber),
       name: 'top',
     );
-    final bottom = NodeBox3d(
+    final bottom = RenderNodeBox3d(
       fit: BoxFit3d.contain,
       content: _solid(_cube, _teal),
       name: 'bottom',
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(1.4, 3.4, 1)),
-          child: Column3d(
+          child: RenderColumn3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment3d.center,
             children: [
-              SizedBox3d.cube(1, child: top),
-              SizedBox3d.cube(1, child: bottom),
+              RenderSizedBox3d.cube(1, child: top),
+              RenderSizedBox3d.cube(1, child: bottom),
             ],
           ),
         ),
@@ -439,27 +439,27 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   }),
 
   ProbeScene('ground_plane', () {
-    final near = NodeBox3d(
+    final near = RenderNodeBox3d(
       fit: BoxFit3d.contain,
       content: _solid(_cube, _amber),
       name: 'near',
     );
-    final far = NodeBox3d(
+    final far = RenderNodeBox3d(
       fit: BoxFit3d.contain,
       content: _solid(_cube, _teal),
       name: 'far',
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           basis: LayoutBasis3d.xz,
           constraints: Constraints3d.tight(const Size3d(1.4, 3.4, 0.6)),
-          child: Column3d(
+          child: RenderColumn3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment3d.center,
             children: [
-              SizedBox3d.cube(0.8, child: far),
-              SizedBox3d.cube(0.8, child: near),
+              RenderSizedBox3d.cube(0.8, child: far),
+              RenderSizedBox3d.cube(0.8, child: near),
             ],
           ),
         ),
@@ -472,20 +472,20 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   }, camera: _raisedCamera()),
 
   ProbeScene('padding_and_alignment', () {
-    final child = NodeBox3d(
+    final child = RenderNodeBox3d(
       fit: BoxFit3d.contain,
       content: _solid(_cube, _violet),
       name: 'child',
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(4, 3, 1)),
-          child: Padding3d(
+          child: RenderPadding3d(
             padding: const EdgeInsets3d.only(left: 1.5, top: 1.0),
-            child: Align3d(
+            child: RenderAlign3d(
               alignment: Alignment3d.topLeft,
-              child: SizedBox3d.cube(0.9, child: child),
+              child: RenderSizedBox3d.cube(0.9, child: child),
             ),
           ),
         ),
@@ -495,29 +495,29 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   }),
 
   ProbeScene('intrinsic_sizing', () {
-    // A NodeBox3d measures the geometry it holds, so a row of a sphere and a
-    // cube of the same nominal extent tracks the actual bounds rather than a
-    // guess. If measurement broke, these two stop being the same size.
-    final ball = NodeBox3d(
+    // A RenderNodeBox3d measures the geometry it holds, so a row of a sphere
+    // and a cube of the same nominal extent tracks the actual bounds rather
+    // than a guess. If measurement broke, these two stop being the same size.
+    final ball = RenderNodeBox3d(
       fit: BoxFit3d.contain,
       content: _solid(_sphere, _amber),
       name: 'ball',
     );
-    final box = NodeBox3d(
+    final box = RenderNodeBox3d(
       fit: BoxFit3d.contain,
       content: _solid(_cube, _teal),
       name: 'box',
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3.4, 1.4, 1)),
-          child: Row3d(
+          child: RenderRow3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment3d.center,
             children: [
-              SizedBox3d.cube(1, child: ball),
-              SizedBox3d.cube(1, child: box),
+              RenderSizedBox3d.cube(1, child: ball),
+              RenderSizedBox3d.cube(1, child: box),
             ],
           ),
         ),
@@ -527,7 +527,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   }),
 
   ProbeScene('stack_depth', () {
-    // Stack3d steps each child toward the viewer, so the last child is in
+    // RenderStack3d steps each child toward the viewer, so the last child is in
     // front. Both are at the same place on the plane; only depth separates
     // them, and the front one must be what the frame shows.
     //
@@ -542,26 +542,36 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // bounded axis, so a cube in a 1.6 x 1.6 x 0.1 slot comes out a 0.1 cube —
     // a speck. `fill` scales each axis on its own and gives the slab the box
     // actually describes.
-    final back = NodeBox3d(
+    final back = RenderNodeBox3d(
       fit: BoxFit3d.fill,
       content: _solid(_cube, _amber),
       name: 'back',
     );
-    final front = NodeBox3d(
+    final front = RenderNodeBox3d(
       fit: BoxFit3d.fill,
       content: _solid(_cube, _violet),
       name: 'front',
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3, 3, 1.5)),
-          child: Stack3d(
+          child: RenderStack3d(
             alignment: Alignment3d.center,
             depthStep: 0.35,
             children: [
-              SizedBox3d(width: 1.6, height: 1.6, depth: 0.1, child: back),
-              SizedBox3d(width: 0.8, height: 0.8, depth: 0.1, child: front),
+              RenderSizedBox3d(
+                width: 1.6,
+                height: 1.6,
+                depth: 0.1,
+                child: back,
+              ),
+              RenderSizedBox3d(
+                width: 0.8,
+                height: 0.8,
+                depth: 0.1,
+                child: front,
+              ),
             ],
           ),
         ),
@@ -571,34 +581,34 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   }),
 
   ProbeScene('clipped_row', () {
-    // A row wider than the ClipBox3d around it. The clipping contract is
+    // A row wider than the RenderClipBox3d around it. The clipping contract is
     // whole-node culling here: a child entirely outside the box is not drawn
     // at all, and one inside is. Three plans depend on this contract, and
     // until now nothing had ever looked at what it does to a frame.
-    final inside = NodeBox3d(
+    final inside = RenderNodeBox3d(
       fit: BoxFit3d.contain,
       content: _solid(_cube, _teal),
       name: 'inside',
     );
-    final outside = NodeBox3d(
+    final outside = RenderNodeBox3d(
       fit: BoxFit3d.contain,
       content: _solid(_cube, _violet),
       name: 'outside',
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(1.6, 1.4, 1)),
-          child: ClipBox3d(
-            child: OverflowBox3d(
+          child: RenderClipBox3d(
+            child: RenderOverflowBox3d(
               maxWidth: double.infinity,
               alignment: Alignment3d.centerLeft,
-              child: Row3d(
+              child: RenderRow3d(
                 crossAxisAlignment: CrossAxisAlignment3d.center,
                 spacing: 1.4,
                 children: [
-                  SizedBox3d.cube(1, child: inside),
-                  SizedBox3d.cube(1, child: outside),
+                  RenderSizedBox3d.cube(1, child: inside),
+                  RenderSizedBox3d.cube(1, child: outside),
                 ],
               ),
             ),
@@ -614,22 +624,24 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // gone; the one that took its place is drawn. Layout says where each one
     // landed, and the frame is asked to agree.
     final controller = Scroll3dController();
-    final items = <NodeBox3d>[
+    final items = <RenderNodeBox3d>[
       for (var i = 0; i < 6; i++)
-        NodeBox3d(
+        RenderNodeBox3d(
           fit: BoxFit3d.contain,
           content: _solid(_cube, i.isEven ? _amber : _teal),
           name: 'item$i',
         ),
     ];
-    final list = ListView3d(
+    final list = RenderListView3d(
       controller: controller,
       spacing: 0.25,
-      children: [for (final item in items) SizedBox3d.cube(0.7, child: item)],
+      children: [
+        for (final item in items) RenderSizedBox3d.cube(0.7, child: item),
+      ],
     );
-    final surface = Layout3dSurface(
+    final surface = RenderSurface3d(
       constraints: Constraints3d.tight(const Size3d(1.2, 2.6, 1)),
-      child: ClipBox3d(child: list),
+      child: RenderClipBox3d(child: list),
     );
     // Lay out once so the viewport knows its extent, then scroll and let the
     // caller flush again.
@@ -648,12 +660,12 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   // atlas that never uploaded, a mesh wound away from the viewer, a label at
   // exactly the depth of the panel behind it. All three measure perfectly and
   // draw nothing at all, which is why they need a frame to catch them.
-  // The surface is wider than the label needs on purpose. `Text3d` breaks a
-  // word too wide for its line — Flutter's rule, not CSS's — so a label that
+  // The surface is wider than the label needs on purpose. `RenderText3d` breaks
+  // a word too wide for its line — Flutter's rule, not CSS's — so a label that
   // only just fits is a label that silently becomes two lines, and every
   // assertion about where its ink is goes with it.
   ProbeScene('text_label', () {
-    final label = Text3d(
+    final label = RenderText3d(
       'ABC',
       style: _labelStyle,
       renderer: AtlasText3dRenderer(),
@@ -661,9 +673,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.loose(const Size3d(6.0, 1.8, 0.2)),
-          child: Center3d(child: label),
+          child: RenderCenter3d(child: label),
         ),
       ],
       probes: {'label': label},
@@ -674,12 +686,12 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // The control, and the reason the scene above means anything: the same
     // label with no renderer measures the same and draws nothing. Without it,
     // "there are pixels where the label is" could be any other geometry.
-    final label = Text3d('ABC', style: _labelStyle, name: 'label');
+    final label = RenderText3d('ABC', style: _labelStyle, name: 'label');
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.loose(const Size3d(6.0, 1.8, 0.2)),
-          child: Center3d(child: label),
+          child: RenderCenter3d(child: label),
         ),
       ],
       probes: {'label': label},
@@ -692,20 +704,20 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // because the renderer lifts them toward the viewer. Coplanar text is
     // text that vanishes, and nothing but a frame notices.
     //
-    // **`Align3d(frontCenter)` rather than `Center3d`**, and the difference is
-    // the whole of `slab_occludes_its_inside` below: a `Center3d` centres in
-    // *depth* too, which puts the label half a thickness inside a slab that
-    // occludes what is inside it. This scene is about a label on a face, so
-    // it asks for a face.
-    final panel = DecoratedBox3d(
+    // **`RenderAlign3d(frontCenter)` rather than `RenderCenter3d`**, and the
+    // difference is the whole of `slab_occludes_its_inside` below: a
+    // `RenderCenter3d` centres in *depth* too, which puts the label half a
+    // thickness inside a slab that occludes what is inside it. This scene is
+    // about a label on a face, so it asks for a face.
+    final panel = RenderDecoratedBox3d(
       decoration: const BoxDecoration3d(
         color: Color(0xFF26B3A8),
         borderRadius: BorderRadius3d.circular(40),
       ),
       name: 'panel',
-      child: Align3d(
+      child: RenderAlign3d(
         alignment: Alignment3d.frontCenter,
-        child: Text3d(
+        child: RenderText3d(
           'OK',
           style: _labelStyle,
           renderer: AtlasText3dRenderer(),
@@ -713,10 +725,10 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         ),
       ),
     );
-    final label = (panel.child! as Align3d).child! as Text3d;
+    final label = (panel.child! as RenderAlign3d).child! as RenderText3d;
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3.6, 1.8, 0.2)),
           child: panel,
         ),
@@ -762,21 +774,21 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     final atlases = GlyphAtlasCache3d(initialSize: 1024, maxSize: 1024);
     const style = TextStyle(fontSize: 30, color: Color(0xFFEA9F26));
 
-    Layout3dSurface surfaceFor(Text3d label, Alignment3d origin) =>
-        Layout3dSurface(
+    RenderSurface3d surfaceFor(RenderText3d label, Alignment3d origin) =>
+        RenderSurface3d(
           origin: origin,
           metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.05),
           constraints: Constraints3d.loose(const Size3d(3.0, 1.8, 0.2)),
-          child: Center3d(child: label),
+          child: RenderCenter3d(child: label),
         );
 
-    final first = Text3d(
+    final first = RenderText3d(
       'AB',
       style: style,
       renderer: AtlasText3dRenderer(atlases: atlases),
       name: 'first',
     );
-    final second = Text3d(
+    final second = RenderText3d(
       // Letters the first surface never asked for, so that drawing this
       // surface is what reserves them.
       'XY',
@@ -796,8 +808,8 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   ProbeScene('rich_text', () {
     // The escape hatch: Flutter lays the paragraph out and rasterizes it, and
     // the capture lands on a quad this package built. Two styles in one span,
-    // because that is the thing `Text3d` cannot do at all.
-    final text = RichText3d(
+    // because that is the thing `RenderText3d` cannot do at all.
+    final text = RenderRichText3d(
       const TextSpan(
         children: <TextSpan>[
           TextSpan(text: 'Aa', style: TextStyle(fontSize: 150)),
@@ -813,9 +825,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.loose(const Size3d(3.6, 1.8, 0.2)),
-          child: Center3d(child: text),
+          child: RenderCenter3d(child: text),
         ),
       ],
       probes: {'paragraph': text},
@@ -827,7 +839,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // A panel with a corner radius of a third of its height. The corners
     // the SDF carves away are the assertion: geometry in the middle, clear
     // space where the radius took it.
-    final panel = DecoratedBox3d(
+    final panel = RenderDecoratedBox3d(
       decoration: const BoxDecoration3d(
         color: Color(0xFFEA9F26),
         borderRadius: BorderRadius3d.circular(60),
@@ -836,7 +848,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3.6, 1.8, 0.2)),
           child: panel,
         ),
@@ -849,13 +861,13 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // The same panel with no radius, which is what makes the rounded one
     // meaningful: without a square control, "the corner is empty" could
     // just as well mean the panel never drew.
-    final panel = DecoratedBox3d(
+    final panel = RenderDecoratedBox3d(
       decoration: const BoxDecoration3d(color: Color(0xFF26B3A8)),
       name: 'panel',
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3.6, 1.8, 0.2)),
           child: panel,
         ),
@@ -923,43 +935,48 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       // caster over each ground patch is exactly above its centre. The upper
       // one is lifted by moving its plane node, which is the surface's own
       // documented degree of freedom.
-      NodeBox3d ground(String name) => NodeBox3d(
+      RenderNodeBox3d ground(String name) => RenderNodeBox3d(
         fit: BoxFit3d.fill,
         content: _solid(_cube, _paleGrey),
         name: name,
       );
-      final patches = <String, NodeBox3d>{
+      final patches = <String, RenderNodeBox3d>{
         for (final name in ['underCube', 'underPanel', 'underNothing'])
           name: ground(name),
       };
-      final groundSurface = Layout3dSurface(
+      final groundSurface = RenderSurface3d(
         basis: LayoutBasis3d.xz,
         constraints: Constraints3d.tight(const Size3d(4.2, 1.4, 0.1)),
-        child: Row3d(
+        child: RenderRow3d(
           children: <RenderObject3d>[
             for (final patch in patches.values)
-              SizedBox3d(width: 1.4, height: 1.4, depth: 0.1, child: patch),
+              RenderSizedBox3d(
+                width: 1.4,
+                height: 1.4,
+                depth: 0.1,
+                child: patch,
+              ),
           ],
         ),
       );
 
-      final cube = NodeBox3d(
+      final cube = RenderNodeBox3d(
         fit: BoxFit3d.fill,
         content: _solid(_cube, _teal),
         name: 'cube',
       );
-      final panel = DecoratedBox3d(
+      final panel = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(color: _panelFill),
         name: 'panel',
       );
-      RenderObject3d cell(RenderObject3d? child) => SizedBox3d(
+      RenderObject3d cell(RenderObject3d? child) => RenderSizedBox3d(
         width: 1.4,
         height: 1.4,
         depth: 0.1,
         child: child == null
             ? null
-            : Center3d(
-                child: SizedBox3d(
+            : RenderCenter3d(
+                child: RenderSizedBox3d(
                   width: 0.9,
                   height: 0.9,
                   depth: 0.12,
@@ -967,10 +984,10 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
                 ),
               ),
       );
-      final casterSurface = Layout3dSurface(
+      final casterSurface = RenderSurface3d(
         basis: LayoutBasis3d.xz,
         constraints: Constraints3d.tight(const Size3d(4.2, 1.4, 0.1)),
-        child: Row3d(
+        child: RenderRow3d(
           children: <RenderObject3d>[cell(cube), cell(panel), cell(null)],
         ),
       );
@@ -1016,40 +1033,40 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // separate children thicker than itself, and the eight-dp default lift is
     // a depth-buffer separation, not a distance. Thin slabs and a generous
     // lift make the comparison decisive instead of a coin toss on z-fighting.
-    NodeBox3d row(String name) => NodeBox3d(
+    RenderNodeBox3d row(String name) => RenderNodeBox3d(
       fit: BoxFit3d.fill,
       content: _solid(_cube, _teal),
       name: name,
     );
-    final rows = <NodeBox3d>[row('row0'), row('row1'), row('row2')];
-    late NodeBox3d feedback;
-    final source = Draggable3d<String>(
+    final rows = <RenderNodeBox3d>[row('row0'), row('row1'), row('row2')];
+    late RenderNodeBox3d feedback;
+    final source = RenderDraggable3d<String>(
       data: 'card',
       feedbackLayer: const OverlayLayer3d.inPlane(lift: 0.5),
       feedbackBuilder: (_) {
-        feedback = NodeBox3d(
+        feedback = RenderNodeBox3d(
           fit: BoxFit3d.fill,
           content: _solid(_cube, _violet),
           name: 'feedback',
         );
-        return SizedBox3d(
+        return RenderSizedBox3d(
           width: 2.4,
           height: 0.8,
           depth: 0.05,
           child: feedback,
         );
       },
-      child: SizedBox3d(width: 3, height: 1, depth: 0.05, child: rows[0]),
+      child: RenderSizedBox3d(width: 3, height: 1, depth: 0.05, child: rows[0]),
     );
-    final surface = Layout3dSurface(
+    final surface = RenderSurface3d(
       constraints: Constraints3d.tight(const Size3d(3, 3, 1)),
-      child: Overlay3d(
+      child: RenderOverlay3d(
         children: <RenderObject3d>[
-          Column3d(
+          RenderColumn3d(
             children: <RenderObject3d>[
               source,
               for (final box in rows.skip(1))
-                SizedBox3d(width: 3, height: 1, depth: 0.05, child: box),
+                RenderSizedBox3d(width: 3, height: 1, depth: 0.05, child: box),
             ],
           ),
         ],
@@ -1083,34 +1100,39 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // scene has to clear. Bigger geometry at the ordinary distance clears it
     // with room to spare and keeps the whole drag inside a 640x480 view: the
     // panel spans x 162 to 478, and the feedback lands at 513.
-    late NodeBox3d feedback;
-    final card = NodeBox3d(
+    late RenderNodeBox3d feedback;
+    final card = RenderNodeBox3d(
       fit: BoxFit3d.fill,
       content: _solid(_cube, _teal),
       name: 'card',
     );
-    final source = Draggable3d<String>(
+    final source = RenderDraggable3d<String>(
       data: 'card',
       feedbackLayer: const OverlayLayer3d.detached(lift: 0.5),
       feedbackBuilder: (_) {
-        feedback = NodeBox3d(
+        feedback = RenderNodeBox3d(
           fit: BoxFit3d.fill,
           content: _solid(_cube, _violet),
           name: 'feedback',
         );
-        return SizedBox3d(
+        return RenderSizedBox3d(
           width: 1.4,
           height: 0.9,
           depth: 0.05,
           child: feedback,
         );
       },
-      child: SizedBox3d(width: 1.8, height: 1.1, depth: 0.05, child: card),
+      child: RenderSizedBox3d(
+        width: 1.8,
+        height: 1.1,
+        depth: 0.05,
+        child: card,
+      ),
     );
-    final panel = Overlay3d(
-      children: <RenderObject3d>[Center3d(child: source)],
+    final panel = RenderOverlay3d(
+      children: <RenderObject3d>[RenderCenter3d(child: source)],
     );
-    final surface = Layout3dSurface(
+    final surface = RenderSurface3d(
       constraints: Constraints3d.tight(const Size3d(3, 3, 1)),
       child: panel,
     );
@@ -1131,7 +1153,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   // resolution — `Material3d.decorationFor` is the single place a token
   // becomes a `BoxDecoration3d`, and a probe that reimplemented it would be
   // checking its own arithmetic. The scenes are imperative because this
-  // harness is: a `ProbeSceneContent` holds `Layout3dSurface`es, and the
+  // harness is: a `ProbeSceneContent` holds `RenderSurface3d`es, and the
   // widget layer's job (reading the metrics, installing the ink controller)
   // is what the headless suite covers.
 
@@ -1153,33 +1175,39 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // is 0%, 8% and 14% there, and the two gaps are the widest three levels
     // can give.
     const theme = Theme3dData.light;
-    DecoratedBox3d panel(String name, double elevation) => DecoratedBox3d(
-      decoration: Material3d.decorationFor(
-        theme,
-        shape: theme.shape.medium,
-        thickness: theme.thickness.raised,
-        elevation: elevation,
-      ),
-      name: name,
-    );
+    RenderDecoratedBox3d panel(String name, double elevation) =>
+        RenderDecoratedBox3d(
+          decoration: Material3d.decorationFor(
+            theme,
+            shape: theme.shape.medium,
+            thickness: theme.thickness.raised,
+            elevation: elevation,
+          ),
+          name: name,
+        );
     final flat = panel('flat', theme.elevation.level0);
     final raised = panel('raised', theme.elevation.level2);
     final high = panel('high', theme.elevation.level5);
-    // Explicitly sized cells rather than `Expanded3d`. A `Row3d` hands its
-    // children loose cross-axis constraints, and a `DecoratedBox3d` with no
-    // child shrink-wraps — so a flexed panel comes out 1.12 x 0 x 0 and the
-    // scene draws nothing at all, which is exactly how this one first ran.
-    // The depth is the thickness token in world units, which is what a
-    // `Material3d` would have constrained it to.
+    // Explicitly sized cells rather than `RenderExpanded3d`. A `RenderRow3d`
+    // hands its children loose cross-axis constraints, and a
+    // `RenderDecoratedBox3d` with no child shrink-wraps — so a flexed panel
+    // comes out 1.12 x 0 x 0 and the scene draws nothing at all, which is
+    // exactly how this one first ran. The depth is the thickness token in world
+    // units, which is what a `Material3d` would have constrained it to.
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3.6, 1.2, 0.2)),
-          child: Row3d(
+          child: RenderRow3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
             children: <RenderObject3d>[
               for (final box in <RenderObject3d>[flat, raised, high])
-                SizedBox3d(width: 1.0, height: 1.0, depth: 0.04, child: box),
+                RenderSizedBox3d(
+                  width: 1.0,
+                  height: 1.0,
+                  depth: 0.04,
+                  child: box,
+                ),
             ],
           ),
         ),
@@ -1206,8 +1234,8 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       shape: theme.shape.medium,
       thickness: theme.thickness.standard,
     );
-    final idle = DecoratedBox3d(decoration: decoration, name: 'idle');
-    final hovered = DecoratedBox3d(
+    final idle = RenderDecoratedBox3d(decoration: decoration, name: 'idle');
+    final hovered = RenderDecoratedBox3d(
       decoration: decoration,
       stateLayer: theme.stateLayer.resolve(const {
         Material3dState.hovered,
@@ -1216,13 +1244,18 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3.6, 1.2, 0.2)),
-          child: Row3d(
+          child: RenderRow3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
             children: <RenderObject3d>[
               for (final box in <RenderObject3d>[idle, hovered])
-                SizedBox3d(width: 1.4, height: 1.0, depth: 0.02, child: box),
+                RenderSizedBox3d(
+                  width: 1.4,
+                  height: 1.0,
+                  depth: 0.02,
+                  child: box,
+                ),
             ],
           ),
         ),
@@ -1260,9 +1293,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // states as a direction rather than as a bare difference.
     const theme = Theme3dData.light;
     final style = ButtonStyle3d.of(theme, ButtonVariant3d.filled);
-    DecoratedBox3d button(String name, {required bool enabled}) {
+    RenderDecoratedBox3d button(String name, {required bool enabled}) {
       final resolved = style.resolve(const {}, enabled: enabled);
-      return DecoratedBox3d(
+      return RenderDecoratedBox3d(
         decoration: Material3d.decorationFor(
           theme,
           color: resolved.container,
@@ -1276,7 +1309,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       );
     }
 
-    final backing = DecoratedBox3d(
+    final backing = RenderDecoratedBox3d(
       decoration: Material3d.decorationFor(
         theme,
         color: theme.colorScheme.surfaceContainerLowest,
@@ -1288,24 +1321,29 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     final disabled = button('disabled', enabled: false);
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3.6, 1.6, 0.4)),
-          child: Stack3d(
+          child: RenderStack3d(
             alignment: Alignment3d.center,
             // 12dp, the theme's own step. The deepest pair here is the 4dp
             // backing against a 2dp button, mean 3dp, so it clears with room.
             depthStep: 0.12,
             children: <RenderObject3d>[
-              SizedBox3d(width: 3.6, height: 1.6, depth: 0.04, child: backing),
-              SizedBox3d(
+              RenderSizedBox3d(
+                width: 3.6,
+                height: 1.6,
+                depth: 0.04,
+                child: backing,
+              ),
+              RenderSizedBox3d(
                 width: 3.2,
                 height: 0.4,
                 depth: 0.02,
-                child: Row3d(
+                child: RenderRow3d(
                   mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
                   children: <RenderObject3d>[
                     for (final box in <RenderObject3d>[enabled, disabled])
-                      SizedBox3d(
+                      RenderSizedBox3d(
                         width: 1.4,
                         height: 0.4,
                         depth: 0.02,
@@ -1343,10 +1381,10 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       // transparent, so its middle *should* show the background, and a scene
       // that only said so could equally be a scene where nothing drew.
       const theme = Theme3dData.light;
-      DecoratedBox3d button(String name, ButtonVariant3d variant) {
+      RenderDecoratedBox3d button(String name, ButtonVariant3d variant) {
         final style = ButtonStyle3d.of(theme, variant);
         final resolved = style.resolve(const {}, enabled: true);
-        return DecoratedBox3d(
+        return RenderDecoratedBox3d(
           decoration: Material3d.decorationFor(
             theme,
             color: resolved.container,
@@ -1364,17 +1402,22 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       final filled = button('filled', ButtonVariant3d.filled);
       return ProbeSceneContent(
         surfaces: [
-          Layout3dSurface(
+          RenderSurface3d(
             // Six hundredths of a unit to the logical pixel, so Material's 40dp
             // button height is 2.4 units and its 1dp outline is 0.06 — a band a
             // probe disc fits inside.
             metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.06),
             constraints: Constraints3d.tight(const Size3d(8.4, 2.6, 0.2)),
-            child: Row3d(
+            child: RenderRow3d(
               mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
               children: <RenderObject3d>[
                 for (final box in <RenderObject3d>[outlined, filled])
-                  SizedBox3d(width: 3.84, height: 2.4, depth: 0.12, child: box),
+                  RenderSizedBox3d(
+                    width: 3.84,
+                    height: 2.4,
+                    depth: 0.12,
+                    child: box,
+                  ),
               ],
             ),
           ),
@@ -1414,7 +1457,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     const theme = Theme3dData.light;
     final style = CardStyle3d.of(theme, CardVariant3d.elevated);
 
-    DecoratedBox3d card(String name) => DecoratedBox3d(
+    RenderDecoratedBox3d card(String name) => RenderDecoratedBox3d(
       decoration: Material3d.decorationFor(
         theme,
         color: style.container,
@@ -1426,8 +1469,10 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       name: name,
     );
 
-    final cards = <DecoratedBox3d>[for (var i = 0; i < 5; i++) card('card$i')];
-    final backing = DecoratedBox3d(
+    final cards = <RenderDecoratedBox3d>[
+      for (var i = 0; i < 5; i++) card('card$i'),
+    ];
+    final backing = RenderDecoratedBox3d(
       decoration: Material3d.decorationFor(
         theme,
         color: theme.colorScheme.primary,
@@ -1439,30 +1484,35 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // 0.5 of row and 0.1 of gap: a 0.6 pitch, so a 1.2-unit window holds two
     // rows and a scroll of 0.25 leaves the first one half out of the top.
     final controller = Scroll3dController();
-    final list = ListView3d(
+    final list = RenderListView3d(
       controller: controller,
       spacing: 0.1,
       children: <RenderObject3d>[
         for (final box in cards)
-          SizedBox3d(width: 2.2, height: 0.5, depth: 0.04, child: box),
+          RenderSizedBox3d(width: 2.2, height: 0.5, depth: 0.04, child: box),
       ],
     );
 
-    final surface = Layout3dSurface(
+    final surface = RenderSurface3d(
       constraints: Constraints3d.tight(const Size3d(3.0, 2.4, 0.4)),
-      child: Stack3d(
+      child: RenderStack3d(
         alignment: Alignment3d.center,
         // 12dp, the theme's own step. The deepest pair here is an 8dp backing
         // against a 4dp card, mean 6dp, so it clears with half again to
         // spare — which is `Thickness3d.separates` as a picture.
         depthStep: 0.12,
         children: <RenderObject3d>[
-          SizedBox3d(width: 3.0, height: 2.4, depth: 0.08, child: backing),
-          SizedBox3d(
+          RenderSizedBox3d(
+            width: 3.0,
+            height: 2.4,
+            depth: 0.08,
+            child: backing,
+          ),
+          RenderSizedBox3d(
             width: 2.2,
             height: 1.2,
             depth: 0.04,
-            child: ClipBox3d(child: list),
+            child: RenderClipBox3d(child: list),
           ),
         ],
       ),
@@ -1498,7 +1548,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       // `surfaceContainerLow` is near white, so the rule is *darker* than the
       // surface it divides, and a scene where the two were swapped fails.
       const theme = Theme3dData.light;
-      final rule = DecoratedBox3d(
+      final rule = RenderDecoratedBox3d(
         decoration: Material3d.decorationFor(
           theme,
           color: theme.colorScheme.outlineVariant,
@@ -1507,7 +1557,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         ),
         name: 'rule',
       );
-      final card = DecoratedBox3d(
+      final card = RenderDecoratedBox3d(
         decoration: Material3d.decorationFor(
           theme,
           color: CardStyle3d.of(theme, CardVariant3d.elevated).container,
@@ -1519,21 +1569,31 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       );
       return ProbeSceneContent(
         surfaces: [
-          Layout3dSurface(
+          RenderSurface3d(
             // Six hundredths of a unit to the logical pixel: a 1dp rule is
             // 0.06 units, a band a probe disc fits inside, and the token
             // stays at its published 1dp.
             metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.06),
             constraints: Constraints3d.tight(const Size3d(8.4, 4.0, 0.6)),
-            child: Stack3d(
+            child: RenderStack3d(
               alignment: Alignment3d.center,
               // 12dp at this rate. A 4dp card against a 1dp rule is a mean of
               // 2.5dp, so the rule stands clear of the card it is drawn on —
               // which is the whole reason a divider has a depth at all.
               depthStep: 0.72,
               children: <RenderObject3d>[
-                SizedBox3d(width: 7.2, height: 3.2, depth: 0.24, child: card),
-                SizedBox3d(width: 6.0, height: 0.06, depth: 0.06, child: rule),
+                RenderSizedBox3d(
+                  width: 7.2,
+                  height: 3.2,
+                  depth: 0.24,
+                  child: card,
+                ),
+                RenderSizedBox3d(
+                  width: 6.0,
+                  height: 0.06,
+                  depth: 0.06,
+                  child: rule,
+                ),
               ],
             ),
           ),
@@ -1565,18 +1625,19 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // bar covers exactly what the clip would cut, which is precisely why the
     // defect survived. The clip is a single plane across the scroll axis, so
     // it cuts the *band*, cross-axis-wide, including the margin beside a
-    // narrow bar. That is the contract `CustomScrollView3d.clipRegionForChild`
-    // states, and it is what this scene photographs: beside the bar, above
-    // its trailing edge, the frame shows the backing rather than the row.
+    // narrow bar. That is the contract
+    // `RenderCustomScrollView3d.clipRegionForChild` states, and it is what this
+    // scene photographs: beside the bar, above its trailing edge, the frame
+    // shows the backing rather than the row.
     const theme = Theme3dData.light;
     final cardStyle = CardStyle3d.of(theme, CardVariant3d.elevated);
 
-    DecoratedBox3d panel(
+    RenderDecoratedBox3d panel(
       Color color,
       double thickness,
       String name, {
       BorderRadius3d? shape,
-    }) => DecoratedBox3d(
+    }) => RenderDecoratedBox3d(
       decoration: Material3d.decorationFor(
         theme,
         color: color,
@@ -1587,7 +1648,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       name: name,
     );
 
-    final rows = <DecoratedBox3d>[
+    final rows = <RenderDecoratedBox3d>[
       for (var i = 0; i < 5; i++)
         panel(
           cardStyle.container,
@@ -1608,13 +1669,18 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     );
 
     final controller = Scroll3dController();
-    final header = SliverPersistentHeader3d(
+    final header = RenderSliverPersistentHeader3d(
       delegate: _BarHeader3dDelegate(
         // Centred and half the viewport's width, so there is a margin either
         // side where the row would still be visible if nothing cut it.
-        Align3d(
+        RenderAlign3d(
           alignment: Alignment3d.frontCenter,
-          child: SizedBox3d(width: 1.0, height: 0.4, depth: 0.08, child: bar),
+          child: RenderSizedBox3d(
+            width: 1.0,
+            height: 0.4,
+            depth: 0.08,
+            child: bar,
+          ),
         ),
         extent: 0.4,
       ),
@@ -1623,26 +1689,31 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       // 8dp bar over a 4dp card needs more than the 6dp mean of the two.
       lift: theme.thickness.depthStep * 0.01,
     );
-    final list = SliverList3d(
+    final list = RenderSliverList3d(
       spacing: 0.1,
       children: <RenderObject3d>[
         for (final row in rows)
-          SizedBox3d(width: 2.0, height: 0.4, depth: 0.04, child: row),
+          RenderSizedBox3d(width: 2.0, height: 0.4, depth: 0.04, child: row),
       ],
     );
-    final view = CustomScrollView3d(
+    final view = RenderCustomScrollView3d(
       controller: controller,
-      slivers: <Sliver3d>[header, list],
+      slivers: <RenderSliver3d>[header, list],
     );
 
-    final surface = Layout3dSurface(
+    final surface = RenderSurface3d(
       constraints: Constraints3d.tight(const Size3d(3.0, 2.4, 0.5)),
-      child: Stack3d(
+      child: RenderStack3d(
         alignment: Alignment3d.center,
         depthStep: 0.12,
         children: <RenderObject3d>[
-          SizedBox3d(width: 3.0, height: 2.4, depth: 0.08, child: backing),
-          SizedBox3d(width: 2.0, height: 1.6, depth: 0.04, child: view),
+          RenderSizedBox3d(
+            width: 3.0,
+            height: 2.4,
+            depth: 0.08,
+            child: backing,
+          ),
+          RenderSizedBox3d(width: 2.0, height: 1.6, depth: 0.04, child: view),
         ],
       ),
     );
@@ -1680,8 +1751,8 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     const theme = Theme3dData.light;
     final cardStyle = CardStyle3d.of(theme, CardVariant3d.elevated);
 
-    DecoratedBox3d panel(Color color, double thickness, String name) =>
-        DecoratedBox3d(
+    RenderDecoratedBox3d panel(Color color, double thickness, String name) =>
+        RenderDecoratedBox3d(
           decoration: Material3d.decorationFor(
             theme,
             color: color,
@@ -1705,20 +1776,35 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
 
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3.0, 2.4, 0.6)),
-          child: Stack3d(
+          child: RenderStack3d(
             alignment: Alignment3d.topCenter,
             // `Thickness3d.depthStep`, in world units at the default rate —
             // the same number `Scaffold3d` puts between two slots.
             depthStep: 0.12,
             children: <RenderObject3d>[
-              SizedBox3d(width: 3.0, height: 2.4, depth: 0.01, child: backing),
+              RenderSizedBox3d(
+                width: 3.0,
+                height: 2.4,
+                depth: 0.01,
+                child: backing,
+              ),
               // The body, one step in front of the backing.
-              SizedBox3d(width: 2.0, height: 1.6, depth: 0.04, child: card),
+              RenderSizedBox3d(
+                width: 2.0,
+                height: 1.6,
+                depth: 0.04,
+                child: card,
+              ),
               // The bar, a further step in front, and wider than the card so
               // that a probe can read the bar alone as well as the overlap.
-              SizedBox3d(width: 2.8, height: 0.64, depth: 0.08, child: bar),
+              RenderSizedBox3d(
+                width: 2.8,
+                height: 0.64,
+                depth: 0.08,
+                child: bar,
+              ),
             ],
           ),
         ),
@@ -1760,8 +1846,8 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // pixels, and nothing else in this scene looks like one.
     const theme = Theme3dData.light;
 
-    DecoratedBox3d panel(Color color, double thickness, String name) =>
-        DecoratedBox3d(
+    RenderDecoratedBox3d panel(Color color, double thickness, String name) =>
+        RenderDecoratedBox3d(
           decoration: Material3d.decorationFor(
             theme,
             color: color,
@@ -1783,21 +1869,31 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
 
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3.0, 1.2, 0.8)),
-          child: Stack3d(
+          child: RenderStack3d(
             // Front faces together, then one small step apart: the slab's
             // face stands proud of the bar's, which is what puts it in front
             // of the bar for the depth test.
             alignment: Alignment3d.center,
             depthStep: 0.0,
             children: <RenderObject3d>[
-              SizedBox3d(width: 3.0, height: 1.2, depth: 0.08, child: bar),
+              RenderSizedBox3d(
+                width: 3.0,
+                height: 1.2,
+                depth: 0.08,
+                child: bar,
+              ),
               // Deeper than the bar, so its bounds centre sits further from
               // the camera than the bar's and the translucent sort draws it
               // first. Well inside the bar in the plane, so a disc at its
               // centre reads the overlap and never an edge.
-              SizedBox3d(width: 1.4, height: 0.5, depth: 0.01, child: slab),
+              RenderSizedBox3d(
+                width: 1.4,
+                height: 0.5,
+                depth: 0.01,
+                child: slab,
+              ),
             ],
           ),
         ),
@@ -1848,7 +1944,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     const theme = Theme3dData.light;
     final style = DialogStyle3d.of(theme);
 
-    final backing = DecoratedBox3d(
+    final backing = RenderDecoratedBox3d(
       decoration: Material3d.decorationFor(
         theme,
         color: theme.colorScheme.primary,
@@ -1857,7 +1953,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       ),
       name: 'backing',
     );
-    final scrim = DecoratedBox3d(
+    final scrim = RenderDecoratedBox3d(
       decoration: Material3d.decorationFor(
         theme,
         color: style.scrimColor,
@@ -1866,7 +1962,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       ),
       name: 'scrim',
     );
-    final dialog = DecoratedBox3d(
+    final dialog = RenderDecoratedBox3d(
       decoration: Material3d.decorationFor(
         theme,
         color: style.container,
@@ -1880,9 +1976,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
 
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3.0, 2.4, 0.6)),
-          child: Stack3d(
+          child: RenderStack3d(
             alignment: Alignment3d.center,
             // `Thickness3d.depthStep`, in world units at the default rate.
             // A 1dp scrim over an 8dp backing is a mean of 4.5dp and a 4dp
@@ -1891,11 +1987,26 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
             // slab it is carried on.
             depthStep: 0.12,
             children: <RenderObject3d>[
-              SizedBox3d(width: 3.0, height: 2.4, depth: 0.08, child: backing),
+              RenderSizedBox3d(
+                width: 3.0,
+                height: 2.4,
+                depth: 0.08,
+                child: backing,
+              ),
               // Narrower than the backing on purpose: the strip either side is
               // where an unscrimmed reading comes from.
-              SizedBox3d(width: 2.2, height: 2.4, depth: 0.01, child: scrim),
-              SizedBox3d(width: 1.4, height: 0.9, depth: 0.04, child: dialog),
+              RenderSizedBox3d(
+                width: 2.2,
+                height: 2.4,
+                depth: 0.01,
+                child: scrim,
+              ),
+              RenderSizedBox3d(
+                width: 1.4,
+                height: 0.9,
+                depth: 0.04,
+                child: dialog,
+              ),
             ],
           ),
         ),
@@ -1921,7 +2032,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     const theme = Theme3dData.light;
     final menuStyle = MenuStyle3d.of(theme);
 
-    final backing = DecoratedBox3d(
+    final backing = RenderDecoratedBox3d(
       decoration: Material3d.decorationFor(
         theme,
         color: theme.colorScheme.primary,
@@ -1930,7 +2041,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       ),
       name: 'backing',
     );
-    final button = DecoratedBox3d(
+    final button = RenderDecoratedBox3d(
       decoration: Material3d.decorationFor(
         theme,
         color: theme.colorScheme.secondaryContainer,
@@ -1940,7 +2051,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       ),
       name: 'button',
     );
-    final menu = DecoratedBox3d(
+    final menu = RenderDecoratedBox3d(
       decoration: Material3d.decorationFor(
         theme,
         color: menuStyle.container,
@@ -1952,23 +2063,38 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       name: 'menu',
     );
 
-    final anchor = Anchor3d()
-      ..child = SizedBox3d(width: 0.5, height: 0.3, depth: 0.02, child: button);
-    final follower = Follower3d(anchor: anchor)
-      ..child = SizedBox3d(width: 1.0, height: 0.8, depth: 0.04, child: menu);
+    final anchor = RenderAnchor3d()
+      ..child = RenderSizedBox3d(
+        width: 0.5,
+        height: 0.3,
+        depth: 0.02,
+        child: button,
+      );
+    final follower = RenderFollower3d(anchor: anchor)
+      ..child = RenderSizedBox3d(
+        width: 1.0,
+        height: 0.8,
+        depth: 0.04,
+        child: menu,
+      );
 
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3.0, 2.4, 0.6)),
-          child: Stack3d(
+          child: RenderStack3d(
             alignment: Alignment3d.center,
             depthStep: 0.12,
             children: <RenderObject3d>[
-              SizedBox3d(width: 3.0, height: 2.4, depth: 0.08, child: backing),
+              RenderSizedBox3d(
+                width: 3.0,
+                height: 2.4,
+                depth: 0.08,
+                child: backing,
+              ),
               // The button in the top-left corner, which is as far from the
               // stack's own centre as this surface allows.
-              Positioned3d(left: 0.2, top: 0.2, child: anchor),
+              RenderPositioned3d(left: 0.2, top: 0.2, child: anchor),
               // The menu, which the stack would centre and the follower moves
               // onto the button's bottom-left corner.
               follower,
@@ -2025,7 +2151,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       final extent = style.size * rate;
       final depth = style.thickness * rate;
 
-      DecoratedBox3d filled(String name) => DecoratedBox3d(
+      RenderDecoratedBox3d filled(String name) => RenderDecoratedBox3d(
         decoration: Material3d.decorationFor(
           theme,
           color: style.selectedContainer,
@@ -2035,7 +2161,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         ),
         name: name,
       );
-      Text3d glyph({required bool drawn}) => Text3d(
+      RenderText3d glyph({required bool drawn}) => RenderText3d(
         String.fromCharCode(Checkbox3d.defaultIcon.codePoint),
         style: TextStyle(
           fontFamily: Checkbox3d.defaultIcon.fontFamily,
@@ -2046,7 +2172,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         renderer: drawn ? AtlasText3dRenderer() : null,
       );
 
-      final empty = DecoratedBox3d(
+      final empty = RenderDecoratedBox3d(
         decoration: Material3d.decorationFor(
           theme,
           color: style.container,
@@ -2059,7 +2185,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       );
       final marked = filled('marked');
       final unmarked = filled('unmarked');
-      final card = DecoratedBox3d(
+      final card = RenderDecoratedBox3d(
         decoration: Material3d.decorationFor(
           theme,
           color: theme.colorScheme.surfaceContainerLow,
@@ -2070,36 +2196,42 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         name: 'card',
       );
 
-      RenderObject3d cell(DecoratedBox3d panel, Text3d? mark) => SizedBox3d(
-        width: extent,
-        height: extent,
-        child: Stack3d(
-          alignment: Alignment3d.center,
-          // `Thickness3d.stepOver(thin, thin)` is 2dp, at this rate 0.12.
-          depthStep: style.depthStep * rate,
-          children: <RenderObject3d>[
-            SizedBox3d(
-              width: extent,
-              height: extent,
-              depth: depth,
-              child: panel,
+      RenderObject3d cell(RenderDecoratedBox3d panel, RenderText3d? mark) =>
+          RenderSizedBox3d(
+            width: extent,
+            height: extent,
+            child: RenderStack3d(
+              alignment: Alignment3d.center,
+              // `Thickness3d.stepOver(thin, thin)` is 2dp, at this rate 0.12.
+              depthStep: style.depthStep * rate,
+              children: <RenderObject3d>[
+                RenderSizedBox3d(
+                  width: extent,
+                  height: extent,
+                  depth: depth,
+                  child: panel,
+                ),
+                if (mark != null) mark,
+              ],
             ),
-            if (mark != null) mark,
-          ],
-        ),
-      );
+          );
 
       return ProbeSceneContent(
         surfaces: [
-          Layout3dSurface(
+          RenderSurface3d(
             metrics: const Layout3dMetrics(unitsPerLogicalPixel: rate),
             constraints: Constraints3d.tight(const Size3d(6.0, 3.0, 0.6)),
-            child: Stack3d(
+            child: RenderStack3d(
               alignment: Alignment3d.center,
               depthStep: 0.36,
               children: <RenderObject3d>[
-                SizedBox3d(width: 5.4, height: 2.4, depth: 0.24, child: card),
-                Row3d(
+                RenderSizedBox3d(
+                  width: 5.4,
+                  height: 2.4,
+                  depth: 0.24,
+                  child: card,
+                ),
+                RenderRow3d(
                   mainAxisAlignment: MainAxisAlignment3d.center,
                   crossAxisAlignment: CrossAxisAlignment3d.center,
                   spacing: 0.6,
@@ -2162,7 +2294,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
           selected: value,
           enabled: true,
         );
-        final track = DecoratedBox3d(
+        final track = RenderDecoratedBox3d(
           decoration: Material3d.decorationFor(
             theme,
             color: resolved.track,
@@ -2173,7 +2305,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
           ),
           name: trackName,
         );
-        final thumb = DecoratedBox3d(
+        final thumb = RenderDecoratedBox3d(
           decoration: Material3d.decorationFor(
             theme,
             color: resolved.thumb,
@@ -2193,20 +2325,20 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
           if (value) return box;
           final s = style.unselectedThumbSize / style.thumbSize;
           final c = style.thumbSize * rate / 2.0;
-          return NodeShift3d()
+          return RenderNodeShift3d()
             ..nodeTransform = (Matrix4.diagonal3Values(s, s, 1.0)
               ..setTranslationRaw(c * (1.0 - s), c * (1.0 - s), 0.0))
             ..child = box;
         }
 
-        return SizedBox3d(
+        return RenderSizedBox3d(
           width: style.trackWidth * rate,
           height: style.trackHeight * rate,
-          child: Stack3d(
+          child: RenderStack3d(
             alignment: Alignment3d.center,
             depthStep: style.depthStep * rate,
             children: <RenderObject3d>[
-              SizedBox3d(
+              RenderSizedBox3d(
                 width: style.trackWidth * rate,
                 height: style.trackHeight * rate,
                 depth: style.trackThickness * rate,
@@ -2217,7 +2349,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
               // and an off thumb is the same box scaled to its own size about
               // its centre. No box changes size, which is why the switch
               // animates for free.
-              NodeShift3d(
+              RenderNodeShift3d(
                   shift: Offset3d(
                     style.travel * rate / 2.0 * (value ? 1.0 : -1.0),
                     0.0,
@@ -2225,7 +2357,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
                   ),
                 )
                 ..child = sized(
-                  SizedBox3d(
+                  RenderSizedBox3d(
                     width: style.thumbSize * rate,
                     height: style.thumbSize * rate,
                     depth: style.thumbThickness * rate,
@@ -2251,14 +2383,14 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
 
       return ProbeSceneContent(
         surfaces: [
-          Layout3dSurface(
+          RenderSurface3d(
             metrics: const Layout3dMetrics(unitsPerLogicalPixel: rate),
             // Tall enough for two 32dp tracks and the gap between them: at
             // this rate that is 1.92 each, and a surface's constraints are
             // tight, so a column that does not fit overflows rather than
             // growing.
             constraints: Constraints3d.tight(const Size3d(8.0, 5.4, 0.6)),
-            child: Column3d(
+            child: RenderColumn3d(
               mainAxisAlignment: MainAxisAlignment3d.center,
               crossAxisAlignment: CrossAxisAlignment3d.center,
               spacing: 0.9,
@@ -2283,9 +2415,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       // the boxes, flushes, and drives a real `Layout3dPointer` across the
       // track inside `build()`, so the harness receives a static frame that
       // happens to have a live drag in it. What the pointer drives is the
-      // component's own `SliderGesture3d` — the arena member the drag plan
-      // named "a knob, a slider, a rotation handle" for — so the scene is a
-      // picture of the real gesture rather than of a value set by hand.
+      // component's own `RenderSliderGesture3d` — the arena member the drag
+      // plan named "a knob, a slider, a rotation handle" for — so the scene is
+      // a picture of the real gesture rather than of a value set by hand.
       //
       // The second claim is the one that could not have been made any other
       // way. The active track is **not** a box that grows: it is the whole
@@ -2302,20 +2434,21 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       const width = SliderStyle3d.defaultMinimumTrackWidth;
       final travel = (width - style.thumbSize) * rate;
 
-      DecoratedBox3d track(Color color, String name) => DecoratedBox3d(
-        decoration: Material3d.decorationFor(
-          theme,
-          color: color,
-          shape: style.trackShape,
-          thickness: style.trackThickness,
-          surfaceTint: const Color(0x00000000),
-        ),
-        name: name,
-      );
+      RenderDecoratedBox3d track(Color color, String name) =>
+          RenderDecoratedBox3d(
+            decoration: Material3d.decorationFor(
+              theme,
+              color: color,
+              shape: style.trackShape,
+              thickness: style.trackThickness,
+              surfaceTint: const Color(0x00000000),
+            ),
+            name: name,
+          );
 
       final inactive = track(style.inactiveTrack, 'inactive');
       final active = track(style.activeTrack, 'active');
-      final thumb = DecoratedBox3d(
+      final thumb = RenderDecoratedBox3d(
         decoration: Material3d.decorationFor(
           theme,
           color: style.thumb,
@@ -2325,7 +2458,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         ),
         name: 'thumb',
       );
-      final card = DecoratedBox3d(
+      final card = RenderDecoratedBox3d(
         decoration: Material3d.decorationFor(
           theme,
           color: theme.colorScheme.surfaceContainerLow,
@@ -2336,37 +2469,38 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         name: 'card',
       );
 
-      final fill = NodeShift3d(scaleX: 0.0)
-        ..child = SizedBox3d(
+      final fill = RenderNodeShift3d(scaleX: 0.0)
+        ..child = RenderSizedBox3d(
           width: travel,
           height: style.trackHeight * rate,
           depth: style.trackThickness * rate,
           child: active,
         );
-      final rider = NodeShift3d(shift: Offset3d(-travel / 2.0, 0.0, 0.0))
-        ..child = SizedBox3d(
+      final rider = RenderNodeShift3d(shift: Offset3d(-travel / 2.0, 0.0, 0.0))
+        ..child = RenderSizedBox3d(
           width: style.thumbSize * rate,
           height: style.thumbSize * rate,
           depth: style.thumbThickness * rate,
           child: thumb,
         );
 
-      final body = SizedBox3d(
+      final body = RenderSizedBox3d(
         width: width * rate,
         height: style.stateLayerSize * rate,
         name: 'body',
       );
-      final gesture = SliderGesture3d(padding: style.thumbSize / 2.0 * rate)
-        ..onChanged = (value) {
-          fill.scaleX = value;
-          rider.shift = Offset3d(travel * (value - 0.5), 0.0, 0.0);
-        };
-      gesture.child = Stack3d(
+      final gesture =
+          RenderSliderGesture3d(padding: style.thumbSize / 2.0 * rate)
+            ..onChanged = (value) {
+              fill.scaleX = value;
+              rider.shift = Offset3d(travel * (value - 0.5), 0.0, 0.0);
+            };
+      gesture.child = RenderStack3d(
         alignment: Alignment3d.center,
         depthStep: style.depthStep * rate,
         children: <RenderObject3d>[
           body,
-          SizedBox3d(
+          RenderSizedBox3d(
             width: travel,
             height: style.trackHeight * rate,
             depth: style.trackThickness * rate,
@@ -2377,14 +2511,14 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         ],
       );
 
-      final surface = Layout3dSurface(
+      final surface = RenderSurface3d(
         metrics: const Layout3dMetrics(unitsPerLogicalPixel: rate),
         constraints: Constraints3d.tight(const Size3d(10.0, 4.0, 0.6)),
-        child: Stack3d(
+        child: RenderStack3d(
           alignment: Alignment3d.center,
           depthStep: 0.36,
           children: <RenderObject3d>[
-            SizedBox3d(width: 9.4, height: 3.0, depth: 0.24, child: card),
+            RenderSizedBox3d(width: 9.4, height: 3.0, depth: 0.24, child: card),
             gesture,
           ],
         ),
@@ -2460,12 +2594,12 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       const inset = 12.0;
       final travel = (sliderWidth - sliderStyle.thumbSize) * rate;
 
-      DecoratedBox3d slab(
+      RenderDecoratedBox3d slab(
         Color color,
         BorderRadius3d shape,
         double thickness,
         String name,
-      ) => DecoratedBox3d(
+      ) => RenderDecoratedBox3d(
         decoration: Material3d.decorationFor(
           theme,
           color: color,
@@ -2479,7 +2613,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       final probes = <String, RenderObject3d>{};
 
       RenderObject3d paddedCard(String prefix, EdgeInsets3d padding) {
-        final body = SizedBox3d(
+        final body = RenderSizedBox3d(
           width: sliderWidth * rate,
           height: sliderStyle.stateLayerSize * rate,
           name: '${prefix}Body',
@@ -2490,12 +2624,12 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
           sliderStyle.thumbThickness,
           '${prefix}Thumb',
         );
-        final slider = Stack3d(
+        final slider = RenderStack3d(
           alignment: Alignment3d.frontCenter,
           depthStep: sliderStyle.depthStep * rate,
           children: <RenderObject3d>[
             body,
-            SizedBox3d(
+            RenderSizedBox3d(
               width: travel,
               height: sliderStyle.trackHeight * rate,
               depth: sliderStyle.trackThickness * rate,
@@ -2506,8 +2640,8 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
                 '${prefix}Inactive',
               ),
             ),
-            NodeShift3d(scaleX: value)
-              ..child = SizedBox3d(
+            RenderNodeShift3d(scaleX: value)
+              ..child = RenderSizedBox3d(
                 width: travel,
                 height: sliderStyle.trackHeight * rate,
                 depth: sliderStyle.trackThickness * rate,
@@ -2518,8 +2652,8 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
                   '${prefix}Active',
                 ),
               ),
-            NodeShift3d(shift: Offset3d(travel * (value - 0.5), 0.0, 0.0))
-              ..child = SizedBox3d(
+            RenderNodeShift3d(shift: Offset3d(travel * (value - 0.5), 0.0, 0.0))
+              ..child = RenderSizedBox3d(
                 width: sliderStyle.thumbSize * rate,
                 height: sliderStyle.thumbSize * rate,
                 depth: sliderStyle.thumbThickness * rate,
@@ -2528,7 +2662,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
           ],
         );
 
-        final card = DecoratedBox3d(
+        final card = RenderDecoratedBox3d(
           decoration: Material3d.decorationFor(
             theme,
             color: cardStyle.container,
@@ -2539,25 +2673,25 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
             surfaceTint: const Color(0x00000000),
           ),
           name: '${prefix}Card',
-          child: Container3d(
+          child: RenderContainer3d(
             alignment: Alignment3d.frontCenter,
             depth: cardStyle.thickness * rate,
             child:
-                NodeShift3d(
+                RenderNodeShift3d(
                     shift: const Offset3d(
                       0.0,
                       0.0,
                       -Material3d.contentLift * rate,
                     ),
                   )
-                  ..child = Padding3d(
+                  ..child = RenderPadding3d(
                     padding: padding * rate,
-                    child: Column3d(
+                    child: RenderColumn3d(
                       crossAxisAlignment: CrossAxisAlignment3d.stretch,
                       depthAxisAlignment: CrossAxisAlignment3d.start,
                       mainAxisSize: MainAxisSize3d.min,
                       children: <RenderObject3d>[
-                        Align3d(
+                        RenderAlign3d(
                           alignment: Alignment3d.frontCenter,
                           child: slider,
                         ),
@@ -2569,7 +2703,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         probes['${prefix}Card'] = card;
         probes['${prefix}Body'] = body;
         probes['${prefix}Thumb'] = thumb;
-        return SizedBox3d(
+        return RenderSizedBox3d(
           width: (sliderWidth + inset * 2.0) * rate,
           child: card,
         );
@@ -2577,11 +2711,11 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
 
       return ProbeSceneContent(
         surfaces: [
-          Layout3dSurface(
+          RenderSurface3d(
             metrics: const Layout3dMetrics(unitsPerLogicalPixel: rate),
             constraints: Constraints3d.tight(const Size3d(10.0, 7.0, 0.6)),
-            child: Center3d(
-              child: Column3d(
+            child: RenderCenter3d(
+              child: RenderColumn3d(
                 mainAxisSize: MainAxisSize3d.min,
                 spacing: 0.6,
                 children: <RenderObject3d>[
@@ -2628,16 +2762,16 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
 
   // ── The icon question ────────────────────────────────────────────────
   //
-  // The catalogue plan guesses that an icon is a one-glyph `Text3d` in the
-  // MaterialIcons font, drawn through the same atlas as every label — which
+  // The catalogue plan guesses that an icon is a one-glyph `RenderText3d` in
+  // the MaterialIcons font, drawn through the same atlas as every label — which
   // would make `Icon3d` thirty lines and batch it with the labels for free.
-  // Nothing but a drawn frame can answer that: `Text3d` measures an unknown
-  // glyph perfectly happily and draws a blank, and the atlas rasterizes
+  // Nothing but a drawn frame can answer that: `RenderText3d` measures an
+  // unknown glyph perfectly happily and draws a blank, and the atlas rasterizes
   // through Flutter's own text engine, which resolves the family or silently
   // falls back. So the scene draws one, and its control draws the same glyph
   // with no renderer at all.
   ProbeScene('icon_glyph', () {
-    final icon = Text3d(
+    final icon = RenderText3d(
       String.fromCharCode(Icons.favorite.codePoint),
       style: _iconStyle,
       renderer: AtlasText3dRenderer(),
@@ -2645,9 +2779,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.loose(const Size3d(6.0, 1.8, 0.2)),
-          child: Center3d(child: icon),
+          child: RenderCenter3d(child: icon),
         ),
       ],
       probes: {'icon': icon},
@@ -2655,16 +2789,16 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   }, minCoverage: 0.01),
 
   ProbeScene('icon_glyph_undrawn', () {
-    final icon = Text3d(
+    final icon = RenderText3d(
       String.fromCharCode(Icons.favorite.codePoint),
       style: _iconStyle,
       name: 'icon',
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.loose(const Size3d(6.0, 1.8, 0.2)),
-          child: Center3d(child: icon),
+          child: RenderCenter3d(child: icon),
         ),
       ],
       probes: {'icon': icon},
@@ -2690,17 +2824,17 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // lighting change can satisfy by accident.
     final onFace = _slabLabel('A');
     final inside = _slabLabel('B');
-    final panel = DecoratedBox3d(
+    final panel = RenderDecoratedBox3d(
       decoration: const BoxDecoration3d(color: _panelFill),
       name: 'panel',
     );
     return ProbeSceneContent(
       surfaces: [
-        Layout3dSurface(
+        RenderSurface3d(
           constraints: Constraints3d.tight(const Size3d(3.6, 1.8, 0.6)),
-          child: Stack3d(
+          child: RenderStack3d(
             children: <RenderObject3d>[
-              Positioned3d(
+              RenderPositioned3d(
                 left: 0.1,
                 top: 0.1,
                 front: 0.0,
@@ -2709,8 +2843,18 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
                 depth: 0.6,
                 child: panel,
               ),
-              Positioned3d(left: 0.7, top: 0.5, front: 0.0, child: onFace),
-              Positioned3d(left: 2.2, top: 0.5, front: 0.2, child: inside),
+              RenderPositioned3d(
+                left: 0.7,
+                top: 0.5,
+                front: 0.0,
+                child: onFace,
+              ),
+              RenderPositioned3d(
+                left: 2.2,
+                top: 0.5,
+                front: 0.2,
+                child: inside,
+              ),
             ],
           ),
         ),
@@ -2739,15 +2883,15 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     final middle = _slabLabel('M');
     final left = _slabLabel('E');
     final right = _slabLabel('G');
-    final panel = DecoratedBox3d(
+    final panel = RenderDecoratedBox3d(
       decoration: const BoxDecoration3d(color: _panelFill),
       name: 'panel',
     );
-    final surface = Layout3dSurface(
+    final surface = RenderSurface3d(
       constraints: Constraints3d.tight(const Size3d(3.6, 1.8, 0.3)),
-      child: Stack3d(
+      child: RenderStack3d(
         children: <RenderObject3d>[
-          Positioned3d(
+          RenderPositioned3d(
             left: 0.1,
             top: 0.1,
             front: 0.0,
@@ -2758,9 +2902,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
             depth: 0.08,
             child: panel,
           ),
-          Positioned3d(left: 0.3, top: 0.5, front: 0.0, child: left),
-          Positioned3d(left: 1.6, top: 0.5, front: 0.0, child: middle),
-          Positioned3d(left: 2.9, top: 0.5, front: 0.0, child: right),
+          RenderPositioned3d(left: 0.3, top: 0.5, front: 0.0, child: left),
+          RenderPositioned3d(left: 1.6, top: 0.5, front: 0.0, child: middle),
+          RenderPositioned3d(left: 2.9, top: 0.5, front: 0.0, child: right),
         ],
       ),
     );
@@ -2797,7 +2941,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     ('glyph_extrusion_flat', 0.0),
   ])
     ProbeScene(id, () {
-      final letter = Text3d(
+      final letter = RenderText3d(
         'H',
         style: const TextStyle(fontSize: 200, color: _panelBorder),
         // A tenth of the em by default, which at 200dp is a wall 20dp deep:
@@ -2806,9 +2950,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         renderer: AtlasText3dRenderer(depth: thickness),
         name: 'letter',
       );
-      final surface = Layout3dSurface(
+      final surface = RenderSurface3d(
         constraints: Constraints3d.tight(const Size3d(3.6, 2.4, 0.6)),
-        child: Center3d(child: letter),
+        child: RenderCenter3d(child: letter),
       );
       surface.plane.rotation = Quaternion.axisAngle(Vector3(0, 1, 0), 0.55);
       return ProbeSceneContent(surfaces: [surface], probes: {'letter': letter});
@@ -2816,7 +2960,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
 
   // ── And the paragraph beside it ──────────────────────────────────────
   //
-  // A `RichText3d` is the one thing here that is not assembled out of an
+  // A `RenderRichText3d` is the one thing here that is not assembled out of an
   // atlas: it is a whole paragraph Flutter rasterized onto one quad, and its
   // capture is a GPU texture with no readable copy. Its wall is therefore
   // traced off a *second*, CPU rasterization of the same `TextPainter`, which
@@ -2830,7 +2974,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     ('paragraph_extrusion_flat', 0.0),
   ])
     ProbeScene(id, () {
-      final paragraph = RichText3d(
+      final paragraph = RenderRichText3d(
         const TextSpan(
           style: TextStyle(fontSize: 120, color: _panelBorder),
           children: <InlineSpan>[
@@ -2847,9 +2991,9 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
         resolution: 3.0,
         name: 'paragraph',
       );
-      final surface = Layout3dSurface(
+      final surface = RenderSurface3d(
         constraints: Constraints3d.tight(const Size3d(3.6, 2.4, 0.6)),
-        child: Center3d(child: paragraph),
+        child: RenderCenter3d(child: paragraph),
       );
       surface.plane.rotation = Quaternion.axisAngle(Vector3(0, 1, 0), 0.55);
       return ProbeSceneContent(
@@ -2910,21 +3054,21 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   ProbeScene(
     'picture_box',
     () {
-      // `Image3d`, which sizes itself to the picture rather than being told a
-      // size. The picture is square, so a box in a panel twice as wide as it is
-      // tall comes out square — which the frame checks by asking layout where
-      // the box's own edges are and finding ink inside them and none beside
-      // them.
-      final picture = Image3d(
+      // `RenderImage3d`, which sizes itself to the picture rather than being
+      // told a size. The picture is square, so a box in a panel twice as wide
+      // as it is tall comes out square — which the frame checks by asking
+      // layout where the box's own edges are and finding ink inside them and
+      // none beside them.
+      final picture = RenderImage3d(
         image: kHalvesPicture,
         fit: BoxFit.fill,
         name: 'picture',
       );
       return ProbeSceneContent(
         surfaces: [
-          Layout3dSurface(
+          RenderSurface3d(
             constraints: Constraints3d.loose(const Size3d(3.6, 1.8, 0.1)),
-            child: Center3d(child: picture),
+            child: RenderCenter3d(child: picture),
           ),
         ],
         probes: {'picture': picture},
@@ -2998,7 +3142,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
 /// o'clock, is an arc in [_panelBorder] and the rest nothing — turned by
 /// [turn] radians about its centre, on the node tier.
 ProbeSceneContent _ringScene({double turn = 0.0}) {
-  final ring = DecoratedBox3d(
+  final ring = RenderDecoratedBox3d(
     decoration: BoxDecoration3d(
       color: const Color(0x00000000),
       borderRadius: const BorderRadius3d.circular(9999),
@@ -3024,7 +3168,7 @@ ProbeSceneContent _ringScene({double turn = 0.0}) {
   }
   return ProbeSceneContent(
     surfaces: [
-      Layout3dSurface(
+      RenderSurface3d(
         constraints: Constraints3d.tight(const Size3d(1.8, 1.8, 0.1)),
         child: ring,
       ),
@@ -3038,7 +3182,7 @@ ProbeSceneContent _ringScene({double turn = 0.0}) {
 ///
 /// Amber on the blue panel fill, so "is the label there" is a colour question
 /// a mean over a disc answers without depending on the exposure.
-Text3d _slabLabel(String text) => Text3d(
+RenderText3d _slabLabel(String text) => RenderText3d(
   text,
   style: const TextStyle(fontSize: 90, color: _panelBorder),
   renderer: AtlasText3dRenderer(),
@@ -3114,7 +3258,7 @@ ProbeSceneContent _fadedPanels(double opacity) {
   const pinColor = Color(0xFF6FBF3A);
   const inkColor = Color(0xFFF5F5F5);
 
-  DecoratedBox3d panel(Color color, String name) => DecoratedBox3d(
+  RenderDecoratedBox3d panel(Color color, String name) => RenderDecoratedBox3d(
     decoration: BoxDecoration3d(color: color),
     name: name,
   );
@@ -3124,7 +3268,7 @@ ProbeSceneContent _fadedPanels(double opacity) {
   final fadeLeft = panel(cardColor, 'fadeLeft');
   final fadeRight = panel(cardColor, 'fadeRight');
   final pin = panel(pinColor, 'pin');
-  final label = Text3d(
+  final label = RenderText3d(
     'Ag',
     style: const TextStyle(fontSize: 64, color: inkColor),
     renderer: AtlasText3dRenderer(),
@@ -3134,16 +3278,16 @@ ProbeSceneContent _fadedPanels(double opacity) {
   // The one box under test. Everything inside it fades; the backdrops and the
   // pin are outside it and must be drawn exactly as they always are.
   RenderObject3d faded(RenderObject3d child) =>
-      Opacity3d(opacity: opacity, child: child);
+      RenderOpacity3d(opacity: opacity, child: child);
 
   return ProbeSceneContent(
-    surfaces: <Layout3dSurface>[
-      Layout3dSurface(
+    surfaces: <RenderSurface3d>[
+      RenderSurface3d(
         constraints: Constraints3d.tight(const Size3d(4.0, 2.0, 1.2)),
-        child: Stack3d(
+        child: RenderStack3d(
           children: <RenderObject3d>[
             // The benign ordering.
-            Positioned3d(
+            RenderPositioned3d(
               left: 0.10,
               top: 0.15,
               front: 0.50,
@@ -3152,7 +3296,7 @@ ProbeSceneContent _fadedPanels(double opacity) {
               depth: 0.10,
               child: backLeft,
             ),
-            Positioned3d(
+            RenderPositioned3d(
               left: 0.30,
               top: 0.35,
               front: 0.15,
@@ -3163,13 +3307,13 @@ ProbeSceneContent _fadedPanels(double opacity) {
             ),
             // Near the top of the card and small, so a reading taken low on
             // the card is of the panel alone.
-            Positioned3d(
+            RenderPositioned3d(
               left: 0.45,
               top: 0.45,
               front: 0.13,
               child: faded(label),
             ),
-            Positioned3d(
+            RenderPositioned3d(
               left: 1.25,
               top: 1.25,
               front: 0.05,
@@ -3183,7 +3327,7 @@ ProbeSceneContent _fadedPanels(double opacity) {
             // rather than the co-centring a navigation bar actually produces:
             // a tie in that sort is not an ordering at all, and a probe needs
             // the pathological order to be the one that happens every run.
-            Positioned3d(
+            RenderPositioned3d(
               left: 2.20,
               top: 0.15,
               front: 0.50,
@@ -3192,7 +3336,7 @@ ProbeSceneContent _fadedPanels(double opacity) {
               depth: 0.10,
               child: backRight,
             ),
-            Positioned3d(
+            RenderPositioned3d(
               left: 2.45,
               top: 0.40,
               front: 0.45,

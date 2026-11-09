@@ -17,24 +17,27 @@ import '../sliver/sliver.dart';
 /// `ScrollView`, the same one `CustomScrollView` is, whose slivers happen to
 /// be a single `SliverList` chosen on the caller's behalf. There is no
 /// `RenderListView` — a list's items are placed by `RenderSliverList` inside a
-/// `RenderViewport` — and this is that shape. [ListView3d] and [GridView3d]
-/// *are* viewports, over one [SliverList3d] and one [SliverGrid3d], so where
-/// an item goes is decided in one place rather than two.
+/// `RenderViewport` — and this is that shape. [RenderListView3d] and
+/// [RenderGridView3d] *are* viewports, over one [RenderSliverList3d] and one
+/// [RenderSliverGrid3d], so where an item goes is decided in one place rather
+/// than two.
 ///
 /// **The child list still means the items.** A caller who writes
-/// `ListView3d(children: models)` means those models, and asking the list for
-/// its [children] gives them back. So [children], [childCount], [childAt],
+/// `RenderListView3d(children: models)` means those models, and asking the list
+/// for its [children] gives them back. So [children], [childCount], [childAt],
 /// [add], [insert], [remove], [removeAll] and [syncChildren] are forwarded to
 /// the [sliver] — as are [itemCount], [activeIndices], [isLazy] and
 /// [refresh] — while the child this view holds and lays out is the sliver
 /// itself. [visitChildren] and hit testing walk the tree as it really is, so
 /// a ray reaches an item through the sliver, and the [Scrollable3d] it finds
 /// on the way out is this view.
-abstract class BoxScrollView3d<SliverType extends SliverMultiBoxAdaptor3d>
-    extends CustomScrollView3d
+abstract class RenderBoxScrollView3d<
+  SliverType extends RenderSliverMultiBoxAdaptor3d
+>
+    extends RenderCustomScrollView3d
     implements RenderObject3dBuiltChildrenHost {
   /// Creates a view over [sliver], which holds the children.
-  BoxScrollView3d({
+  RenderBoxScrollView3d({
     required this.sliver,
     super.scrollDirection,
     super.controller,
@@ -54,7 +57,7 @@ abstract class BoxScrollView3d<SliverType extends SliverMultiBoxAdaptor3d>
   /// The sliver, which is what actually holds the children.
   ///
   /// So that the declarative layer can hand a child manager to a
-  /// `SceneListView3d.builder` without knowing that a list is a window with a
+  /// `ListView3d.builder` without knowing that a list is a window with a
   /// sliver in it.
   @override
   RenderBuiltChildrenMixin3d get builtChildren => sliver;
@@ -65,8 +68,8 @@ abstract class BoxScrollView3d<SliverType extends SliverMultiBoxAdaptor3d>
   String get itemNoun => 'items';
 
   /// Refuses an edit in this view's own name before forwarding it, so a
-  /// caller who wrote `ListView3d.builder` is told about `ListView3d` rather
-  /// than about the sliver inside it.
+  /// caller who wrote `RenderListView3d.builder` is told about
+  /// `RenderListView3d` rather than about the sliver inside it.
   void _assertNotBuilt(String method) {
     assert(
       !sliver.isLazy,
@@ -118,12 +121,12 @@ abstract class BoxScrollView3d<SliverType extends SliverMultiBoxAdaptor3d>
   /// Here the child list is forwarded to the one sliver, so a caller who
   /// reached for this would be putting slivers *inside* a list of items.
   @override
-  void syncSlivers(List<Sliver3d> slivers) {
+  void syncSlivers(List<RenderSliver3d> slivers) {
     assert(
       false,
       'The slivers of a $runtimeType are its own: it holds exactly one, and '
       'its child list is the $itemNoun in that sliver. Use syncChildren for '
-      'those, or a CustomScrollView3d if you want to decide the sections.',
+      'those, or a RenderCustomScrollView3d if you want to decide the sections.',
     );
   }
 

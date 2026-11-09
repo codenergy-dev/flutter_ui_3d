@@ -108,9 +108,9 @@ fragment {
       discard;
     }
     // `sampled.rgb` is white across an atlas, and is not white for the one
-    // other customer of this material: a `RichText3d` captures a paragraph
-    // Flutter rasterized in full colour and draws it through the same quad,
-    // with the tint left at white.
+    // other customer of this material: a `RenderRichText3d` captures a
+    // paragraph Flutter rasterized in full colour and draws it through the same
+    // quad, with the tint left at white.
     material.base_color = vec4(material_params.color.rgb * sampled.rgb, alpha);
   }
 }

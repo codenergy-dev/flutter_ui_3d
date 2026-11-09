@@ -6,12 +6,7 @@ import 'package:flutter/widgets.dart'
 import 'package:flutter_ui_3d/rendering.dart'
     show Alignment3d, EdgeInsets3d, EdgeInsetsDirectional3d;
 import 'package:flutter_ui_3d/widgets.dart'
-    show
-        Layout3dMetricsScope,
-        SceneAlign3d,
-        SceneSemantics3d,
-        SceneSizedBox3d,
-        ScenePadding3d;
+    show Layout3dMetricsScope, Align3d, Semantics3d, SizedBox3d, Padding3d;
 
 import '../theme/theme.dart';
 import 'material.dart';
@@ -20,7 +15,7 @@ import 'reading_direction.dart';
 /// A one-pixel rule between two pieces of content.
 ///
 /// ```dart
-/// SceneColumn3d(
+/// Column3d(
 ///   children: <Widget>[
 ///     ListTile3d.text(title: 'Inbox'),
 ///     const Divider3d(),
@@ -150,11 +145,11 @@ class Divider3d extends StatelessWidget {
 
     // The rule itself: a `Material3d` with no shape, at the divider colour,
     // sized in the plane by the caller and in depth by the thickness scale.
-    // It is a `Material3d` rather than a bare `SceneDecoratedBox3d` for the
+    // It is a `Material3d` rather than a bare `DecoratedBox3d` for the
     // reason every component here is one — there is exactly one class that
     // knows how a token becomes a `BoxDecoration3d`, and a divider that
     // resolved its own bevel would be a second copy of that rule.
-    Widget line = SceneSizedBox3d(
+    Widget line = SizedBox3d(
       height: metrics.dp(rule),
       child: Material3d(
         color: color ?? theme.colorScheme.outlineVariant,
@@ -170,7 +165,7 @@ class Divider3d extends StatelessWidget {
     );
 
     if (indent != 0.0 || endIndent != 0.0) {
-      line = ScenePadding3d(
+      line = Padding3d(
         padding: metrics.dpInsets(
           EdgeInsetsDirectional3d.only(start: indent, end: endIndent),
         ),
@@ -180,14 +175,14 @@ class Divider3d extends StatelessWidget {
 
     // The rule sits in the middle of its space, on the front face, so a
     // divider drawn on a card is on the card rather than inside it.
-    Widget divider = SceneSizedBox3d(
+    Widget divider = SizedBox3d(
       height: metrics.dp(space ?? defaultSpace),
-      child: SceneAlign3d(alignment: Alignment3d.frontCenter, child: line),
+      child: Align3d(alignment: Alignment3d.frontCenter, child: line),
     );
 
     final label = semanticLabel;
     if (label == null) return divider;
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: SemanticsProperties(
         label: label,
         textDirection: readingDirection3d(context, textDirection),
@@ -200,11 +195,11 @@ class Divider3d extends StatelessWidget {
 /// A one-pixel rule between two columns of content.
 ///
 /// ```dart
-/// SceneRow3d(
+/// Row3d(
 ///   children: <Widget>[
 ///     NavigationRail3d(destinations: destinations, selectedIndex: 0),
 ///     const VerticalDivider3d(),
-///     SceneExpanded3d(child: body),
+///     Expanded3d(child: body),
 ///   ],
 /// )
 /// ```
@@ -271,7 +266,7 @@ class VerticalDivider3d extends StatelessWidget {
     final rule = thickness ?? Divider3d.defaultThickness;
     final slab = depth ?? theme.thickness.thin;
 
-    Widget line = SceneSizedBox3d(
+    Widget line = SizedBox3d(
       width: metrics.dp(rule),
       child: Material3d(
         color: color ?? theme.colorScheme.outlineVariant,
@@ -284,7 +279,7 @@ class VerticalDivider3d extends StatelessWidget {
     );
 
     if (indent != 0.0 || endIndent != 0.0) {
-      line = ScenePadding3d(
+      line = Padding3d(
         padding: metrics.dpInsets(
           EdgeInsets3d.only(top: indent, bottom: endIndent),
         ),
@@ -292,14 +287,14 @@ class VerticalDivider3d extends StatelessWidget {
       );
     }
 
-    final Widget divider = SceneSizedBox3d(
+    final Widget divider = SizedBox3d(
       width: metrics.dp(space ?? Divider3d.defaultSpace),
-      child: SceneAlign3d(alignment: Alignment3d.frontCenter, child: line),
+      child: Align3d(alignment: Alignment3d.frontCenter, child: line),
     );
 
     final label = semanticLabel;
     if (label == null) return divider;
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: SemanticsProperties(
         label: label,
         textDirection: readingDirection3d(context, textDirection),

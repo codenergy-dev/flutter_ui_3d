@@ -1,5 +1,5 @@
-// Text as a box: what a [Text3d] reports to the layout protocol, and what the
-// unit contract does to it.
+// Text as a box: what a [RenderText3d] reports to the layout protocol, and what
+// the unit contract does to it.
 //
 // The test font makes every glyph exactly `fontSize` wide, with a line
 // `fontSize` tall and its baseline at 0.75 of that. At the default metrics a
@@ -39,10 +39,10 @@ class RecordingRenderer extends Text3dRenderer {
 }
 
 /// The label under the surface's root box.
-Text3d childOf(Layout3dController controller) =>
-    (controller.surface!.child! as Align3d).child! as Text3d;
+RenderText3d childOf(Layout3dController controller) =>
+    (controller.surface!.child! as RenderAlign3d).child! as RenderText3d;
 
-Layout3dSurface panel(
+RenderSurface3d panel(
   RenderObject3d child, {
   Size3d size = const Size3d(4, 3, 0.5),
   Layout3dMetrics metrics = Layout3dMetrics.standard,
@@ -51,18 +51,18 @@ Layout3dSurface panel(
 void main() {
   group('sizing', () {
     test('a label is as big as its text, in world units', () {
-      final text = Text3d('hello', style: style);
-      panel(Center3d(child: text));
+      final text = RenderText3d('hello', style: style);
+      panel(RenderCenter3d(child: text));
       expect(text.size.width, closeTo(0.5, 1e-9));
       expect(text.size.height, closeTo(0.1, 1e-9));
       expect(text.size.depth, 0.0);
     });
 
     test('it wraps into the room it is given', () {
-      final text = Text3d('hello world foo bar', style: style);
+      final text = RenderText3d('hello world foo bar', style: style);
       panel(
-        Center3d(
-          child: ConstrainedBox3d(
+        RenderCenter3d(
+          child: RenderConstrainedBox3d(
             additionalConstraints: const Constraints3d(maxWidth: 1.0),
             child: text,
           ),
@@ -74,10 +74,14 @@ void main() {
     });
 
     test('softWrap off lays every paragraph on one line', () {
-      final text = Text3d('hello world foo bar', style: style, softWrap: false);
+      final text = RenderText3d(
+        'hello world foo bar',
+        style: style,
+        softWrap: false,
+      );
       panel(
-        Center3d(
-          child: ConstrainedBox3d(
+        RenderCenter3d(
+          child: RenderConstrainedBox3d(
             additionalConstraints: const Constraints3d(maxWidth: 1.0),
             child: text,
           ),
@@ -91,15 +95,15 @@ void main() {
     });
 
     test('depth is reserved room, and defaults to none', () {
-      final text = Text3d('hi', style: style, depth: 0.2);
-      panel(Center3d(child: text));
+      final text = RenderText3d('hi', style: style, depth: 0.2);
+      panel(RenderCenter3d(child: text));
       expect(text.size.depth, 0.2);
       expect(text.getMaxIntrinsicExtent(Axis3d.depth), 0.2);
     });
 
     test('an empty label is still a line tall', () {
-      final text = Text3d('', style: style);
-      panel(Center3d(child: text));
+      final text = RenderText3d('', style: style);
+      panel(RenderCenter3d(child: text));
       expect(text.size.width, 0.0);
       expect(text.size.height, closeTo(0.1, 1e-9));
     });
@@ -107,8 +111,8 @@ void main() {
 
   group('the unit contract', () {
     test('a denser surface makes the same string smaller', () {
-      final text = Text3d('hello', style: style);
-      final surface = panel(Center3d(child: text));
+      final text = RenderText3d('hello', style: style);
+      final surface = panel(RenderCenter3d(child: text));
       expect(text.size.width, closeTo(0.5, 1e-9));
 
       surface.metrics = const Layout3dMetrics(unitsPerLogicalPixel: 0.02);
@@ -117,8 +121,8 @@ void main() {
     });
 
     test('the text scale grows type and nothing else', () {
-      final text = Text3d('hello', style: style);
-      final surface = panel(Center3d(child: text));
+      final text = RenderText3d('hello', style: style);
+      final surface = panel(RenderCenter3d(child: text));
 
       surface.metrics = const Layout3dMetrics(
         textScaler: TextScaler.linear(1.5),
@@ -133,15 +137,16 @@ void main() {
 
     test('a scaler that is not linear is resolved at this box\'s size', () {
       // One box, one style, so the scaler still comes out as one multiplier —
-      // which is why a Text3d keeps the cheap path a RichText3d cannot.
+      // which is why a RenderText3d keeps the cheap path a RenderRichText3d
+      // cannot.
       const scaler = _ClampedScaler(1.5, upTo: 15);
-      final small = Text3d('hello', style: style);
-      final large = Text3d('hello', style: bigger);
+      final small = RenderText3d('hello', style: style);
+      final large = RenderText3d('hello', style: bigger);
       final surface = laidOut(
-        Column3d(
+        RenderColumn3d(
           children: [
-            Center3d(child: small),
-            Center3d(child: large),
+            RenderCenter3d(child: small),
+            RenderCenter3d(child: large),
           ],
         ),
         constraints: Constraints3d.tight(const Size3d(4, 3, 0.5)),
@@ -164,12 +169,12 @@ void main() {
     });
 
     test('a change to the metrics reaches a deep label', () {
-      final text = Text3d('hello', style: style);
+      final text = RenderText3d('hello', style: style);
       final surface = panel(
-        Center3d(
-          child: Padding3d(
+        RenderCenter3d(
+          child: RenderPadding3d(
             padding: const EdgeInsets3d.all(0.1),
-            child: Align3d(child: text),
+            child: RenderAlign3d(child: text),
           ),
         ),
       );
@@ -183,15 +188,15 @@ void main() {
 
   group('intrinsics', () {
     test('the widest word and the whole string on one line', () {
-      final text = Text3d('hello world foo bar', style: style);
-      panel(Center3d(child: text));
+      final text = RenderText3d('hello world foo bar', style: style);
+      panel(RenderCenter3d(child: text));
       expect(text.getMinIntrinsicExtent(Axis3d.horizontal), closeTo(0.5, 1e-9));
       expect(text.getMaxIntrinsicExtent(Axis3d.horizontal), closeTo(1.9, 1e-9));
     });
 
     test('the height depends on the width it is asked about', () {
-      final text = Text3d('hello world foo bar', style: style);
-      panel(Center3d(child: text));
+      final text = RenderText3d('hello world foo bar', style: style);
+      panel(RenderCenter3d(child: text));
       expect(
         text.getMinIntrinsicExtent(Axis3d.vertical, const Size3d(1.9, 0, 0)),
         closeTo(0.1, 1e-9),
@@ -203,8 +208,8 @@ void main() {
     });
 
     test('asking costs no shaping past the first prepare', () {
-      final text = Text3d('hello world foo bar', style: style);
-      panel(Center3d(child: text));
+      final text = RenderText3d('hello world foo bar', style: style);
+      panel(RenderCenter3d(child: text));
       final before = debugTextParagraphCount;
       for (var width = 0.5; width < 2.0; width += 0.05) {
         text.getMaxIntrinsicExtent(Axis3d.vertical, Size3d(width, 0, 0));
@@ -213,28 +218,31 @@ void main() {
       expect(debugTextParagraphCount, before);
     });
 
-    test('a stretched column under IntrinsicWidth3d takes the widest', () {
-      final short = Text3d('hi', style: style);
-      final long = Text3d('a longer label', style: style);
-      panel(
-        Center3d(
-          child: IntrinsicWidth3d(
-            child: Column3d(
-              crossAxisAlignment: CrossAxisAlignment3d.stretch,
-              children: <RenderObject3d>[short, long],
+    test(
+      'a stretched column under RenderIntrinsicWidth3d takes the widest',
+      () {
+        final short = RenderText3d('hi', style: style);
+        final long = RenderText3d('a longer label', style: style);
+        panel(
+          RenderCenter3d(
+            child: RenderIntrinsicWidth3d(
+              child: RenderColumn3d(
+                crossAxisAlignment: CrossAxisAlignment3d.stretch,
+                children: <RenderObject3d>[short, long],
+              ),
             ),
           ),
-        ),
-      );
-      expect(short.size.width, closeTo(1.4, 1e-9));
-      expect(long.size.width, closeTo(1.4, 1e-9));
-    });
+        );
+        expect(short.size.width, closeTo(1.4, 1e-9));
+        expect(long.size.width, closeTo(1.4, 1e-9));
+      },
+    );
   });
 
   group('baselines', () {
     test('a label states the first line\'s alphabetic baseline', () {
-      final text = Text3d('hello', style: style);
-      panel(Center3d(child: text));
+      final text = RenderText3d('hello', style: style);
+      panel(RenderCenter3d(child: text));
       expect(
         text.getDistanceToBaseline(Axis3d.vertical, onlyReal: true),
         closeTo(0.075, 1e-9),
@@ -248,11 +256,11 @@ void main() {
     });
 
     test('two sizes in a baseline row sit on the same line', () {
-      final small = Text3d('abc', style: style);
-      final large = Text3d('abc', style: bigger);
+      final small = RenderText3d('abc', style: style);
+      final large = RenderText3d('abc', style: bigger);
       panel(
-        Center3d(
-          child: Row3d(
+        RenderCenter3d(
+          child: RenderRow3d(
             crossAxisAlignment: CrossAxisAlignment3d.baseline,
             children: <RenderObject3d>[small, large],
           ),
@@ -275,10 +283,10 @@ void main() {
     });
 
     test('the wrapping case reports the first line, not the last', () {
-      final text = Text3d('hello world foo bar', style: style);
+      final text = RenderText3d('hello world foo bar', style: style);
       panel(
-        Center3d(
-          child: ConstrainedBox3d(
+        RenderCenter3d(
+          child: RenderConstrainedBox3d(
             additionalConstraints: const Constraints3d(maxWidth: 1.0),
             child: text,
           ),
@@ -294,10 +302,14 @@ void main() {
 
   group('overflow', () {
     test('maxLines cuts the box down to the lines it keeps', () {
-      final text = Text3d('hello world foo bar', style: style, maxLines: 2);
+      final text = RenderText3d(
+        'hello world foo bar',
+        style: style,
+        maxLines: 2,
+      );
       panel(
-        Center3d(
-          child: ConstrainedBox3d(
+        RenderCenter3d(
+          child: RenderConstrainedBox3d(
             additionalConstraints: const Constraints3d(maxWidth: 0.6),
             child: text,
           ),
@@ -308,15 +320,15 @@ void main() {
     });
 
     test('ellipsis marks the last line kept', () {
-      final text = Text3d(
+      final text = RenderText3d(
         'hello world foo bar',
         style: style,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       );
       panel(
-        Center3d(
-          child: ConstrainedBox3d(
+        RenderCenter3d(
+          child: RenderConstrainedBox3d(
             additionalConstraints: const Constraints3d(maxWidth: 0.6),
             child: text,
           ),
@@ -327,15 +339,15 @@ void main() {
     });
 
     test('an unwrapped line with an ellipsis is cut to the box', () {
-      final text = Text3d(
+      final text = RenderText3d(
         'hello world',
         style: style,
         softWrap: false,
         overflow: TextOverflow.ellipsis,
       );
       panel(
-        Center3d(
-          child: ConstrainedBox3d(
+        RenderCenter3d(
+          child: RenderConstrainedBox3d(
             additionalConstraints: const Constraints3d(maxWidth: 0.6),
             child: text,
           ),
@@ -349,8 +361,8 @@ void main() {
 
   group('relayout', () {
     test('the same question a second time is not asked again', () {
-      final text = Text3d('hello world', style: style);
-      final surface = panel(Center3d(child: text));
+      final text = RenderText3d('hello world', style: style);
+      final surface = panel(RenderCenter3d(child: text));
       final first = text.textLayout;
       text.markNeedsLayout();
       surface.flush();
@@ -358,12 +370,12 @@ void main() {
     });
 
     test('a new width relayouts, and consults no font', () {
-      final box = ConstrainedBox3d(
+      final box = RenderConstrainedBox3d(
         additionalConstraints: const Constraints3d(maxWidth: 2.0),
-        child: Text3d('hello world foo bar', style: style),
+        child: RenderText3d('hello world foo bar', style: style),
       );
-      final surface = panel(Center3d(child: box));
-      final text = box.child! as Text3d;
+      final surface = panel(RenderCenter3d(child: box));
+      final text = box.child! as RenderText3d;
       expect(text.textLayout!.lineCount, 1);
 
       final before = debugTextParagraphCount;
@@ -374,8 +386,8 @@ void main() {
     });
 
     test('a new string is measured again; a new alignment is not', () {
-      final text = Text3d('hello', style: style);
-      final surface = panel(Center3d(child: text));
+      final text = RenderText3d('hello', style: style);
+      final surface = panel(RenderCenter3d(child: text));
 
       var before = debugTextParagraphCount;
       text.textAlign = TextAlign.center;
@@ -390,8 +402,8 @@ void main() {
     });
 
     test('a new style resizes the box', () {
-      final text = Text3d('hello', style: style);
-      final surface = panel(Center3d(child: text));
+      final text = RenderText3d('hello', style: style);
+      final surface = panel(RenderCenter3d(child: text));
       expect(text.size.width, closeTo(0.5, 1e-9));
       text.style = bigger;
       surface.flush();
@@ -401,8 +413,8 @@ void main() {
 
   group('the scene', () {
     test('a ray finds the label, not the gap between its letters', () {
-      final text = Text3d('hello', style: style);
-      final surface = panel(Center3d(child: text));
+      final text = RenderText3d('hello', style: style);
+      final surface = panel(RenderCenter3d(child: text));
       // The panel is 4 by 3 and the 0.5 by 0.1 label is centred on it, so it
       // spans x 1.75..2.25 and y 1.45..1.55.
       expect(surface.hitTestAt(const Offset3d(2.0, 1.5, 0)).target, same(text));
@@ -413,8 +425,8 @@ void main() {
       'a renderer is asked after every layout, and let go of at the end',
       () {
         final renderer = RecordingRenderer();
-        final text = Text3d('hello', style: style, renderer: renderer);
-        final surface = panel(Center3d(child: text));
+        final text = RenderText3d('hello', style: style, renderer: renderer);
+        final surface = panel(RenderCenter3d(child: text));
         expect(renderer.requests, hasLength(1));
         final request = renderer.requests.single;
         expect(request.node, same(text.node));
@@ -435,8 +447,8 @@ void main() {
     test('replacing a renderer disposes the one it replaced', () {
       final first = RecordingRenderer();
       final second = RecordingRenderer();
-      final text = Text3d('hello', style: style, renderer: first);
-      final surface = panel(Center3d(child: text));
+      final text = RenderText3d('hello', style: style, renderer: first);
+      final surface = panel(RenderCenter3d(child: text));
       text.renderer = second;
       surface.flush();
       expect(first.disposed, isTrue);
@@ -445,7 +457,7 @@ void main() {
   });
 
   group('the declarative layer', () {
-    testWidgets('SceneText3d owns a Text3d and updates it in place', (
+    testWidgets('Text3d owns a RenderText3d and updates it in place', (
       tester,
     ) async {
       final parent = Node();
@@ -455,11 +467,11 @@ void main() {
         textDirection: TextDirection.ltr,
         child: DefaultTextStyle(
           style: style,
-          child: SceneLayout3d(
+          child: Surface3d(
             parent: parent,
             size: const Size3d(4, 3, 0.5),
             controller: controller,
-            child: SceneCenter3d(child: SceneText3d(data)),
+            child: Center3d(child: Text3d(data)),
           ),
         ),
       );
@@ -488,12 +500,12 @@ void main() {
           textDirection: TextDirection.rtl,
           child: DefaultTextStyle(
             style: style,
-            child: SceneLayout3d(
+            child: Surface3d(
               parent: parent,
               size: const Size3d(4, 3, 0.5),
               controller: controller,
-              child: const SceneCenter3d(
-                child: SceneText3d('hello', style: TextStyle(fontSize: 20)),
+              child: const Center3d(
+                child: Text3d('hello', style: TextStyle(fontSize: 20)),
               ),
             ),
           ),

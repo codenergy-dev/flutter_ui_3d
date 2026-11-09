@@ -17,14 +17,14 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneColumn3d,
-        SceneConstrainedBox3d,
-        SceneExpanded3d,
-        ScenePadding3d,
-        SceneRow3d,
-        SceneSemantics3d,
-        SceneTapTarget3d,
-        SceneText3d;
+        Column3d,
+        ConstrainedBox3d,
+        Expanded3d,
+        Padding3d,
+        Row3d,
+        Semantics3d,
+        TapTarget3d,
+        Text3d;
 
 import '../theme/theme.dart';
 import '../tokens/typography.dart';
@@ -46,7 +46,7 @@ import 'reading_direction.dart';
 /// ```
 ///
 /// This is the component that meets the scrolling machinery, and it is meant
-/// to: a `SceneListView3d` of these is the shape a real screen has, and
+/// to: a `ListView3d` of these is the shape a real screen has, and
 /// `test/list_tile_test.dart` builds one so that the tile's height, its wash
 /// and its layout cost are measured where they will actually be paid.
 ///
@@ -69,8 +69,8 @@ import 'reading_direction.dart';
 ///
 /// A tile has a title *and* a subtitle, so "what does it announce" is a real
 /// question rather than a formality — and the answer this package can give is
-/// constrained by a fact from phase 3: **a `Semantics3d` publishes what it is
-/// given and gathers nothing.** Flutter's `ListTile` announces "Inbox, 12
+/// constrained by a fact from phase 3: **a `RenderSemantics3d` publishes what
+/// it is given and gathers nothing.** Flutter's `ListTile` announces "Inbox, 12
 /// unread" because `Semantics(container: true)` merges the labels below it.
 /// There is no such merge here.
 ///
@@ -85,7 +85,7 @@ import 'reading_direction.dart';
 /// The title is `bodyLarge` in `onSurface`, the subtitle `bodyMedium` in
 /// `onSurfaceVariant`, and the leading and trailing slots `labelSmall` in
 /// `onSurfaceVariant` — Material's own roles, which is why a bare
-/// `SceneText3d` in any slot comes out right without saying anything. An
+/// `Text3d` in any slot comes out right without saying anything. An
 /// `Icon3d` in a slot picks up the same colour, because `Icon3d` with no
 /// colour of its own reads the ambient `DefaultTextStyle`.
 class ListTile3d extends StatelessWidget {
@@ -139,8 +139,8 @@ class ListTile3d extends StatelessWidget {
     this.minHeight,
     String? semanticLabel,
     this.textDirection,
-  }) : title = SceneText3d(title),
-       subtitle = subtitle == null ? null : SceneText3d(subtitle),
+  }) : title = Text3d(title),
+       subtitle = subtitle == null ? null : Text3d(subtitle),
        semanticLabel =
            semanticLabel ?? (subtitle == null ? title : '$title, $subtitle'),
        assert(!isThreeLine || subtitle != null);
@@ -356,20 +356,20 @@ Widget buildListTile3d(
   final gap = metrics.dp(ListTile3d.horizontalTitleGap);
   final text = <Widget>[
     if (title != null)
-      SceneTextStyle3d(
+      TextStyle3d(
         style: Typography3dToken.bodyLarge,
         color: titleColor,
         child: title,
       ),
     if (subtitle != null)
-      SceneTextStyle3d(
+      TextStyle3d(
         style: Typography3dToken.bodyMedium,
         color: supportColor,
         child: subtitle,
       ),
   ];
 
-  final row = SceneRow3d(
+  final row = Row3d(
     mainAxisAlignment: MainAxisAlignment3d.start,
     crossAxisAlignment: CrossAxisAlignment3d.center,
     // The gap is the flex's own `spacing`, which puts 16dp between every
@@ -378,8 +378,8 @@ Widget buildListTile3d(
     spacing: gap,
     children: <Widget>[
       ?leading,
-      SceneExpanded3d(
-        child: SceneColumn3d(
+      Expanded3d(
+        child: Column3d(
           mainAxisSize: MainAxisSize3d.min,
           mainAxisAlignment: MainAxisAlignment3d.center,
           crossAxisAlignment: CrossAxisAlignment3d.start,
@@ -390,16 +390,16 @@ Widget buildListTile3d(
     ],
   );
 
-  // The whole row inherits the supporting role, so a bare `SceneText3d` or
+  // The whole row inherits the supporting role, so a bare `Text3d` or
   // an `Icon3d` in the leading or trailing slot is `onSurfaceVariant`
   // without being told. The title and the subtitle override it above.
-  final content = SceneTextStyle3d(
+  final content = TextStyle3d(
     style: Typography3dToken.labelSmall,
     color: supportColor,
     // The padding is inside the well, so the tile's 16dp and 24dp margins
     // and its 8dp top and bottom are part of the row a press reaches, as they
     // are in Flutter. They used to be outside it, and swallowed the press.
-    child: ScenePadding3d(
+    child: Padding3d(
       padding: metrics.dpInsets(
         contentPadding ?? ListTile3d.defaultContentPadding,
       ),
@@ -434,7 +434,7 @@ Widget buildListTile3d(
   // The density is applied through the theme's own arithmetic rather than
   // by adding `4 * density` here, so there is one implementation of what a
   // density means and the theme is the stated winner over the metrics.
-  final constrained = SceneConstrainedBox3d(
+  final constrained = ConstrainedBox3d(
     constraints: theme.effectiveConstraints(
       Constraints3d(minHeight: metrics.dp(lineHeight)),
       metrics,
@@ -442,10 +442,7 @@ Widget buildListTile3d(
     child: surface,
   );
 
-  final announced = SceneSemantics3d(
-    properties: properties,
-    child: constrained,
-  );
+  final announced = Semantics3d(properties: properties, child: constrained);
 
   if (!interactive) return announced;
   // Outermost, for the reason `Button3d`'s is: a target reaches past its
@@ -454,5 +451,5 @@ Widget buildListTile3d(
   // the rule holds everywhere rather than only where it is load-bearing,
   // and so a `dense` 48dp tile is exactly at the minimum rather than under
   // it.
-  return SceneTapTarget3d(child: announced);
+  return TapTarget3d(child: announced);
 }

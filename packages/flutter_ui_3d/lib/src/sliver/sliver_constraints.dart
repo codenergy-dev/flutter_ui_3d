@@ -43,8 +43,8 @@ class SliverConstraints3d {
   ///
   /// [Scroll3dController.userScrollDirection], handed down. A sliver reads it
   /// when its behaviour depends on the *gesture* rather than on the offset:
-  /// a floating [SliverPersistentHeader3d] comes back when the viewer scrolls
-  /// forward, and must not come back merely because a bouncing fling
+  /// a floating [RenderSliverPersistentHeader3d] comes back when the viewer
+  /// scrolls forward, and must not come back merely because a bouncing fling
   /// overshot the end and the spring is carrying the offset backwards on its
   /// own.
   final ScrollDirection3d userScrollDirection;
@@ -86,11 +86,11 @@ class SliverConstraints3d {
   /// on when this sliver's turn comes.
   ///
   /// A sliver reads it for two reasons. It is room it should not count on —
-  /// [SliverPersistentHeader3d] subtracts it from [remainingPaintExtent] so a
-  /// second pinned bar stacks under the first rather than through it — and it
-  /// is the band its own content is *underneath*, which is what
-  /// `CustomScrollView3d` turns into a clip plane so a row sliding under a
-  /// bar is cut at the bar's edge instead of showing through it.
+  /// [RenderSliverPersistentHeader3d] subtracts it from [remainingPaintExtent]
+  /// so a second pinned bar stacks under the first rather than through it — and
+  /// it is the band its own content is *underneath*, which is what
+  /// `RenderCustomScrollView3d` turns into a clip plane so a row sliding under
+  /// a bar is cut at the bar's edge instead of showing through it.
   final double overlap;
 
   /// The two axes that are not [axis], in canonical order.
@@ -271,8 +271,8 @@ class SliverGeometry3d {
   ///
   /// A pinned header reports its `minExtent` here: once the list has scrolled
   /// past, that band at the leading edge is permanently occupied. Zero for
-  /// everything that scrolls away. `CustomScrollView3d` does not need it to
-  /// place anything — the running paint offset already tells it that — but a
+  /// everything that scrolls away. `RenderCustomScrollView3d` does not need it
+  /// to place anything — the running paint offset already tells it that — but a
   /// caller sizing content around the bars does, the way Flutter's
   /// `SliverOverlapAbsorber` and `MediaQuery` padding do.
   final double maxScrollObstructionExtent;

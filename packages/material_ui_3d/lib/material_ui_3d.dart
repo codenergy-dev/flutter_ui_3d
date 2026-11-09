@@ -10,11 +10,11 @@
 /// The library is in two halves. The **tokens** — [ColorScheme3d],
 /// [Typography3d], [ShapeScale3d], [Elevation3d], [Thickness3d],
 /// [StateLayerOpacity3d] and [MotionScheme3d] — are held by a [Theme3dData], installed by
-/// [SceneTheme3d], and read by `Theme3d.of(context)` in the widget layer or
+/// [Theme3d], and read by `Theme3d.of(context)` in the widget layer or
 /// `theme3d` inside a `RenderObject3d`'s `performLayout`. The **primitive** is
 /// [Material3d], a decorated box with those tokens resolved into it, with
 /// [InkWell3d] for the interaction, [Icon3d] for a glyph and
-/// [SceneTextStyle3d] for a group of labels. Every component in the catalogue
+/// [TextStyle3d] for a group of labels. Every component in the catalogue
 /// is a `Material3d` with a different set of tokens.
 ///
 /// ```dart
@@ -24,15 +24,15 @@
 ///   runApp(const MyApp());
 /// }
 ///
-/// SceneLayout3d(
+/// Surface3d(
 ///   size: const Size3d(4, 3, 0.5),
-///   child: SceneTheme3d(
+///   child: Theme3d(
 ///     data: Theme3dData.dark,
 ///     textRendererFactory: AtlasText3dRenderer.new,
 ///     child: FilledButton3d(
 ///       onPressed: submit,
 ///       semanticLabel: 'Continue',
-///       child: const SceneText3d('Continue'),
+///       child: const Text3d('Continue'),
 ///     ),
 ///   ),
 /// )
@@ -110,7 +110,7 @@ export 'src/components/ink_ripple.dart' show InkRipple3dRun, InkRipple3dStyle;
 export 'src/components/ink_well.dart' show InkWell3d;
 export 'src/components/list_tile.dart' show ListTile3d;
 export 'src/components/material.dart' show Material3d;
-export 'src/components/node_shift.dart' show NodeShift3d, SceneNodeShift3d;
+export 'src/components/node_shift.dart' show RenderNodeShift3d, NodeShift3d;
 export 'src/components/navigation.dart'
     show
         NavigationBar3d,
@@ -120,7 +120,7 @@ export 'src/components/navigation.dart'
 export 'src/components/navigation_style.dart'
     show NavigationStyle3d, NavigationVariant3d;
 export 'src/components/anchor.dart'
-    show Anchor3d, Anchor3dWidget, Follower3d, Follower3dWidget;
+    show RenderAnchor3d, Anchor3dWidget, RenderFollower3d, Follower3dWidget;
 export 'src/components/menu.dart'
     show Menu3d, MenuItem3d, MenuItem3dEntry, PopupMenuButton3d, showMenu3d;
 export 'src/components/snack_bar.dart'
@@ -158,7 +158,7 @@ export 'src/components/selection_list_tile.dart'
         RadioListTile3d,
         SwitchListTile3d;
 export 'src/components/slider.dart'
-    show SceneSliderGesture3d, Slider3d, SliderGesture3d;
+    show SliderGesture3d, Slider3d, RenderSliderGesture3d;
 export 'src/components/selection_style.dart'
     show
         CheckboxStyle3d,
@@ -176,9 +176,9 @@ export 'src/components/tab_bar_style.dart'
         TabBarVariant3d,
         TabIndicatorAnimation3d;
 export 'src/components/tabs.dart' show Tab3d, TabBar3d, TabBarView3d;
-export 'src/components/text_style.dart' show SceneTextStyle3d;
+export 'src/components/text_style.dart' show TextStyle3d;
 export 'src/components/tooltip.dart' show Tooltip3d;
-export 'src/theme/theme.dart' show SceneTheme3d, Theme3d;
+export 'src/theme/theme.dart' show Theme3d, InheritedTheme3d;
 export 'src/theme/theme_data.dart' show Layout3dTheme3d, Theme3dData;
 export 'src/theme/tweens.dart'
     show

@@ -17,17 +17,17 @@ const double _dp = 0.01;
 
 /// A bar at the top of a screen-shaped column.
 ///
-/// A surface's constraints are *tight*, and `SceneSizedBox3d` enforces the
+/// A surface's constraints are *tight*, and `SizedBox3d` enforces the
 /// parent's — so a bar pumped straight onto a surface comes out the height of
 /// the whole surface and every figure in this file would be measuring the
 /// surface instead of the bar. A column with a stretched cross axis is the
 /// shape a real screen has and gives the bar a loose main axis to size
 /// itself in.
-Widget screenWith(Widget bar) => SceneColumn3d(
+Widget screenWith(Widget bar) => Column3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
     bar,
-    const SceneExpanded3d(child: SceneSizedBox3d()),
+    const Expanded3d(child: SizedBox3d()),
   ],
 );
 
@@ -41,7 +41,7 @@ void main() {
         () => screenWith(AppBar3d.text(title: 'Inbox')),
         centred: false,
       );
-      final bar = outermostOf<DecoratedBox3d>(pumped.surface);
+      final bar = outermostOf<RenderDecoratedBox3d>(pumped.surface);
       expect(bar.size.height, closeTo(64 * _dp, 1e-9));
       expect(bar.size.depth, closeTo(_theme.thickness.structural * _dp, 1e-9));
       expect(pumped.decoration.color, _theme.colorScheme.surface);
@@ -55,7 +55,7 @@ void main() {
         centred: false,
       );
       expect(
-        outermostOf<DecoratedBox3d>(pumped.surface).size.height,
+        outermostOf<RenderDecoratedBox3d>(pumped.surface).size.height,
         closeTo(56 * _dp, 1e-9),
       );
     });
@@ -105,15 +105,15 @@ void main() {
     testWidgets('and a widget title announces only what it is told', (
       tester,
     ) async {
-      // The phase-3 rule, restated where it bites: a Semantics3d gathers
+      // The phase-3 rule, restated where it bites: a RenderSemantics3d gathers
       // nothing, so a bar built from widgets has no name unless it is given
       // one.
       final pumped = await pumpComponent(
         tester,
-        () => screenWith(const AppBar3d(title: SceneText3d('Inbox'))),
+        () => screenWith(const AppBar3d(title: Text3d('Inbox'))),
         centred: false,
       );
-      expect(boxesOf<Semantics3d>(pumped.surface), isEmpty);
+      expect(boxesOf<RenderSemantics3d>(pumped.surface), isEmpty);
     });
 
     testWidgets('a leading widget and actions share the toolbar', (
@@ -124,16 +124,16 @@ void main() {
         () => screenWith(
           AppBar3d.text(
             title: 'Inbox',
-            leading: const SceneSizedBox3d(width: 0.24, height: 0.24),
+            leading: const SizedBox3d(width: 0.24, height: 0.24),
             actions: const <Widget>[
-              SceneSizedBox3d(width: 0.24, height: 0.24),
-              SceneSizedBox3d(width: 0.24, height: 0.24),
+              SizedBox3d(width: 0.24, height: 0.24),
+              SizedBox3d(width: 0.24, height: 0.24),
             ],
           ),
         ),
         centred: false,
       );
-      final row = boxesOf<Flex3d>(pumped.surface).last;
+      final row = boxesOf<RenderFlex3d>(pumped.surface).last;
       // Leading, the expanded title, and two actions.
       expect(row.children, hasLength(4));
     });
@@ -146,8 +146,8 @@ void main() {
     ({double titleStart, double titleEnd, double barWidth}) measure(
       PumpedSurface pumped,
     ) {
-      final bar = outermostOf<DecoratedBox3d>(pumped.surface);
-      final title = oneOf<Text3d>(pumped.surface);
+      final bar = outermostOf<RenderDecoratedBox3d>(pumped.surface);
+      final title = oneOf<RenderText3d>(pumped.surface);
       final start =
           (title.drawnOffsetInSurface.x - bar.drawnOffsetInSurface.x) / _dp;
       return (
@@ -192,17 +192,17 @@ void main() {
         () => screenWith(
           AppBar3d.text(
             title: 'Inbox',
-            leading: const SceneSizedBox3d(width: button * _dp),
-            actions: const <Widget>[SceneSizedBox3d(width: button * _dp)],
+            leading: const SizedBox3d(width: button * _dp),
+            actions: const <Widget>[SizedBox3d(width: button * _dp)],
           ),
         ),
         centred: false,
       );
       final at = measure(pumped);
       final style = AppBarStyle3d.of(_theme, AppBarVariant3d.small);
-      final bar = outermostOf<DecoratedBox3d>(pumped.surface);
+      final bar = outermostOf<RenderDecoratedBox3d>(pumped.surface);
       final buttons =
-          boxesOf<SizedBox3d>(pumped.surface)
+          boxesOf<RenderSizedBox3d>(pumped.surface)
               .where((box) => (box.size.width / _dp - button).abs() < 1e-4)
               .toList()
             ..sort(
@@ -248,14 +248,14 @@ void main() {
         () => screenWith(
           AppBar3d.text(
             title: 'Inbox',
-            leading: const SceneSizedBox3d(width: icon * _dp),
+            leading: const SizedBox3d(width: icon * _dp),
           ),
         ),
         centred: false,
       );
       final style = AppBarStyle3d.of(_theme, AppBarVariant3d.small);
-      final bar = outermostOf<DecoratedBox3d>(pumped.surface);
-      final leading = boxesOf<SizedBox3d>(
+      final bar = outermostOf<RenderDecoratedBox3d>(pumped.surface);
+      final leading = boxesOf<RenderSizedBox3d>(
         pumped.surface,
       ).firstWhere((box) => (box.size.width / _dp - icon).abs() < 1e-4);
       final middle =
@@ -281,12 +281,10 @@ void main() {
           AppBar3d.text(
             title: title,
             centerTitle: true,
-            leading: leading
-                ? const SceneSizedBox3d(width: button * _dp)
-                : null,
+            leading: leading ? const SizedBox3d(width: button * _dp) : null,
             actions: <Widget>[
               for (var i = 0; i < actions; i++)
-                const SceneSizedBox3d(width: button * _dp),
+                const SizedBox3d(width: button * _dp),
             ],
           ),
         ),
@@ -349,7 +347,7 @@ void main() {
     ) async {
       final pumped = await pumpComponent(
         tester,
-        () => SceneCustomScrollView3d(
+        () => CustomScrollView3d(
           slivers: <Widget>[
             SliverAppBar3d.text(
               title: 'Inbox',
@@ -379,7 +377,7 @@ void main() {
       final scroll = Scroll3dController();
       final pumped = await pumpComponent(
         tester,
-        () => SceneCustomScrollView3d(
+        () => CustomScrollView3d(
           controller: scroll,
           slivers: <Widget>[
             SliverAppBar3d.text(
@@ -388,14 +386,14 @@ void main() {
               variant: variant,
               expandedHeight: expandedHeight,
             ),
-            SceneSliverList3d(
+            SliverList3d(
               children: <Widget>[
                 for (var i = 0; i < 8; i++)
-                  SceneSizedBox3d(
+                  SizedBox3d(
                     height: 0.5,
                     child: Card3d(
                       key: ValueKey<int>(i),
-                      child: const SceneSizedBox3d(),
+                      child: const SizedBox3d(),
                     ),
                   ),
               ],
@@ -414,7 +412,9 @@ void main() {
         tester,
         variant: AppBarVariant3d.large,
       );
-      final header = outermostOf<SliverPersistentHeader3d>(pumped.surface);
+      final header = outermostOf<RenderSliverPersistentHeader3d>(
+        pumped.surface,
+      );
       expect(header.geometry.paintExtent, closeTo(152 * _dp, 1e-9));
 
       scroll.jumpTo(0.5);
@@ -430,7 +430,9 @@ void main() {
 
     testWidgets('an unpinned bar scrolls away entirely', (tester) async {
       final (:pumped, :scroll) = await screen(tester, pinned: false);
-      final header = outermostOf<SliverPersistentHeader3d>(pumped.surface);
+      final header = outermostOf<RenderSliverPersistentHeader3d>(
+        pumped.surface,
+      );
       scroll.jumpTo(1.0);
       await tester.pump();
       expect(header.geometry.paintExtent, 0.0);
@@ -440,12 +442,15 @@ void main() {
     testWidgets('lifts by the theme\'s depth step, not by one pixel', (
       tester,
     ) async {
-      // The finding this phase is here to encode. SliverPersistentHeader3d
-      // defaults its lift to one logical pixel, which separates two things
-      // with no thickness and does nothing for two slabs: an 8dp bar over a
-      // 4dp card needs a step above the mean of the two, 6dp.
+      // The finding this phase is here to encode.
+      // RenderSliverPersistentHeader3d defaults its lift to one logical pixel,
+      // which separates two things with no thickness and does nothing for two
+      // slabs: an 8dp bar over a 4dp card needs a step above the mean of the
+      // two, 6dp.
       final (:pumped, :scroll) = await screen(tester);
-      final header = outermostOf<SliverPersistentHeader3d>(pumped.surface);
+      final header = outermostOf<RenderSliverPersistentHeader3d>(
+        pumped.surface,
+      );
       expect(
         header.effectiveLift,
         closeTo(_theme.thickness.depthStep * _dp, 1e-9),
@@ -486,7 +491,7 @@ void main() {
       scroll.jumpTo(1.0);
       await tester.pump();
 
-      final rows = boxesOf<DecoratedBox3d>(pumped.surface);
+      final rows = boxesOf<RenderDecoratedBox3d>(pumped.surface);
       // The first is the bar's own panel; the rest are the cards.
       final cut = rows
           .where((box) => !box.clipRegion.isUnbounded)
@@ -504,11 +509,13 @@ void main() {
       tester,
     ) async {
       final (:pumped, :scroll) = await screen(tester);
-      for (final box in boxesOf<DecoratedBox3d>(pumped.surface)) {
+      for (final box in boxesOf<RenderDecoratedBox3d>(pumped.surface)) {
         expect(box.clipRegion.isUnbounded, isTrue);
       }
       expect(
-        outermostOf<SliverPersistentHeader3d>(pumped.surface).obstructedExtent,
+        outermostOf<RenderSliverPersistentHeader3d>(
+          pumped.surface,
+        ).obstructedExtent,
         0.0,
       );
     });
@@ -531,9 +538,9 @@ void main() {
     ) async {
       await pumpComponent(
         tester,
-        () => SceneCustomScrollView3d(
+        () => CustomScrollView3d(
           slivers: const <Widget>[
-            SliverAppBar3d(title: SceneText3d('Inbox'), expandedHeight: 32),
+            SliverAppBar3d(title: Text3d('Inbox'), expandedHeight: 32),
           ],
         ),
         centred: false,

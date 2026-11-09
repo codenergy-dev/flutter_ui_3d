@@ -1,5 +1,5 @@
-// Viewport3d and ListView3d: a window onto content longer than itself, and
-// the controller ownership every scrolling view here shares.
+// RenderViewport3d and RenderListView3d: a window onto content longer than
+// itself, and the controller ownership every scrolling view here shares.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart';
@@ -9,13 +9,13 @@ import 'support.dart';
 void main() {
   final window = Constraints3d.tight(const Size3d(10, 4, 10));
 
-  group('Viewport3d', () {
+  group('RenderViewport3d', () {
     test('measures the scrollable range and slides the child', () {
-      final content = Column3d(
+      final content = RenderColumn3d(
         mainAxisSize: MainAxisSize3d.min,
-        children: List.generate(5, (_) => TestBox(const Size3d(2, 2, 2))),
+        children: List.generate(5, (_) => RenderTestBox(const Size3d(2, 2, 2))),
       );
-      final viewport = Viewport3d(child: content);
+      final viewport = RenderViewport3d(child: content);
       final surface = laidOut(viewport, constraints: window);
 
       expect(content.size.height, 10);
@@ -30,7 +30,9 @@ void main() {
     });
 
     test('clamps the offset to the content', () {
-      final viewport = Viewport3d(child: TestBox(const Size3d(2, 6, 2)));
+      final viewport = RenderViewport3d(
+        child: RenderTestBox(const Size3d(2, 6, 2)),
+      );
       final surface = laidOut(viewport, constraints: window);
       viewport.controller.jumpTo(100);
       surface.flush();
@@ -38,19 +40,23 @@ void main() {
     });
 
     test('does not scroll when the content fits', () {
-      final viewport = Viewport3d(child: TestBox(const Size3d(2, 2, 2)));
+      final viewport = RenderViewport3d(
+        child: RenderTestBox(const Size3d(2, 2, 2)),
+      );
       laidOut(viewport, constraints: window);
       expect(viewport.controller.canScroll, isFalse);
       expect(viewport.controller.maxScrollExtent, 0);
     });
   });
 
-  group('ListView3d with explicit children', () {
+  group('RenderListView3d with explicit children', () {
     test('itemCount follows the child list', () {
-      final list = ListView3d(children: [TestBox(const Size3d(2, 2, 2))]);
+      final list = RenderListView3d(
+        children: [RenderTestBox(const Size3d(2, 2, 2))],
+      );
       expect(list.itemCount, 1);
 
-      final extra = TestBox(const Size3d(2, 2, 2));
+      final extra = RenderTestBox(const Size3d(2, 2, 2));
       list.add(extra);
       expect(list.itemCount, 2);
 
@@ -60,9 +66,11 @@ void main() {
 
     test('refuses an itemCount in its own name', () {
       // The mirror of the guard a built list puts on its child list, and it
-      // has to name the class the caller wrote: the SliverList3d underneath
-      // is not something they ever mentioned.
-      final list = ListView3d(children: [TestBox(const Size3d(2, 2, 2))]);
+      // has to name the class the caller wrote: the RenderSliverList3d
+      // underneath is not something they ever mentioned.
+      final list = RenderListView3d(
+        children: [RenderTestBox(const Size3d(2, 2, 2))],
+      );
 
       expect(
         () => list.itemCount = 5,
@@ -71,8 +79,8 @@ void main() {
             (error) => error.message,
             'message',
             allOf(
-              contains('ListView3d.builder'),
-              isNot(contains('SliverList3d')),
+              contains('RenderListView3d.builder'),
+              isNot(contains('RenderSliverList3d')),
             ),
           ),
         ),
@@ -80,8 +88,11 @@ void main() {
     });
 
     test('stacks items along the scroll axis', () {
-      final items = List.generate(5, (_) => TestBox(const Size3d(2, 2, 2)));
-      final list = ListView3d(children: items);
+      final items = List.generate(
+        5,
+        (_) => RenderTestBox(const Size3d(2, 2, 2)),
+      );
+      final list = RenderListView3d(children: items);
       laidOut(list, constraints: window);
 
       expect(list.size, const Size3d(10, 4, 10));
@@ -91,16 +102,16 @@ void main() {
     });
 
     test('centres items across the cross axes by default', () {
-      final item = TestBox(const Size3d(2, 2, 2));
-      laidOut(ListView3d(children: [item]), constraints: window);
+      final item = RenderTestBox(const Size3d(2, 2, 2));
+      laidOut(RenderListView3d(children: [item]), constraints: window);
       expect(item.offset.x, 4);
       expect(item.offset.z, 4);
     });
 
     test('stretch fills the cross axis, as a Flutter ListView does', () {
-      final item = TestBox(const Size3d(2, 2, 2));
+      final item = RenderTestBox(const Size3d(2, 2, 2));
       laidOut(
-        ListView3d(
+        RenderListView3d(
           crossAxisAlignment: CrossAxisAlignment3d.stretch,
           children: [item],
         ),
@@ -111,8 +122,11 @@ void main() {
     });
 
     test('hides what is outside the window', () {
-      final items = List.generate(5, (_) => TestBox(const Size3d(2, 2, 2)));
-      final list = ListView3d(children: items);
+      final items = List.generate(
+        5,
+        (_) => RenderTestBox(const Size3d(2, 2, 2)),
+      );
+      final list = RenderListView3d(children: items);
       final surface = laidOut(list, constraints: window);
 
       expect(items[0].node.visible, isTrue);
@@ -131,11 +145,11 @@ void main() {
       // an item inside it is ready for the scroll that reaches it, and hidden
       // until then. Items 0 and 1 fill the window of 4; item 3 ends at 8 and
       // is built only because the cache reaches it.
-      final list = ListView3d.builder(
+      final list = RenderListView3d.builder(
         itemCount: 10,
         itemExtent: 2,
         cacheExtent: 2,
-        itemBuilder: (index) => TestBox(const Size3d(2, 2, 2)),
+        itemBuilder: (index) => RenderTestBox(const Size3d(2, 2, 2)),
       );
       laidOut(list, constraints: window);
 
@@ -145,8 +159,11 @@ void main() {
     });
 
     test('spacing separates the items', () {
-      final items = List.generate(3, (_) => TestBox(const Size3d(2, 2, 2)));
-      final list = ListView3d(spacing: 1, children: items);
+      final items = List.generate(
+        3,
+        (_) => RenderTestBox(const Size3d(2, 2, 2)),
+      );
+      final list = RenderListView3d(spacing: 1, children: items);
       laidOut(list, constraints: window);
       expect(items[1].offset.y, 3);
       // Three items of two, two gaps of one.
@@ -157,8 +174,11 @@ void main() {
       // A list with no window to fill is as long as its items, and has
       // nothing left to scroll. The cross axes still need an edge: that is
       // what an item is given to span, as in Flutter.
-      final items = List.generate(3, (_) => TestBox(const Size3d(2, 2, 2)));
-      final list = ListView3d(children: items);
+      final items = List.generate(
+        3,
+        (_) => RenderTestBox(const Size3d(2, 2, 2)),
+      );
+      final list = RenderListView3d(children: items);
       laidOut(
         list,
         constraints: const Constraints3d.tightFor(width: 10, depth: 10),
@@ -171,8 +191,11 @@ void main() {
     });
 
     test('scrolls horizontally when asked', () {
-      final items = List.generate(5, (_) => TestBox(const Size3d(2, 2, 2)));
-      final list = ListView3d(
+      final items = List.generate(
+        5,
+        (_) => RenderTestBox(const Size3d(2, 2, 2)),
+      );
+      final list = RenderListView3d(
         scrollDirection: Axis3d.horizontal,
         children: items,
       );
@@ -190,10 +213,13 @@ void main() {
 
   // What the class is underneath: a viewport over one sliver, the shape
   // Flutter's ListView has. None of it changes what a caller sees.
-  group('ListView3d is a viewport over one SliverList3d', () {
+  group('RenderListView3d is a viewport over one RenderSliverList3d', () {
     test('holds the sliver, and answers children with the items in it', () {
-      final items = List.generate(3, (_) => TestBox(const Size3d(2, 2, 2)));
-      final list = ListView3d(children: items);
+      final items = List.generate(
+        3,
+        (_) => RenderTestBox(const Size3d(2, 2, 2)),
+      );
+      final list = RenderListView3d(children: items);
       laidOut(list, constraints: window);
 
       // The child list a caller reads is the items, not the sliver.
@@ -209,14 +235,14 @@ void main() {
       // slivers inside the list of items.
       expect(list.slivers, <Object>[list.sliver]);
       expect(
-        () => list.syncSlivers(<Sliver3d>[SliverList3d()]),
+        () => list.syncSlivers(<RenderSliver3d>[RenderSliverList3d()]),
         throwsAssertionError,
       );
     });
 
     test('is the Scrollable3d a hit finds, and the sliver is not', () {
-      final item = TestBox(const Size3d(2, 2, 2), pointable: true);
-      final list = ListView3d(children: [item]);
+      final item = RenderTestBox(const Size3d(2, 2, 2), pointable: true);
+      final list = RenderListView3d(children: [item]);
       final surface = laidOut(list, constraints: window);
 
       final hit = surface.hitTestAt(const Offset3d(5, 1, 5));
@@ -230,15 +256,15 @@ void main() {
     });
   });
 
-  group('ListView3d.builder', () {
+  group('RenderListView3d.builder', () {
     test('with an item extent, builds only what the window shows', () {
       var built = 0;
-      final list = ListView3d.builder(
+      final list = RenderListView3d.builder(
         itemCount: 1000,
         itemExtent: 2,
         itemBuilder: (index) {
           built++;
-          return TestBox(const Size3d(2, 2, 2));
+          return RenderTestBox(const Size3d(2, 2, 2));
         },
       );
       final surface = laidOut(list, constraints: window);
@@ -254,10 +280,10 @@ void main() {
     });
 
     test('items are positioned by index, not by build order', () {
-      final list = ListView3d.builder(
+      final list = RenderListView3d.builder(
         itemCount: 100,
         itemExtent: 2,
-        itemBuilder: (index) => TestBox(const Size3d(2, 2, 2)),
+        itemBuilder: (index) => RenderTestBox(const Size3d(2, 2, 2)),
       );
       final surface = laidOut(list, constraints: window);
       list.controller.jumpTo(10);
@@ -277,11 +303,11 @@ void main() {
 
     test('without an item extent, measures forward as it goes', () {
       var built = 0;
-      final list = ListView3d.builder(
+      final list = RenderListView3d.builder(
         itemCount: 20,
         itemBuilder: (index) {
           built++;
-          return TestBox(const Size3d(2, 2, 2));
+          return RenderTestBox(const Size3d(2, 2, 2));
         },
       );
       final surface = laidOut(list, constraints: window);
@@ -307,20 +333,23 @@ void main() {
         // in the child list but not in that map, so it is never laid out and
         // never released; the failure would surface later, as a size assert on
         // a box nobody remembers adding.
-        final list = ListView3d.builder(
+        final list = RenderListView3d.builder(
           itemCount: 3,
           itemExtent: 2,
-          itemBuilder: (index) => TestBox(const Size3d(2, 2, 2)),
+          itemBuilder: (index) => RenderTestBox(const Size3d(2, 2, 2)),
         );
         laidOut(list, constraints: window);
 
         expect(
-          () => list.add(TestBox(const Size3d(2, 2, 2))),
+          () => list.add(RenderTestBox(const Size3d(2, 2, 2))),
           throwsA(
             isA<AssertionError>().having(
               (error) => error.message,
               'message',
-              allOf(contains('ListView3d.builder'), contains('refresh()')),
+              allOf(
+                contains('RenderListView3d.builder'),
+                contains('refresh()'),
+              ),
             ),
           ),
         );
@@ -330,10 +359,10 @@ void main() {
     test('refresh still edits the child list it owns', () {
       // The guard is on the public entry points; the list's own bookkeeping
       // goes straight to the mixin, or refresh would trip its own assert.
-      final list = ListView3d.builder(
+      final list = RenderListView3d.builder(
         itemCount: 3,
         itemExtent: 2,
-        itemBuilder: (index) => TestBox(const Size3d(2, 2, 2)),
+        itemBuilder: (index) => RenderTestBox(const Size3d(2, 2, 2)),
       );
       final surface = laidOut(list, constraints: window);
       expect(list.refresh, returnsNormally);
@@ -343,12 +372,12 @@ void main() {
 
     test('refresh rebuilds every item', () {
       var built = 0;
-      final list = ListView3d.builder(
+      final list = RenderListView3d.builder(
         itemCount: 10,
         itemExtent: 2,
         itemBuilder: (index) {
           built++;
-          return TestBox(const Size3d(2, 2, 2));
+          return RenderTestBox(const Size3d(2, 2, 2));
         },
       );
       final surface = laidOut(list, constraints: window);
@@ -362,15 +391,15 @@ void main() {
   // A measured list guesses its own length and pays for a deep offset by
   // building everything before it. A prototype is the way out that asks
   // nothing of the caller but one item.
-  group('ListView3d.builder with a prototypeItem', () {
+  group('RenderListView3d.builder with a prototypeItem', () {
     test('builds the window and nothing else, however deep the offset', () {
       var built = 0;
-      final list = ListView3d.builder(
+      final list = RenderListView3d.builder(
         itemCount: 5000,
-        prototypeItem: () => TestBox(const Size3d(2, 2, 2)),
+        prototypeItem: () => RenderTestBox(const Size3d(2, 2, 2)),
         itemBuilder: (index) {
           built++;
-          return TestBox(const Size3d(2, 2, 2));
+          return RenderTestBox(const Size3d(2, 2, 2));
         },
       );
       final surface = laidOut(list, constraints: window);
@@ -390,10 +419,11 @@ void main() {
     test('reports the same range at every offset', () {
       // Items that would measure raggedly: the prototype makes every one of
       // them 3 long, so the total is 400 * 3 wherever the window sits.
-      final list = ListView3d.builder(
+      final list = RenderListView3d.builder(
         itemCount: 400,
-        prototypeItem: () => TestBox(const Size3d(2, 3, 2)),
-        itemBuilder: (index) => TestBox(Size3d(2, index.isEven ? 1 : 9, 2)),
+        prototypeItem: () => RenderTestBox(const Size3d(2, 3, 2)),
+        itemBuilder: (index) =>
+            RenderTestBox(Size3d(2, index.isEven ? 1 : 9, 2)),
       );
       final surface = laidOut(list, constraints: window);
 
@@ -406,15 +436,15 @@ void main() {
     });
 
     test('measures one prototype, and never shows it', () {
-      final prototypes = <TestBox>[];
-      final list = ListView3d.builder(
+      final prototypes = <RenderTestBox>[];
+      final list = RenderListView3d.builder(
         itemCount: 100,
         prototypeItem: () {
-          final box = TestBox(const Size3d(2, 2, 2), name: 'prototype');
+          final box = RenderTestBox(const Size3d(2, 2, 2), name: 'prototype');
           prototypes.add(box);
           return box;
         },
-        itemBuilder: (index) => TestBox(const Size3d(2, 2, 2)),
+        itemBuilder: (index) => RenderTestBox(const Size3d(2, 2, 2)),
       );
       final surface = laidOut(list, constraints: window);
       list.controller.jumpTo(50);
@@ -431,15 +461,15 @@ void main() {
     });
 
     test('measures it again when the constraints an item gets change', () {
-      final prototypes = <TestBox>[];
-      final list = ListView3d.builder(
+      final prototypes = <RenderTestBox>[];
+      final list = RenderListView3d.builder(
         itemCount: 100,
         prototypeItem: () {
-          final box = TestBox(const Size3d(2, 2, 2));
+          final box = RenderTestBox(const Size3d(2, 2, 2));
           prototypes.add(box);
           return box;
         },
-        itemBuilder: (index) => TestBox(const Size3d(2, 2, 2)),
+        itemBuilder: (index) => RenderTestBox(const Size3d(2, 2, 2)),
       );
       final surface = laidOut(list, constraints: window);
       expect(prototypes.single.layoutCount, 1);
@@ -455,13 +485,13 @@ void main() {
 
     test('refresh builds a new one, the data behind it having changed', () {
       var prototypes = 0;
-      final list = ListView3d.builder(
+      final list = RenderListView3d.builder(
         itemCount: 100,
         prototypeItem: () {
           prototypes++;
-          return TestBox(const Size3d(2, 2, 2));
+          return RenderTestBox(const Size3d(2, 2, 2));
         },
-        itemBuilder: (index) => TestBox(const Size3d(2, 2, 2)),
+        itemBuilder: (index) => RenderTestBox(const Size3d(2, 2, 2)),
       );
       final surface = laidOut(list, constraints: window);
       expect(prototypes, 1);
@@ -473,11 +503,11 @@ void main() {
 
     test('refuses an itemExtent alongside it', () {
       expect(
-        () => ListView3d.builder(
+        () => RenderListView3d.builder(
           itemCount: 10,
           itemExtent: 2,
-          prototypeItem: () => TestBox(const Size3d(2, 2, 2)),
-          itemBuilder: (index) => TestBox(const Size3d(2, 2, 2)),
+          prototypeItem: () => RenderTestBox(const Size3d(2, 2, 2)),
+          itemBuilder: (index) => RenderTestBox(const Size3d(2, 2, 2)),
         ),
         throwsA(
           isA<AssertionError>().having(
@@ -490,17 +520,17 @@ void main() {
     });
   });
 
-  group('ListView3d.builder with a contentExtentEstimator', () {
+  group('RenderListView3d.builder with a contentExtentEstimator', () {
     // Five long items and thirty-five short ones, so the average of what has
     // been measured starts far too long and shrinks as the list is read.
     Size3d sizeOf(int index) =>
         index < 5 ? const Size3d(2, 10, 2) : const Size3d(2, 1, 2);
 
-    ListView3d listOf([Layout3dContentExtentEstimator? estimator]) =>
-        ListView3d.builder(
+    RenderListView3d listOf([Layout3dContentExtentEstimator? estimator]) =>
+        RenderListView3d.builder(
           itemCount: 40,
           contentExtentEstimator: estimator,
-          itemBuilder: (index) => TestBox(sizeOf(index)),
+          itemBuilder: (index) => RenderTestBox(sizeOf(index)),
         );
 
     test('holds a range still that the average moves', () {
@@ -525,10 +555,10 @@ void main() {
     test('never claims the content is shorter than what was measured', () {
       // Where an item sits comes from the measurement and is exact; a total
       // under it would put items outside the range they are sitting in.
-      final list = ListView3d.builder(
+      final list = RenderListView3d.builder(
         itemCount: 100,
         contentExtentEstimator: (count) => 1,
-        itemBuilder: (index) => TestBox(const Size3d(2, 2, 2)),
+        itemBuilder: (index) => RenderTestBox(const Size3d(2, 2, 2)),
       );
       laidOut(list, constraints: window);
 
@@ -537,9 +567,9 @@ void main() {
   });
 
   group('the measuring pass complains about work it throws away', () {
-    ListView3d longList() => ListView3d.builder(
+    RenderListView3d longList() => RenderListView3d.builder(
       itemCount: 2000,
-      itemBuilder: (index) => TestBox(const Size3d(2, 2, 2)),
+      itemBuilder: (index) => RenderTestBox(const Size3d(2, 2, 2)),
     );
 
     test('a deep offset measures its way there and says so', () {
@@ -591,20 +621,23 @@ void main() {
   });
 
   // Every scrolling view holds a Scroll3dController the same way, through
-  // Scroll3dHolderMixin, so the rule is checked on all four at once: content
-  // 10 long in a window 4 long, and the first box slides by whatever the
-  // controller in force says.
+  // RenderScroll3dHolderMixin, so the rule is checked on all four at once:
+  // content 10 long in a window 4 long, and the first box slides by whatever
+  // the controller in force says.
   group('controller ownership', () {
     final views =
         <
           String,
-          Scroll3dHolderMixin Function(Scroll3dController?, RenderObject3d)
+          RenderScroll3dHolderMixin Function(
+            Scroll3dController?,
+            RenderObject3d,
+          )
         >{
-          'Viewport3d': (controller, probe) =>
-              Viewport3d(controller: controller, child: probe),
-          'ListView3d': (controller, probe) =>
-              ListView3d(controller: controller, children: [probe]),
-          'GridView3d': (controller, probe) => GridView3d(
+          'RenderViewport3d': (controller, probe) =>
+              RenderViewport3d(controller: controller, child: probe),
+          'RenderListView3d': (controller, probe) =>
+              RenderListView3d(controller: controller, children: [probe]),
+          'RenderGridView3d': (controller, probe) => RenderGridView3d(
             gridDelegate: const Grid3dDelegateWithFixedCrossAxisCount(
               crossAxisCount: 5,
               childAspectRatio: 0.2,
@@ -612,10 +645,11 @@ void main() {
             controller: controller,
             children: [probe],
           ),
-          'CustomScrollView3d': (controller, probe) => CustomScrollView3d(
-            controller: controller,
-            slivers: [SliverToBoxAdapter3d(child: probe)],
-          ),
+          'RenderCustomScrollView3d': (controller, probe) =>
+              RenderCustomScrollView3d(
+                controller: controller,
+                slivers: [RenderSliverToBoxAdapter3d(child: probe)],
+              ),
         };
 
     for (final entry in views.entries) {
@@ -623,13 +657,13 @@ void main() {
       final build = entry.value;
 
       test('$name disposes the controller it made, and only that one', () {
-        final made = build(null, TestBox(const Size3d(2, 10, 2)));
+        final made = build(null, RenderTestBox(const Size3d(2, 10, 2)));
         final own = made.controller;
         made.dispose();
         expect(isDisposed(own), isTrue);
 
         final supplied = Scroll3dController();
-        build(supplied, TestBox(const Size3d(2, 10, 2))).dispose();
+        build(supplied, RenderTestBox(const Size3d(2, 10, 2))).dispose();
         expect(isDisposed(supplied), isFalse);
         supplied.dispose();
       });
@@ -639,7 +673,7 @@ void main() {
         // position here sends the view back to its start whenever anything
         // above it calls `setState`, which the gallery's settings list did
         // until a person pressed a button at the bottom of it.
-        final probe = TestBox(const Size3d(2, 10, 2));
+        final probe = RenderTestBox(const Size3d(2, 10, 2));
         final view = build(null, probe);
         final surface = laidOut(view, constraints: window);
         final own = view.controller;
@@ -655,7 +689,7 @@ void main() {
 
       test('$name takes a fresh controller back when given null', () {
         final supplied = Scroll3dController();
-        final probe = TestBox(const Size3d(2, 10, 2));
+        final probe = RenderTestBox(const Size3d(2, 10, 2));
         final view = build(supplied, probe);
         final surface = laidOut(view, constraints: window);
 

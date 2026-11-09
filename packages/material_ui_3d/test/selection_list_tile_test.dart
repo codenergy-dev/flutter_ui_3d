@@ -24,12 +24,12 @@ Offset3d _middleOf(RenderObject3d box) {
 }
 
 /// The one label in [it], which is the tile's title.
-Text3d _title(PumpedSurface it) => boxesOf<Text3d>(
+RenderText3d _title(PumpedSurface it) => boxesOf<RenderText3d>(
   it.surface,
 ).firstWhere((label) => label.data == 'Remember me');
 
 /// The control's own 40dp wash surface: the second panel, after the row's.
-DecoratedBox3d _controlSurface(PumpedSurface it) => it.panels[1];
+RenderDecoratedBox3d _controlSurface(PumpedSurface it) => it.panels[1];
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -57,7 +57,7 @@ void main() {
     for (final MapEntry(key: name, value: build) in tiles.entries) {
       testWidgets('$name publishes one node for the whole row', (tester) async {
         final it = await pumpComponent(tester, build);
-        final nodes = boxesOf<Semantics3d>(
+        final nodes = boxesOf<RenderSemantics3d>(
           it.surface,
         ).where((box) => box.enabled).toList();
         expect(nodes, hasLength(1), reason: 'the control in it says nothing');
@@ -83,7 +83,7 @@ void main() {
 
       testWidgets('$name has one target that reaches anywhere', (tester) async {
         final it = await pumpComponent(tester, build);
-        final reaching = boxesOf<TapTarget3d>(
+        final reaching = boxesOf<RenderTapTarget3d>(
           it.surface,
         ).where((t) => t.effectiveMinimumSize.width > 0).toList();
         expect(reaching, hasLength(1));
@@ -375,12 +375,12 @@ void main() {
           title: 'Remember me',
           value: false,
           controlAffinity: ListTileControlAffinity3d.leading,
-          secondary: const SceneSizedBox3d(width: 0.24, height: 0.24),
+          secondary: const SizedBox3d(width: 0.24, height: 0.24),
           onChanged: (_) {},
         ),
       );
       expect(controlIsLeft(it), isTrue);
-      final secondary = boxesOf<SizedBox3d>(
+      final secondary = boxesOf<RenderSizedBox3d>(
         it.surface,
       ).singleWhere((box) => box.width == 0.24);
       expect(
@@ -412,6 +412,6 @@ void main() {
         onChanged: (_) {},
       ),
     );
-    expect(find3d.bySubtype<Text3d>(), standsOnItsPanel3d);
+    expect(find3d.bySubtype<RenderText3d>(), standsOnItsPanel3d);
   });
 }

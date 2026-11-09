@@ -9,16 +9,16 @@ import '../tokens/typography.dart';
 
 /// Styles every label below it with one type token and one colour role.
 ///
-/// The gap it fills is small and constant. `SceneText3d` already picks up the
+/// The gap it fills is small and constant. `Text3d` already picks up the
 /// ambient `DefaultTextStyle`, so the machinery is there; what is missing is
 /// a way to say *which Material style* without assembling a `TextStyle` by
 /// hand at every call site and re-deriving it whenever the theme changes:
 ///
 /// ```dart
-/// SceneTextStyle3d(
+/// TextStyle3d(
 ///   style: Typography3dToken.titleMedium,
 ///   color: theme.colorScheme.onSurfaceVariant,
-///   child: SceneColumn3d(children: [SceneText3d('Inbox'), ...]),
+///   child: Column3d(children: [Text3d('Inbox'), ...]),
 /// )
 /// ```
 ///
@@ -31,9 +31,9 @@ import '../tokens/typography.dart';
 /// It merges rather than replaces, exactly as Flutter's
 /// `DefaultTextStyle.merge` does, so an enclosing style's family and its
 /// inherited colour survive whatever this one does not state.
-class SceneTextStyle3d extends StatelessWidget {
+class TextStyle3d extends StatelessWidget {
   /// Styles [child] with the theme's [style] token, in [color].
-  const SceneTextStyle3d({
+  const TextStyle3d({
     super.key,
     required this.style,
     this.color,

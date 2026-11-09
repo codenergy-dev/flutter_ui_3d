@@ -23,18 +23,18 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneAlign3d,
-        SceneColumn3d,
-        SceneConstrainedBox3d,
-        SceneIgnorePointer3d,
-        SceneIntrinsicWidth3d,
-        SceneMotionTransition3d,
-        ScenePadding3d,
-        SceneRow3d,
-        SceneSemantics3d,
-        SceneSizedBox3d,
-        SceneTapTarget3d,
-        SceneText3d,
+        Align3d,
+        Column3d,
+        ConstrainedBox3d,
+        IgnorePointer3d,
+        IntrinsicWidth3d,
+        MotionTransition3d,
+        Padding3d,
+        Row3d,
+        Semantics3d,
+        SizedBox3d,
+        TapTarget3d,
+        Text3d,
         WidgetPageRoute3d;
 
 import '../theme/theme.dart';
@@ -86,14 +86,14 @@ class Menu3d extends StatelessWidget {
     final metrics = Layout3dMetricsScope.of(context);
     final resolved = style ?? MenuStyle3d.of(theme);
 
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: SemanticsProperties(
         scopesRoute: true,
         namesRoute: semanticLabel != null,
         label: semanticLabel,
         textDirection: readingDirection3d(context, textDirection),
       ),
-      child: SceneConstrainedBox3d(
+      child: ConstrainedBox3d(
         constraints: Constraints3d(
           minWidth: metrics.dp(resolved.minWidth),
           maxWidth: metrics.dp(resolved.maxWidth),
@@ -102,7 +102,7 @@ class Menu3d extends StatelessWidget {
         // which is what Flutter's `PopupMenu` does with an `IntrinsicWidth`
         // for the same reason: a menu that filled its maximum would be 280dp
         // wide however short its labels are.
-        child: SceneIntrinsicWidth3d(
+        child: IntrinsicWidth3d(
           child: Material3d(
             color: resolved.container,
             contentColor: resolved.contentColor,
@@ -112,11 +112,11 @@ class Menu3d extends StatelessWidget {
             surfaceTint: const Color(0x00000000),
             padding: resolved.padding,
             alignment: null,
-            child: SceneAlign3d(
+            child: Align3d(
               alignment: Alignment3d.frontCenter,
               widthFactor: 1.0,
               heightFactor: 1.0,
-              child: SceneColumn3d(
+              child: Column3d(
                 mainAxisSize: MainAxisSize3d.min,
                 crossAxisAlignment: CrossAxisAlignment3d.stretch,
                 children: children,
@@ -132,7 +132,8 @@ class Menu3d extends StatelessWidget {
 /// One row of a [Menu3d]: a label, a tap, and a surface of its own.
 ///
 /// 48dp tall, which is also Material's minimum tap target — so a menu item is
-/// the rare control that needs no `TapTarget3d` reach beyond its own extent.
+/// the rare control that needs no `RenderTapTarget3d` reach beyond its own
+/// extent.
 class MenuItem3d extends StatelessWidget {
   /// Creates a menu item.
   const MenuItem3d({
@@ -149,7 +150,7 @@ class MenuItem3d extends StatelessWidget {
 
   /// The item's label, as a string rather than a widget.
   ///
-  /// A string because the item has to **announce** it: a `Semantics3d`
+  /// A string because the item has to **announce** it: a `RenderSemantics3d`
   /// gathers nothing from the labels below it, so an item that took a widget
   /// would have no name unless the caller repeated it. Same decision, same
   /// reason, as `ListTile3d.text`.
@@ -186,25 +187,25 @@ class MenuItem3d extends StatelessWidget {
         ? resolved.contentColor
         : theme.colorScheme.disabledContent;
 
-    final row = ScenePadding3d(
+    final row = Padding3d(
       padding: metrics.dpInsets(resolved.itemPadding),
-      child: SceneRow3d(
+      child: Row3d(
         crossAxisAlignment: CrossAxisAlignment3d.center,
         spacing: metrics.dp(12),
         children: <Widget>[
-          if (leading != null) SceneIgnorePointer3d(child: leading!),
-          SceneIgnorePointer3d(
-            child: SceneText3d(
+          if (leading != null) IgnorePointer3d(child: leading!),
+          IgnorePointer3d(
+            child: Text3d(
               label,
               style: theme.textStyle(resolved.itemTextStyle, color: content),
             ),
           ),
-          if (trailing != null) SceneIgnorePointer3d(child: trailing!),
+          if (trailing != null) IgnorePointer3d(child: trailing!),
         ],
       ),
     );
 
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: SemanticsProperties(
         button: true,
         enabled: live,
@@ -212,7 +213,7 @@ class MenuItem3d extends StatelessWidget {
         textDirection: readingDirection3d(context, textDirection),
         onTap: live ? onPressed : null,
       ),
-      child: SceneSizedBox3d(
+      child: SizedBox3d(
         height: metrics.dp(resolved.itemHeight),
         child: Material3d(
           // Transparent: the menu behind it is the surface a reader sees, and
@@ -255,8 +256,8 @@ class MenuItem3d extends StatelessWidget {
 ///
 /// ## Anchoring, which nothing in the layout package did before this
 ///
-/// An overlay entry is placed by the overlay's own `Stack3d.alignment`, which
-/// is in the middle of the panel and nowhere near the button. There is no
+/// An overlay entry is placed by the overlay's own `RenderStack3d.alignment`,
+/// which is in the middle of the panel and nowhere near the button. There is no
 /// `CompositedTransformTarget` here. What there is, since phase 6, is
 /// `RenderObject3d.anchorOffsetTo`: the button's corner taken into world space
 /// through `worldTransform` and back out again in the menu's own frame, which
@@ -320,7 +321,7 @@ class PopupMenuButton3d<T> extends StatefulWidget {
   /// this catalogue has declined twice to answer in passing; a menu on a
   /// panel has no window to be pushed back inside. Until it is answered, the
   /// caller says which way the menu opens, in the same vocabulary
-  /// `Follower3d` uses, and the reading direction mirrors it.
+  /// `RenderFollower3d` uses, and the reading direction mirrors it.
   final AlignmentGeometry3d menuCorner;
 
   /// The button's corner the menu's [menuCorner] is hung on.
@@ -352,7 +353,7 @@ class PopupMenuButton3d<T> extends StatefulWidget {
 }
 
 class _PopupMenuButton3dState<T> extends State<PopupMenuButton3d<T>> {
-  Anchor3d? _anchor;
+  RenderAnchor3d? _anchor;
   WidgetPageRoute3d<T>? _open;
 
   @override
@@ -399,7 +400,7 @@ class _PopupMenuButton3dState<T> extends State<PopupMenuButton3d<T>> {
           anchor: anchor,
           self: widget.menuCorner,
           target: widget.anchorCorner,
-          child: SceneMotionTransition3d(
+          child: MotionTransition3d(
             animation: self.animation,
             motion: arrival.motion,
             child: Menu3d(
@@ -432,7 +433,7 @@ class _PopupMenuButton3dState<T> extends State<PopupMenuButton3d<T>> {
   }
 
   @override
-  Widget build(BuildContext context) => SceneTapTarget3d(
+  Widget build(BuildContext context) => TapTarget3d(
     // The outermost box, and it has to be, for the reason `Button3d`'s says
     // in the same words: a target reaches past its own extent, every
     // *ancestor* gates a ray on its own extent, and the semantics box below
@@ -448,7 +449,7 @@ class _PopupMenuButton3dState<T> extends State<PopupMenuButton3d<T>> {
     // everywhere except the middle, misses it and lands on the app bar
     // behind. A null minimum is Material's 48dp, resolved through the
     // surface's metrics at hit-test time.
-    child: SceneSemantics3d(
+    child: Semantics3d(
       properties: SemanticsProperties(
         button: true,
         enabled: widget.enabled,
@@ -478,7 +479,7 @@ class _PopupMenuButton3dState<T> extends State<PopupMenuButton3d<T>> {
             minimumSize: Size3d.zero,
             enabled: widget.enabled,
             onTap: widget.enabled ? _open3d : null,
-            child: SceneAlign3d(
+            child: Align3d(
               alignment: Alignment3d.frontCenter,
               widthFactor: 1.0,
               heightFactor: 1.0,
@@ -524,10 +525,10 @@ class MenuItem3dEntry<T> {
 ///
 /// What [PopupMenuButton3d] calls. Useful on its own for a menu opened by
 /// something that is not a button — a long press on a row, a keyboard
-/// shortcut — as long as there is a [Anchor3d] to hang it on.
+/// shortcut — as long as there is a [RenderAnchor3d] to hang it on.
 Future<T?> showMenu3d<T>({
   required BuildContext context,
-  required Anchor3d anchor,
+  required RenderAnchor3d anchor,
   required List<Widget> children,
   MenuStyle3d? style,
   String? semanticLabel,
@@ -555,7 +556,7 @@ Future<T?> showMenu3d<T>({
         anchor: anchor,
         self: menuCorner,
         target: anchorCorner,
-        child: SceneMotionTransition3d(
+        child: MotionTransition3d(
           animation: route.animation,
           motion: arrival.motion,
           child: Menu3d(

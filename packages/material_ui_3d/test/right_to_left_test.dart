@@ -22,11 +22,11 @@ const _rtl = TextDirection.rtl;
 
 /// A bar at the top of a screen-shaped column, as `app_bar_test.dart` pumps
 /// one.
-Widget _screenWith(Widget bar) => SceneColumn3d(
+Widget _screenWith(Widget bar) => Column3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
     bar,
-    const SceneExpanded3d(child: SceneSizedBox3d()),
+    const Expanded3d(child: SizedBox3d()),
   ],
 );
 
@@ -41,7 +41,7 @@ void main() {
       () => ListTile3d.text(title: 'x'),
       textDirection: _rtl,
     );
-    final box = oneOf<Padding3d>(it.surface);
+    final box = oneOf<RenderPadding3d>(it.surface);
     final padding = box.padding.resolve(box.textDirection);
     expect(padding.right, closeTo(0.16, 1e-9));
     expect(padding.left, closeTo(0.24, 1e-9));
@@ -55,7 +55,7 @@ void main() {
       () => const Divider3d(indent: 8, endIndent: 16),
       textDirection: _rtl,
     );
-    final padding = oneOf<Padding3d>(it.surface);
+    final padding = oneOf<RenderPadding3d>(it.surface);
     final resolved = padding.padding.resolve(padding.textDirection);
     expect(resolved.right, closeTo(0.08, 1e-9));
     expect(resolved.left, closeTo(0.16, 1e-9));
@@ -64,8 +64,8 @@ void main() {
   group('an app bar', () {
     /// How far the title stands off each edge of the bar, in logical pixels.
     ({double fromLeft, double fromRight}) titleInsets(PumpedSurface pumped) {
-      final bar = outermostOf<DecoratedBox3d>(pumped.surface);
-      final title = oneOf<Text3d>(pumped.surface);
+      final bar = outermostOf<RenderDecoratedBox3d>(pumped.surface);
+      final title = oneOf<RenderText3d>(pumped.surface);
       final left =
           (title.drawnOffsetInSurface.x - bar.drawnOffsetInSurface.x) / _dp;
       return (
@@ -80,8 +80,8 @@ void main() {
       Widget bar() => _screenWith(
         AppBar3d.text(
           title: 'Inbox',
-          leading: const SceneSizedBox3d(width: 48 * _dp),
-          actions: const <Widget>[SceneSizedBox3d(width: 48 * _dp)],
+          leading: const SizedBox3d(width: 48 * _dp),
+          actions: const <Widget>[SizedBox3d(width: 48 * _dp)],
         ),
       );
       final ltr = titleInsets(await pumpComponent(tester, bar, centred: false));
@@ -116,16 +116,16 @@ void main() {
           AppBar3d.text(
             title: 'Inbox',
             centerTitle: true,
-            leading: const SceneSizedBox3d(width: 48 * _dp),
-            actions: const <Widget>[SceneSizedBox3d(width: 40 * _dp)],
+            leading: const SizedBox3d(width: 48 * _dp),
+            actions: const <Widget>[SizedBox3d(width: 40 * _dp)],
           ),
         ),
         centred: false,
         textDirection: _rtl,
       );
-      final bar = outermostOf<DecoratedBox3d>(pumped.surface);
+      final bar = outermostOf<RenderDecoratedBox3d>(pumped.surface);
       double edgeOf(double width, {required bool right}) {
-        final box = boxesOf<SizedBox3d>(
+        final box = boxesOf<RenderSizedBox3d>(
           pumped.surface,
         ).firstWhere((box) => (box.size.width / _dp - width).abs() < 1e-4);
         final left =
@@ -189,7 +189,7 @@ void main() {
         () => Slider3d(value: 0.5, onChanged: (_) {}),
         textDirection: _rtl,
       );
-      final gesture = oneOf<SliderGesture3d>(it.surface);
+      final gesture = oneOf<RenderSliderGesture3d>(it.surface);
       final y = gesture.size.height / 2;
       expect(
         gesture.fractionAt(Offset3d(gesture.padding, y, 0)),
@@ -264,7 +264,7 @@ void main() {
     final pumped = await overlays.pumpOverlay(
       tester,
       textDirection: _rtl,
-      child: ScenePositioned3d(
+      child: Positioned3d(
         right: 0,
         top: 0,
         front: 0,
@@ -273,7 +273,7 @@ void main() {
           itemBuilder: (context) => const <MenuItem3dEntry<String>>[
             MenuItem3dEntry(value: 'rename', label: 'Rename'),
           ],
-          child: const SceneSizedBox3d(width: 0.4, height: 0.4, depth: 0.02),
+          child: const SizedBox3d(width: 0.4, height: 0.4, depth: 0.02),
         ),
       ),
     );
@@ -282,8 +282,8 @@ void main() {
     pumped.pointer.up();
     await tester.pump();
 
-    final anchor = overlays.oneOf<Anchor3d>(pumped.surface);
-    final follower = overlays.oneOf<Follower3d>(pumped.surface);
+    final anchor = overlays.oneOf<RenderAnchor3d>(pumped.surface);
+    final follower = overlays.oneOf<RenderFollower3d>(pumped.surface);
     expect(follower.self, Alignment3d.topRight);
     expect(follower.target, Alignment3d.bottomRight);
     final delta = follower.anchorOffsetTo(

@@ -15,13 +15,13 @@ import 'scroll_controller.dart';
 
 /// A scrolling list whose items can be dragged into a different order.
 ///
-/// The 3D analogue of Flutter's `ReorderableListView`, and a [ListView3d] in
-/// every other respect: the window, the scroll position and the placement are
-/// the list's, unchanged. Pick an item up, carry it, and the items it passes
-/// slide aside to show where it would land.
+/// The 3D analogue of Flutter's `ReorderableListView`, and a [RenderListView3d]
+/// in every other respect: the window, the scroll position and the placement
+/// are the list's, unchanged. Pick an item up, carry it, and the items it
+/// passes slide aside to show where it would land.
 ///
 /// ```dart
-/// ReorderableList3d(
+/// RenderReorderableList3d(
 ///   itemCount: tracks.length,
 ///   itemExtent: 0.4,
 ///   itemBuilder: (index) => trackRow(tracks[index]),
@@ -37,11 +37,11 @@ import 'scroll_controller.dart';
 /// reports an index measured before the item is taken out and leaves the
 /// caller to decrement it; see [Reorder3dCallback] for why this does not.
 ///
-/// A list is a viewport over one [SliverReorderableList3d], the way
-/// [ListView3d] is a viewport over one `SliverList3d`, so the whole of the
-/// reorder — the hidden item, the node-tier gap, the insert index — lives in
-/// the sliver and is available to a `CustomScrollView3d` that wants a
-/// reorderable section between other slivers.
+/// A list is a viewport over one [RenderSliverReorderableList3d], the way
+/// [RenderListView3d] is a viewport over one `RenderSliverList3d`, so the whole
+/// of the reorder — the hidden item, the node-tier gap, the insert index —
+/// lives in the sliver and is available to a `RenderCustomScrollView3d` that
+/// wants a reorderable section between other slivers.
 ///
 /// ## What it costs while an item is in flight
 ///
@@ -50,15 +50,15 @@ import 'scroll_controller.dart';
 /// extent *is* the gap, and its neighbours are slid aside on the node tier.
 /// The index-to-child map never changes until the drop, so the lazy machinery
 /// is untouched and nothing reaches the relayout path. See
-/// [SliverReorderableList3d] for the whole of that argument.
+/// [RenderSliverReorderableList3d] for the whole of that argument.
 ///
 /// ## The items are built, not listed
 ///
-/// There is no constructor over an explicit child list, unlike [ListView3d].
-/// [onReorder] hands back a pair of indices into the caller's own data and
-/// expects the next build to reflect them, so the list has to be a function
-/// of that data to mean anything: give it an [itemCount] and an
-/// [itemBuilder], and call [refresh] when the data changes.
+/// There is no constructor over an explicit child list, unlike
+/// [RenderListView3d]. [onReorder] hands back a pair of indices into the
+/// caller's own data and expects the next build to reflect them, so the list
+/// has to be a function of that data to mean anything: give it an [itemCount]
+/// and an [itemBuilder], and call [refresh] when the data changes.
 ///
 /// ## Picking an item up
 ///
@@ -67,13 +67,15 @@ import 'scroll_controller.dart';
 /// travel, long before the delay is up — which is what leaves a touch list
 /// usable. Set [startMode] to [Drag3dStartMode.immediate] for a list of drag
 /// handles, or for a list that does not scroll.
-class ReorderableList3d extends BoxScrollView3d<SliverReorderableList3d> {
+class RenderReorderableList3d
+    extends RenderBoxScrollView3d<RenderSliverReorderableList3d> {
   /// Creates a reorderable list that builds its items on demand.
   ///
   /// The sliver has to be built before it can be handed up, and an explicit
-  /// super call rules out super parameters, the same way [ListView3d] does.
+  /// super call rules out super parameters, the same way [RenderListView3d]
+  /// does.
   // ignore: use_super_parameters
-  ReorderableList3d({
+  RenderReorderableList3d({
     required int itemCount,
     required RenderObject3dItemBuilder itemBuilder,
     required Reorder3dCallback onReorder,
@@ -94,7 +96,7 @@ class ReorderableList3d extends BoxScrollView3d<SliverReorderableList3d> {
     double cacheExtent = 0.0,
     String? name,
   }) : super(
-         sliver: SliverReorderableList3d(
+         sliver: RenderSliverReorderableList3d(
            itemCount: itemCount,
            itemBuilder: itemBuilder,
            onReorder: onReorder,
@@ -119,12 +121,12 @@ class ReorderableList3d extends BoxScrollView3d<SliverReorderableList3d> {
 
   /// Creates a reorderable list whose items come from a child manager.
   ///
-  /// The shape `SceneReorderableList3d` creates: the items and the count come
+  /// The shape `ReorderableList3d` creates: the items and the count come
   /// from the widget's own element rather than from an [itemBuilder], and
   /// what a drag carries has to be stated, because a widget item cannot be
-  /// copied outside a layout pass. See [SliverReorderableList3d.managed].
+  /// copied outside a layout pass. See [RenderSliverReorderableList3d.managed].
   // ignore: use_super_parameters
-  ReorderableList3d.managed({
+  RenderReorderableList3d.managed({
     required Reorder3dCallback onReorder,
     required RenderObject3dItemBuilder feedbackBuilder,
     Drag3dStartMode startMode = const Drag3dStartMode.longPress(),
@@ -143,7 +145,7 @@ class ReorderableList3d extends BoxScrollView3d<SliverReorderableList3d> {
     double cacheExtent = 0.0,
     String? name,
   }) : super(
-         sliver: SliverReorderableList3d.managed(
+         sliver: RenderSliverReorderableList3d.managed(
            onReorder: onReorder,
            feedbackBuilder: feedbackBuilder,
            startMode: startMode,

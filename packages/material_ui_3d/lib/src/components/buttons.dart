@@ -19,11 +19,11 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneAlign3d,
-        SceneConstrainedBox3d,
-        ScenePadding3d,
-        SceneSemantics3d,
-        SceneTapTarget3d;
+        Align3d,
+        ConstrainedBox3d,
+        Padding3d,
+        Semantics3d,
+        TapTarget3d;
 
 import '../theme/theme.dart';
 import '../tokens/state_layer.dart';
@@ -47,31 +47,31 @@ import 'reading_direction.dart';
 ///   style: ButtonStyle3d.of(Theme3d.of(context), ButtonVariant3d.filled),
 ///   onPressed: _save,
 ///   semanticLabel: 'Save',
-///   child: const SceneText3d('Save'),
+///   child: const Text3d('Save'),
 /// )
 /// ```
 ///
 /// ## The tree it builds, and why in that order
 ///
 /// ```
-/// SceneTapTarget3d      48dp of reach — outermost, deliberately
-///   SceneSemantics3d    button: true, the label, enabled
-///     SceneConstrainedBox3d   64 x 40dp minimum
+/// TapTarget3d      48dp of reach — outermost, deliberately
+///   Semantics3d    button: true, the label, enabled
+///     ConstrainedBox3d   64 x 40dp minimum
 ///       Material3d      the slab: colour, shape, elevation, thickness, border
 ///         InkWell3d     the pointer and the focus, with no target of its own
-///           SceneAlign3d  shrink-wrapped and centred on the front face
+///           Align3d  shrink-wrapped and centred on the front face
 /// ```
 ///
 /// **The tap target is the outermost box and that is load-bearing.** A
-/// `TapTarget3d` reaches past its own extent and *every ancestor* gates a ray
-/// on its own extent — so anything wrapped around it at the button's own size
-/// rejects a press in the margin before the target ever sees it. That is the
-/// panel, obviously; it is also the semantics box, which is why the semantics
-/// sits inside rather than outside as Flutter's does (Flutter can afford the
-/// other order because its `_InputPadding` grows the *layout* box, and this
-/// one deliberately does not). The `InkWell3d` inside is therefore asked for
-/// `minimumSize: Size3d.zero`: one target, not two nested ones disagreeing
-/// about where the control is.
+/// `RenderTapTarget3d` reaches past its own extent and *every ancestor* gates a
+/// ray on its own extent — so anything wrapped around it at the button's own
+/// size rejects a press in the margin before the target ever sees it. That is
+/// the panel, obviously; it is also the semantics box, which is why the
+/// semantics sits inside rather than outside as Flutter's does (Flutter can
+/// afford the other order because its `_InputPadding` grows the *layout* box,
+/// and this one deliberately does not). The `InkWell3d` inside is therefore
+/// asked for `minimumSize: Size3d.zero`: one target, not two nested ones
+/// disagreeing about where the control is.
 ///
 /// **The minimum size is 40dp and the target is 48dp**, which is not a
 /// contradiction. A row of buttons is 40dp tall — that is the figure the
@@ -139,8 +139,8 @@ class Button3d extends StatefulWidget {
 
   /// What a screen reader announces this button as.
   ///
-  /// **State it.** `Semantics3d` publishes the properties it is given and does
-  /// not gather a label out of the labels below it, the way Flutter's
+  /// **State it.** `RenderSemantics3d` publishes the properties it is given and
+  /// does not gather a label out of the labels below it, the way Flutter's
   /// `Semantics(container: true)` merge does — there is no semantics tree
   /// under a scene node to merge. So a button with no [semanticLabel]
   /// announces itself as a button, enabled or not, with no name.
@@ -194,7 +194,7 @@ class _Button3dState extends State<Button3d> {
     // enabled flag may have changed without any state moving.
     final resolved = _resolved = style.resolve(_states, enabled: enabled);
 
-    return SceneTapTarget3d(
+    return TapTarget3d(
       // The outermost box of the whole button, and it has to be: a target
       // reaches past its own extent, every *ancestor* gates a ray on its own
       // extent, and the semantics box below is exactly the button's size. Put
@@ -203,7 +203,7 @@ class _Button3dState extends State<Button3d> {
       //
       // A null minimum is Material's 48dp, resolved through the surface's
       // metrics at hit-test time so a camera-bound surface keeps it 48dp.
-      child: SceneSemantics3d(
+      child: Semantics3d(
         properties: SemanticsProperties(
           button: true,
           enabled: enabled,
@@ -212,7 +212,7 @@ class _Button3dState extends State<Button3d> {
           onTap: enabled ? widget.onPressed : null,
           onLongPress: enabled ? widget.onLongPress : null,
         ),
-        child: SceneConstrainedBox3d(
+        child: ConstrainedBox3d(
           constraints: Constraints3d(
             minWidth: metrics.dp(style.minimumWidth),
             minHeight: metrics.dp(style.minimumHeight),
@@ -260,9 +260,9 @@ class _Button3dState extends State<Button3d> {
               // and a press on the button's padding landed on the panel and
               // went no further: a 56dp floating action button answered only
               // at its middle.
-              child: ScenePadding3d(
+              child: Padding3d(
                 padding: metrics.dpInsets(style.padding),
-                child: SceneAlign3d(
+                child: Align3d(
                   alignment: Alignment3d.frontCenter,
                   widthFactor: 1.0,
                   heightFactor: 1.0,
@@ -283,7 +283,7 @@ class _Button3dState extends State<Button3d> {
 /// FilledButton3d(
 ///   onPressed: _submit,
 ///   semanticLabel: 'Continue',
-///   child: const SceneText3d('Continue'),
+///   child: const Text3d('Continue'),
 /// )
 /// ```
 ///

@@ -19,12 +19,12 @@ import '../rendering/object.dart';
 ///
 /// A whole-`Size3d` ratio is a different operation wearing this name: it is
 /// "make this subtree that shape and scale it into the room", which is
-/// [FittedBox3d] for a laid-out subtree and `NodeBox3d.fit` for engine
-/// content. Neither of those constrains the child; this one does, which is
-/// the whole point of an aspect ratio in a layout protocol — the child is
+/// [RenderFittedBox3d] for a laid-out subtree and `RenderNodeBox3d.fit` for
+/// engine content. Neither of those constrains the child; this one does, which
+/// is the whole point of an aspect ratio in a layout protocol — the child is
 /// *told* it is 16 : 9 and lays itself out accordingly.
 ///
-/// And a caller who writes `AspectRatio3d(aspectRatio: 16 / 9)` means the
+/// And a caller who writes `RenderAspectRatio3d(aspectRatio: 16 / 9)` means the
 /// plane. That is the 2D habit and it is the right default here: a surface is
 /// a thing you look at, so its long axes are width and height, and depth is
 /// the thickness of the panel rather than a term in its shape. So the ratio
@@ -37,7 +37,7 @@ import '../rendering/object.dart';
 ///
 /// ```dart
 /// // A slab twice as wide as it is thick, with its height free.
-/// AspectRatio3d(
+/// RenderAspectRatio3d(
 ///   aspectRatio: 2,
 ///   relativeTo: Axis3d.depth,
 ///   child: panel,
@@ -51,10 +51,10 @@ import '../rendering/object.dart';
 /// result back inside the constraints if it landed outside them. An [axis]
 /// with no upper bound is derived from [relativeTo] instead; with neither
 /// bounded there is nothing to be a ratio of, and the box says so.
-class AspectRatio3d extends RenderSingleChild3d
+class RenderAspectRatio3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d {
   /// Creates a box with a fixed ratio between [axis] and [relativeTo].
-  AspectRatio3d({
+  RenderAspectRatio3d({
     required double aspectRatio,
     Axis3d axis = Axis3d.horizontal,
     Axis3d relativeTo = Axis3d.vertical,
@@ -155,9 +155,9 @@ class AspectRatio3d extends RenderSingleChild3d
       crossExtent = constraints.maxAlong(cross);
       assert(
         crossExtent.isFinite,
-        'AspectRatio3d was given no upper bound on either $main or $cross, so '
+        'RenderAspectRatio3d was given no upper bound on either $main or $cross, so '
         'there is no extent for the ratio to be a ratio of. Bound one of them '
-        '— a SizedBox3d around this box, an Expanded3d in a flex, or a sized '
+        '— a RenderSizedBox3d around this box, a RenderExpanded3d in a flex, or a sized '
         'surface — or drop the aspect ratio.',
       );
       if (!crossExtent.isFinite) return (0.0, 0.0);

@@ -6,11 +6,11 @@ import 'rendering/object.dart';
 
 /// The behaviour of a box that fades everything below it.
 ///
-/// Mixed into [Opacity3d], which is the box a caller reaches for, and into
-/// [MotionTransition3d], which fades an arrival alongside the slide, scale
-/// and turn it was already applying. Both do the same two things: multiply
-/// their own factor into what they inherit, and republish the subtree when it
-/// changes.
+/// Mixed into [RenderOpacity3d], which is the box a caller reaches for, and
+/// into [RenderMotionTransition3d], which fades an arrival alongside the slide,
+/// scale and turn it was already applying. Both do the same two things:
+/// multiply their own factor into what they inherit, and republish the subtree
+/// when it changes.
 ///
 /// The republish is the whole reason this is a mixin rather than two copies.
 /// [RenderObject3d.inheritedOpacity] is computed by walking *up*, so nothing
@@ -24,8 +24,8 @@ mixin RenderOpacityMixin3d on RenderObject3d {
 
   /// How much of the subtree below this box survives, from 0 to 1.
   ///
-  /// Composes with whatever is already in force above, so an [Opacity3d] at
-  /// 0.5 inside another at 0.5 draws a quarter, exactly as two nested
+  /// Composes with whatever is already in force above, so a [RenderOpacity3d]
+  /// at 0.5 inside another at 0.5 draws a quarter, exactly as two nested
   /// `Opacity` widgets do.
   ///
   /// Setting it lays nothing out and rebuilds no geometry: it walks the
@@ -71,9 +71,9 @@ mixin RenderOpacityMixin3d on RenderObject3d {
 /// of the subtree's fragments are drawn.
 ///
 /// ```dart
-/// Opacity3d(
+/// RenderOpacity3d(
 ///   opacity: 0.38,
-///   child: SizedBox3d(width: 1, height: 0.3, child: disabledButton),
+///   child: RenderSizedBox3d(width: 1, height: 0.3, child: disabledButton),
 /// )
 /// ```
 ///
@@ -104,22 +104,26 @@ mixin RenderOpacityMixin3d on RenderObject3d {
 ///
 /// ## What it reaches
 ///
-/// Everything this package draws: a [DecoratedBox3d]'s panel, a [Text3d] or
-/// [RichText3d]'s glyphs, and the wall around those glyphs. It does **not**
-/// reach geometry an application brought itself — see [NodeBox3d.onFade],
-/// which is how such a box says it can fade, and which asserts in debug when
-/// it is in a faded subtree and cannot.
+/// Everything this package draws: a [RenderDecoratedBox3d]'s panel, a
+/// [RenderText3d] or [RenderRichText3d]'s glyphs, and the wall around those
+/// glyphs. It does **not** reach geometry an application brought itself — see
+/// [RenderNodeBox3d.onFade], which is how such a box says it can fade, and
+/// which asserts in debug when it is in a faded subtree and cannot.
 ///
 /// ## What a ray sees
 ///
 /// Everything, at every opacity, including zero. An opacity is a property of
 /// the picture and nothing else here — the same bargain
-/// [RenderObject3d.nodeOffset] makes. Wrap the subtree in an `IgnorePointer3d`
-/// to take a faded-out control out of reach as well, exactly as Flutter's own
-/// `Opacity` leaves you to.
-class Opacity3d extends RenderProxyBox3d with RenderOpacityMixin3d {
+/// [RenderObject3d.nodeOffset] makes. Wrap the subtree in a
+/// `RenderIgnorePointer3d` to take a faded-out control out of reach as well,
+/// exactly as Flutter's own `Opacity` leaves you to.
+class RenderOpacity3d extends RenderProxyBox3d with RenderOpacityMixin3d {
   /// Creates a box that draws [child] at [opacity].
-  Opacity3d({double opacity = 1.0, super.child, super.name = 'Opacity3d'}) {
+  RenderOpacity3d({
+    double opacity = 1.0,
+    super.child,
+    super.name = 'RenderOpacity3d',
+  }) {
     initialOpacity(opacity);
   }
 
@@ -127,8 +131,8 @@ class Opacity3d extends RenderProxyBox3d with RenderOpacityMixin3d {
   ///
   /// The same value as [RenderOpacityMixin3d.imposedOpacity], under the name
   /// a caller of this box writes. Note that it is what this box *imposes*,
-  /// not what is in force on it: an `Opacity3d` at 0.5 inside another at 0.5
-  /// reports 0.5 here and draws its subtree at 0.25.
+  /// not what is in force on it: a `RenderOpacity3d` at 0.5 inside another at
+  /// 0.5 reports 0.5 here and draws its subtree at 0.25.
   double get opacity => imposedOpacity;
 
   set opacity(double value) => imposedOpacity = value;
@@ -136,13 +140,13 @@ class Opacity3d extends RenderProxyBox3d with RenderOpacityMixin3d {
 
 /// Fades its child as an animation runs, without laying anything out.
 ///
-/// Flutter's `FadeTransition`, on the same tier as [NodeTransform3d]: the box
-/// subscribes to the animation and writes each tick straight through as an
+/// Flutter's `FadeTransition`, on the same tier as [RenderNodeTransform3d]: the
+/// box subscribes to the animation and writes each tick straight through as an
 /// opacity, so no widget is rebuilt and no box is marked dirty for the whole
 /// run. What a tick costs is one uniform per box below that draws.
 ///
 /// ```dart
-/// FadeTransition3d(
+/// RenderFadeTransition3d(
 ///   opacity: route.animation,
 ///   child: dialog,
 /// )
@@ -150,20 +154,20 @@ class Opacity3d extends RenderProxyBox3d with RenderOpacityMixin3d {
 ///
 /// The parameter is named [opacity] rather than `animation` because that is
 /// what Flutter's own is called, and because this box has a second thing it
-/// could plausibly be given: [Opacity3d.opacity], a plain number. Both are
-/// here — set the number for a fade that is not animated, hand over the
+/// could plausibly be given: [RenderOpacity3d.opacity], a plain number. Both
+/// are here — set the number for a fade that is not animated, hand over the
 /// animation for one that is — and the animation wins while it is attached.
 ///
 /// **A stopped animation must stop asking for frames.** That is the ticker
 /// rule this package pays for everywhere, and it lives with whoever owns the
 /// controller: this box only listens. See
 /// `plans/2026_09_16_a_route_that_arrives_instead_of_appearing.md`.
-class FadeTransition3d extends Opacity3d {
+class RenderFadeTransition3d extends RenderOpacity3d {
   /// Creates a box that draws [child] at whatever [opacity] currently says.
-  FadeTransition3d({
+  RenderFadeTransition3d({
     Animation<double>? opacity,
     super.child,
-    super.name = 'FadeTransition3d',
+    super.name = 'RenderFadeTransition3d',
   }) : _animation = opacity,
        super(opacity: opacity?.value ?? 1.0) {
     opacity?.addListener(_handleTick);

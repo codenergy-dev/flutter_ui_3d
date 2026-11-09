@@ -6,12 +6,7 @@ import 'package:flutter/widgets.dart'
 import 'package:flutter_ui_3d/rendering.dart'
     show EdgeInsets3d, EdgeInsetsGeometry3d;
 import 'package:flutter_ui_3d/widgets.dart'
-    show
-        Layout3dMetricsScope,
-        MediaQuery3d,
-        ScenePadding3d,
-        SceneSafeArea3d,
-        SceneSizedBox3d;
+    show Layout3dMetricsScope, MediaQuery3d, Padding3d, SafeArea3d, SizedBox3d;
 
 import '../theme/theme.dart';
 import '../theme/theme_data.dart';
@@ -81,7 +76,7 @@ class BottomAppBarStyle3d {
 /// Scaffold3d(
 ///   body: body,
 ///   bottomNavigationBar: BottomAppBar3d(
-///     child: SceneRow3d(
+///     child: Row3d(
 ///       children: <Widget>[
 ///         IconButton3d(icon: Icons.search, semanticLabel: 'Search', onPressed: search),
 ///         IconButton3d(icon: Icons.share, semanticLabel: 'Share', onPressed: share),
@@ -161,7 +156,7 @@ class BottomAppBar3d extends StatelessWidget {
     final resolved = style ?? BottomAppBarStyle3d.of(theme);
     final inset = MediaQuery3d.of(context).padding;
 
-    return SceneSizedBox3d(
+    return SizedBox3d(
       height: metrics.dp(
         (height ?? resolved.height) + inset.top + inset.bottom,
       ),
@@ -175,8 +170,8 @@ class BottomAppBar3d extends StatelessWidget {
         // token already says how raised the bar is.
         surfaceTint: const Color(0x00000000),
         alignment: null,
-        child: SceneSafeArea3d(
-          child: ScenePadding3d(
+        child: SafeArea3d(
+          child: Padding3d(
             padding: metrics.dpInsets(padding ?? resolved.padding),
             child: child,
           ),

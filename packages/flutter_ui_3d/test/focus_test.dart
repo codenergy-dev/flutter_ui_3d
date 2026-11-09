@@ -1,4 +1,4 @@
-// Focus3d and Focus3dTraversal: Flutter's focus nodes, tied to boxes on a
+// RenderFocus3d and Focus3dTraversal: Flutter's focus nodes, tied to boxes on a
 // plane. These need Flutter's binding, because FocusManager does.
 
 import 'package:flutter/widgets.dart'
@@ -21,16 +21,16 @@ void main() {
   });
 
   group('taking focus', () {
-    ({Layout3dSurface surface, Focus3d focus, List<bool> changes}) button({
-      bool focusOnPointerDown = true,
-      bool canRequestFocus = true,
-    }) {
+    ({RenderSurface3d surface, RenderFocus3d focus, List<bool> changes})
+    button({bool focusOnPointerDown = true, bool canRequestFocus = true}) {
       final changes = <bool>[];
-      final focus = Focus3d(
+      final focus = RenderFocus3d(
         focusOnPointerDown: focusOnPointerDown,
         canRequestFocus: canRequestFocus,
         onFocusChange: changes.add,
-        child: GestureDetector3d(child: TestBox(const Size3d(1, 1, 0))),
+        child: RenderGestureDetector3d(
+          child: RenderTestBox(const Size3d(1, 1, 0)),
+        ),
       );
       final surface = laidOut(
         focus,
@@ -96,25 +96,25 @@ void main() {
       );
     });
 
-    test('Focus3d.of finds the box a control belongs to', () {
-      final leaf = TestBox(const Size3d(1, 1, 0));
-      final focus = Focus3d(child: Center3d(child: leaf));
+    test('RenderFocus3d.of finds the box a control belongs to', () {
+      final leaf = RenderTestBox(const Size3d(1, 1, 0));
+      final focus = RenderFocus3d(child: RenderCenter3d(child: leaf));
       final surface = laidOut(
         focus,
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
       );
       addTearDown(surface.dispose);
 
-      expect(Focus3d.of(leaf), same(focus));
-      expect(Focus3d.of(surface), isNull);
+      expect(RenderFocus3d.of(leaf), same(focus));
+      expect(RenderFocus3d.of(surface), isNull);
     });
 
     test('a node handed in is not disposed with the box, and one made is', () {
       final borrowed = FocusNode(debugLabel: 'borrowed');
       addTearDown(borrowed.dispose);
-      final focus = Focus3d(
+      final focus = RenderFocus3d(
         focusNode: borrowed,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(
         focus,
@@ -136,7 +136,7 @@ void main() {
     });
 
     test('focus follows the box when its node is swapped', () {
-      final focus = Focus3d(child: TestBox(const Size3d(1, 1, 0)));
+      final focus = RenderFocus3d(child: RenderTestBox(const Size3d(1, 1, 0)));
       final surface = laidOut(
         focus,
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
@@ -158,20 +158,20 @@ void main() {
   });
 
   group('traversal', () {
-    ({Layout3dSurface surface, List<Focus3d> boxes}) grid() {
+    ({RenderSurface3d surface, List<RenderFocus3d> boxes}) grid() {
       // Four half-unit boxes in a two-by-two grid, in reading order.
       final boxes = List.generate(
         4,
-        (index) => Focus3d(
+        (index) => RenderFocus3d(
           name: 'cell $index',
-          child: TestBox(const Size3d(0.5, 0.5, 0)),
+          child: RenderTestBox(const Size3d(0.5, 0.5, 0)),
         ),
       );
       final surface = laidOut(
-        Column3d(
+        RenderColumn3d(
           children: [
-            Row3d(children: [boxes[0], boxes[1]]),
-            Row3d(children: [boxes[2], boxes[3]]),
+            RenderRow3d(children: [boxes[0], boxes[1]]),
+            RenderRow3d(children: [boxes[2], boxes[3]]),
           ],
         ),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
@@ -219,12 +219,14 @@ void main() {
     });
 
     test('what is hidden is not a candidate either', () {
-      final hidden = Focus3d(child: TestBox(const Size3d(1, 1, 0)));
-      final visible = Focus3d(child: TestBox(const Size3d(1, 1, 0)));
+      final hidden = RenderFocus3d(child: RenderTestBox(const Size3d(1, 1, 0)));
+      final visible = RenderFocus3d(
+        child: RenderTestBox(const Size3d(1, 1, 0)),
+      );
       final surface = laidOut(
-        Column3d(
+        RenderColumn3d(
           children: [
-            Offstage3d(child: hidden),
+            RenderOffstage3d(child: hidden),
             visible,
           ],
         ),
@@ -305,9 +307,9 @@ void main() {
     });
 
     test('a projected box is where it appears, not where it was measured', () {
-      final box = Focus3d(child: TestBox(const Size3d(1, 1, 0)));
+      final box = RenderFocus3d(child: RenderTestBox(const Size3d(1, 1, 0)));
       final surface = laidOut(
-        Center3d(child: box),
+        RenderCenter3d(child: box),
         constraints: Constraints3d.tight(const Size3d(3, 3, 0)),
       );
       addTearDown(surface.dispose);

@@ -139,7 +139,8 @@ TextLayout3d layoutOf(String text, [TextStyle textStyle = style]) {
   );
 }
 
-/// Renders [text] through [renderer], the way a `Text3d` does after a layout.
+/// Renders [text] through [renderer], the way a `RenderText3d` does after a
+/// layout.
 void render(
   AtlasText3dRenderer renderer,
   Node node,
@@ -207,7 +208,7 @@ void main() {
     /// One label on one atlas, settled and drawing correctly.
     ///
     /// The node and the layout come back because a settled label is one that
-    /// keeps being handed **the same objects**: a `Text3d` returns the
+    /// keeps being handed **the same objects**: a `RenderText3d` returns the
     /// identical [TextLayout3d] when it relaid out at the same width, and
     /// that identity is how the renderer knows nothing changed. A test that
     /// lays out again has not settled anything.
@@ -491,7 +492,7 @@ void main() {
       // that agree; one built this frame holds neither, so it bakes against
       // whatever packing the atlas is handing out and has nothing it can
       // honestly draw until the picture lands. An application that writes a
-      // new closure into `SceneTheme3d.textRendererFactory` on every build
+      // new closure into `Theme3d.textRendererFactory` on every build
       // throws every label's renderer in the scene away on every build — and
       // a window resize is dozens of builds — so nothing in it is ever
       // settled and this defence never applies to it. The gallery did exactly

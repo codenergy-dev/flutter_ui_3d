@@ -2,8 +2,8 @@
 //
 // Two halves. `Drag3dSession` is the machinery, and it is driven by hand here
 // — no pointer, no components — because a drag is arithmetic and state and
-// almost all of it can be pinned down that way. `Draggable3d` and
-// `DragTarget3d` are the components over it, and what they mostly have to
+// almost all of it can be pinned down that way. `RenderDraggable3d` and
+// `RenderDragTarget3d` are the components over it, and what they mostly have to
 // prove is a negative: that a whole drag touches the layout path exactly
 // twice, when the feedback is put into the overlay and when it is taken out.
 //
@@ -19,17 +19,17 @@ import 'package:flutter_ui_3d/rendering.dart';
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dController,
-        SceneDismissible3d,
-        SceneDragTarget3d,
-        SceneDraggable3d,
-        SceneLayout3d,
-        SceneRow3d,
-        SceneSizedBox3d;
+        Dismissible3d,
+        DragTarget3d,
+        Draggable3d,
+        Surface3d,
+        Row3d,
+        SizedBox3d;
 
 import 'support.dart';
 
 /// A drop target that writes down what reached it.
-class Recorder extends DragTarget3d<String> {
+class Recorder extends RenderDragTarget3d<String> {
   Recorder(this.label, this.log, {super.child, super.onWillAccept})
     : super(behavior: HitTestBehavior3d.translucent);
 
@@ -74,7 +74,7 @@ class Bystander implements GestureArenaMember {
 }
 
 /// A box that competes for the pointer through the new arena seam.
-class ArenaProbe extends Listener3d {
+class ArenaProbe extends RenderListener3d {
   ArenaProbe(this.members, {super.child})
     : super(behavior: HitTestBehavior3d.opaque);
 
@@ -108,8 +108,8 @@ class ArenaProbe extends Listener3d {
 }
 
 /// A leaf that answers hit tests, which is what a real piece of content does.
-TestBox solid([Size3d size = const Size3d(1, 1, 0)]) =>
-    TestBox(size, pointable: true);
+RenderTestBox solid([Size3d size = const Size3d(1, 1, 0)]) =>
+    RenderTestBox(size, pointable: true);
 
 /// A draggable card at the top of a list three units tall with six of content.
 ///
@@ -120,16 +120,16 @@ TestBox solid([Size3d size = const Size3d(1, 1, 0)]) =>
 class _ScrollFixture {
   _ScrollFixture({Drag3dAutoscroll? autoscroll = const Drag3dAutoscroll()}) {
     controller = Scroll3dController();
-    source = Draggable3d<String>(
+    source = RenderDraggable3d<String>(
       data: 'photo',
       autoscroll: autoscroll,
       child: solid(),
     );
-    final list = ListView3d(
+    final list = RenderListView3d(
       controller: controller,
       children: <RenderObject3d>[
         source,
-        TestBox(const Size3d(1, 5, 0), pointable: true),
+        RenderTestBox(const Size3d(1, 5, 0), pointable: true),
       ],
     );
     surface = laidOut(
@@ -140,8 +140,8 @@ class _ScrollFixture {
   }
 
   late final Scroll3dController controller;
-  late final Draggable3d<String> source;
-  late final Layout3dSurface surface;
+  late final RenderDraggable3d<String> source;
+  late final RenderSurface3d surface;
   late final Layout3dPointer pointer;
 
   /// Picks the card up and carries the pointer to [to].
@@ -250,7 +250,7 @@ void main() {
 
     test('a target that refuses by type never hears about the drag', () {
       final log = <String>[];
-      final wrongType = DragTarget3d<int>(
+      final wrongType = RenderDragTarget3d<int>(
         onEnter: (_, _) => log.add('int enter'),
         child: solid(),
       );
@@ -293,7 +293,7 @@ void main() {
 
     test('the details carry the payload, the origin and the local point', () {
       Drag3dDetails? seen;
-      final target = DragTarget3d<String>(
+      final target = RenderDragTarget3d<String>(
         onEnter: (_, details) => seen = details,
         child: solid(),
       );
@@ -315,7 +315,7 @@ void main() {
     });
 
     test('a candidate target knows what is over it', () {
-      final target = DragTarget3d<String>(child: solid());
+      final target = RenderDragTarget3d<String>(child: solid());
       laidOut(target, constraints: Constraints3d.tight(const Size3d(1, 1, 0)));
       final session = Drag3dSession(data: 'photo');
 
@@ -381,7 +381,7 @@ void main() {
       final source = Recorder('source', log, child: solid());
       final zone = Recorder('zone', log, child: solid());
       final surface = laidOut(
-        Row3d(children: <RenderObject3d>[source, zone]),
+        RenderRow3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -404,7 +404,7 @@ void main() {
       final source = Recorder('source', log, child: solid());
       final zone = Recorder('zone', log, child: solid());
       final surface = laidOut(
-        Row3d(children: <RenderObject3d>[source, zone]),
+        RenderRow3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -555,7 +555,7 @@ void main() {
 
     test('adding a member marks the sequence contested', () {
       PointerSequence3d? sequence;
-      final probe = Listener3d(
+      final probe = RenderListener3d(
         behavior: HitTestBehavior3d.opaque,
         onPointerDown: (event) {
           sequence = event.sequence;
@@ -576,17 +576,17 @@ void main() {
     });
   });
 
-  group('Draggable3d', () {
+  group('RenderDraggable3d', () {
     test('travel past the slop starts the drag; travel under it does not', () {
       final log = <String>[];
-      final source = Draggable3d<String>(
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         onDragStarted: () => log.add('started'),
         child: solid(),
       );
       final zone = Recorder('zone', log, child: solid());
       final surface = laidOut(
-        Row3d(children: <RenderObject3d>[source, zone]),
+        RenderRow3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -604,7 +604,7 @@ void main() {
     });
 
     test('an axis keeps a row and the list it is in out of each other way', () {
-      final source = Draggable3d<String>(
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         axis: Axis3d.horizontal,
         child: solid(),
@@ -628,13 +628,13 @@ void main() {
 
     test('the drag lands on a target and the payload arrives', () {
       String? accepted;
-      final source = Draggable3d<String>(data: 'photo', child: solid());
-      final zone = DragTarget3d<String>(
+      final source = RenderDraggable3d<String>(data: 'photo', child: solid());
+      final zone = RenderDragTarget3d<String>(
         onAccept: (data, _) => accepted = data,
         child: solid(),
       );
       final surface = laidOut(
-        Row3d(children: <RenderObject3d>[source, zone]),
+        RenderRow3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -651,13 +651,13 @@ void main() {
 
     test('a lift with no travel is not a drag and drops nothing', () {
       var accepts = 0;
-      final source = Draggable3d<String>(data: 'photo', child: solid());
-      final zone = DragTarget3d<String>(
+      final source = RenderDraggable3d<String>(data: 'photo', child: solid());
+      final zone = RenderDragTarget3d<String>(
         onAccept: (_, _) => accepts++,
         child: solid(),
       );
       final surface = laidOut(
-        Row3d(children: <RenderObject3d>[source, zone]),
+        RenderRow3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -673,12 +673,12 @@ void main() {
     test('a scrolling view under a draggable waits for the slop', () {
       final controller = Scroll3dController();
       addTearDown(controller.dispose);
-      final source = Draggable3d<String>(data: 'photo', child: solid());
-      final list = ListView3d(
+      final source = RenderDraggable3d<String>(data: 'photo', child: solid());
+      final list = RenderListView3d(
         controller: controller,
         children: <RenderObject3d>[
           source,
-          TestBox(const Size3d(1, 4, 0), pointable: true),
+          RenderTestBox(const Size3d(1, 4, 0), pointable: true),
         ],
       );
       final surface = laidOut(
@@ -700,16 +700,16 @@ void main() {
     test('a scroll that claims first cancels the pending drag', () {
       final controller = Scroll3dController();
       addTearDown(controller.dispose);
-      final source = Draggable3d<String>(
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         axis: Axis3d.horizontal,
         child: solid(),
       );
-      final list = ListView3d(
+      final list = RenderListView3d(
         controller: controller,
         children: <RenderObject3d>[
           source,
-          TestBox(const Size3d(1, 4, 0), pointable: true),
+          RenderTestBox(const Size3d(1, 4, 0), pointable: true),
         ],
       );
       final surface = laidOut(
@@ -731,10 +731,10 @@ void main() {
 
     test('disposing a draggable mid-drag cancels the session', () {
       final log = <String>[];
-      final source = Draggable3d<String>(data: 'photo', child: solid());
+      final source = RenderDraggable3d<String>(data: 'photo', child: solid());
       final zone = Recorder('zone', log, child: solid());
       final surface = laidOut(
-        Row3d(children: <RenderObject3d>[source, zone]),
+        RenderRow3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -755,11 +755,11 @@ void main() {
 
   group('the feedback', () {
     test('goes into the overlay on start and comes out on the drop', () {
-      final overlay = Overlay3d();
-      final source = Draggable3d<String>(
+      final overlay = RenderOverlay3d();
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         dropDuration: Duration.zero,
-        feedbackBuilder: (_) => TestBox(const Size3d(0.4, 0.4, 0)),
+        feedbackBuilder: (_) => RenderTestBox(const Size3d(0.4, 0.4, 0)),
         child: solid(),
       );
       overlay.syncChildren(<RenderObject3d>[source]);
@@ -787,17 +787,17 @@ void main() {
       // which is a z-fight, not an ordering. `drag_feedback_depth` in
       // `examples/render_probe` is the render-side half of this claim; it
       // caught the bug by passing once and failing the next run.
-      final row = TestBox(const Size3d(1, 1, 0.05), pointable: true);
+      final row = RenderTestBox(const Size3d(1, 1, 0.05), pointable: true);
       late final RenderObject3d feedback;
-      final source = Draggable3d<String>(
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         dropDuration: Duration.zero,
         feedbackLayer: const OverlayLayer3d.inPlane(lift: 0.5),
         feedbackBuilder: (_) =>
-            feedback = TestBox(const Size3d(0.8, 0.4, 0.05)),
+            feedback = RenderTestBox(const Size3d(0.8, 0.4, 0.05)),
         child: row,
       );
-      final overlay = Overlay3d();
+      final overlay = RenderOverlay3d();
       overlay.syncChildren(<RenderObject3d>[source]);
       final surface = laidOut(
         overlay,
@@ -836,12 +836,13 @@ void main() {
     });
 
     test('is moved by nodeOffset and never by sceneOffset', () {
-      final overlay = Overlay3d();
+      final overlay = RenderOverlay3d();
       late final RenderObject3d feedback;
-      final source = Draggable3d<String>(
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         dropDuration: Duration.zero,
-        feedbackBuilder: (_) => feedback = TestBox(const Size3d(0.4, 0.4, 0)),
+        feedbackBuilder: (_) =>
+            feedback = RenderTestBox(const Size3d(0.4, 0.4, 0)),
         child: solid(),
       );
       overlay.syncChildren(<RenderObject3d>[source]);
@@ -855,8 +856,8 @@ void main() {
         ..down(rayAt(surface, const Offset3d(1.0, 1.0, 0)))
         ..move(rayAt(surface, const Offset3d(1.4, 1.0, 0)));
       surface.flush();
-      // The `IgnorePointer3d` wrapper is what carries the offset; the built
-      // subtree hangs under it.
+      // The `RenderIgnorePointer3d` wrapper is what carries the offset; the
+      // built subtree hangs under it.
       final host = feedback.parent!;
       pointer.move(rayAt(surface, const Offset3d(1.45, 1.0, 0)));
       final before = host.nodeOffset;
@@ -864,25 +865,26 @@ void main() {
       pointer.move(rayAt(surface, const Offset3d(1.25, 1.0, 0)));
 
       expect(host.nodeOffset.x, closeTo(before.x - 0.2, 1e-6));
-      // `Stack3d.depthStep` owns `sceneOffset` and rewrites it on every
+      // `RenderStack3d.depthStep` owns `sceneOffset` and rewrites it on every
       // placement; anything stored there would be silently erased.
       expect(host.sceneOffset, isNot(equals(host.nodeOffset)));
     });
 
     test('follows the pointer, and starts over the box it came from', () {
       late final RenderObject3d feedback;
-      final source = Draggable3d<String>(
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         dropDuration: Duration.zero,
-        feedbackBuilder: (_) => feedback = TestBox(const Size3d(0.4, 0.4, 0)),
+        feedbackBuilder: (_) =>
+            feedback = RenderTestBox(const Size3d(0.4, 0.4, 0)),
         child: solid(const Size3d(0.4, 0.4, 0)),
       );
       // The source is pushed off centre, so that "over the source" and "where
       // the overlay would have put it" are different places.
-      final overlay = Overlay3d(
+      final overlay = RenderOverlay3d(
         alignment: Alignment3d.topLeft,
         children: <RenderObject3d>[
-          Padding3d(
+          RenderPadding3d(
             padding: const EdgeInsets3d.only(left: 1.0, top: 0.5),
             child: source,
           ),
@@ -913,16 +915,16 @@ void main() {
     });
 
     test('nothing a live drag does reaches the relayout path', () {
-      final overlay = Overlay3d();
-      final zone = DragTarget3d<String>(child: solid());
-      final source = Draggable3d<String>(
+      final overlay = RenderOverlay3d();
+      final zone = RenderDragTarget3d<String>(child: solid());
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         dropDuration: Duration.zero,
-        feedbackBuilder: (_) => TestBox(const Size3d(0.4, 0.4, 0)),
+        feedbackBuilder: (_) => RenderTestBox(const Size3d(0.4, 0.4, 0)),
         child: solid(),
       );
       overlay.syncChildren(<RenderObject3d>[
-        Row3d(children: <RenderObject3d>[source, zone]),
+        RenderRow3d(children: <RenderObject3d>[source, zone]),
       ]);
       final surface = laidOut(
         overlay,
@@ -952,16 +954,16 @@ void main() {
     test(
       'an overlay disposed under a live drag takes the feedback with it',
       () {
-        final overlay = Overlay3d();
-        final source = Draggable3d<String>(
+        final overlay = RenderOverlay3d();
+        final source = RenderDraggable3d<String>(
           data: 'photo',
           overlay: overlay,
           dropDuration: Duration.zero,
-          feedbackBuilder: (_) => TestBox(const Size3d(0.4, 0.4, 0)),
+          feedbackBuilder: (_) => RenderTestBox(const Size3d(0.4, 0.4, 0)),
           child: solid(),
         );
         final surface = laidOut(
-          Stack3d(children: <RenderObject3d>[source, overlay]),
+          RenderStack3d(children: <RenderObject3d>[source, overlay]),
           constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
         );
         final pointer = Layout3dPointer(surface);
@@ -980,17 +982,17 @@ void main() {
 
     test('a draggable with no overlay above it still drags', () {
       String? accepted;
-      final source = Draggable3d<String>(
+      final source = RenderDraggable3d<String>(
         data: 'photo',
-        feedbackBuilder: (_) => TestBox(const Size3d(0.4, 0.4, 0)),
+        feedbackBuilder: (_) => RenderTestBox(const Size3d(0.4, 0.4, 0)),
         child: solid(),
       );
-      final zone = DragTarget3d<String>(
+      final zone = RenderDragTarget3d<String>(
         onAccept: (data, _) => accepted = data,
         child: solid(),
       );
       final surface = laidOut(
-        Row3d(children: <RenderObject3d>[source, zone]),
+        RenderRow3d(children: <RenderObject3d>[source, zone]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -1008,7 +1010,7 @@ void main() {
     testWidgets('a long press starts the drag where the finger is', (
       tester,
     ) async {
-      final source = Draggable3d<String>(
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         startMode: const Drag3dStartMode.longPress(Duration(milliseconds: 300)),
         child: solid(),
@@ -1033,7 +1035,7 @@ void main() {
     testWidgets('movement before the delay cancels the long press', (
       tester,
     ) async {
-      final source = Draggable3d<String>(
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         startMode: const Drag3dStartMode.longPress(Duration(milliseconds: 300)),
         child: solid(),
@@ -1055,7 +1057,7 @@ void main() {
     });
 
     testWidgets('the up cancels the long press timer', (tester) async {
-      final source = Draggable3d<String>(
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         startMode: const Drag3dStartMode.longPress(Duration(milliseconds: 300)),
         child: solid(),
@@ -1078,12 +1080,13 @@ void main() {
     testWidgets('the drop animation delays the removal and nothing else', (
       tester,
     ) async {
-      final overlay = Overlay3d();
+      final overlay = RenderOverlay3d();
       late final RenderObject3d feedback;
-      final source = Draggable3d<String>(
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         dropDuration: const Duration(milliseconds: 200),
-        feedbackBuilder: (_) => feedback = TestBox(const Size3d(0.4, 0.4, 0)),
+        feedbackBuilder: (_) =>
+            feedback = RenderTestBox(const Size3d(0.4, 0.4, 0)),
         child: solid(),
       );
       overlay.syncChildren(<RenderObject3d>[source]);
@@ -1123,19 +1126,19 @@ void main() {
       final controller = Layout3dController();
       String? accepted;
 
-      Widget frame(String payload) => SceneLayout3d(
+      Widget frame(String payload) => Surface3d(
         parent: parent,
         size: const Size3d(4, 2, 0),
         controller: controller,
-        child: SceneRow3d(
+        child: Row3d(
           children: <Widget>[
-            SceneDraggable3d<String>(
+            Draggable3d<String>(
               data: payload,
-              child: const SceneSizedBox3d(width: 2, height: 2),
+              child: const SizedBox3d(width: 2, height: 2),
             ),
-            SceneDragTarget3d<String>(
+            DragTarget3d<String>(
               onAccept: (data, _) => accepted = data,
-              child: const SceneSizedBox3d(width: 2, height: 2),
+              child: const SizedBox3d(width: 2, height: 2),
             ),
           ],
         ),
@@ -1143,9 +1146,9 @@ void main() {
 
       await tester.pumpWidget(frame('photo'));
       final row = controller.surface!.child! as RenderMultiChild3d;
-      final source = row.children.first as Draggable3d<String>;
+      final source = row.children.first as RenderDraggable3d<String>;
       expect(source.data, 'photo');
-      expect(row.children.last, isA<DragTarget3d<String>>());
+      expect(row.children.last, isA<RenderDragTarget3d<String>>());
 
       // A rebuild reconciles onto the same layout objects and writes the new
       // payload through, which is the whole contract of the widget layer.
@@ -1192,7 +1195,7 @@ void main() {
       final first = Recorder('first', log, child: solid());
       final second = Recorder('second', log, child: solid());
       laidOut(
-        Row3d(children: <RenderObject3d>[first, second]),
+        RenderRow3d(children: <RenderObject3d>[first, second]),
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
       );
       final session = Drag3dSession(data: 'photo');
@@ -1339,7 +1342,7 @@ void main() {
     // dialog standing over a panel is: the same layout coordinates on both,
     // so a ray aimed at a point reaches whichever surface answers there
     // first. `plate` in `overlay_test.dart` builds them the same way.
-    Layout3dSurface plate(RenderObject3d child) {
+    RenderSurface3d plate(RenderObject3d child) {
       final surface = laidOut(
         child,
         constraints: Constraints3d.tight(const Size3d(2, 1, 0)),
@@ -1350,14 +1353,19 @@ void main() {
 
     test('a drag started on the panel drops on the dialog in front', () {
       final log = <String>[];
-      final source = Draggable3d<String>(data: 'photo', child: solid());
+      final source = RenderDraggable3d<String>(data: 'photo', child: solid());
       final behind = Recorder('behind', log, child: solid());
-      final panel = plate(Row3d(children: <RenderObject3d>[source, behind]));
+      final panel = plate(
+        RenderRow3d(children: <RenderObject3d>[source, behind]),
+      );
       final front = Recorder('front', log, child: solid());
       final dialog = plate(
         // Nothing in the left half of the dialog answers, so the press at
         // 0.5 goes straight past it to the panel behind.
-        Padding3d(padding: const EdgeInsets3d.only(left: 1.0), child: front),
+        RenderPadding3d(
+          padding: const EdgeInsets3d.only(left: 1.0),
+          child: front,
+        ),
       );
       final group = Layout3dPointerGroup()
         ..addSurface(panel)
@@ -1370,7 +1378,7 @@ void main() {
 
       // The press landed on the panel and only the panel: capture is what
       // events follow, and it is not what the drag search follows.
-      expect(group.capturedBy(0), <Layout3dSurface>[panel]);
+      expect(group.capturedBy(0), <RenderSurface3d>[panel]);
       expect(group.dragFor(0), isNotNull);
       expect(group.isDraggingPayload, isTrue);
 
@@ -1401,18 +1409,23 @@ void main() {
 
     test('a surface that answers nothing is walked straight past', () {
       final log = <String>[];
-      final source = Draggable3d<String>(data: 'photo', child: solid());
-      final panel = plate(Row3d(children: <RenderObject3d>[source, solid()]));
+      final source = RenderDraggable3d<String>(data: 'photo', child: solid());
+      final panel = plate(
+        RenderRow3d(children: <RenderObject3d>[source, solid()]),
+      );
       final front = Recorder('front', log, child: solid());
       final dialog = plate(
-        Padding3d(padding: const EdgeInsets3d.only(left: 1.0), child: front),
+        RenderPadding3d(
+          padding: const EdgeInsets3d.only(left: 1.0),
+          child: front,
+        ),
       );
       // What a detached piece of feedback is: a surface of its own, whose
-      // root is an `IgnorePointer3d`, sitting in front of everything. It
+      // root is a `RenderIgnorePointer3d`, sitting in front of everything. It
       // answers empty, so it absorbs nothing and the drag it is the feedback
       // *for* can still find its target.
       final feedback = plate(
-        IgnorePointer3d(child: solid(const Size3d(2, 1, 0))),
+        RenderIgnorePointer3d(child: solid(const Size3d(2, 1, 0))),
       );
       final group = Layout3dPointerGroup()
         ..addSurface(panel)
@@ -1430,14 +1443,19 @@ void main() {
 
     test('a drop over nothing on any surface is not a drop', () {
       var accepts = 0;
-      final source = Draggable3d<String>(data: 'photo', child: solid());
-      final panel = plate(Row3d(children: <RenderObject3d>[source, solid()]));
-      final zone = DragTarget3d<String>(
+      final source = RenderDraggable3d<String>(data: 'photo', child: solid());
+      final panel = plate(
+        RenderRow3d(children: <RenderObject3d>[source, solid()]),
+      );
+      final zone = RenderDragTarget3d<String>(
         onAccept: (_, _) => accepts++,
         child: solid(),
       );
       final dialog = plate(
-        Padding3d(padding: const EdgeInsets3d.only(left: 1.0), child: zone),
+        RenderPadding3d(
+          padding: const EdgeInsets3d.only(left: 1.0),
+          child: zone,
+        ),
       );
       final group = Layout3dPointerGroup()
         ..addSurface(panel)
@@ -1456,21 +1474,21 @@ void main() {
     });
 
     test('nothing a cross-surface drag does reaches the relayout path', () {
-      final overlay = Overlay3d();
-      final source = Draggable3d<String>(
+      final overlay = RenderOverlay3d();
+      final source = RenderDraggable3d<String>(
         data: 'photo',
         dropDuration: Duration.zero,
-        feedbackBuilder: (_) => TestBox(const Size3d(0.4, 0.4, 0)),
+        feedbackBuilder: (_) => RenderTestBox(const Size3d(0.4, 0.4, 0)),
         child: solid(),
       );
       overlay.syncChildren(<RenderObject3d>[
-        Row3d(children: <RenderObject3d>[source, solid()]),
+        RenderRow3d(children: <RenderObject3d>[source, solid()]),
       ]);
       final panel = plate(overlay);
       final dialog = plate(
-        Padding3d(
+        RenderPadding3d(
           padding: const EdgeInsets3d.only(left: 1.0),
-          child: DragTarget3d<String>(child: solid()),
+          child: RenderDragTarget3d<String>(child: solid()),
         ),
       );
       final group = Layout3dPointerGroup()
@@ -1503,11 +1521,11 @@ void main() {
       expect(dialog.needsFlush, isFalse);
     });
   });
-  group('Dismissible3d', () {
+  group('RenderDismissible3d', () {
     // A two-unit-wide row on the standard metrics: the touch slop is 18dp,
     // which is 0.18 units, and the default threshold of 0.4 is 0.8 of them.
-    ({Layout3dSurface surface, Layout3dPointer pointer}) swiper(
-      Dismissible3d row,
+    ({RenderSurface3d surface, Layout3dPointer pointer}) swiper(
+      RenderDismissible3d row,
     ) {
       final surface = laidOut(
         row,
@@ -1519,7 +1537,7 @@ void main() {
 
     test('a swipe past the threshold dismisses, the way it went', () {
       Dismiss3dDirection? dismissed;
-      final row = Dismissible3d(
+      final row = RenderDismissible3d(
         movementDuration: Duration.zero,
         resizeDuration: null,
         onDismissed: (direction) => dismissed = direction,
@@ -1540,7 +1558,7 @@ void main() {
 
     test('a slow swipe under the threshold settles back', () {
       var dismissals = 0;
-      final row = Dismissible3d(
+      final row = RenderDismissible3d(
         movementDuration: Duration.zero,
         resizeDuration: null,
         onDismissed: (_) => dismissals++,
@@ -1580,7 +1598,7 @@ void main() {
 
     test('a flick dismisses whatever distance it covered', () {
       Dismiss3dDirection? dismissed;
-      final row = Dismissible3d(
+      final row = RenderDismissible3d(
         movementDuration: Duration.zero,
         resizeDuration: null,
         onDismissed: (direction) => dismissed = direction,
@@ -1614,7 +1632,7 @@ void main() {
 
     test('a direction refuses the swipe that goes the other way', () {
       var dismissals = 0;
-      final row = Dismissible3d(
+      final row = RenderDismissible3d(
         direction: Dismiss3dDirection.forward,
         movementDuration: Duration.zero,
         resizeDuration: null,
@@ -1637,7 +1655,7 @@ void main() {
     });
 
     test('an axis keeps a row and the list it is in out of each other way', () {
-      final row = Dismissible3d(
+      final row = RenderDismissible3d(
         axis: Axis3d.vertical,
         movementDuration: Duration.zero,
         resizeDuration: null,
@@ -1657,9 +1675,9 @@ void main() {
     });
 
     test('the backgrounds show on the side the child came off', () {
-      final background = TestBox(const Size3d(2, 1, 0));
-      final secondary = TestBox(const Size3d(2, 1, 0));
-      final row = Dismissible3d(
+      final background = RenderTestBox(const Size3d(2, 1, 0));
+      final secondary = RenderTestBox(const Size3d(2, 1, 0));
+      final row = RenderDismissible3d(
         movementDuration: Duration.zero,
         resizeDuration: null,
         background: background,
@@ -1689,7 +1707,7 @@ void main() {
     });
 
     test('the swipe is node-tier and only the resize is not', () {
-      final row = Dismissible3d(
+      final row = RenderDismissible3d(
         movementDuration: Duration.zero,
         resizeDuration: null,
         child: solid(const Size3d(2, 1, 0)),
@@ -1717,7 +1735,7 @@ void main() {
     test('a refused confirmation puts the row back', () async {
       var dismissals = 0;
       var asked = 0;
-      final row = Dismissible3d(
+      final row = RenderDismissible3d(
         movementDuration: Duration.zero,
         resizeDuration: null,
         confirmDismiss: (_) async {
@@ -1747,7 +1765,7 @@ void main() {
     });
 
     test('a dismissed row can be put back', () {
-      final row = Dismissible3d(
+      final row = RenderDismissible3d(
         movementDuration: Duration.zero,
         resizeDuration: null,
         child: solid(const Size3d(2, 1, 0)),
@@ -1774,16 +1792,16 @@ void main() {
       () {
         final controller = Scroll3dController();
         addTearDown(controller.dispose);
-        final row = Dismissible3d(
+        final row = RenderDismissible3d(
           movementDuration: Duration.zero,
           resizeDuration: null,
           child: solid(),
         );
-        final list = ListView3d(
+        final list = RenderListView3d(
           controller: controller,
           children: <RenderObject3d>[
             row,
-            TestBox(const Size3d(1, 4, 0), pointable: true),
+            RenderTestBox(const Size3d(1, 4, 0), pointable: true),
           ],
         );
         final surface = laidOut(
@@ -1819,7 +1837,7 @@ void main() {
       tester,
     ) async {
       var dismissals = 0;
-      final row = Dismissible3d(
+      final row = RenderDismissible3d(
         onDismissed: (_) => dismissals++,
         child: solid(const Size3d(2, 1, 0)),
       );
@@ -1848,7 +1866,7 @@ void main() {
     testWidgets('flies out, then closes the gap it left', (tester) async {
       Dismiss3dDirection? dismissed;
       var resizes = 0;
-      final row = Dismissible3d(
+      final row = RenderDismissible3d(
         movementDuration: const Duration(milliseconds: 200),
         resizeDuration: const Duration(milliseconds: 300),
         onResize: () => resizes++,
@@ -1902,22 +1920,22 @@ void main() {
       final controller = Layout3dController();
       var dismissals = 0;
 
-      Widget frame(Dismiss3dDirection direction) => SceneLayout3d(
+      Widget frame(Dismiss3dDirection direction) => Surface3d(
         parent: parent,
         size: const Size3d(2, 1, 0),
         controller: controller,
-        child: SceneDismissible3d(
+        child: Dismissible3d(
           direction: direction,
           movementDuration: Duration.zero,
           resizeDuration: null,
           onDismissed: (_) => dismissals++,
-          background: const SceneSizedBox3d(width: 2, height: 1),
-          child: const SceneSizedBox3d(width: 2, height: 1),
+          background: const SizedBox3d(width: 2, height: 1),
+          child: const SizedBox3d(width: 2, height: 1),
         ),
       );
 
       await tester.pumpWidget(frame(Dismiss3dDirection.forward));
-      final row = controller.surface!.child! as Dismissible3d;
+      final row = controller.surface!.child! as RenderDismissible3d;
       expect(row.direction, Dismiss3dDirection.forward);
       expect(row.child, isNotNull);
       expect(row.background, isNotNull);

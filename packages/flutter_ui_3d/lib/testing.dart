@@ -14,7 +14,7 @@
 ///
 ///   expect(find3d.bySemanticsLabel('Volume'), findsOne);
 ///   expect(find3d.bySemanticsLabel('Volume'), isReachable3d);
-///   expect(find3d.bySubtype<Text3d>(), standsOnItsPanel3d);
+///   expect(find3d.bySubtype<RenderText3d>(), standsOnItsPanel3d);
 /// });
 /// ```
 ///

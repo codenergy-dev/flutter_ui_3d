@@ -4,15 +4,15 @@ import 'package:flutter_ui_3d/rendering.dart';
 import 'support.dart';
 
 /// Four boxes 4 wide in a wrap 10 across: two per run.
-List<TestBox> squares(int count, [Size3d size = const Size3d(4, 2, 1)]) =>
-    List.generate(count, (index) => TestBox(size, name: 'box$index'));
+List<RenderTestBox> squares(int count, [Size3d size = const Size3d(4, 2, 1)]) =>
+    List.generate(count, (index) => RenderTestBox(size, name: 'box$index'));
 
 void main() {
   group('runs', () {
     test('breaks when the next child would not fit', () {
       final boxes = squares(5);
       laidOut(
-        Wrap3d(children: boxes),
+        RenderWrap3d(children: boxes),
         constraints: Constraints3d.loose(const Size3d(10, 20, 5)),
       );
 
@@ -29,7 +29,7 @@ void main() {
       laidOut(
         // 4 + 3 + 4 = 11, over the 10 available, so the second child wraps
         // even though the two boxes alone would fit.
-        Wrap3d(spacing: 3, children: boxes),
+        RenderWrap3d(spacing: 3, children: boxes),
         constraints: Constraints3d.loose(const Size3d(10, 20, 5)),
       );
 
@@ -39,7 +39,7 @@ void main() {
     test('separates runs by runSpacing', () {
       final boxes = squares(3);
       laidOut(
-        Wrap3d(runSpacing: 1.5, children: boxes),
+        RenderWrap3d(runSpacing: 1.5, children: boxes),
         constraints: Constraints3d.loose(const Size3d(10, 20, 5)),
       );
 
@@ -48,13 +48,16 @@ void main() {
 
     test('an unbounded main axis never breaks', () {
       final boxes = squares(6);
-      laidOut(Wrap3d(children: boxes), constraints: const Constraints3d());
+      laidOut(
+        RenderWrap3d(children: boxes),
+        constraints: const Constraints3d(),
+      );
 
       expect(boxes.last.offset, const Offset3d(20, 0, 0));
     });
 
     test('shrink-wraps to the runs it made', () {
-      final wrap = Wrap3d(children: squares(3));
+      final wrap = RenderWrap3d(children: squares(3));
       laidOut(wrap, constraints: Constraints3d.loose(const Size3d(10, 20, 5)));
 
       // Two runs: 8 across at the widest, 4 down, 1 deep.
@@ -62,11 +65,11 @@ void main() {
     });
 
     test('a run is as thick as its tallest child', () {
-      final short = TestBox(const Size3d(4, 1, 1));
-      final tall = TestBox(const Size3d(4, 3, 1));
-      final next = TestBox(const Size3d(4, 1, 1));
+      final short = RenderTestBox(const Size3d(4, 1, 1));
+      final tall = RenderTestBox(const Size3d(4, 3, 1));
+      final next = RenderTestBox(const Size3d(4, 1, 1));
       laidOut(
-        Wrap3d(children: [short, tall, next]),
+        RenderWrap3d(children: [short, tall, next]),
         constraints: Constraints3d.loose(const Size3d(10, 20, 5)),
       );
 
@@ -78,7 +81,7 @@ void main() {
     test('distributes the leftover room along a run', () {
       final boxes = squares(2);
       laidOut(
-        Wrap3d(alignment: WrapAlignment3d.spaceBetween, children: boxes),
+        RenderWrap3d(alignment: WrapAlignment3d.spaceBetween, children: boxes),
         constraints: Constraints3d.tight(const Size3d(10, 10, 1)),
       );
 
@@ -89,7 +92,7 @@ void main() {
     test('centres a run', () {
       final boxes = squares(1);
       laidOut(
-        Wrap3d(alignment: WrapAlignment3d.center, children: boxes),
+        RenderWrap3d(alignment: WrapAlignment3d.center, children: boxes),
         constraints: Constraints3d.tight(const Size3d(10, 10, 1)),
       );
 
@@ -99,7 +102,7 @@ void main() {
     test('distributes the runs across the cross axis', () {
       final boxes = squares(3);
       laidOut(
-        Wrap3d(runAlignment: WrapAlignment3d.end, children: boxes),
+        RenderWrap3d(runAlignment: WrapAlignment3d.end, children: boxes),
         constraints: Constraints3d.tight(const Size3d(10, 10, 1)),
       );
 
@@ -109,10 +112,10 @@ void main() {
     });
 
     test('places a child across its own run, not the whole box', () {
-      final tall = TestBox(const Size3d(4, 4, 1));
-      final short = TestBox(const Size3d(4, 2, 1));
+      final tall = RenderTestBox(const Size3d(4, 4, 1));
+      final short = RenderTestBox(const Size3d(4, 2, 1));
       laidOut(
-        Wrap3d(
+        RenderWrap3d(
           crossAxisAlignment: WrapCrossAlignment3d.center,
           children: [tall, short],
         ),
@@ -125,10 +128,10 @@ void main() {
     });
 
     test('centres on the axis that does not wrap', () {
-      final deep = TestBox(const Size3d(4, 2, 3));
-      final shallow = TestBox(const Size3d(4, 2, 1));
+      final deep = RenderTestBox(const Size3d(4, 2, 3));
+      final shallow = RenderTestBox(const Size3d(4, 2, 1));
       laidOut(
-        Wrap3d(children: [deep, shallow]),
+        RenderWrap3d(children: [deep, shallow]),
         constraints: Constraints3d.loose(const Size3d(10, 20, 5)),
       );
 
@@ -137,10 +140,10 @@ void main() {
     });
 
     test('a depth-aligned wrap can pin to the back face instead', () {
-      final deep = TestBox(const Size3d(4, 2, 3));
-      final shallow = TestBox(const Size3d(4, 2, 1));
+      final deep = RenderTestBox(const Size3d(4, 2, 3));
+      final shallow = RenderTestBox(const Size3d(4, 2, 1));
       laidOut(
-        Wrap3d(
+        RenderWrap3d(
           depthAxisAlignment: WrapCrossAlignment3d.end,
           children: [deep, shallow],
         ),
@@ -153,7 +156,7 @@ void main() {
 
   group('as a running layout', () {
     test('an empty wrap takes the smallest size allowed', () {
-      final wrap = Wrap3d();
+      final wrap = RenderWrap3d();
       laidOut(wrap, constraints: Constraints3d.loose(const Size3d(10, 10, 10)));
 
       expect(wrap.size, Size3d.zero);
@@ -161,7 +164,7 @@ void main() {
 
     test('a direction change relays out', () {
       final boxes = squares(3);
-      final wrap = Wrap3d(children: boxes);
+      final wrap = RenderWrap3d(children: boxes);
       final surface = laidOut(
         wrap,
         constraints: Constraints3d.loose(const Size3d(10, 20, 5)),
@@ -178,8 +181,8 @@ void main() {
     });
 
     test('children that overflow a run are not pushed outside the box', () {
-      final wide = TestBox(const Size3d(20, 2, 1));
-      final wrap = Wrap3d(children: [wide]);
+      final wide = RenderTestBox(const Size3d(20, 2, 1));
+      final wrap = RenderWrap3d(children: [wide]);
       laidOut(wrap, constraints: Constraints3d.loose(const Size3d(10, 20, 5)));
 
       // The child is constrained to the room available rather than left to

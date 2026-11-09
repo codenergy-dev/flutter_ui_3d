@@ -45,7 +45,7 @@ class ScreenReporter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     seen.add(MediaQuery3d.of(context));
-    return const SceneSizedBox3d(width: 0.1, height: 0.1);
+    return const SizedBox3d(width: 0.1, height: 0.1);
   }
 }
 
@@ -82,8 +82,8 @@ T childOf<T extends RenderObject3d>(Layout3dController controller) =>
     controller.surface!.child! as T;
 
 /// The label under a centring box on [controller]'s surface.
-Text3d labelOf(Layout3dController controller) =>
-    childOf<Align3d>(controller).child! as Text3d;
+RenderText3d labelOf(Layout3dController controller) =>
+    childOf<RenderAlign3d>(controller).child! as RenderText3d;
 
 void main() {
   group('the reader\'s font setting', () {
@@ -91,14 +91,14 @@ void main() {
       final controller = Layout3dController();
       Widget frame(TextScaler scaler) => view(
         MediaQueryData(textScaler: scaler),
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           controller: controller,
           size: const Size3d(4, 3, 0.5),
-          child: const SceneCenter3d(
-            child: ScenePadding3d(
+          child: const Center3d(
+            child: Padding3d(
               padding: EdgeInsets3d.all(0.1),
-              child: SceneText3d('hello', style: style),
+              child: Text3d('hello', style: style),
             ),
           ),
         ),
@@ -107,7 +107,9 @@ void main() {
       await tester.pumpWidget(frame(TextScaler.noScaling));
       // The same box across both pumps: a rebuild updates the layout object
       // rather than replacing it.
-      final label = tester.layout3d<Text3d>(find3d.bySubtype<Text3d>());
+      final label = tester.layout3d<RenderText3d>(
+        find3d.bySubtype<RenderText3d>(),
+      );
       expect(label.size.width, closeTo(0.5, 1e-9));
 
       // The setting changes, and the label three boxes down is a different
@@ -124,11 +126,11 @@ void main() {
     ) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           controller: controller,
           size: const Size3d(4, 3, 0.5),
-          child: const SceneCenter3d(child: SceneText3d('hello', style: style)),
+          child: const Center3d(child: Text3d('hello', style: style)),
         ),
       );
       expect(controller.surface!.metrics.textScaler, TextScaler.noScaling);
@@ -142,15 +144,13 @@ void main() {
       await tester.pumpWidget(
         view(
           MediaQueryData(textScaler: TextScaler.linear(1.5)),
-          SceneLayout3d(
+          Surface3d(
             parent: Node(),
             controller: controller,
             // A smaller screen, the way the gallery's table panel states one.
             metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.02),
             size: const Size3d(4, 3, 0.5),
-            child: const SceneCenter3d(
-              child: SceneText3d('hello', style: style),
-            ),
+            child: const Center3d(child: Text3d('hello', style: style)),
           ),
         ),
       );
@@ -166,7 +166,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0.5),
           metrics: Layout3dMetrics(textScaler: TextScaler.linear(2)),
@@ -182,7 +182,7 @@ void main() {
       await tester.pumpWidget(
         view(
           MediaQueryData(textScaler: TextScaler.linear(1.5)),
-          SceneLayout3d(
+          Surface3d(
             parent: Node(),
             controller: controller,
             size: const Size3d(4, 3, 0.5),
@@ -202,7 +202,7 @@ void main() {
       await tester.pumpWidget(
         view(
           MediaQueryData(textScaler: TextScaler.linear(1.5)),
-          SceneLayout3d(
+          Surface3d(
             parent: Node(),
             controller: controller,
             size: const Size3d(4, 3, 0.5),
@@ -224,21 +224,21 @@ void main() {
       await tester.pumpWidget(
         view(
           const MediaQueryData(textScaler: ClampedScaler(1.5, upTo: 15)),
-          SceneLayout3d(
+          Surface3d(
             parent: Node(),
             controller: controller,
             size: const Size3d(8, 3, 0.5),
-            child: const SceneRow3d(
+            child: const Row3d(
               children: <Widget>[
-                SceneText3d('aa', style: TextStyle(fontSize: 10)),
-                SceneText3d('bb', style: TextStyle(fontSize: 40)),
+                Text3d('aa', style: TextStyle(fontSize: 10)),
+                Text3d('bb', style: TextStyle(fontSize: 40)),
               ],
             ),
           ),
         ),
       );
       final labels = tester
-          .layouts3d<Text3d>(find3d.bySubtype<Text3d>())
+          .layouts3d<RenderText3d>(find3d.bySubtype<RenderText3d>())
           .toList();
       // Ten-point type grows by half; forty-point type is already big enough
       // and does not — which is what a single multiplier could not say.
@@ -258,7 +258,7 @@ void main() {
             size: Size(800, 600),
             padding: EdgeInsets.only(top: 44, bottom: 34),
           ),
-          SceneLayout3d(
+          Surface3d(
             parent: Node(),
             size: const Size3d(4, 3, 0.5),
             child: ScreenReporter(seen),
@@ -279,7 +279,7 @@ void main() {
     ) async {
       final seen = <MediaQuery3dData>[];
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(3, 4, 0.5),
           metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.02),
@@ -295,7 +295,7 @@ void main() {
     ) async {
       final seen = <MediaQuery3dData>[];
       await tester.pumpWidget(
-        SceneLayout3d(parent: Node(), child: ScreenReporter(seen)),
+        Surface3d(parent: Node(), child: ScreenReporter(seen)),
       );
       expect(seen.last.size.width, double.infinity);
       expect(seen.last.size.height, double.infinity);
@@ -312,7 +312,7 @@ void main() {
             size: Size(800, 600),
             padding: EdgeInsets.only(top: 44, bottom: 34),
           ),
-          SceneLayout3d(
+          Surface3d(
             parent: Node(),
             controller: controller,
             camera: frontCamera(),
@@ -365,12 +365,12 @@ void main() {
     });
   });
 
-  group('SceneSafeArea3d', () {
+  group('SafeArea3d', () {
     Widget screen(
       Widget child, {
       EdgeInsets3d padding = const EdgeInsets3d.only(top: 44, bottom: 34),
       Layout3dController? controller,
-    }) => SceneLayout3d(
+    }) => Surface3d(
       parent: Node(),
       controller: controller,
       size: const Size3d(4, 3, 0.5),
@@ -387,11 +387,12 @@ void main() {
       final controller = Layout3dController();
       await tester.pumpWidget(
         screen(
-          const SceneSafeArea3d(child: SceneSizedBox3d(width: 1, height: 1)),
+          const SafeArea3d(child: SizedBox3d(width: 1, height: 1)),
           controller: controller,
         ),
       );
-      final padding = childOf<Padding3d>(controller).padding as EdgeInsets3d;
+      final padding =
+          childOf<RenderPadding3d>(controller).padding as EdgeInsets3d;
       // Logical pixels in, world units out: 44dp is 0.44 at the default rate.
       expect(padding.top, closeTo(0.44, 1e-9));
       expect(padding.bottom, closeTo(0.34, 1e-9));
@@ -403,14 +404,14 @@ void main() {
       final controller = Layout3dController();
       await tester.pumpWidget(
         screen(
-          const SceneSafeArea3d(
-            child: SceneSafeArea3d(child: SceneSizedBox3d(width: 1, height: 1)),
+          const SafeArea3d(
+            child: SafeArea3d(child: SizedBox3d(width: 1, height: 1)),
           ),
           controller: controller,
         ),
       );
-      final outer = childOf<Padding3d>(controller);
-      final inner = outer.child! as Padding3d;
+      final outer = childOf<RenderPadding3d>(controller);
+      final inner = outer.child! as RenderPadding3d;
       expect((outer.padding as EdgeInsets3d).top, closeTo(0.44, 1e-9));
       expect(inner.padding, EdgeInsets3d.zero);
     });
@@ -421,14 +422,12 @@ void main() {
       final controller = Layout3dController();
       await tester.pumpWidget(
         screen(
-          const SceneSafeArea3d(
-            top: false,
-            child: SceneSizedBox3d(width: 1, height: 1),
-          ),
+          const SafeArea3d(top: false, child: SizedBox3d(width: 1, height: 1)),
           controller: controller,
         ),
       );
-      final padding = childOf<Padding3d>(controller).padding as EdgeInsets3d;
+      final padding =
+          childOf<RenderPadding3d>(controller).padding as EdgeInsets3d;
       expect(padding.top, 0);
       expect(padding.bottom, closeTo(0.34, 1e-9));
     });
@@ -437,14 +436,15 @@ void main() {
       final controller = Layout3dController();
       await tester.pumpWidget(
         screen(
-          const SceneSafeArea3d(
+          const SafeArea3d(
             minimum: EdgeInsets3d.all(50),
-            child: SceneSizedBox3d(width: 1, height: 1),
+            child: SizedBox3d(width: 1, height: 1),
           ),
           controller: controller,
         ),
       );
-      final padding = childOf<Padding3d>(controller).padding as EdgeInsets3d;
+      final padding =
+          childOf<RenderPadding3d>(controller).padding as EdgeInsets3d;
       // The platform's 44 loses to the stated 50; its 34 does too; the sides
       // it says nothing about get the minimum outright.
       expect(padding.top, closeTo(0.5, 1e-9));
@@ -457,16 +457,14 @@ void main() {
     ) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           controller: controller,
           size: const Size3d(4, 3, 0.5),
-          child: const SceneSafeArea3d(
-            child: SceneSizedBox3d(width: 1, height: 1),
-          ),
+          child: const SafeArea3d(child: SizedBox3d(width: 1, height: 1)),
         ),
       );
-      expect(childOf<Padding3d>(controller).padding, EdgeInsets3d.zero);
+      expect(childOf<RenderPadding3d>(controller).padding, EdgeInsets3d.zero);
     });
   });
 }

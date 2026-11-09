@@ -92,7 +92,7 @@ void main() {
         tester,
         () => const LinearProgressIndicator3d(value: 0.5),
       );
-      final steps = oneOf<Stack3d>(
+      final steps = oneOf<RenderStack3d>(
         it.surface,
       ).children.map((child) => child.sceneOffset.z).toList();
       expect(steps, hasLength(2));
@@ -271,7 +271,8 @@ void main() {
       expect(ring.size.height, closeTo(dp(40), 1e-9));
       expect(ring.offset.x, closeTo(-dp(2), 1e-9));
       expect(ring.offset.y, closeTo(-dp(2), 1e-9));
-      final decoration = (ring as DecoratedBox3d).decoration as BoxDecoration3d;
+      final decoration =
+          (ring as RenderDecoratedBox3d).decoration as BoxDecoration3d;
       expect(decoration.color.a, 0.0, reason: 'nothing in the middle');
       expect(decoration.border.width, 4.0);
       expect(decoration.borderRadius, theme.shape.full);
@@ -284,7 +285,7 @@ void main() {
       );
       final ring =
           namedBox(it.surface, 'CircularProgressIndicator3d ring')
-              as DecoratedBox3d;
+              as RenderDecoratedBox3d;
       final border = (ring.decoration as BoxDecoration3d).border;
       final sweep = border.gradient! as SweepGradient;
       expect(sweep.stops, <double>[0.0, 0.25, 0.25, 1.0]);
@@ -328,13 +329,13 @@ void main() {
       );
       final ring =
           namedBox(it.surface, 'CircularProgressIndicator3d ring')
-              as DecoratedBox3d;
+              as RenderDecoratedBox3d;
       final sweep =
           (ring.decoration as BoxDecoration3d).border.gradient!
               as SweepGradient;
       expect(sweep.colors, <Color>[scheme.primary, scheme.primary, grey, grey]);
       expect(
-        boxesOf<DecoratedBox3d>(it.surface),
+        boxesOf<RenderDecoratedBox3d>(it.surface),
         hasLength(1),
         reason: 'one slab, so the track cannot z-fight the arc',
       );
@@ -347,7 +348,7 @@ void main() {
       );
       final ring =
           namedBox(it.surface, 'CircularProgressIndicator3d ring')
-              as DecoratedBox3d;
+              as RenderDecoratedBox3d;
       final sweep =
           (ring.decoration as BoxDecoration3d).border.gradient!
               as SweepGradient;
@@ -357,7 +358,7 @@ void main() {
     testWidgets('fits a smaller box, and its stroke follows', (tester) async {
       final it = await pumpComponent(
         tester,
-        () => const SceneSizedBox3d(
+        () => const SizedBox3d(
           width: 0.2,
           height: 0.2,
           child: CircularProgressIndicator3d(strokeWidth: 2),
@@ -365,7 +366,7 @@ void main() {
       );
       final ring =
           namedBox(it.surface, 'CircularProgressIndicator3d ring')
-              as DecoratedBox3d;
+              as RenderDecoratedBox3d;
       expect(ring.size.width, closeTo(dp(22), 1e-9));
       expect((ring.decoration as BoxDecoration3d).border.width, 2.0);
     });
@@ -402,7 +403,7 @@ void main() {
         );
         final ring =
             namedBox(it.surface, 'CircularProgressIndicator3d ring')
-                as DecoratedBox3d;
+                as RenderDecoratedBox3d;
         // The caps: half a 4dp stroke, along an 18dp radius.
         const cap = 2.0 / 18.0;
         final fraction =
@@ -461,7 +462,7 @@ void main() {
         () => _Host(
           builder: (context, setState) {
             rebuild = setState;
-            return SceneAnimatedContainer3d(
+            return AnimatedContainer3d(
               duration: const Duration(milliseconds: 200),
               width: wide ? 2.0 : 1.0,
               height: 1.0,
@@ -638,21 +639,21 @@ class _TickingWidthState extends State<_TickingWidth>
   }
 
   @override
-  Widget build(BuildContext context) => _SceneTickingWidth(_clock);
+  Widget build(BuildContext context) => _TickingWidthBox(_clock);
 }
 
-class _SceneTickingWidth extends MultiChildRenderObjectWidget3d {
-  const _SceneTickingWidth(this.clock);
+class _TickingWidthBox extends MultiChildRenderObjectWidget3d {
+  const _TickingWidthBox(this.clock);
 
   final Animation<double> clock;
 
   @override
-  SizedBox3d createLayout(BuildContext context) {
-    final box = SizedBox3d(width: 1.0, height: 1.0);
+  RenderSizedBox3d createLayout(BuildContext context) {
+    final box = RenderSizedBox3d(width: 1.0, height: 1.0);
     clock.addListener(() => box.width = 1.0 + clock.value);
     return box;
   }
 
   @override
-  void updateLayout(BuildContext context, SizedBox3d layout) {}
+  void updateLayout(BuildContext context, RenderSizedBox3d layout) {}
 }

@@ -7,8 +7,8 @@ import 'rendering/object.dart';
 /// Putting one box over another when neither is the other's parent.
 ///
 /// The problem an overlay creates and does not solve: an [Overlay3dEntry] is
-/// placed by the overlay's own [Stack3d.alignment], which is nowhere near the
-/// box that asked for it. A menu belongs at its button, a tooltip under the
+/// placed by the overlay's own [RenderStack3d.alignment], which is nowhere near
+/// the box that asked for it. A menu belongs at its button, a tooltip under the
 /// control it describes, and a picked-up card over the row it came from —
 /// three components, one piece of arithmetic, and Flutter's answer to it
 /// (`CompositedTransformTarget` and `CompositedTransformFollower`) has no
@@ -73,7 +73,7 @@ extension Layout3dAnchoring on RenderObject3d {
   /// that is its own job: a hit test moves a ray into a child by [offset]
   /// alone, so a box anchored by [nodeOffset] answers where layout put it. Shift
   /// the ray by [nodeOffset] in the follower's `hitTest`, as
-  /// `material_ui_3d`'s `Follower3d` does.
+  /// `material_ui_3d`'s `RenderFollower3d` does.
   ///
   /// **It writes nothing and lays nothing out.** [nodeOffset] is the node
   /// tier — one matrix a frame, no `markNeedsLayout` — which is the only tier
@@ -91,7 +91,7 @@ extension Layout3dAnchoring on RenderObject3d {
   /// An entry is lifted toward the viewer by its layer's lift precisely so
   /// that it does not fight the content it is carried over; anchoring in
   /// depth as well would put the follower back on the anchor's own plane and
-  /// hand the depth test a coin toss. `Draggable3d` learned that from a
+  /// hand the depth test a coin toss. `RenderDraggable3d` learned that from a
   /// render probe, and this default is that lesson.
   ///
   /// One assumption, the same one the drag lane makes: this box's

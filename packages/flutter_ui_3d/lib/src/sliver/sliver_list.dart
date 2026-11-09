@@ -11,7 +11,7 @@ import '../rendering/object.dart';
 import 'sliver.dart';
 import 'sliver_constraints.dart';
 
-/// Builds the layout for one item of a [SliverList3d.builder].
+/// Builds the layout for one item of a [RenderSliverList3d.builder].
 @Deprecated(
   'Use RenderObject3dItemBuilder, which every builder in the package shares. '
   'This alias will be removed in a future release.',
@@ -20,15 +20,15 @@ typedef Sliver3dItemBuilder = RenderObject3dItemBuilder;
 
 /// A run of items in a sliver world, the 3D analogue of [SliverList].
 ///
-/// The same idea as [ListView3d], answering the sliver protocol instead of
-/// owning a scroll position: several of these share one
-/// `CustomScrollView3d`'s position, so a list can follow a grid or a header
-/// as one continuous surface.
+/// The same idea as [RenderListView3d], answering the sliver protocol instead
+/// of owning a scroll position: several of these share one
+/// `RenderCustomScrollView3d`'s position, so a list can follow a grid or a
+/// header as one continuous surface.
 ///
 /// Items are not stretched across the cross axes, the same deviation
-/// [ListView3d] makes: [crossAxisAlignment] and [depthAxisAlignment] place
-/// them instead, because a model is not a row of text and stretching it is
-/// rarely what was meant.
+/// [RenderListView3d] makes: [crossAxisAlignment] and [depthAxisAlignment]
+/// place them instead, because a model is not a row of text and stretching it
+/// is rarely what was meant.
 ///
 /// Without an [itemExtent] the length of the list is a guess, and the guess
 /// changes. Items are measured forward from the first, and the total is the
@@ -53,10 +53,10 @@ typedef Sliver3dItemBuilder = RenderObject3dItemBuilder;
 /// offsets arithmetic. For a list whose items genuinely differ,
 /// [contentExtentEstimator] leaves the offsets measured and steadies the total
 /// alone.
-class SliverList3d extends SliverMultiBoxAdaptor3d
+class RenderSliverList3d extends RenderSliverMultiBoxAdaptor3d
     with RenderMeasuredChildrenMixin3d<ParentData3d> {
   /// Creates a list over an explicit set of children.
-  SliverList3d({
+  RenderSliverList3d({
     double spacing = 0.0,
     double? itemExtent,
     RenderObject3dPrototypeBuilder? prototypeItem,
@@ -78,7 +78,7 @@ class SliverList3d extends SliverMultiBoxAdaptor3d
   }
 
   /// Creates a list that builds its items on demand.
-  SliverList3d.builder({
+  RenderSliverList3d.builder({
     required int itemCount,
     required RenderObject3dItemBuilder itemBuilder,
     double spacing = 0.0,

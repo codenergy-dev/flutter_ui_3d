@@ -19,14 +19,11 @@ void main() {
     ) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0.5),
           controller: controller,
-          child: const SceneTheme3d(
-            data: Theme3dData.light,
-            child: Material3d(),
-          ),
+          child: const Theme3d(data: Theme3dData.light, child: Material3d()),
         ),
       );
 
@@ -45,11 +42,11 @@ void main() {
     testWidgets('every property overrides its token', (tester) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0.5),
           controller: controller,
-          child: SceneTheme3d(
+          child: Theme3d(
             data: Theme3dData.light,
             child: Material3d(
               color: const Color(0xFF112233),
@@ -76,14 +73,11 @@ void main() {
     testWidgets('the dark theme changes only the colours', (tester) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0.5),
           controller: controller,
-          child: const SceneTheme3d(
-            data: Theme3dData.dark,
-            child: Material3d(),
-          ),
+          child: const Theme3d(data: Theme3dData.dark, child: Material3d()),
         ),
       );
 
@@ -98,14 +92,14 @@ void main() {
     testWidgets('is the thickness token deep, in world units', (tester) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           // Loose, so the surface does not decide the depth for it. A tight
           // constraint wins over a dp figure exactly as it does in Flutter,
           // which is the first thing that catches a component author out.
           constraints: Constraints3d.loose(const Size3d(4, 3, 1)),
           controller: controller,
-          child: const SceneTheme3d(
+          child: const Theme3d(
             data: Theme3dData.light,
             child: Material3d(thickness: 8.0),
           ),
@@ -121,12 +115,12 @@ void main() {
 
     testWidgets('follows the surface unit contract', (tester) async {
       final controller = Layout3dController();
-      Widget frame(Layout3dMetrics metrics) => SceneLayout3d(
+      Widget frame(Layout3dMetrics metrics) => Surface3d(
         parent: Node(),
         constraints: Constraints3d.loose(const Size3d(4, 3, 1)),
         metrics: metrics,
         controller: controller,
-        child: const SceneTheme3d(
+        child: const Theme3d(
           data: Theme3dData.light,
           child: Material3d(thickness: 8.0),
         ),
@@ -151,20 +145,20 @@ void main() {
 
     testWidgets('pads its child in logical pixels', (tester) async {
       final controller = Layout3dController();
-      late TestBox child;
+      late RenderTestBox child;
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0.5),
           controller: controller,
-          child: SceneTheme3d(
+          child: Theme3d(
             data: Theme3dData.light,
             child: Material3d(
               padding: const EdgeInsets3d.symmetric(
                 horizontal: 24,
                 vertical: 10,
               ),
-              child: SceneTestBox(const Size3d(10, 10, 0), (b) => child = b),
+              child: TestBox(const Size3d(10, 10, 0), (b) => child = b),
             ),
           ),
         ),
@@ -182,17 +176,17 @@ void main() {
       // wins the depth test against. frontCenter is the default for exactly
       // that reason, and it is a claim about an offset rather than a picture.
       final controller = Layout3dController();
-      late TestBox child;
+      late RenderTestBox child;
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0.5),
           controller: controller,
-          child: SceneTheme3d(
+          child: Theme3d(
             data: Theme3dData.light,
             child: Material3d(
               thickness: 8.0,
-              child: SceneTestBox(const Size3d(1, 1, 0), (b) => child = b),
+              child: TestBox(const Size3d(1, 1, 0), (b) => child = b),
             ),
           ),
         ),
@@ -208,16 +202,16 @@ void main() {
     ) async {
       late TextStyle seen;
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0.5),
-          child: SceneTheme3d(
+          child: Theme3d(
             data: Theme3dData.light,
             child: Material3d(
               child: Builder(
                 builder: (BuildContext context) {
                   seen = DefaultTextStyle.of(context).style;
-                  return const SceneSizedBox3d.cube(0.1);
+                  return const SizedBox3d.cube(0.1);
                 },
               ),
             ),
@@ -234,10 +228,10 @@ void main() {
     ) async {
       late TextStyle seen;
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0.5),
-          child: SceneTheme3d(
+          child: Theme3d(
             data: Theme3dData.light,
             child: Material3d(
               color: ColorScheme3d.light.primary,
@@ -249,7 +243,7 @@ void main() {
               child: Builder(
                 builder: (BuildContext context) {
                   seen = DefaultTextStyle.of(context).style;
-                  return const SceneSizedBox3d.cube(0.1);
+                  return const SizedBox3d.cube(0.1);
                 },
               ),
             ),

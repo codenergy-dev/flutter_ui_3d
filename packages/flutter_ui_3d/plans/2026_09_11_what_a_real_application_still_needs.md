@@ -2,7 +2,7 @@
 status: in progress
 reason: five of the seventeen items are open; the motion lane is closed and so is the colour generator, so what is left is the catalogue batch — planned in seven phases, five landed — more than one screen, more than one language, and the letter someone can type with the keyboard controls behind it
 created_at: 2026-09-11T21:20:18Z
-updated_at: 2026-11-09T14:00:00Z
+updated_at: 2026-11-09T17:11:37Z
 commit: abc2469ce5c4ec4c41e2738fc5acf55bcf40640a
 ---
 
@@ -114,7 +114,7 @@ plan, which is the rule phase 0 established and every phase since has obeyed.
 
 Not an item on this map, because no application is waiting on it:
 [names that say what Flutter calls them](2026_11_09_names_that_say_what_flutter_calls_them.md),
-in progress, renames the packages and then the classes.
+completed, renamed the packages and then the classes.
 
 ## The order, and why
 

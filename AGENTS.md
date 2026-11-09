@@ -70,7 +70,7 @@ goes in the changelog and the plans. This file stays a contract.**
 | --- | --- |
 | `packages/flutter_ui_3d` | The layout protocol. Constraints, intrinsics, baselines, flex, stack, wrap, reading direction, slivers, scrolling, text measurement and geometry, decoration with pictures and gradients, clipping, pointer dispatch, wheel and trackpad scrolling, focus and key bindings, overlays, animation, diagnostics, the unit contract and the screen a surface stands in for — and `testing.dart`, the library an application tests its screens with. |
 | `packages/material_ui_3d` | Material Design 3 on that protocol: seven token families, a theme both layers read, and the catalogue over one `Material3d` primitive — buttons and the segmented button, cards, rows, chips, badges and banners, the structure, its drawers and its tabs, the overlays that arrive rather than appear, the selection controls, the progress indicators and the press ripple. |
-| `examples/flutter_ui_3d_gallery` | The example app, and the only place a person sees any of this drawn. A Material screen on an upright panel that turns — with a gradient header, a circular avatar on every row, and an overflow menu that opens a dialog and a sheet so that an arrival has somewhere to be looked at — the same catalogue flat on the ground, and a scrolling list of raw meshes beside them: all hit-testable, through one `SceneInput3d` around the view. |
+| `examples/flutter_ui_3d_gallery` | The example app, and the only place a person sees any of this drawn. A Material screen on an upright panel that turns — with a gradient header, a circular avatar on every row, and an overflow menu that opens a dialog and a sheet so that an arrival has somewhere to be looked at — the same catalogue flat on the ground, and a scrolling list of raw meshes beside them: all hit-testable, through one `Input3d` around the view. |
 | `examples/render_probe` | Render tests. Draws the layout on a GPU and probes the frame at the pixels layout says to check, and photographs the gallery. Commits its platform scaffolding, unlike the gallery. |
 
 `material_ui_3d` is the reason the layout package exists: a Material
@@ -210,10 +210,10 @@ answer a different question than this file does.
 - **[docs/traps.md](docs/traps.md)** — the sharp edges of *these packages*.
   A box's size is in world units while a Material figure is in logical pixels;
   writing `metrics` relayouts everything; there are four transform channels and
-  a `Stack3d` silently erases one of them; the package draws almost nothing
-  until you install a painter; a corner radius is not a clip; the depth axis is
-  not symmetric with the other two, because the viewer is on one side of it.
-  **Read it before building a component.** Do not summarize it here — it has
+  a `RenderStack3d` silently erases one of them; the package draws almost
+  nothing until you install a painter; a corner radius is not a clip; the depth
+  axis is not symmetric with the other two, because the viewer is on one side of
+  it. **Read it before building a component.** Do not summarize it here — it has
   been tried, and the summary rotted while the page stayed right.
 - **[docs/engine-rules.md](docs/engine-rules.md)** — using `flutter_scene`
   correctly. `vector_math` not `vector_math_64`, `--enable-flutter-gpu` alone,
@@ -362,7 +362,7 @@ message.
 
 Subject lines here are short, imperative and say what the change does for the
 reader, not which files moved: "Pin a header to the leading edge and cut the
-content under it", not "Add SliverPersistentHeader3d".
+content under it", not "Add RenderSliverPersistentHeader3d".
 
 ### README files are written for humans
 

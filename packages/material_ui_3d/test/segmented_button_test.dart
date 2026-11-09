@@ -24,16 +24,16 @@ const List<ButtonSegment3d<int>> _segments = <ButtonSegment3d<int>>[
 ];
 
 /// The segment announcing [label].
-Semantics3d _segment(Layout3dSurface surface, String label) =>
-    boxesOf<Semantics3d>(
+RenderSemantics3d _segment(RenderSurface3d surface, String label) =>
+    boxesOf<RenderSemantics3d>(
       surface,
     ).firstWhere((box) => box.properties.label == label);
 
 /// The panel a segment draws: the one decorated box under its announcement.
-DecoratedBox3d _panelOf(Layout3dSurface surface, String label) {
-  final found = <DecoratedBox3d>[];
+RenderDecoratedBox3d _panelOf(RenderSurface3d surface, String label) {
+  final found = <RenderDecoratedBox3d>[];
   void walk(RenderObject3d box) {
-    if (box is DecoratedBox3d) found.add(box);
+    if (box is RenderDecoratedBox3d) found.add(box);
     box.visitChildren(walk);
   }
 
@@ -41,13 +41,14 @@ DecoratedBox3d _panelOf(Layout3dSurface surface, String label) {
   return found.first;
 }
 
-BoxDecoration3d _decorationOf(Layout3dSurface surface, String label) =>
+BoxDecoration3d _decorationOf(RenderSurface3d surface, String label) =>
     _panelOf(surface, label).decoration as BoxDecoration3d;
 
 /// The one panel with a border: the outline in front of the segments.
-DecoratedBox3d _outline(Layout3dSurface surface) => boxesOf<DecoratedBox3d>(
-  surface,
-).firstWhere((box) => !(box.decoration as BoxDecoration3d).border.isNone);
+RenderDecoratedBox3d _outline(RenderSurface3d surface) =>
+    boxesOf<RenderDecoratedBox3d>(
+      surface,
+    ).firstWhere((box) => !(box.decoration as BoxDecoration3d).border.isNone);
 
 /// A button holding its own selection, so a test can press it and read back
 /// both what it was told and what it shows.
@@ -107,7 +108,7 @@ void main() {
         closeTo(style.height * _dp, 1e-9),
       );
     }
-    final slot = boxesOf<Flex3d>(pumped.surface).first;
+    final slot = boxesOf<RenderFlex3d>(pumped.surface).first;
     expect(slot.size.height, closeTo(style.tapTargetHeight * _dp, 1e-9));
   });
 
@@ -137,7 +138,7 @@ void main() {
   ) async {
     final pumped = await pumpComponent(
       tester,
-      () => SceneSizedBox3d(
+      () => SizedBox3d(
         width: 3,
         child: SegmentedButton3d<int>(
           segments: _segments,
@@ -171,7 +172,7 @@ void main() {
     expect(_decorationOf(pumped.surface, 'Day').color.a, 0.0);
     expect(_decorationOf(pumped.surface, 'Month').color.a, 0.0);
     // One glyph in the whole button, and it is the check.
-    final glyphs = boxesOf<Text3d>(pumped.surface)
+    final glyphs = boxesOf<RenderText3d>(pumped.surface)
         .where(
           (text) =>
               text.data ==
@@ -259,7 +260,7 @@ void main() {
     expect(decoration.border.width, style.outlineWidth);
     expect(decoration.border.color, _theme.colorScheme.outline);
     expect(decoration.borderRadius, style.shape);
-    final stack = boxesOf<Stack3d>(pumped.surface).first;
+    final stack = boxesOf<RenderStack3d>(pumped.surface).first;
     expect(stack.depthStep, closeTo(style.outlineDepthStep * _dp, 1e-9));
     expect(
       _theme.thickness.separates(
@@ -270,13 +271,13 @@ void main() {
       isTrue,
     );
     expect(
-      boxesOf<IgnorePointer3d>(
+      boxesOf<RenderIgnorePointer3d>(
         pumped.surface,
       ).any((box) => isAtOrBelow(outline, box)),
       isTrue,
     );
     // Two rules, between the three segments, in the outline's colour.
-    final rules = boxesOf<DecoratedBox3d>(pumped.surface)
+    final rules = boxesOf<RenderDecoratedBox3d>(pumped.surface)
         .where(
           (box) =>
               isAtOrBelow(box, outline) &&

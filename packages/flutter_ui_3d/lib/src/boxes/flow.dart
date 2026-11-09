@@ -40,7 +40,8 @@ abstract interface class Flow3dPaintingContext {
   void paintChild(int index, {Offset3d offset, Matrix4? transform});
 }
 
-/// Decides where a [Flow3d]'s children go, the 3D analogue of [FlowDelegate].
+/// Decides where a [RenderFlow3d]'s children go, the 3D analogue of
+/// [FlowDelegate].
 ///
 /// A flow is the box for arrangements that change constantly and never resize
 /// anything: a menu whose items fan out from the button that opened it, a
@@ -48,13 +49,13 @@ abstract interface class Flow3dPaintingContext {
 /// that spring into place. [paintChildren] can run every frame — drive it
 /// from an animation through [repaint] — and it costs one scene-node
 /// transform per child, with the layout protocol untouched. That makes
-/// `Flow3d` cheaper here than in Flutter, where the same trick still costs a
-/// repaint of a layer.
+/// `RenderFlow3d` cheaper here than in Flutter, where the same trick still
+/// costs a repaint of a layer.
 ///
 /// The trade is the usual one for this category: what moves is the geometry,
 /// not the box. So a flow's children are all as big as [getConstraintsForChild]
 /// says and all *placed* at the flow's origin corner as far as the layout
-/// protocol is concerned. See [Flow3d] for what that means for a ray.
+/// protocol is concerned. See [RenderFlow3d] for what that means for a ray.
 abstract class Flow3dDelegate {
   /// Creates a delegate that re-places its children whenever [repaint]
   /// notifies.
@@ -111,7 +112,7 @@ abstract class Flow3dDelegate {
 /// layout protocol hearing about it at all.
 ///
 /// ```dart
-/// Flow3d(delegate: FanOut(progress: controller), children: menuItems)
+/// RenderFlow3d(delegate: FanOut(progress: controller), children: menuItems)
 /// ```
 ///
 /// ## Hit testing
@@ -133,10 +134,10 @@ abstract class Flow3dDelegate {
 ///
 /// A child the delegate did not place this pass is hidden, and a hidden child
 /// is out of reach, so a dropped child cannot be hit either.
-class Flow3d extends RenderMultiChild3d<ParentData3d>
+class RenderFlow3d extends RenderMultiChild3d<ParentData3d>
     implements Flow3dPaintingContext {
   /// Creates a flow arranged by [delegate].
-  Flow3d({required Flow3dDelegate delegate, super.children, super.name})
+  RenderFlow3d({required Flow3dDelegate delegate, super.children, super.name})
     : _delegate = delegate;
 
   Flow3dDelegate _delegate;
@@ -215,14 +216,14 @@ class Flow3d extends RenderMultiChild3d<ParentData3d>
     );
     assert(
       index >= 0 && index < childCount,
-      'A Flow3d delegate placed child $index, and the flow has $childCount '
+      'A RenderFlow3d delegate placed child $index, and the flow has $childCount '
       '${childCount == 1 ? 'child' : 'children'}.',
     );
     if (index < 0 || index >= childCount) return;
     final first = _placed.add(index);
     assert(
       first,
-      'A Flow3d delegate placed child $index twice; the second placement '
+      'A RenderFlow3d delegate placed child $index twice; the second placement '
       'would simply overwrite the first.',
     );
     final child = childAt(index);

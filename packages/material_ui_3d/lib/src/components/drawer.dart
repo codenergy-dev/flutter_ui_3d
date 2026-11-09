@@ -20,19 +20,19 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneColumn3d,
-        SceneConstrainedBox3d,
-        SceneExpanded3d,
-        SceneIgnorePointer3d,
-        SceneListView3d,
-        SceneMotionTransition3d,
-        ScenePadding3d,
-        SceneRow3d,
-        SceneSafeArea3d,
-        SceneSemantics3d,
-        SceneSizedBox3d,
-        SceneTapTarget3d,
-        SceneText3d,
+        Column3d,
+        ConstrainedBox3d,
+        Expanded3d,
+        IgnorePointer3d,
+        ListView3d,
+        MotionTransition3d,
+        Padding3d,
+        Row3d,
+        SafeArea3d,
+        Semantics3d,
+        SizedBox3d,
+        TapTarget3d,
+        Text3d,
         WidgetPageRoute3d;
 
 import '../theme/theme.dart';
@@ -73,7 +73,7 @@ enum DrawerAlignment3d {
 ///     context: context,
 ///     builder: (context) => Drawer3d(
 ///       semanticLabel: 'Menu',
-///       child: SceneListView3d(
+///       child: ListView3d(
 ///         crossAxisAlignment: CrossAxisAlignment3d.stretch,
 ///         depthAxisAlignment: CrossAxisAlignment3d.start,
 ///         children: entries,
@@ -165,7 +165,7 @@ class Drawer3d extends StatelessWidget {
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final edge = _DrawerPlacement3d.maybeOf(context) ?? DrawerAlignment3d.start;
 
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: SemanticsProperties(
         scopesRoute: true,
         namesRoute: semanticLabel != null,
@@ -176,7 +176,7 @@ class Drawer3d extends StatelessWidget {
       // is Flutter's `BoxConstraints.expand(width: 304)` — and loose in depth,
       // so the surface below is as deep as its own thickness rather than as
       // deep as the overlay it was put in.
-      child: SceneConstrainedBox3d(
+      child: ConstrainedBox3d(
         constraints: Constraints3d(
           minWidth: metrics.dp(width ?? resolved.width),
           maxWidth: metrics.dp(width ?? resolved.width),
@@ -225,7 +225,7 @@ class _DrawerPlacement3d extends InheritedWidget {
 ///   selectedIndex: screen,
 ///   onDestinationSelected: (index) {
 ///     setState(() => screen = index);
-///     Navigator3d.of(SceneOverlay3d.of(context))?.pop();
+///     Navigator3d.of(Overlay3d.of(context))?.pop();
 ///   },
 ///   semanticLabel: 'Mail',
 ///   children: const <Widget>[
@@ -352,17 +352,17 @@ class NavigationDrawer3d extends StatelessWidget {
       style: drawerStyle,
       semanticLabel: semanticLabel,
       textDirection: textDirection,
-      child: SceneSafeArea3d(
+      child: SafeArea3d(
         bottom: false,
-        child: SceneColumn3d(
+        child: Column3d(
           crossAxisAlignment: CrossAxisAlignment3d.stretch,
           // On the drawer's face, for the reason every column on a surface
           // is: a flex centres in depth only when it is told to.
           depthAxisAlignment: CrossAxisAlignment3d.start,
           children: <Widget>[
             ?header,
-            SceneExpanded3d(
-              child: SceneListView3d(
+            Expanded3d(
+              child: ListView3d(
                 crossAxisAlignment: CrossAxisAlignment3d.stretch,
                 // On the face. A list centres its items in depth unless it is
                 // told otherwise — the right default for a list of objects —
@@ -437,8 +437,8 @@ class _DestinationInfo3d extends InheritedWidget {
 /// A widget, as Flutter's `NavigationDrawerDestination` is, so that it can
 /// sit among headings and dividers in the drawer's list. Its [label] is a
 /// **string**, for the reason a `NavigationDestination3d`'s is: a
-/// `Semantics3d` gathers nothing from below it, and taking the string lets
-/// the destination build the visible label and the announcement out of one
+/// `RenderSemantics3d` gathers nothing from below it, and taking the string
+/// lets the destination build the visible label and the announcement out of one
 /// thing that cannot disagree with itself.
 ///
 /// It announces its label as a button, with `selected` on the current one.
@@ -479,23 +479,21 @@ class NavigationDrawerDestination3d extends StatelessWidget {
         ? theme.colorScheme.disabledContent
         : (info.selected ? style.selectedContentColor : style.contentColor);
 
-    final row = SceneRow3d(
+    final row = Row3d(
       mainAxisSize: MainAxisSize3d.max,
       crossAxisAlignment: CrossAxisAlignment3d.center,
       depthAxisAlignment: CrossAxisAlignment3d.start,
       children: <Widget>[
-        SceneSizedBox3d(width: metrics.dp(style.iconInset)),
+        SizedBox3d(width: metrics.dp(style.iconInset)),
         // Glyphs answer hit tests on their own account; the well is what a
         // ray is meant to find here.
-        SceneIgnorePointer3d(
-          child: info.selected ? (selectedIcon ?? icon) : icon,
-        ),
-        SceneSizedBox3d(width: metrics.dp(style.labelGap)),
-        SceneExpanded3d(
-          child: SceneTextStyle3d(
+        IgnorePointer3d(child: info.selected ? (selectedIcon ?? icon) : icon),
+        SizedBox3d(width: metrics.dp(style.labelGap)),
+        Expanded3d(
+          child: TextStyle3d(
             style: style.labelStyle,
             color: content,
-            child: SceneIgnorePointer3d(child: SceneText3d(label)),
+            child: IgnorePointer3d(child: Text3d(label)),
           ),
         ),
       ],
@@ -525,10 +523,10 @@ class NavigationDrawerDestination3d extends StatelessWidget {
           : row,
     );
 
-    return ScenePadding3d(
+    return Padding3d(
       padding: metrics.dpInsets(info.tilePadding ?? style.tilePadding),
-      child: SceneTapTarget3d(
-        child: SceneSemantics3d(
+      child: TapTarget3d(
+        child: Semantics3d(
           properties: SemanticsProperties(
             button: true,
             enabled: active,
@@ -537,7 +535,7 @@ class NavigationDrawerDestination3d extends StatelessWidget {
             textDirection: readingDirection3d(context, info.textDirection),
             onTap: active ? info.onTap : null,
           ),
-          child: SceneSizedBox3d(
+          child: SizedBox3d(
             height: metrics.dp(style.tileHeight),
             child: surface,
           ),
@@ -609,7 +607,7 @@ Future<T?> showDrawer3d<T>({
       dismissible: barrierDismissible,
       onDismiss: route.pop,
       scrimFade: route.animation,
-      child: SceneMotionTransition3d(
+      child: MotionTransition3d(
         animation: route.animation,
         motion: arrival.motion,
         child: _DrawerPlacement3d(

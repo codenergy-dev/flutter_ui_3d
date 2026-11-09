@@ -5,7 +5,7 @@ import 'package:flutter/semantics.dart' show SemanticsProperties;
 import 'package:flutter/widgets.dart'
     show BuildContext, FocusNode, StatelessWidget, TextDirection, Widget;
 import 'package:flutter_ui_3d/rendering.dart' show EdgeInsetsGeometry3d;
-import 'package:flutter_ui_3d/widgets.dart' show SceneText3d;
+import 'package:flutter_ui_3d/widgets.dart' show Text3d;
 
 import 'control_in_tile.dart';
 import 'list_tile.dart';
@@ -38,7 +38,7 @@ enum ListTileControlAffinity3d {
 /// **The row is the control, and the checkbox in it is only its picture.**
 /// Flutter makes a `CheckboxListTile` announce once by wrapping it in
 /// `MergeSemantics` and the checkbox in `ExcludeFocus`. Neither exists here —
-/// a `Semantics3d` gathers nothing, and taking one node out of the tree
+/// a `RenderSemantics3d` gathers nothing, and taking one node out of the tree
 /// leaves every node under it published — so two announcements cannot be
 /// merged after the fact, and this does not try. The control in the tile is
 /// built inside `ControlInTile3d`, where it publishes nothing, takes no
@@ -265,8 +265,8 @@ class CheckboxListTile3d extends _SelectionListTile3d {
     super.textDirection,
   }) : assert(tristate || value != null),
        super(
-         title: SceneText3d(title),
-         subtitle: subtitle == null ? null : SceneText3d(subtitle),
+         title: Text3d(title),
+         subtitle: subtitle == null ? null : Text3d(subtitle),
          semanticLabel: semanticLabel ?? _composed(title, subtitle),
        );
 
@@ -369,8 +369,8 @@ class SwitchListTile3d extends _SelectionListTile3d {
     String? semanticLabel,
     super.textDirection,
   }) : super(
-         title: SceneText3d(title),
-         subtitle: subtitle == null ? null : SceneText3d(subtitle),
+         title: Text3d(title),
+         subtitle: subtitle == null ? null : Text3d(subtitle),
          semanticLabel: semanticLabel ?? _composed(title, subtitle),
        );
 
@@ -414,7 +414,7 @@ class SwitchListTile3d extends _SelectionListTile3d {
 /// RadioGroup3d<Delivery>(
 ///   groupValue: _delivery,
 ///   onChanged: (value) => setState(() => _delivery = value),
-///   child: SceneColumn3d(
+///   child: Column3d(
 ///     mainAxisSize: MainAxisSize3d.min,
 ///     depthAxisAlignment: CrossAxisAlignment3d.start,
 ///     children: <Widget>[
@@ -496,8 +496,8 @@ class RadioListTile3d<T> extends _SelectionListTile3d {
     super.textDirection,
   }) : _group = null,
        super(
-         title: SceneText3d(title),
-         subtitle: subtitle == null ? null : SceneText3d(subtitle),
+         title: Text3d(title),
+         subtitle: subtitle == null ? null : Text3d(subtitle),
          semanticLabel: semanticLabel ?? _composed(title, subtitle),
        );
 

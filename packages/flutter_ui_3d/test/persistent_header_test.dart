@@ -72,7 +72,7 @@ class ProbeHeader3dDelegate extends SliverPersistentHeader3dDelegate {
 
 /// A sliver of a fixed length that keeps every window it was handed, so the
 /// overlap the viewport computed can be read off it.
-class RecordingSliver3d extends Sliver3d {
+class RecordingSliver3d extends RenderSliver3d {
   RecordingSliver3d(this.extent, {super.name});
 
   final double extent;
@@ -94,8 +94,8 @@ class RecordingSliver3d extends Sliver3d {
   }
 }
 
-Layout3dSurface viewportOf(
-  CustomScrollView3d view, {
+RenderSurface3d viewportOf(
+  RenderCustomScrollView3d view, {
   Size3d size = const Size3d(4, 10, 2),
 }) => laidOut(view, constraints: Constraints3d.tight(size));
 
@@ -138,8 +138,10 @@ void main() {
   group('a header that scrolls away', () {
     test('shrinks to its minimum, then leaves with the content', () {
       final delegate = ProbeHeader3dDelegate();
-      final header = SliverPersistentHeader3d(delegate: delegate);
-      final view = CustomScrollView3d(slivers: [header, RecordingSliver3d(20)]);
+      final header = RenderSliverPersistentHeader3d(delegate: delegate);
+      final view = RenderCustomScrollView3d(
+        slivers: [header, RecordingSliver3d(20)],
+      );
       final surface = viewportOf(view);
 
       // At rest it is its whole self, and takes that much of the window.
@@ -167,8 +169,10 @@ void main() {
 
     test('tells the delegate how far it has been squeezed, and no further', () {
       final delegate = ProbeHeader3dDelegate();
-      final header = SliverPersistentHeader3d(delegate: delegate);
-      final view = CustomScrollView3d(slivers: [header, RecordingSliver3d(20)]);
+      final header = RenderSliverPersistentHeader3d(delegate: delegate);
+      final view = RenderCustomScrollView3d(
+        slivers: [header, RecordingSliver3d(20)],
+      );
       final surface = viewportOf(view);
 
       view.controller.jumpTo(3);
@@ -183,9 +187,9 @@ void main() {
 
     test('obstructs nothing, so the sliver after it is not covered', () {
       final delegate = ProbeHeader3dDelegate();
-      final header = SliverPersistentHeader3d(delegate: delegate);
+      final header = RenderSliverPersistentHeader3d(delegate: delegate);
       final next = RecordingSliver3d(20);
-      final view = CustomScrollView3d(slivers: [header, next]);
+      final view = RenderCustomScrollView3d(slivers: [header, next]);
       final surface = viewportOf(view);
 
       view.controller.jumpTo(3);
@@ -201,9 +205,12 @@ void main() {
   group('a pinned header', () {
     test('holds the leading edge while the content moves under it', () {
       final delegate = ProbeHeader3dDelegate();
-      final header = SliverPersistentHeader3d(delegate: delegate, pinned: true);
+      final header = RenderSliverPersistentHeader3d(
+        delegate: delegate,
+        pinned: true,
+      );
       final next = RecordingSliver3d(20);
-      final view = CustomScrollView3d(slivers: [header, next]);
+      final view = RenderCustomScrollView3d(slivers: [header, next]);
       final surface = viewportOf(view);
 
       expect(header.offset, Offset3d.zero);
@@ -231,9 +238,12 @@ void main() {
 
     test('the overlap it leaves reaches the sliver after it', () {
       final delegate = ProbeHeader3dDelegate();
-      final header = SliverPersistentHeader3d(delegate: delegate, pinned: true);
+      final header = RenderSliverPersistentHeader3d(
+        delegate: delegate,
+        pinned: true,
+      );
       final next = RecordingSliver3d(20);
-      final view = CustomScrollView3d(slivers: [header, next]);
+      final view = RenderCustomScrollView3d(slivers: [header, next]);
       final surface = viewportOf(view);
 
       expect(next.window.overlap, 0);
@@ -248,16 +258,16 @@ void main() {
     });
 
     test('two of them stack rather than land on each other', () {
-      final first = SliverPersistentHeader3d(
+      final first = RenderSliverPersistentHeader3d(
         delegate: ProbeHeader3dDelegate(),
         pinned: true,
       );
-      final second = SliverPersistentHeader3d(
+      final second = RenderSliverPersistentHeader3d(
         delegate: ProbeHeader3dDelegate(minExtent: 1, maxExtent: 2),
         pinned: true,
       );
       final next = RecordingSliver3d(20);
-      final view = CustomScrollView3d(slivers: [first, second, next]);
+      final view = RenderCustomScrollView3d(slivers: [first, second, next]);
       final surface = viewportOf(view);
 
       view.controller.jumpTo(6);
@@ -277,10 +287,10 @@ void main() {
     test('tells the delegate when content has gone under it', () {
       final delegate = ProbeHeader3dDelegate();
       final second = ProbeHeader3dDelegate(minExtent: 1, maxExtent: 2);
-      final view = CustomScrollView3d(
+      final view = RenderCustomScrollView3d(
         slivers: [
-          SliverPersistentHeader3d(delegate: delegate, pinned: true),
-          SliverPersistentHeader3d(delegate: second, pinned: true),
+          RenderSliverPersistentHeader3d(delegate: delegate, pinned: true),
+          RenderSliverPersistentHeader3d(delegate: second, pinned: true),
           RecordingSliver3d(20),
         ],
       );
@@ -298,12 +308,14 @@ void main() {
 
   group('what keeps the content out of the bar', () {
     test('the header is lifted toward the viewer while it covers', () {
-      final header = SliverPersistentHeader3d(
+      final header = RenderSliverPersistentHeader3d(
         delegate: ProbeHeader3dDelegate(),
         pinned: true,
         lift: 0.5,
       );
-      final view = CustomScrollView3d(slivers: [header, RecordingSliver3d(20)]);
+      final view = RenderCustomScrollView3d(
+        slivers: [header, RecordingSliver3d(20)],
+      );
       final surface = viewportOf(view);
 
       // Nothing is under it yet, so it stays in the plane.
@@ -323,16 +335,16 @@ void main() {
     });
 
     test('the default lift is one logical pixel, and zero disables it', () {
-      final lifted = SliverPersistentHeader3d(
+      final lifted = RenderSliverPersistentHeader3d(
         delegate: ProbeHeader3dDelegate(),
         pinned: true,
       );
-      final flat = SliverPersistentHeader3d(
+      final flat = RenderSliverPersistentHeader3d(
         delegate: ProbeHeader3dDelegate(minExtent: 1, maxExtent: 1),
         pinned: true,
         lift: 0,
       );
-      final view = CustomScrollView3d(
+      final view = RenderCustomScrollView3d(
         slivers: [lifted, flat, RecordingSliver3d(20)],
       );
       final surface = viewportOf(view);
@@ -351,12 +363,12 @@ void main() {
     });
 
     test('the sliver under the bar is clipped at the bar\'s edge', () {
-      final header = SliverPersistentHeader3d(
+      final header = RenderSliverPersistentHeader3d(
         delegate: ProbeHeader3dDelegate(),
         pinned: true,
       );
       final next = RecordingSliver3d(20);
-      final view = CustomScrollView3d(slivers: [header, next]);
+      final view = RenderCustomScrollView3d(slivers: [header, next]);
       final surface = viewportOf(view);
 
       // Nothing is covered while the bar is at full height.
@@ -387,12 +399,12 @@ void main() {
 
     test('the clip follows a box down into the sliver it lands in', () {
       final content = FillBox(name: 'content');
-      final adapter = SliverToBoxAdapter3d(child: content);
-      final header = SliverPersistentHeader3d(
+      final adapter = RenderSliverToBoxAdapter3d(child: content);
+      final header = RenderSliverPersistentHeader3d(
         delegate: ProbeHeader3dDelegate(),
         pinned: true,
       );
-      final view = CustomScrollView3d(slivers: [header, adapter]);
+      final view = RenderCustomScrollView3d(slivers: [header, adapter]);
       final surface = viewportOf(view);
 
       view.controller.jumpTo(6);
@@ -409,12 +421,15 @@ void main() {
 
     test('a ray at the bar finds the bar, not the row behind it', () {
       final delegate = ProbeHeader3dDelegate();
-      final header = SliverPersistentHeader3d(delegate: delegate, pinned: true);
+      final header = RenderSliverPersistentHeader3d(
+        delegate: delegate,
+        pinned: true,
+      );
       final content = FillBox(name: 'content');
-      final view = CustomScrollView3d(
+      final view = RenderCustomScrollView3d(
         slivers: [
           header,
-          SliverToBoxAdapter3d(child: content),
+          RenderSliverToBoxAdapter3d(child: content),
         ],
       );
       final surface = viewportOf(view);
@@ -433,12 +448,12 @@ void main() {
 
     test('a half-scrolled header answers only over what is left of it', () {
       final delegate = ProbeHeader3dDelegate();
-      final header = SliverPersistentHeader3d(delegate: delegate);
+      final header = RenderSliverPersistentHeader3d(delegate: delegate);
       final content = FillBox(name: 'content');
-      final view = CustomScrollView3d(
+      final view = RenderCustomScrollView3d(
         slivers: [
           header,
-          SliverToBoxAdapter3d(child: content),
+          RenderSliverToBoxAdapter3d(child: content),
         ],
       );
       final surface = viewportOf(view);
@@ -464,12 +479,12 @@ void main() {
   group('a floating header', () {
     test('comes back as soon as the viewer scrolls the other way', () {
       final delegate = ProbeHeader3dDelegate();
-      final header = SliverPersistentHeader3d(
+      final header = RenderSliverPersistentHeader3d(
         delegate: delegate,
         floating: true,
       );
       final next = RecordingSliver3d(20);
-      final view = CustomScrollView3d(slivers: [header, next]);
+      final view = RenderCustomScrollView3d(slivers: [header, next]);
       final surface = viewportOf(view);
 
       view.controller.jumpTo(8);
@@ -491,12 +506,12 @@ void main() {
     });
 
     test('floats over the content instead of pushing it down', () {
-      final header = SliverPersistentHeader3d(
+      final header = RenderSliverPersistentHeader3d(
         delegate: ProbeHeader3dDelegate(),
         floating: true,
       );
       final next = RecordingSliver3d(20);
-      final view = CustomScrollView3d(slivers: [header, next]);
+      final view = RenderCustomScrollView3d(slivers: [header, next]);
       final surface = viewportOf(view);
 
       view.controller.jumpTo(8);
@@ -515,13 +530,13 @@ void main() {
     });
 
     test('pinned as well, it never shrinks past its minimum', () {
-      final header = SliverPersistentHeader3d(
+      final header = RenderSliverPersistentHeader3d(
         delegate: ProbeHeader3dDelegate(),
         pinned: true,
         floating: true,
       );
       final next = RecordingSliver3d(20);
-      final view = CustomScrollView3d(slivers: [header, next]);
+      final view = RenderCustomScrollView3d(slivers: [header, next]);
       final surface = viewportOf(view);
 
       view.controller.jumpTo(8);
@@ -549,8 +564,10 @@ void main() {
   group('the delegate', () {
     test('is asked again only when it says the content must change', () {
       final first = ProbeHeader3dDelegate();
-      final header = SliverPersistentHeader3d(delegate: first);
-      final view = CustomScrollView3d(slivers: [header, RecordingSliver3d(20)]);
+      final header = RenderSliverPersistentHeader3d(delegate: first);
+      final view = RenderCustomScrollView3d(
+        slivers: [header, RecordingSliver3d(20)],
+      );
       final surface = viewportOf(view);
       expect(header.child, same(first.content));
 
@@ -570,10 +587,12 @@ void main() {
     });
 
     test('is not allowed a maximum below its minimum', () {
-      final header = SliverPersistentHeader3d(
+      final header = RenderSliverPersistentHeader3d(
         delegate: ProbeHeader3dDelegate(minExtent: 4, maxExtent: 2),
       );
-      final view = CustomScrollView3d(slivers: [header, RecordingSliver3d(20)]);
+      final view = RenderCustomScrollView3d(
+        slivers: [header, RecordingSliver3d(20)],
+      );
 
       expect(
         () => viewportOf(view),
@@ -600,27 +619,30 @@ void main() {
 
     /// A list of decorated rows under a pinned bar, and the panels in it.
     ({
-      CustomScrollView3d view,
-      Layout3dSurface surface,
-      List<DecoratedBox3d> rows,
+      RenderCustomScrollView3d view,
+      RenderSurface3d surface,
+      List<RenderDecoratedBox3d> rows,
     })
     listUnderABar() {
-      final rows = <DecoratedBox3d>[
+      final rows = <RenderDecoratedBox3d>[
         for (var i = 0; i < 6; i++)
-          DecoratedBox3d(
+          RenderDecoratedBox3d(
             decoration: const BoxDecoration3d(color: Color(0xFFFFFFFF)),
           ),
       ];
-      final list = SliverList3d(
+      final list = RenderSliverList3d(
         children: <RenderObject3d>[
-          for (final row in rows) SizedBox3d(width: 4, height: 2, child: row),
+          for (final row in rows)
+            RenderSizedBox3d(width: 4, height: 2, child: row),
         ],
       );
-      final header = SliverPersistentHeader3d(
+      final header = RenderSliverPersistentHeader3d(
         delegate: ProbeHeader3dDelegate(minExtent: 2, maxExtent: 2),
         pinned: true,
       );
-      final view = CustomScrollView3d(slivers: <Sliver3d>[header, list]);
+      final view = RenderCustomScrollView3d(
+        slivers: <RenderSliver3d>[header, list],
+      );
       return (view: view, surface: viewportOf(view), rows: rows);
     }
 
@@ -684,15 +706,15 @@ void main() {
     });
 
     test('and a viewport with no pinned header republishes nothing', () {
-      final panel = DecoratedBox3d(
+      final panel = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(color: Color(0xFFFFFFFF)),
       );
-      final list = SliverList3d(
+      final list = RenderSliverList3d(
         children: <RenderObject3d>[
-          SizedBox3d(width: 4, height: 2, child: panel),
+          RenderSizedBox3d(width: 4, height: 2, child: panel),
         ],
       );
-      final view = CustomScrollView3d(slivers: <Sliver3d>[list]);
+      final view = RenderCustomScrollView3d(slivers: <RenderSliver3d>[list]);
       viewportOf(view);
       expect(HeaderClipRecorder.seen, hasLength(1));
       expect(HeaderClipRecorder.seen.single.isUnbounded, isTrue);

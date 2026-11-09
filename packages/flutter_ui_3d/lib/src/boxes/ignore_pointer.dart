@@ -12,9 +12,9 @@ import '../rendering/object.dart';
 /// drawn exactly as before, it simply cannot be hit. Use it for scenery, for
 /// a model that decorates a panel without being part of it, and for anything
 /// standing between the camera and the content that should be pointed at.
-class IgnorePointer3d extends RenderProxyBox3d {
+class RenderIgnorePointer3d extends RenderProxyBox3d {
   /// Creates a box that hides [child] from hit tests while [ignoring].
-  IgnorePointer3d({bool ignoring = true, super.child, super.name})
+  RenderIgnorePointer3d({bool ignoring = true, super.child, super.name})
     : _ignoring = ignoring;
 
   bool _ignoring;
@@ -47,22 +47,22 @@ class IgnorePointer3d extends RenderProxyBox3d {
 /// Takes the hit its subtree would have taken, the 3D analogue of
 /// [AbsorbPointer].
 ///
-/// Where [IgnorePointer3d] lets the ray carry on to whatever is behind,
+/// Where [RenderIgnorePointer3d] lets the ray carry on to whatever is behind,
 /// this one stops it: the box answers the hit itself and its children are
 /// never asked. That is the difference between "not there" and "in the way",
 /// and it is how a panel is put out of action without letting a click reach
 /// the scene behind it.
-class AbsorbPointer3d extends RenderProxyBox3d {
+class RenderAbsorbPointer3d extends RenderProxyBox3d {
   /// Creates a box that answers hits for [child] while [absorbing].
-  AbsorbPointer3d({bool absorbing = true, super.child, super.name})
+  RenderAbsorbPointer3d({bool absorbing = true, super.child, super.name})
     : _absorbing = absorbing;
 
   bool _absorbing;
 
   /// Whether this box swallows hits meant for its subtree.
   ///
-  /// Costs nothing to flip, for the same reason [IgnorePointer3d.ignoring]
-  /// does.
+  /// Costs nothing to flip, for the same reason
+  /// [RenderIgnorePointer3d.ignoring] does.
   // ignore: unnecessary_getters_setters
   bool get absorbing => _absorbing;
 

@@ -28,23 +28,23 @@ Offset3d _origin(RenderObject3d box) {
 }
 
 /// The drawer's own panel: the one in its container colour.
-DecoratedBox3d _drawerPanel(Layout3dSurface surface) =>
-    boxesOf<DecoratedBox3d>(surface).firstWhere(
+RenderDecoratedBox3d _drawerPanel(RenderSurface3d surface) =>
+    boxesOf<RenderDecoratedBox3d>(surface).firstWhere(
       (box) =>
           (box.decoration as BoxDecoration3d).color ==
           _theme.colorScheme.surfaceContainerLow,
     );
 
-Semantics3d _labelled(Layout3dSurface surface, String label) =>
-    boxesOf<Semantics3d>(
+RenderSemantics3d _labelled(RenderSurface3d surface, String label) =>
+    boxesOf<RenderSemantics3d>(
       surface,
     ).firstWhere((box) => box.properties.label == label);
 
 /// The panel a destination draws: the one under its announcement.
-DecoratedBox3d _destinationPanel(Layout3dSurface surface, String label) {
-  final found = <DecoratedBox3d>[];
+RenderDecoratedBox3d _destinationPanel(RenderSurface3d surface, String label) {
+  final found = <RenderDecoratedBox3d>[];
   void walk(RenderObject3d box) {
-    if (box is DecoratedBox3d) found.add(box);
+    if (box is RenderDecoratedBox3d) found.add(box);
     box.visitChildren(walk);
   }
 
@@ -53,16 +53,16 @@ DecoratedBox3d _destinationPanel(Layout3dSurface surface, String label) {
 }
 
 /// A drawer standing beside a body, as Material's standard drawer does.
-Widget _beside(Widget drawer) => SceneRow3d(
+Widget _beside(Widget drawer) => Row3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
     drawer,
-    const SceneExpanded3d(child: SceneSizedBox3d()),
+    const Expanded3d(child: SizedBox3d()),
   ],
 );
 
 List<Widget> _mail() => const <Widget>[
-  SceneText3d('Mail'),
+  Text3d('Mail'),
   NavigationDrawerDestination3d(icon: Icon3d(Icons.inbox), label: 'Inbox'),
   NavigationDrawerDestination3d(icon: Icon3d(Icons.send), label: 'Sent'),
   Divider3d(),
@@ -200,9 +200,9 @@ void main() {
       // the face that hid it. Only the photograph said so — the drawer drew
       // its header and an inbox badge and nothing else.
       await tester.pumpSurface3d(
-        SceneTheme3d(
+        Theme3d(
           data: _theme,
-          child: SceneOverlay3d(
+          child: Overlay3d(
             child: _beside(NavigationDrawer3d(children: _mail())),
           ),
         ),
@@ -211,7 +211,7 @@ void main() {
         expect(find3d.bySemanticsLabel(label), standsOnItsPanel3d);
         expect(find3d.bySemanticsLabel(label), isReachable3d);
       }
-      expect(find3d.bySubtype<Text3d>(), standsOnItsPanel3d);
+      expect(find3d.bySubtype<RenderText3d>(), standsOnItsPanel3d);
     });
 
     testWidgets('a destination is a 56dp stadium 12dp inside the drawer', (
@@ -240,13 +240,13 @@ void main() {
         tester,
         child: _beside(NavigationDrawer3d(children: _mail())),
       );
-      final inbox = boxesOf<Text3d>(
+      final inbox = boxesOf<RenderText3d>(
         pumped.surface,
       ).singleWhere((box) => box.data == 'Inbox');
       final large = _theme.textStyle(Typography3dToken.labelLarge);
       expect(inbox.style.fontSize, large.fontSize);
       expect(inbox.style.color, _theme.colorScheme.onSecondaryContainer);
-      final sent = boxesOf<Text3d>(
+      final sent = boxesOf<RenderText3d>(
         pumped.surface,
       ).singleWhere((box) => box.data == 'Sent');
       expect(sent.style.color, _theme.colorScheme.onSurfaceVariant);
@@ -346,7 +346,7 @@ void main() {
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 60));
-      final motion = boxesOf<MotionTransition3d>(pumped.surface).single;
+      final motion = boxesOf<RenderMotionTransition3d>(pumped.surface).single;
       expect(motion.nodeOffset.x, lessThan(0.0));
       await tester.pumpAndSettle();
       expect(motion.nodeOffset.x, 0.0);

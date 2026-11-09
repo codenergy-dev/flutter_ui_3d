@@ -41,18 +41,18 @@ Widget _spent(EdgeInsets3d padding, Widget child) => Builder(
   ),
 );
 
-Widget _atTop(Widget bar) => SceneColumn3d(
+Widget _atTop(Widget bar) => Column3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
     bar,
-    const SceneExpanded3d(child: SceneSizedBox3d()),
+    const Expanded3d(child: SizedBox3d()),
   ],
 );
 
-Widget _atBottom(Widget bar) => SceneColumn3d(
+Widget _atBottom(Widget bar) => Column3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
-    const SceneExpanded3d(child: SceneSizedBox3d()),
+    const Expanded3d(child: SizedBox3d()),
     bar,
   ],
 );
@@ -73,8 +73,9 @@ Widget _atBottom(Widget bar) => SceneColumn3d(
 }
 
 /// The label reading [text].
-Text3d _label(PumpedSurface it, String text) =>
-    boxesOf<Text3d>(it.surface).singleWhere((label) => label.data == text);
+RenderText3d _label(PumpedSurface it, String text) => boxesOf<RenderText3d>(
+  it.surface,
+).singleWhere((label) => label.data == text);
 
 void main() {
   group('an app bar', () {
@@ -120,7 +121,7 @@ void main() {
         tester,
         () => _spent(
           _phone,
-          SceneCustomScrollView3d(
+          CustomScrollView3d(
             slivers: <Widget>[
               SliverAppBar3d.text(
                 title: 'Inbox',
@@ -132,7 +133,7 @@ void main() {
         ),
         centred: false,
       );
-      final header = oneOf<SliverPersistentHeader3d>(it.surface);
+      final header = oneOf<RenderSliverPersistentHeader3d>(it.surface);
       expect(header.delegate.maxExtent / _dp, closeTo(112 + 44, _tol));
       expect(header.delegate.minExtent / _dp, closeTo(64 + 44, _tol));
     });
@@ -170,7 +171,7 @@ void main() {
   });
 
   group('a navigation rail', () {
-    Widget rail() => SceneRow3d(
+    Widget rail() => Row3d(
       crossAxisAlignment: CrossAxisAlignment3d.stretch,
       children: <Widget>[
         NavigationRail3d(
@@ -178,7 +179,7 @@ void main() {
           selectedIndex: 0,
           onDestinationSelected: (_) {},
         ),
-        const SceneExpanded3d(child: SceneSizedBox3d()),
+        const Expanded3d(child: SizedBox3d()),
       ],
     );
 
@@ -222,7 +223,7 @@ void main() {
         body: Builder(
           builder: (context) {
             told.add(MediaQuery3d.of(context).padding);
-            return const SceneSizedBox3d();
+            return const SizedBox3d();
           },
         ),
         bottomNavigationBar: navigationBar
@@ -271,7 +272,7 @@ void main() {
         () => screen(<EdgeInsets3d>[]),
         centred: false,
       );
-      final clip = oneOf<ClipBox3d>(it.surface);
+      final clip = oneOf<RenderClipBox3d>(it.surface);
       expect(_edges(it, clip).top, closeTo(64 + 44, _tol));
       expect(_edges(it, clip).bottom, closeTo(80 + 34, _tol));
     });
@@ -284,7 +285,7 @@ void main() {
         () => screen(<EdgeInsets3d>[]),
         centred: false,
       );
-      final fab = boxesOf<DecoratedBox3d>(it.surface).last;
+      final fab = boxesOf<RenderDecoratedBox3d>(it.surface).last;
       expect(_edges(it, fab).bottom, closeTo(80 + 34 + 16, _tol));
       expect(_edges(it, fab).right, closeTo(20 + 16, _tol));
     });
@@ -297,7 +298,7 @@ void main() {
         () => screen(<EdgeInsets3d>[], navigationBar: false),
         centred: false,
       );
-      final fab = boxesOf<DecoratedBox3d>(it.surface).last;
+      final fab = boxesOf<RenderDecoratedBox3d>(it.surface).last;
       expect(_edges(it, fab).bottom, closeTo(34 + 16, _tol));
     });
 
@@ -308,7 +309,7 @@ void main() {
         centred: false,
         textDirection: TextDirection.rtl,
       );
-      final fab = boxesOf<DecoratedBox3d>(it.surface).last;
+      final fab = boxesOf<RenderDecoratedBox3d>(it.surface).last;
       expect(
         _edges(it, fab).left,
         closeTo(12 + 16, _tol),
@@ -321,7 +322,7 @@ void main() {
         tester,
         () => Scaffold3d(
           appBar: AppBar3d.text(title: 'Inbox'),
-          body: const SceneSizedBox3d(),
+          body: const SizedBox3d(),
           floatingActionButton: FloatingActionButton3d(
             semanticLabel: 'Compose',
             onPressed: () {},
@@ -330,10 +331,13 @@ void main() {
         ),
         centred: false,
       );
-      final fab = boxesOf<DecoratedBox3d>(it.surface).last;
+      final fab = boxesOf<RenderDecoratedBox3d>(it.surface).last;
       expect(_edges(it, fab).bottom, closeTo(16, _tol));
       expect(_edges(it, fab).right, closeTo(16, _tol));
-      expect(_edges(it, oneOf<ClipBox3d>(it.surface)).top, closeTo(64, _tol));
+      expect(
+        _edges(it, oneOf<RenderClipBox3d>(it.surface)).top,
+        closeTo(64, _tol),
+      );
     });
   });
 }

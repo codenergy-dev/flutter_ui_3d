@@ -21,8 +21,8 @@ const List<NavigationDestination3d> _destinations = <NavigationDestination3d>[
 ];
 
 /// The box tagged [slot] inside the pumped scaffold, and where it ended up.
-LayoutId3d slotOf(Layout3dSurface surface, Scaffold3dSlot slot) =>
-    boxesOf<LayoutId3d>(surface).firstWhere((box) => box.id == slot);
+RenderLayoutId3d slotOf(RenderSurface3d surface, Scaffold3dSlot slot) =>
+    boxesOf<RenderLayoutId3d>(surface).firstWhere((box) => box.id == slot);
 
 void main() {
   group('the arrangement', () {
@@ -31,7 +31,7 @@ void main() {
         tester,
         () => Scaffold3d(
           appBar: AppBar3d.text(title: 'Inbox'),
-          body: const SceneSizedBox3d(),
+          body: const SizedBox3d(),
           bottomNavigationBar: const NavigationBar3d(
             destinations: _destinations,
             selectedIndex: 0,
@@ -59,7 +59,7 @@ void main() {
           extendBody: true,
           extendBodyBehindAppBar: true,
           appBar: AppBar3d.text(title: 'Inbox'),
-          body: const SceneSizedBox3d(),
+          body: const SizedBox3d(),
           bottomNavigationBar: const NavigationBar3d(
             destinations: _destinations,
             selectedIndex: 0,
@@ -75,7 +75,7 @@ void main() {
     testWidgets('a scaffold with only a body fills it', (tester) async {
       final pumped = await pumpComponent(
         tester,
-        () => const Scaffold3d(body: SceneSizedBox3d()),
+        () => const Scaffold3d(body: SizedBox3d()),
         centred: false,
       );
       final body = slotOf(pumped.surface, Scaffold3dSlot.body);
@@ -89,7 +89,7 @@ void main() {
       final pumped = await pumpComponent(
         tester,
         () => Scaffold3d(
-          body: const SceneSizedBox3d(),
+          body: const SizedBox3d(),
           bottomNavigationBar: const NavigationBar3d(
             destinations: _destinations,
             selectedIndex: 0,
@@ -120,7 +120,7 @@ void main() {
         tester,
         () => Scaffold3d(
           appBar: AppBar3d.text(title: 'Inbox'),
-          body: const SceneSizedBox3d(),
+          body: const SizedBox3d(),
           bottomNavigationBar: const NavigationBar3d(
             destinations: _destinations,
             selectedIndex: 0,
@@ -141,7 +141,7 @@ void main() {
         // this stack goes.
         expect(box.offset.z, 0.0, reason: '$slot');
         expect(
-          (box.child! as NodeShift3d).shift.z,
+          (box.child! as RenderNodeShift3d).shift.z,
           closeTo(-Scaffold3d.liftFor(slot, step), 1e-9),
           reason: '$slot',
         );
@@ -162,7 +162,7 @@ void main() {
         tester,
         () => Scaffold3d(
           appBar: AppBar3d.text(title: 'Inbox'),
-          body: const SceneSizedBox3d(),
+          body: const SizedBox3d(),
         ),
         centred: false,
       );
@@ -187,7 +187,7 @@ void main() {
         tester,
         () => Scaffold3d(
           appBar: AppBar3d.text(title: 'Inbox'),
-          body: const SceneSizedBox3d(),
+          body: const SizedBox3d(),
           bottomNavigationBar: NavigationBar3d(
             destinations: _destinations,
             selectedIndex: 0,
@@ -196,7 +196,7 @@ void main() {
         ),
         centred: false,
       );
-      final target = boxesOf<TapTarget3d>(
+      final target = boxesOf<RenderTapTarget3d>(
         pumped.surface,
       ).where((t) => t.effectiveMinimumSize.width > 0.0).toList()[1];
       final middle = target.drawnOffsetInSurface + target.size.center;
@@ -226,7 +226,7 @@ void main() {
     testWidgets('a step that does not separate is refused', (tester) async {
       await pumpComponent(
         tester,
-        () => const Scaffold3d(depthStep: 4.0, body: SceneSizedBox3d()),
+        () => const Scaffold3d(depthStep: 4.0, body: SizedBox3d()),
         centred: false,
       );
       expect(tester.takeException(), isA<AssertionError>());
@@ -246,11 +246,11 @@ void main() {
         tester,
         () => Scaffold3d(
           appBar: AppBar3d.text(title: 'Inbox'),
-          body: const SceneSizedBox3d(),
+          body: const SizedBox3d(),
         ),
         centred: false,
       );
-      final clip = oneOf<ClipBox3d>(pumped.surface);
+      final clip = oneOf<RenderClipBox3d>(pumped.surface);
       expect(clip.clipDepth, isFalse, reason: 'a raised card stands proud');
       expect(clip.ownRegion.planes, hasLength(4));
     });
@@ -269,10 +269,10 @@ void main() {
           // as a layout error, and what this test is about is the row that
           // is *half* out of the window rather than one that should not
           // have been laid out there at all.
-          body: SceneListView3d(
+          body: ListView3d(
             children: <Widget>[
               for (var i = 0; i < 20; i++)
-                const SceneSizedBox3d(height: 0.5, child: Card3d()),
+                const SizedBox3d(height: 0.5, child: Card3d()),
             ],
           ),
         ),
@@ -293,7 +293,7 @@ void main() {
     ) async {
       final pumped = await pumpComponent(
         tester,
-        () => const Scaffold3d(body: SceneSizedBox3d()),
+        () => const Scaffold3d(body: SizedBox3d()),
         centred: false,
       );
       final backing = pumped.decoration;
@@ -308,7 +308,7 @@ void main() {
       // the surface, with a Layout3dCameraBinding.
       final pumped = await pumpComponent(
         tester,
-        () => const Scaffold3d(body: SceneSizedBox3d()),
+        () => const Scaffold3d(body: SizedBox3d()),
         centred: false,
       );
       expect(pumped.surface.metrics, Layout3dMetrics.standard);
@@ -321,12 +321,12 @@ void main() {
     testWidgets('a rebuild that changes nothing lays nothing out again', (
       tester,
     ) async {
-      final boxes = <TestBox>[];
+      final boxes = <RenderTestBox>[];
       final pumped = await pumpComponent(
         tester,
         () => Scaffold3d(
           appBar: AppBar3d.text(title: 'Inbox'),
-          body: SceneTestBox(const Size3d(1, 1, 0), boxes.add),
+          body: TestBox(const Size3d(1, 1, 0), boxes.add),
         ),
         centred: false,
       );

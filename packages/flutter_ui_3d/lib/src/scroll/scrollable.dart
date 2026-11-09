@@ -13,8 +13,8 @@ import 'scroll_controller.dart';
 ///
 /// The handle input code reaches for. A hit test returns the layouts a ray
 /// passed through, and asking that path for the nearest [Scrollable3d] is how
-/// a drag finds the view it should move, whether that is a [Viewport3d] or a
-/// [ListView3d]:
+/// a drag finds the view it should move, whether that is a [RenderViewport3d]
+/// or a [RenderListView3d]:
 ///
 /// ```dart
 /// final scrollable = surface.hitTestRay(ray).firstOf<Scrollable3d>();
@@ -56,7 +56,7 @@ abstract interface class Scrollable3d {
 /// such mode and takes 0.0.
 ///
 /// The walk sums the layout offsets between the two, so a
-/// [RenderObject3d.localTransform] in between (a `Transform3d`, a rotated
+/// [RenderObject3d.localTransform] in between (a `RenderTransform3d`, a rotated
 /// container) is not accounted for: the answer is where the target is on the
 /// scroll axis before any such turn. Scene-only nudges
 /// ([ParentData3d.sceneOffset], [RenderObject3d.nodeOffset]) are ignored by
@@ -122,11 +122,11 @@ Future<void> ensureVisible3d(
 
 /// The scroll position a view holds, and the ownership rule that goes with it.
 ///
-/// `Viewport3d`, `ListView3d`, `GridView3d` and `CustomScrollView3d` all take
-/// an optional [Scroll3dController], relay out when it moves, and have to
-/// decide who disposes it. That is the same six members four times over, and
-/// the rule underneath them is easy to get subtly wrong, so it lives here
-/// once.
+/// `RenderViewport3d`, `RenderListView3d`, `RenderGridView3d` and
+/// `RenderCustomScrollView3d` all take an optional [Scroll3dController], relay
+/// out when it moves, and have to decide who disposes it. That is the same six
+/// members four times over, and the rule underneath them is easy to get subtly
+/// wrong, so it lives here once.
 ///
 /// The rule is that **null means the default**, and the default position is
 /// one the view owns:
@@ -147,7 +147,8 @@ Future<void> ensureVisible3d(
 ///
 /// A view mixes this in, calls [initController] from its constructor body,
 /// and supplies [scrollAxis] itself.
-mixin Scroll3dHolderMixin on RenderLayoutPassMixin3d implements Scrollable3d {
+mixin RenderScroll3dHolderMixin on RenderLayoutPassMixin3d
+    implements Scrollable3d {
   Scroll3dController? _held;
   bool _ownsController = true;
 
@@ -157,7 +158,7 @@ mixin Scroll3dHolderMixin on RenderLayoutPassMixin3d implements Scrollable3d {
     assert(
       _held != null,
       '$runtimeType has no scroll controller yet. A view mixing in '
-      'Scroll3dHolderMixin must call initController(controller) from its '
+      'RenderScroll3dHolderMixin must call initController(controller) from its '
       'constructor body.',
     );
     return _held!;
@@ -238,8 +239,8 @@ mixin Scroll3dHolderMixin on RenderLayoutPassMixin3d implements Scrollable3d {
 /// there is no extent it would like. Flutter throws here; this asserts, and
 /// answers zero in release so that a layout degrades rather than dies.
 ///
-/// A scrolling view that has to sit inside an [IntrinsicHeight3d] should be
-/// given a size instead, with a [SizedBox3d].
+/// A scrolling view that has to sit inside a [RenderIntrinsicHeight3d] should
+/// be given a size instead, with a [RenderSizedBox3d].
 double noIntrinsicExtent(Object view, Axis3d axis) {
   assert(
     false,

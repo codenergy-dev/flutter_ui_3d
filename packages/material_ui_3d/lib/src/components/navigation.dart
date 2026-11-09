@@ -14,19 +14,19 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneAlign3d,
-        SceneColumn3d,
-        SceneExpanded3d,
-        SceneIgnorePointer3d,
-        SceneRow3d,
-        SceneSemantics3d,
-        SceneSizedBox3d,
-        SceneStack3d,
+        Align3d,
+        Column3d,
+        Expanded3d,
+        IgnorePointer3d,
+        Row3d,
+        Semantics3d,
+        SizedBox3d,
+        Stack3d,
         MediaQuery3d,
-        SceneSafeArea3d,
-        SceneTapTarget3d,
-        SceneText3d,
-        SceneTextScaling3d;
+        SafeArea3d,
+        TapTarget3d,
+        Text3d,
+        TextScaling3d;
 
 import '../theme/theme.dart';
 import '../theme/theme_data.dart';
@@ -47,11 +47,11 @@ import 'reading_direction.dart';
 /// ```
 ///
 /// **The label is a `String`, not a widget**, and that is the phase-4 rule
-/// applied rather than a shortcut: a `Semantics3d` publishes what it is given
-/// and gathers nothing from below, so a destination that took a widget would
-/// have to be told its own name twice. Taking the string means the component
-/// builds the visible label *and* the announcement out of one thing that
-/// cannot disagree with itself.
+/// applied rather than a shortcut: a `RenderSemantics3d` publishes what it is
+/// given and gathers nothing from below, so a destination that took a widget
+/// would have to be told its own name twice. Taking the string means the
+/// component builds the visible label *and* the announcement out of one thing
+/// that cannot disagree with itself.
 @immutable
 class NavigationDestination3d {
   /// Creates a destination.
@@ -221,7 +221,7 @@ class NavigationBar3d extends StatelessWidget {
     // and the destinations stay clear of it. The top inset is normally zero
     // by the time a bar sees it — a `Scaffold3d` takes it away from this
     // slot — and is added for the same reason if it is not.
-    return SceneSizedBox3d(
+    return SizedBox3d(
       height: metrics.dp(
         (height ?? resolved.extent) + inset.top + inset.bottom,
       ),
@@ -234,13 +234,13 @@ class NavigationBar3d extends StatelessWidget {
         surfaceTint: const Color(0x00000000),
         padding: resolved.padding,
         alignment: null,
-        child: SceneSafeArea3d(
-          child: SceneRow3d(
+        child: SafeArea3d(
+          child: Row3d(
             mainAxisSize: MainAxisSize3d.max,
             crossAxisAlignment: CrossAxisAlignment3d.center,
             children: <Widget>[
               for (var i = 0; i < destinations.length; i++)
-                SceneExpanded3d(
+                Expanded3d(
                   child: buildNavigationDestination3d(
                     context,
                     theme: theme,
@@ -265,7 +265,7 @@ class NavigationBar3d extends StatelessWidget {
 /// The rail down the leading edge of a wide screen.
 ///
 /// ```dart
-/// SceneRow3d(
+/// Row3d(
 ///   children: <Widget>[
 ///     NavigationRail3d(
 ///       selectedIndex: index,
@@ -273,7 +273,7 @@ class NavigationBar3d extends StatelessWidget {
 ///       onDestinationSelected: (i) => setState(() => index = i),
 ///     ),
 ///     const VerticalDivider3d(),
-///     SceneExpanded3d(child: body),
+///     Expanded3d(child: body),
 ///   ],
 /// )
 /// ```
@@ -364,7 +364,7 @@ class NavigationRail3d extends StatelessWidget {
     // Grown by the inset on its leading side and no other, as Flutter's rail
     // is: a rail stands against the leading edge of a landscape phone, which
     // is where the notch is, and the edge it does not touch is the body's.
-    return SceneSizedBox3d(
+    return SizedBox3d(
       width: metrics.dp((width ?? resolved.extent) + leadingInset),
       child: Material3d(
         color: backgroundColor ?? resolved.container,
@@ -375,10 +375,10 @@ class NavigationRail3d extends StatelessWidget {
         surfaceTint: const Color(0x00000000),
         padding: resolved.padding,
         alignment: null,
-        child: SceneSafeArea3d(
+        child: SafeArea3d(
           left: !rightToLeft,
           right: rightToLeft,
-          child: SceneColumn3d(
+          child: Column3d(
             mainAxisSize: MainAxisSize3d.max,
             mainAxisAlignment: MainAxisAlignment3d.start,
             crossAxisAlignment: CrossAxisAlignment3d.center,
@@ -437,10 +437,10 @@ Widget buildNavigationDestination3d(
   // the indicator is a `Material3d` like everything else here — and with a
   // depth step, because a glyph drawn exactly on the pill's front face is
   // coplanar with it and z-fights.
-  final indicator = SceneSizedBox3d(
+  final indicator = SizedBox3d(
     width: metrics.dp(style.indicatorSize.width),
     height: metrics.dp(style.indicatorSize.height),
-    child: SceneStack3d(
+    child: Stack3d(
       alignment: Alignment3d.frontCenter,
       depthStep: metrics.dp(style.indicatorDepthStep),
       children: <Widget>[
@@ -456,30 +456,30 @@ Widget buildNavigationDestination3d(
           // A placeholder rather than nothing, so the glyph is the second
           // child either way and the depth step it gets does not change when
           // the selection moves.
-          const SceneSizedBox3d(),
+          const SizedBox3d(),
         // The glyph answers hit tests on its own account, and everything a
         // ray needs to find here is the well below it.
-        SceneIgnorePointer3d(child: glyph),
+        IgnorePointer3d(child: glyph),
       ],
     ),
   );
 
-  final labelled = SceneColumn3d(
+  final labelled = Column3d(
     mainAxisSize: MainAxisSize3d.min,
     mainAxisAlignment: MainAxisAlignment3d.center,
     crossAxisAlignment: CrossAxisAlignment3d.center,
     spacing: metrics.dp(style.labelGap),
     children: <Widget>[
       indicator,
-      SceneTextStyle3d(
+      TextStyle3d(
         style: style.labelStyle,
         color: content,
-        child: SceneIgnorePointer3d(
+        child: IgnorePointer3d(
           child: maxLabelTextScaleFactor == null
-              ? SceneText3d(destination.label)
-              : SceneTextScaling3d.clamped(
+              ? Text3d(destination.label)
+              : TextScaling3d.clamped(
                   maxScaleFactor: maxLabelTextScaleFactor,
-                  child: SceneText3d(destination.label),
+                  child: Text3d(destination.label),
                 ),
         ),
       ),
@@ -502,20 +502,17 @@ Widget buildNavigationDestination3d(
     // shrink-wrapped the pill and the label, and a press beside them landed
     // on the destination's own panel and went no further.
     child: onSelected == null
-        ? SceneAlign3d(alignment: Alignment3d.frontCenter, child: labelled)
+        ? Align3d(alignment: Alignment3d.frontCenter, child: labelled)
         : InkWell3d(
             // One target, and it is the one outside this panel.
             minimumSize: Size3d.zero,
             enabled: enabled,
             onTap: enabled ? onSelected : null,
-            child: SceneAlign3d(
-              alignment: Alignment3d.frontCenter,
-              child: labelled,
-            ),
+            child: Align3d(alignment: Alignment3d.frontCenter, child: labelled),
           ),
   );
 
-  final announced = SceneSemantics3d(
+  final announced = Semantics3d(
     properties: SemanticsProperties(
       button: true,
       enabled: enabled,
@@ -529,5 +526,5 @@ Widget buildNavigationDestination3d(
 
   // Outermost, for the reason every component here puts it there: a target
   // reaches past its own extent and its parent does not.
-  return SceneTapTarget3d(child: announced);
+  return TapTarget3d(child: announced);
 }

@@ -101,7 +101,7 @@ void defaultLayout3dOverflowReporter(Layout3dOverflow overflow) {
         ErrorDescription(
           'The content laid out inside this box does not fit in the extent '
           'the box settled on, so it stands outside it. Nothing clips it '
-          'unless a ClipBox3d is in the way, which means it is drawn through '
+          'unless a RenderClipBox3d is in the way, which means it is drawn through '
           'whatever is around it.',
         ),
         if (overflow.hint != null) ErrorHint(overflow.hint!),
@@ -138,10 +138,10 @@ mixin RenderOverflowReportingMixin3d on RenderObject3d {
   /// How large an overflow has to be before it is one.
   ///
   /// Flutter's `precisionErrorTolerance`, and it is here for the same reason
-  /// Flutter has it: a flex that hands its leftover space to an
-  /// `Expanded3d` child computes the child's extent by subtraction, and the
-  /// sum comes back a few ulps over the extent it was subtracted from. A
-  /// tolerance of zero turns that into *"a Flex3d overflowed the right by
+  /// Flutter has it: a flex that hands its leftover space to a
+  /// `RenderExpanded3d` child computes the child's extent by subtraction, and
+  /// the sum comes back a few ulps over the extent it was subtracted from. A
+  /// tolerance of zero turns that into *"a RenderFlex3d overflowed the right by
   /// 0.000"* — an assertion, in a layout that fits perfectly, with a figure
   /// that prints as nought. A Material app bar with a spacing and an
   /// expanded title is exactly that layout.

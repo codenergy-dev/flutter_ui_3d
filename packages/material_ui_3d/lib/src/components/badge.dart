@@ -17,13 +17,13 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneAlign3d,
-        SceneIgnorePointer3d,
-        ScenePositioned3d,
-        SceneSemantics3d,
-        SceneSizedBox3d,
-        SceneStack3d,
-        SceneText3d,
+        Align3d,
+        IgnorePointer3d,
+        Positioned3d,
+        Semantics3d,
+        SizedBox3d,
+        Stack3d,
+        Text3d,
         SingleChildRenderObjectWidget3d;
 
 import '../theme/theme.dart';
@@ -59,7 +59,7 @@ import 'reading_direction.dart';
 /// ## It may be bigger than what it is on
 ///
 /// A three-digit badge on a 24dp icon is wider than the icon. A
-/// `Positioned3d` in a stack could not express that — a stack caps a
+/// `RenderPositioned3d` in a stack could not express that — a stack caps a
 /// positioned child's free axes at its own size — so the badge is laid out
 /// unconstrained by a box of its own, which is what Flutter's `_RenderBadge`
 /// does for the same reason. The label grows with the reader's type, and the
@@ -68,8 +68,8 @@ import 'reading_direction.dart';
 /// ## What it announces
 ///
 /// Nothing, unless it is given a [semanticLabel] — `Icon3d`'s rule, for the
-/// same reason. A `Semantics3d` gathers nothing from below it, and a badge
-/// does not know what it is counting: "3" is not a thing a reader can act
+/// same reason. A `RenderSemantics3d` gathers nothing from below it, and a
+/// badge does not know what it is counting: "3" is not a thing a reader can act
 /// on, and "3 unread messages" is a sentence only the application can write.
 class Badge3d extends StatelessWidget {
   /// Creates a badge, with a [label] or as a dot.
@@ -110,7 +110,7 @@ class Badge3d extends StatelessWidget {
     this.child,
   }) : assert(count >= 0, 'count must be non-negative'),
        assert(maxCount > 0, 'maxCount must be positive'),
-       label = SceneText3d(count > maxCount ? '$maxCount+' : '$count');
+       label = Text3d(count > maxCount ? '$maxCount+' : '$count');
 
   /// The stadium's colour, or null for the style's `error`.
   final Color? backgroundColor;
@@ -140,7 +140,7 @@ class Badge3d extends StatelessWidget {
   /// for an offset an application states; here both mirror.
   final Offset3d? offset;
 
-  /// What the badge says, usually a short `SceneText3d`, or null for a dot.
+  /// What the badge says, usually a short `Text3d`, or null for a dot.
   final Widget? label;
 
   /// Whether the badge is drawn at all. False leaves [child] alone, laid out
@@ -161,7 +161,7 @@ class Badge3d extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!isLabelVisible) return child ?? const SceneSizedBox3d();
+    if (!isLabelVisible) return child ?? const SizedBox3d();
 
     final theme = Theme3d.of(context);
     final metrics = Layout3dMetricsScope.of(context);
@@ -187,7 +187,7 @@ class Badge3d extends StatelessWidget {
       alignment: null,
       child: label == null
           ? null
-          : SceneAlign3d(
+          : Align3d(
               alignment: Alignment3d.frontCenter,
               widthFactor: 1.0,
               heightFactor: 1.0,
@@ -196,8 +196,8 @@ class Badge3d extends StatelessWidget {
     );
 
     Widget badge = hasLabel
-        ? _SceneBadgeStadium3d(minExtent: metrics.dp(large), child: surface)
-        : SceneSizedBox3d(
+        ? _BadgeStadium3d(minExtent: metrics.dp(large), child: surface)
+        : SizedBox3d(
             width: metrics.dp(small),
             height: metrics.dp(small),
             child: surface,
@@ -205,7 +205,7 @@ class Badge3d extends StatelessWidget {
 
     final announced = semanticLabel;
     if (announced != null) {
-      badge = SceneSemantics3d(
+      badge = Semantics3d(
         properties: SemanticsProperties(
           label: announced,
           textDirection: readingDirection3d(context, textDirection),
@@ -231,21 +231,21 @@ class Badge3d extends StatelessWidget {
           )
         : Offset3d.zero;
 
-    return SceneStack3d(
+    return Stack3d(
       // In front of the child by the style's step, on the node tier: the
       // stack's step is a scene offset, so the badge's geometry stands off the
       // icon while its box stays inside the stack.
       depthStep: metrics.dp(resolved.depthStep),
       children: <Widget>[
         decorated,
-        ScenePositioned3d(
+        Positioned3d(
           left: 0,
           top: 0,
           right: 0,
           bottom: 0,
           // A badge never takes a press from what it is on.
-          child: SceneIgnorePointer3d(
-            child: _SceneBadgePlacement3d(
+          child: IgnorePointer3d(
+            child: _BadgePlacement3d(
               alignment: alignment ?? resolved.alignment,
               offset: placed,
               widthOffset: metrics.dp(hasLabel ? large : small),
@@ -266,8 +266,8 @@ class Badge3d extends StatelessWidget {
 /// wide as its label rather than as wide as the icon. Then it places it by
 /// Flutter's arithmetic: [alignment] along the box less [widthOffset], plus
 /// [offset], and a labelled badge up by half its height.
-class _BadgePlacement3d extends RenderSingleChild3d {
-  _BadgePlacement3d({
+class _RenderBadgePlacement3d extends RenderSingleChild3d {
+  _RenderBadgePlacement3d({
     required AlignmentGeometry3d alignment,
     required TextDirection? textDirection,
     required Offset3d offset,
@@ -339,8 +339,8 @@ class _BadgePlacement3d extends RenderSingleChild3d {
   }
 }
 
-class _SceneBadgePlacement3d extends SingleChildRenderObjectWidget3d {
-  const _SceneBadgePlacement3d({
+class _BadgePlacement3d extends SingleChildRenderObjectWidget3d {
+  const _BadgePlacement3d({
     required this.alignment,
     required this.offset,
     required this.widthOffset,
@@ -354,16 +354,17 @@ class _SceneBadgePlacement3d extends SingleChildRenderObjectWidget3d {
   final bool hasLabel;
 
   @override
-  _BadgePlacement3d createLayout(BuildContext context) => _BadgePlacement3d(
-    alignment: alignment,
-    textDirection: Directionality.maybeOf(context),
-    offset: offset,
-    widthOffset: widthOffset,
-    hasLabel: hasLabel,
-  );
+  _RenderBadgePlacement3d createLayout(BuildContext context) =>
+      _RenderBadgePlacement3d(
+        alignment: alignment,
+        textDirection: Directionality.maybeOf(context),
+        offset: offset,
+        widthOffset: widthOffset,
+        hasLabel: hasLabel,
+      );
 
   @override
-  void updateLayout(BuildContext context, _BadgePlacement3d layout) {
+  void updateLayout(BuildContext context, _RenderBadgePlacement3d layout) {
     layout
       ..alignment = alignment
       ..textDirection = Directionality.maybeOf(context)
@@ -380,9 +381,9 @@ class _SceneBadgePlacement3d extends SingleChildRenderObjectWidget3d {
 /// Here it is two layouts of the child when the first comes out taller than
 /// it is wide — a single digit at a large type setting — and one otherwise.
 /// The label's measurement is cached, so the second is arithmetic.
-class _BadgeStadium3d extends RenderSingleChild3d
+class _RenderBadgeStadium3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d {
-  _BadgeStadium3d({required double minExtent})
+  _RenderBadgeStadium3d({required double minExtent})
     : _minExtent = minExtent,
       super(name: 'Badge3d stadium');
 
@@ -418,17 +419,17 @@ class _BadgeStadium3d extends RenderSingleChild3d
   }
 }
 
-class _SceneBadgeStadium3d extends SingleChildRenderObjectWidget3d {
-  const _SceneBadgeStadium3d({required this.minExtent, super.child});
+class _BadgeStadium3d extends SingleChildRenderObjectWidget3d {
+  const _BadgeStadium3d({required this.minExtent, super.child});
 
   final double minExtent;
 
   @override
-  _BadgeStadium3d createLayout(BuildContext context) =>
-      _BadgeStadium3d(minExtent: minExtent);
+  _RenderBadgeStadium3d createLayout(BuildContext context) =>
+      _RenderBadgeStadium3d(minExtent: minExtent);
 
   @override
-  void updateLayout(BuildContext context, _BadgeStadium3d layout) {
+  void updateLayout(BuildContext context, _RenderBadgeStadium3d layout) {
     layout.minExtent = minExtent;
   }
 }

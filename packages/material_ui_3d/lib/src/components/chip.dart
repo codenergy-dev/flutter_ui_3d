@@ -25,14 +25,14 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneAlign3d,
-        SceneAnimatedSlide3d,
-        SceneConstrainedBox3d,
-        SceneGestureDetector3d,
-        ScenePadding3d,
-        SceneRow3d,
-        SceneSemantics3d,
-        SceneTapTarget3d;
+        Align3d,
+        AnimatedSlide3d,
+        ConstrainedBox3d,
+        GestureDetector3d,
+        Padding3d,
+        Row3d,
+        Semantics3d,
+        TapTarget3d;
 
 import '../theme/theme.dart';
 import 'chip_style.dart';
@@ -47,7 +47,7 @@ import 'reading_direction.dart';
 /// ```dart
 /// Chip3d(
 ///   variant: ChipVariant3d.filter,
-///   label: const SceneText3d('Unread'),
+///   label: const Text3d('Unread'),
 ///   selected: _unreadOnly,
 ///   onSelected: (value) => setState(() => _unreadOnly = value),
 ///   semanticLabel: 'Unread only',
@@ -74,7 +74,7 @@ import 'reading_direction.dart';
 ///
 /// A chip is **32dp tall**, which is the smallest control in the catalogue
 /// and sixteen short of Material's minimum touch target. The reach the
-/// `TapTarget3d` adds is therefore doing real work rather than covering a
+/// `RenderTapTarget3d` adds is therefore doing real work rather than covering a
 /// rounding error: a chip answers a finger 8dp above and below itself while
 /// a row of chips stays 32dp tall and nothing moves apart. The target sits
 /// outermost, outside the panel *and* the semantics box, for the reason
@@ -87,9 +87,9 @@ import 'reading_direction.dart';
 /// `InkWell3d`, and the limitation behind that is worth knowing before you
 /// try to improve it:
 ///
-///  * **It cannot have a reach of its own.** A second `TapTarget3d` inside
-///    the chip's panel would be gated by the panel — the target reaches past
-///    its extent, its ancestors do not — so the reach would be silently
+///  * **It cannot have a reach of its own.** A second `RenderTapTarget3d`
+///    inside the chip's panel would be gated by the panel — the target reaches
+///    past its extent, its ancestors do not — so the reach would be silently
 ///    inert. The delete zone is exactly the icon and the padding around it.
 ///  * **It cannot have a wash of its own.** The ink controller belongs to the
 ///    enclosing `Material3d`, so an ink well here would light the *whole
@@ -99,7 +99,7 @@ import 'reading_direction.dart';
 ///    coplanar with it.
 ///
 /// So the delete affordance announces itself as its own button through a
-/// `SceneSemantics3d`, takes the tap because the innermost recognizer wins
+/// `Semantics3d`, takes the tap because the innermost recognizer wins
 /// the arena, and is otherwise plain. That is honest and small; the
 /// alternative is a phase of its own.
 ///
@@ -275,7 +275,7 @@ class _Chip3dState extends State<Chip3d> {
         // The innermost recognizer wins the arena, exactly as it does in
         // Flutter, so this takes the tap and the chip's own ink well does
         // not. It has no target and no wash of its own; see the class doc.
-        : SceneSemantics3d(
+        : Semantics3d(
             properties: SemanticsProperties(
               button: true,
               enabled: enabled,
@@ -283,7 +283,7 @@ class _Chip3dState extends State<Chip3d> {
               textDirection: readingDirection3d(context, textDirection),
               onTap: enabled ? delete : null,
             ),
-            child: SceneGestureDetector3d(
+            child: GestureDetector3d(
               onTap: enabled ? delete : null,
               child: Icon3d(
                 deleteIcon ?? Chip3d.defaultDeleteIcon,
@@ -292,7 +292,7 @@ class _Chip3dState extends State<Chip3d> {
             ),
           );
 
-    final row = SceneRow3d(
+    final row = Row3d(
       mainAxisSize: MainAxisSize3d.min,
       crossAxisAlignment: CrossAxisAlignment3d.center,
       // 8dp between the label and whatever is beside it, which is Material's
@@ -311,9 +311,9 @@ class _Chip3dState extends State<Chip3d> {
 
     // The padding is inside the well, so a press anywhere on the chip is a
     // press on the chip; see `Button3d`, which had the same rim.
-    final padded = ScenePadding3d(
+    final padded = Padding3d(
       padding: metrics.dpInsets(tokens.padding),
-      child: SceneAlign3d(
+      child: Align3d(
         alignment: Alignment3d.frontCenter,
         widthFactor: 1.0,
         heightFactor: 1.0,
@@ -347,7 +347,7 @@ class _Chip3dState extends State<Chip3d> {
           : padded,
     );
 
-    final constrained = SceneConstrainedBox3d(
+    final constrained = ConstrainedBox3d(
       constraints: theme.effectiveConstraints(
         Constraints3d(minHeight: metrics.dp(tokens.height)),
         metrics,
@@ -358,7 +358,7 @@ class _Chip3dState extends State<Chip3d> {
     // The press lift, on the node tier: toward the viewer is negative depth.
     // Only a press the chip itself reported lifts it — a disabled chip has no
     // well to report one — so this needs no check of its own.
-    final lifted = SceneAnimatedSlide3d(
+    final lifted = AnimatedSlide3d(
       duration: Chip3d.pressDuration,
       curve: Curves.fastOutSlowIn,
       offset: Offset3d(
@@ -369,7 +369,7 @@ class _Chip3dState extends State<Chip3d> {
       child: constrained,
     );
 
-    final announced = SceneSemantics3d(
+    final announced = Semantics3d(
       properties: SemanticsProperties(
         button: true,
         enabled: enabled,
@@ -387,7 +387,7 @@ class _Chip3dState extends State<Chip3d> {
     // Outermost, and here it is doing real work: a chip is 32dp tall and the
     // target is 48dp, so the reach is eight logical pixels of margin on each
     // side that no box in the layout knows about.
-    return SceneTapTarget3d(child: announced);
+    return TapTarget3d(child: announced);
   }
 }
 
@@ -447,7 +447,7 @@ class FilterChip3d extends _VariantChip3d {
 ///
 /// ```dart
 /// InputChip3d(
-///   label: const SceneText3d('lucas@example.com'),
+///   label: const Text3d('lucas@example.com'),
 ///   onDeleted: () => _removeRecipient(recipient),
 ///   semanticLabel: 'lucas@example.com',
 /// )

@@ -56,7 +56,7 @@ enum ButtonVariant3d {
 ///   style: ButtonStyle3d.of(theme, ButtonVariant3d.filled)
 ///       .copyWith(shape: theme.shape.small),
 ///   onPressed: save,
-///   child: const SceneText3d('Save'),
+///   child: const Text3d('Save'),
 /// )
 /// ```
 ///
@@ -292,8 +292,8 @@ class ButtonStyle3d {
   /// The shortest the button may be, in logical pixels.
   ///
   /// Material's 40dp, which is **not** the 48dp touch target: the target is
-  /// grown in the hit test by a `TapTarget3d` outside the panel, so a row of
-  /// buttons stays 40dp tall and still answers a finger 4dp above it.
+  /// grown in the hit test by a `RenderTapTarget3d` outside the panel, so a row
+  /// of buttons stays 40dp tall and still answers a finger 4dp above it.
   final double minimumHeight;
 
   /// Which type token the label takes. `labelLarge` for every variant.

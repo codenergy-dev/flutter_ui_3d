@@ -290,14 +290,14 @@ class _MaterialScreenState extends State<MaterialScreen> {
         selectedIndex: _tab,
         onDestinationSelected: (index) {
           setState(() => _tab = index);
-          Navigator3d.of(SceneOverlay3d.of(context))?.pop();
+          Navigator3d.of(Overlay3d.of(context))?.pop();
         },
-        header: ScenePadding3d(
+        header: Padding3d(
           padding: _insets(
             context,
             const EdgeInsets3d.only(left: 28, top: 16, right: 16, bottom: 10),
           ),
-          child: SceneText3d(
+          child: Text3d(
             'Gallery',
             style: theme.textStyle(
               Typography3dToken.titleSmall,
@@ -338,8 +338,8 @@ class _MaterialScreenState extends State<MaterialScreen> {
         actions: <Widget>[
           TextButton3d(
             semanticLabel: 'Close',
-            onPressed: () => Navigator3d.of(SceneOverlay3d.of(context))?.pop(),
-            child: const SceneText3d('Close'),
+            onPressed: () => Navigator3d.of(Overlay3d.of(context))?.pop(),
+            child: const Text3d('Close'),
           ),
         ],
       ),
@@ -359,35 +359,35 @@ class _MaterialScreenState extends State<MaterialScreen> {
       context: context,
       builder: (context) => Dialog3d(
         semanticLabel: _messages[index].$1,
-        child: SceneColumn3d(
+        child: Column3d(
           mainAxisSize: MainAxisSize3d.min,
           crossAxisAlignment: CrossAxisAlignment3d.start,
           children: <Widget>[
             // The far end of the flight. Four times the row's 40dp, so the
             // scale is doing visible work rather than a polite nudge.
-            SceneHero3d(
+            Hero3d(
               tag: index,
               flightBuilder: (_) => _avatar(index),
-              child: SceneSizedBox3d(
+              child: SizedBox3d(
                 width: _dp(context, 160),
                 height: _dp(context, 160),
-                child: SceneImage3d(
+                child: Image3d(
                   image: GalleryAvatar(index),
                   fit: BoxFit.cover,
                   borderRadius: const BorderRadius3d.circular(80),
                 ),
               ),
             ),
-            SceneSizedBox3d(height: _dp(context, 16)),
-            SceneText3d(
+            SizedBox3d(height: _dp(context, 16)),
+            Text3d(
               _messages[index].$1,
               style: theme.textStyle(
                 Typography3dToken.headlineSmall,
                 color: theme.colorScheme.onSurface,
               ),
             ),
-            SceneSizedBox3d(height: _dp(context, 8)),
-            SceneText3d(
+            SizedBox3d(height: _dp(context, 8)),
+            Text3d(
               _messages[index].$2,
               style: theme.textStyle(
                 Typography3dToken.bodyMedium,
@@ -406,14 +406,13 @@ class _MaterialScreenState extends State<MaterialScreen> {
       context: context,
       builder: (context) => BottomSheet3d(
         semanticLabel: 'Sort by',
-        child: SceneColumn3d(
+        child: Column3d(
           mainAxisSize: MainAxisSize3d.min,
           children: <Widget>[
             for (final by in _sorts)
               ListTile3d.text(
                 title: by,
-                onTap: () =>
-                    Navigator3d.of(SceneOverlay3d.of(context))?.pop(by),
+                onTap: () => Navigator3d.of(Overlay3d.of(context))?.pop(by),
               ),
           ],
         ),
@@ -443,21 +442,21 @@ class _MaterialScreenState extends State<MaterialScreen> {
   /// cuts the face and leaves the depth alone.
   Widget _inbox(BuildContext context) {
     final theme = Theme3d.of(context);
-    return SceneColumn3d(
+    return Column3d(
       crossAxisAlignment: CrossAxisAlignment3d.stretch,
       children: <Widget>[
         // A gradient, because a brand has one and `BoxDecoration3d` now draws
         // one: it is evaluated by the panel shader against the box's own face,
         // so it is exact at this size and would be exact at any other.
-        ScenePadding3d(
+        Padding3d(
           padding: _insets(
             context,
             const EdgeInsets3d.symmetric(horizontal: 12, vertical: 8),
           ),
-          child: SceneSizedBox3d(
+          child: SizedBox3d(
             height: _dp(context, 56),
             depth: _dp(context, theme.thickness.raised),
-            child: SceneDecoratedBox3d(
+            child: DecoratedBox3d(
               decoration: BoxDecoration3d(
                 borderRadius: const BorderRadius3d.circular(16),
                 gradient: LinearGradient(
@@ -469,9 +468,9 @@ class _MaterialScreenState extends State<MaterialScreen> {
                   ],
                 ),
               ),
-              child: SceneAlign3d(
+              child: Align3d(
                 alignment: Alignment3d.frontCenter,
-                child: SceneText3d(
+                child: Text3d(
                   '${_messages.length} messages',
                   style: theme.textStyle(
                     Typography3dToken.titleMedium,
@@ -482,14 +481,14 @@ class _MaterialScreenState extends State<MaterialScreen> {
             ),
           ),
         ),
-        ScenePadding3d(
+        Padding3d(
           padding: _insets(context, const EdgeInsets3d.all(8)),
-          child: SceneRow3d(
+          child: Row3d(
             mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
             children: <Widget>[
               for (var index = 0; index < _filters.length; index++)
                 FilterChip3d(
-                  label: SceneText3d(_filters[index]),
+                  label: Text3d(_filters[index]),
                   semanticLabel: _filters[index],
                   selected: _filter == index,
                   onSelected: (_) => setState(() => _filter = index),
@@ -497,12 +496,12 @@ class _MaterialScreenState extends State<MaterialScreen> {
             ],
           ),
         ),
-        SceneExpanded3d(
-          child: SceneListView3d(
+        Expanded3d(
+          child: ListView3d(
             spacing: _dp(context, 8),
             children: <Widget>[
               for (final index in _inboxOrder)
-                ScenePadding3d(
+                Padding3d(
                   key: ValueKey<int>(index),
                   padding: _insets(
                     context,
@@ -523,21 +522,21 @@ class _MaterialScreenState extends State<MaterialScreen> {
                       // to the big one in the dialog. Nothing is reparented,
                       // so `_avatar` below is what flies and this is what
                       // stands here, which is why both are one function.
-                      leading: SceneHero3d(
+                      leading: Hero3d(
                         tag: index,
                         flightBuilder: (_) => _avatar(index),
-                        child: SceneSizedBox3d(
+                        child: SizedBox3d(
                           width: _dp(context, 40),
                           height: _dp(context, 40),
-                          child: SceneImage3d(
+                          child: Image3d(
                             image: GalleryAvatar(index),
                             fit: BoxFit.cover,
                             borderRadius: const BorderRadius3d.circular(20),
                           ),
                         ),
                       ),
-                      title: SceneText3d(_messages[index].$1),
-                      subtitle: SceneText3d(_messages[index].$2),
+                      title: Text3d(_messages[index].$1),
+                      subtitle: Text3d(_messages[index].$2),
                       trailing: Checkbox3d(
                         value: _starred.contains(index),
                         semanticLabel: 'Star',
@@ -620,7 +619,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
   /// `TabBarView3d`.
   Widget _settings(BuildContext context) => DefaultTabController(
     length: 2,
-    child: SceneColumn3d(
+    child: Column3d(
       crossAxisAlignment: CrossAxisAlignment3d.stretch,
       children: <Widget>[
         const TabBar3d(
@@ -629,7 +628,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
             Tab3d(text: 'Display'),
           ],
         ),
-        SceneExpanded3d(
+        Expanded3d(
           child: TabBarView3d(
             children: <Widget>[_general(context), _display(context)],
           ),
@@ -641,16 +640,16 @@ class _MaterialScreenState extends State<MaterialScreen> {
   /// A page of the settings: a padded list, for the reason the first one
   /// was a list — a settings screen with one more row than fits is an
   /// ordinary screen.
-  Widget _page(BuildContext context, List<Widget> children) => ScenePadding3d(
+  Widget _page(BuildContext context, List<Widget> children) => Padding3d(
     padding: _insets(context, const EdgeInsets3d.symmetric(horizontal: 12)),
-    child: SceneListView3d(
+    child: ListView3d(
       crossAxisAlignment: CrossAxisAlignment3d.stretch,
       spacing: _dp(context, 8),
       children: <Widget>[
         // Room under the tab bar, as the old page had above its first card.
-        SceneSizedBox3d(height: _dp(context, 4)),
+        SizedBox3d(height: _dp(context, 4)),
         ...children,
-        SceneSizedBox3d(height: _dp(context, 4)),
+        SizedBox3d(height: _dp(context, 4)),
       ],
     ),
   );
@@ -670,7 +669,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
             TextButton3d(
               semanticLabel: 'Turn on',
               onPressed: () => setState(() => _notify = true),
-              child: const SceneText3d('Turn on'),
+              child: const Text3d('Turn on'),
             ),
           ],
         ),
@@ -687,7 +686,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
       ),
       OutlinedCard3d(
         key: const ValueKey<String>('volume'),
-        child: ScenePadding3d(
+        child: Padding3d(
           // The four edges and not the six faces. `EdgeInsets3d.all` insets
           // the front as well, and a card's depth is only its thickness, so a
           // front inset of 12dp put the label and the slider 12dp *behind*
@@ -697,14 +696,14 @@ class _MaterialScreenState extends State<MaterialScreen> {
             context,
             const EdgeInsets3d.symmetric(horizontal: 12, vertical: 12),
           ),
-          child: SceneColumn3d(
+          child: Column3d(
             crossAxisAlignment: CrossAxisAlignment3d.stretch,
             depthAxisAlignment: CrossAxisAlignment3d.start,
             mainAxisSize: MainAxisSize3d.min,
             spacing: _dp(context, 4),
             children: <Widget>[
-              const SceneText3d('Volume'),
-              SceneAlign3d(
+              const Text3d('Volume'),
+              Align3d(
                 alignment: Alignment3d.frontCenter,
                 child: Slider3d(
                   value: _volume,
@@ -723,7 +722,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
           ),
         ),
       ),
-      SceneRow3d(
+      Row3d(
         key: const ValueKey<String>('actions'),
         mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
         children: <Widget>[
@@ -740,7 +739,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
                 ..onSeedChanged(GalleryTheme3d.defaultSeed)
                 ..onBrightnessChanged(Brightness.light);
             },
-            child: const SceneText3d('Reset'),
+            child: const Text3d('Reset'),
           ),
           FilledButton3d(
             onPressed: () => _save(context),
@@ -749,8 +748,8 @@ class _MaterialScreenState extends State<MaterialScreen> {
             // and in the button's own content colour. Its arc is a gradient on
             // a ring's border, turned on the node tier.
             child: _saving == null
-                ? const SceneText3d('Save')
-                : SceneSizedBox3d(
+                ? const Text3d('Save')
+                : SizedBox3d(
                     width: _dp(context, 20),
                     height: _dp(context, 20),
                     child: CircularProgressIndicator3d(
@@ -793,7 +792,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
     return _page(context, <Widget>[
       FilledCard3d(
         key: const ValueKey<String>('theme'),
-        child: SceneColumn3d(
+        child: Column3d(
           crossAxisAlignment: CrossAxisAlignment3d.stretch,
           // Everything in a card sits on the card's **front face**, and this
           // is the line that puts it there. A flex centres its children on
@@ -809,7 +808,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
             // re-theme, the screen this is on and the table beside it. The
             // fill on the chosen end is carved to the outline's curve in the
             // panel's own shader, because there is no rounded clip to cut it.
-            ScenePadding3d(
+            Padding3d(
               padding: _insets(
                 context,
                 const EdgeInsets3d.symmetric(vertical: 8),
@@ -837,12 +836,12 @@ class _MaterialScreenState extends State<MaterialScreen> {
             ),
             const Divider3d(),
             // And the colour the whole scheme is generated from.
-            ScenePadding3d(
+            Padding3d(
               padding: _insets(
                 context,
                 const EdgeInsets3d.symmetric(horizontal: 8, vertical: 8),
               ),
-              child: SceneRow3d(
+              child: Row3d(
                 mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
                 children: <Widget>[
                   for (final (seed, name) in GalleryTheme3d.seeds)
@@ -855,17 +854,17 @@ class _MaterialScreenState extends State<MaterialScreen> {
       ),
       OutlinedCard3d(
         key: const ValueKey<String>('order'),
-        child: SceneColumn3d(
+        child: Column3d(
           crossAxisAlignment: CrossAxisAlignment3d.stretch,
           depthAxisAlignment: CrossAxisAlignment3d.start,
           mainAxisSize: MainAxisSize3d.min,
           children: <Widget>[
-            ScenePadding3d(
+            Padding3d(
               padding: _insets(
                 context,
                 const EdgeInsets3d.only(left: 16, top: 12, right: 16),
               ),
-              child: SceneText3d('Sort the inbox by', style: heading),
+              child: Text3d('Sort the inbox by', style: heading),
             ),
             // One group, three rows: the group holds the choice, every row
             // takes it from there, and an arrow key moves the choice and the
@@ -876,7 +875,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
               onChanged: (value) {
                 if (value != null) setState(() => _sortBy = value);
               },
-              child: SceneColumn3d(
+              child: Column3d(
                 crossAxisAlignment: CrossAxisAlignment3d.stretch,
                 depthAxisAlignment: CrossAxisAlignment3d.start,
                 mainAxisSize: MainAxisSize3d.min,
@@ -938,7 +937,7 @@ class _TableScreenState extends State<TableScreen> {
       // else: each icon lifts its card, and the button at the end lifts the
       // next one.
       bottomNavigationBar: BottomAppBar3d(
-        child: SceneRow3d(
+        child: Row3d(
           spacing: _dp(context, 8),
           children: <Widget>[
             for (var index = 0; index < 3; index++)
@@ -947,7 +946,7 @@ class _TableScreenState extends State<TableScreen> {
                 semanticLabel: 'Lift ${_tableLabels[index]}',
                 onPressed: () => setState(() => _lifted = index),
               ),
-            const SceneSpacer3d(),
+            const Spacer3d(),
             FloatingActionButton3d(
               semanticLabel: 'Lift the next card',
               onPressed: () => setState(() => _lifted = (_lifted + 1) % 3),
@@ -956,14 +955,14 @@ class _TableScreenState extends State<TableScreen> {
           ],
         ),
       ),
-      body: ScenePadding3d(
+      body: Padding3d(
         padding: _insets(context, const EdgeInsets3d.all(8)),
-        child: SceneRow3d(
+        child: Row3d(
           crossAxisAlignment: CrossAxisAlignment3d.stretch,
           spacing: _dp(context, 8),
           children: <Widget>[
             for (var index = 0; index < 3; index++)
-              SceneExpanded3d(
+              Expanded3d(
                 child: ElevatedCard3d(
                   semanticLabel: 'Card ${index + 1}',
                   onTap: () => setState(() => _lifted = index),
@@ -972,20 +971,20 @@ class _TableScreenState extends State<TableScreen> {
                         ? theme.elevation.level5
                         : theme.elevation.level1,
                   ),
-                  child: SceneAlign3d(
+                  child: Align3d(
                     alignment: Alignment3d.frontCenter,
-                    child: SceneColumn3d(
+                    child: Column3d(
                       mainAxisSize: MainAxisSize3d.min,
                       depthAxisAlignment: CrossAxisAlignment3d.start,
                       spacing: _dp(context, 6),
                       children: <Widget>[
                         Icon3d(_tableIcons[index]),
-                        SceneText3d(_tableLabels[index]),
+                        Text3d(_tableLabels[index]),
                         // The elevation, written out. It is the whole point of
                         // this screen: on the ground plane an elevation is a
                         // height, so the lifted card visibly stands off the
                         // table rather than merely being tinted.
-                        SceneText3d(
+                        Text3d(
                           _lifted == index ? 'level 5' : 'level 1',
                           style: theme.textStyle(
                             Typography3dToken.labelMedium,
@@ -1017,7 +1016,7 @@ class _TableScreenState extends State<TableScreen> {
 /// The gallery commits no assets — it is generated with `flutter create` — so
 /// its pictures are painted into a `ui.Image` at startup, which is also the
 /// honest demonstration: an `ImageProvider` is an `ImageProvider`, and
-/// `SceneImage3d` neither knows nor cares where its pixels came from.
+/// `Image3d` neither knows nor cares where its pixels came from.
 class GalleryAvatar extends ImageProvider<GalleryAvatar> {
   const GalleryAvatar(this.seed);
 
@@ -1099,7 +1098,7 @@ EdgeInsets3d _insets(BuildContext context, EdgeInsets3d insets) =>
 /// returns a `RenderObject3d` rather than a `Widget`, the same seam a drag's
 /// feedback has. It is laid out at the size of the end the flight starts
 /// from and scaled to reach the other, so it needs no size of its own.
-RenderObject3d _avatar(int index) => Image3d(
+RenderObject3d _avatar(int index) => RenderImage3d(
   image: GalleryAvatar(index),
   fit: BoxFit.cover,
   // Half the 40dp end, so the circle stays a circle at both sizes: the

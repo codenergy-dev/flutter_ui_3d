@@ -22,9 +22,9 @@ import 'overlay.dart';
 /// [none] is the default, and it is still the honest one for a route that is
 /// meant to be there at once. [TimedRoute3dTransition] is the one that moves:
 /// it winds [Route3d.animation] from 0 to 1 and back, and what that *looks*
-/// like is a [Motion3d] on a [MotionTransition3d] inside the route's content
-/// — which is where it has to be, because a route's content may include a
-/// scrim, and a scrim does not slide in with the dialog it dims.
+/// like is a [Motion3d] on a [RenderMotionTransition3d] inside the route's
+/// content — which is where it has to be, because a route's content may include
+/// a scrim, and a scrim does not slide in with the dialog it dims.
 abstract class Route3dTransition {
   /// Allows subclasses to be const.
   const Route3dTransition();
@@ -78,7 +78,7 @@ class _NoTransition extends Route3dTransition {
 /// ```
 ///
 /// **This class decides the clock and nothing else.** What the movement looks
-/// like is a [Motion3d] read by a [MotionTransition3d] inside the route's
+/// like is a [Motion3d] read by a [RenderMotionTransition3d] inside the route's
 /// content, which is the split Flutter draws between a route's controller and
 /// its transition builder, and which matters more here: a route's content may
 /// carry its own scrim, and a scrim must not slide in with what it dims.
@@ -180,9 +180,9 @@ abstract class Route3d<T> {
 
   /// How far this route has arrived: 0 while it is away, 1 once it is here.
   ///
-  /// What a [MotionTransition3d] inside the route's content reads, and what a
-  /// [Route3dTransition] winds. The route owns it because the route is the
-  /// object with the right lifetime: a transition may be shared by every
+  /// What a [RenderMotionTransition3d] inside the route's content reads, and
+  /// what a [Route3dTransition] winds. The route owns it because the route is
+  /// the object with the right lifetime: a transition may be shared by every
   /// route on a navigator, while this is created on first use and disposed
   /// when the route finishes.
   ///
@@ -303,8 +303,8 @@ class PageRoute3d<T> extends Route3d<T> {
   /// Where the content stands before it has arrived, or null for no movement.
   ///
   /// A convenience over wrapping what [builder] returns in a
-  /// [MotionTransition3d] driven by [animation] — which is what this does,
-  /// and what content that wants the box somewhere else (inside its own
+  /// [RenderMotionTransition3d] driven by [animation] — which is what this
+  /// does, and what content that wants the box somewhere else (inside its own
   /// scrim, rather than around it) should do by hand instead.
   ///
   /// It moves nothing on its own: this route's [Route3d.transition], or the
@@ -316,7 +316,7 @@ class PageRoute3d<T> extends Route3d<T> {
   /// Which surface the route lives on, and how far in front.
   final OverlayLayer3d layer;
 
-  /// Whether a [ModalBarrier3d] goes behind the content.
+  /// Whether a [RenderModalBarrier3d] goes behind the content.
   final bool modal;
 
   /// Whether a tap on the barrier pops this route.
@@ -357,7 +357,7 @@ class PageRoute3d<T> extends Route3d<T> {
   );
 }
 
-/// A stack of routes over an [Overlay3d]: push, pop, and the result that
+/// A stack of routes over a [RenderOverlay3d]: push, pop, and the result that
 /// comes back.
 ///
 /// Thin on purpose. The overlay already orders what is in front of what and
@@ -390,7 +390,7 @@ class Navigator3d {
   }
 
   /// The overlay this navigator pushes into.
-  final Overlay3d overlay;
+  final RenderOverlay3d overlay;
 
   /// What runs while a route arrives or leaves, unless the route says
   /// otherwise.
@@ -406,7 +406,7 @@ class Navigator3d {
   /// [SchedulerBinding] and works outside a `State`. Give one where there is
   /// a `State` in the picture so that `TickerMode` can mute an arrival with
   /// the route it belongs to — the same arrangement [Scroll3dController],
-  /// [Draggable3d] and [Dismissible3d] already ask for.
+  /// [RenderDraggable3d] and [RenderDismissible3d] already ask for.
   TickerProvider? vsync;
 
   static final Expando<Navigator3d> _navigators = Expando<Navigator3d>(
@@ -444,9 +444,9 @@ class Navigator3d {
   ///
   /// The walk a control deep inside a dialog uses to pop it without being
   /// handed a navigator. It crosses out of a detached entry, because
-  /// [Overlay3d.of] does.
+  /// [RenderOverlay3d.of] does.
   static Navigator3d? of(RenderObject3d layout) {
-    final overlay = Overlay3d.of(layout);
+    final overlay = RenderOverlay3d.of(layout);
     return overlay == null ? null : _navigators[overlay];
   }
 
@@ -552,13 +552,13 @@ class Navigator3d {
     if (retry) _clearFlights(route);
     final covering = route._entry?.content;
     if (covering == null) return;
-    final bSide = <Object, Hero3d>{};
+    final bSide = <Object, RenderHero3d>{};
     collectHero3ds(covering, bSide);
     if (bSide.isEmpty) {
       // **A widget-built route has no subtree at all in the turn that pushed
       // it**: its content reaches the element tree on the build that
-      // `Overlay3d.entriesChanged` asks for, which is the next frame. So an
-      // empty covering side is not yet an answer, and the question is asked
+      // `RenderOverlay3d.entriesChanged` asks for, which is the next frame. So
+      // an empty covering side is not yet an answer, and the question is asked
       // once more when that build has happened. A route that genuinely
       // carries no heroes simply finds nothing twice.
       if (!retry) return;
@@ -580,7 +580,7 @@ class Navigator3d {
     // on it pruned away. A detached entry's content is not a descendant of
     // the overlay at all, so it is excluded without being pruned.
     final below = _routeBelow(route);
-    final aSide = <Object, Hero3d>{};
+    final aSide = <Object, RenderHero3d>{};
     if (below == null) {
       collectHero3ds(
         overlay,
@@ -641,8 +641,8 @@ class Navigator3d {
   String toString() => 'Navigator3d(${_routes.length} routes)';
 }
 
-/// Wraps [content] in a [MotionTransition3d] driven by [route], when there is
-/// a motion to apply.
+/// Wraps [content] in a [RenderMotionTransition3d] driven by [route], when
+/// there is a motion to apply.
 ///
 /// Shared by [PageRoute3d] and `WidgetPageRoute3d`, which differ in what they
 /// build and not in how it arrives.
@@ -652,7 +652,7 @@ RenderObject3d wrapRoute3dMotion(
   RenderObject3d content,
 ) => motion == null
     ? content
-    : MotionTransition3d(
+    : RenderMotionTransition3d(
         animation: route.animation,
         motion: motion,
         child: content,

@@ -16,11 +16,11 @@ import 'scrollable.dart';
 /// The child is laid out unbounded along [axis] and the viewport shows the
 /// slice at [controller]'s offset. Nothing is culled and nothing is clipped:
 /// the child keeps its geometry, it simply slides. For long lists, prefer
-/// [ListView3d], which only builds what is near the window.
-class Viewport3d extends RenderSingleChild3d
-    with RenderLayoutPassMixin3d, Scroll3dHolderMixin {
+/// [RenderListView3d], which only builds what is near the window.
+class RenderViewport3d extends RenderSingleChild3d
+    with RenderLayoutPassMixin3d, RenderScroll3dHolderMixin {
   /// Creates a scrolling window along [axis].
-  Viewport3d({
+  RenderViewport3d({
     Axis3d axis = Axis3d.vertical,
     Scroll3dController? controller,
     super.child,

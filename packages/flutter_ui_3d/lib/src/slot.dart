@@ -39,7 +39,7 @@ import 'rendering/object.dart';
 ///
 /// The other cost is smaller and shows up as a compile error: a `const` map
 /// key must have *primitive* equality, and this one does not, so
-/// `SceneLayout3d(slots: const {mySlot: value})` will not compile. Drop the
+/// `Surface3d(slots: const {mySlot: value})` will not compile. Drop the
 /// `const`.
 ///
 /// **The owner stores the value; it does not own it.** Nothing is disposed
@@ -75,13 +75,13 @@ class Layout3dSlot<T extends Object> {
 /// A pass-through box that writes one owner slot while it is in the tree.
 ///
 /// The imperative half of putting a value where the whole surface can reach
-/// it, for a caller that would rather not hold the [Layout3dSurface] itself.
+/// it, for a caller that would rather not hold the [RenderSurface3d] itself.
 /// It writes [value] into [slotKey] when it attaches, rewrites it when [value]
 /// changes, and clears the slot when it detaches.
 ///
 /// ```dart
-/// Layout3dSurface(
-///   child: SlotProvider3d(
+/// RenderSurface3d(
+///   child: RenderSlotProvider3d(
 ///     slot: themeSlot,
 ///     value: Theme3dData.light(),
 ///     child: screen,
@@ -94,9 +94,9 @@ class Layout3dSlot<T extends Object> {
 /// overwrites the first, and whichever detaches last leaves the slot empty.
 /// Tree-wide state is what the owner is for, and a per-subtree value is a
 /// constructor argument or an `InheritedWidget`, not this.
-class SlotProvider3d<T extends Object> extends RenderProxyBox3d {
+class RenderSlotProvider3d<T extends Object> extends RenderProxyBox3d {
   /// Creates a box that provides [value] under [slot].
-  SlotProvider3d({
+  RenderSlotProvider3d({
     required Layout3dSlot<T> slot,
     required T? value,
     super.child,
@@ -115,7 +115,7 @@ class SlotProvider3d<T extends Object> extends RenderProxyBox3d {
   ///
   /// Setting it relayouts the subtree, because a value nobody was handed as a
   /// constraint is one that boxes read inside `performLayout` — the same
-  /// reason writing [Layout3dSurface.metrics] relayouts. Nothing on a
+  /// reason writing [RenderSurface3d.metrics] relayouts. Nothing on a
   /// per-frame path should write it.
   T? get value => _value;
 

@@ -7,11 +7,7 @@ import 'package:flutter/widgets.dart'
     show BuildContext, StatelessWidget, TextDirection, Widget;
 import 'package:flutter_ui_3d/rendering.dart' show EdgeInsets3d, Size3d;
 import 'package:flutter_ui_3d/widgets.dart'
-    show
-        Layout3dMetricsScope,
-        ScenePadding3d,
-        SceneSemantics3d,
-        SceneTapTarget3d;
+    show Layout3dMetricsScope, Padding3d, Semantics3d, TapTarget3d;
 
 import '../theme/theme.dart';
 import 'card_style.dart';
@@ -25,11 +21,11 @@ import 'reading_direction.dart';
 /// ```dart
 /// Card3d(
 ///   variant: CardVariant3d.elevated,
-///   child: ScenePadding3d(
+///   child: Padding3d(
 ///     padding: metrics.dpInsets(
 ///       const EdgeInsets3d.symmetric(horizontal: 16, vertical: 12),
 ///     ),
-///     child: const SceneText3d('Yesterday'),
+///     child: const Text3d('Yesterday'),
 ///   ),
 /// )
 /// ```
@@ -66,8 +62,8 @@ import 'reading_direction.dart';
 /// ## Announcing itself
 ///
 /// A card is a container, and a container with a tap is a button. Pass a
-/// [semanticLabel]: `Semantics3d` publishes what it is given and gathers no
-/// label out of the labels inside the card, so a tappable card without one
+/// [semanticLabel]: `RenderSemantics3d` publishes what it is given and gathers
+/// no label out of the labels inside the card, so a tappable card without one
 /// announces itself as a button with no name.
 class Card3d extends StatelessWidget {
   /// Creates a card of [variant], or drawn with an explicit [style].
@@ -157,12 +153,9 @@ class Card3d extends StatelessWidget {
     // edge.
     final withMargin = resolved.margin == EdgeInsets3d.zero
         ? surface
-        : ScenePadding3d(
-            padding: metrics.dpInsets(resolved.margin),
-            child: surface,
-          );
+        : Padding3d(padding: metrics.dpInsets(resolved.margin), child: surface);
 
-    final announced = SceneSemantics3d(
+    final announced = Semantics3d(
       properties: SemanticsProperties(
         button: interactive ? true : null,
         enabled: interactive ? true : null,
@@ -181,7 +174,7 @@ class Card3d extends StatelessWidget {
     // included — rejects a press in the margin before the target sees it.
     // A card is almost always larger than 48dp, so the reach usually buys
     // nothing; putting it in the wrong place would still cost something.
-    return SceneTapTarget3d(child: announced);
+    return TapTarget3d(child: announced);
   }
 }
 

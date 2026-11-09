@@ -24,7 +24,7 @@ const double _dp = 0.01;
 const double _tol = 1e-3;
 
 /// A 64 by 20 stand-in for a button, so an action has a known width.
-Widget _action() => const SceneSizedBox3d(width: 0.64, height: 0.2);
+Widget _action() => const SizedBox3d(width: 0.64, height: 0.2);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -64,7 +64,7 @@ void main() {
           content: 'It will be gone from every device.',
         ),
       );
-      final labels = boxesOf<Text3d>(it.surface);
+      final labels = boxesOf<RenderText3d>(it.surface);
       expect(labels.map((label) => label.data), <String>[
         'Delete this file?',
         'It will be gone from every device.',
@@ -87,7 +87,7 @@ void main() {
           title: 'Delete this file?',
         ),
       );
-      final glyph = boxesOf<Text3d>(it.surface).first;
+      final glyph = boxesOf<RenderText3d>(it.surface).first;
       expect(glyph.style.color, theme.colorScheme.secondary);
       expect(glyph.style.fontSize, Icon3d.defaultSize);
     });
@@ -99,7 +99,7 @@ void main() {
         tester,
         () => AlertDialog3d.text(title: 'Delete this file?'),
       );
-      expect(boxesOf<DecoratedBox3d>(it.surface), hasLength(1));
+      expect(boxesOf<RenderDecoratedBox3d>(it.surface), hasLength(1));
       expect(
         (it.decoration).color,
         DialogStyle3d.of(theme).container,
@@ -132,9 +132,9 @@ void main() {
           actions: <Widget>[_action()],
         ),
       );
-      final labels = boxesOf<Text3d>(it.surface);
+      final labels = boxesOf<RenderText3d>(it.surface);
       final (glyph, title, body) = (labels[0], labels[1], labels[2]);
-      final action = boxesOf<SizedBox3d>(it.surface).last;
+      final action = boxesOf<RenderSizedBox3d>(it.surface).last;
 
       double top(RenderObject3d box) => offsetInPanel(it, box).y;
       double bottom(RenderObject3d box) => top(box) + box.size.height / _dp;
@@ -157,8 +157,8 @@ void main() {
         () =>
             AlertDialog3d.text(title: 'Delete?', actions: <Widget>[_action()]),
       );
-      final title = oneOf<Text3d>(it.surface);
-      final action = boxesOf<SizedBox3d>(it.surface).last;
+      final title = oneOf<RenderText3d>(it.surface);
+      final action = boxesOf<RenderSizedBox3d>(it.surface).last;
       final gap =
           offsetInPanel(it, action).y -
           offsetInPanel(it, title).y -
@@ -172,12 +172,12 @@ void main() {
       final it = await pumpComponent(
         tester,
         () => AlertDialog3d(
-          title: const SceneSizedBox3d(width: 3.0, height: 0.3),
+          title: const SizedBox3d(width: 3.0, height: 0.3),
           actions: <Widget>[_action(), _action()],
         ),
         size: const Size3d(8, 6, 0.5),
       );
-      final boxes = boxesOf<SizedBox3d>(it.surface);
+      final boxes = boxesOf<RenderSizedBox3d>(it.surface);
       final (first, second) = (boxes[boxes.length - 2], boxes.last);
       final padding = DialogStyle3d.of(theme).padding;
 
@@ -198,13 +198,13 @@ void main() {
       final it = await pumpComponent(
         tester,
         () => AlertDialog3d(
-          title: const SceneSizedBox3d(width: 3.0, height: 0.3),
+          title: const SizedBox3d(width: 3.0, height: 0.3),
           actions: <Widget>[_action(), _action()],
         ),
         size: const Size3d(8, 6, 0.5),
         textDirection: TextDirection.rtl,
       );
-      final boxes = boxesOf<SizedBox3d>(it.surface);
+      final boxes = boxesOf<RenderSizedBox3d>(it.surface);
       final (first, second) = (boxes[boxes.length - 2], boxes.last);
       expect(
         offsetInPanel(it, first).x,
@@ -226,7 +226,7 @@ void main() {
       final it = await pumpComponent(
         tester,
         () => AlertDialog3d(
-          title: const SceneSizedBox3d(width: 3.2, height: 0.3),
+          title: const SizedBox3d(width: 3.2, height: 0.3),
           actions: <Widget>[_action()],
         ),
         size: const Size3d(8, 6, 0.5),
@@ -242,7 +242,7 @@ void main() {
       final it = await pumpComponent(
         tester,
         () => AlertDialog3d(
-          title: const SceneSizedBox3d(width: 0.5, height: 0.3),
+          title: const SizedBox3d(width: 0.5, height: 0.3),
           actions: <Widget>[_action()],
         ),
         size: const Size3d(8, 6, 0.5),
@@ -254,7 +254,7 @@ void main() {
       // `Dialog3d` centres what it holds in a loose box, so a column that
       // took only its own 64dp would put the action in the middle of the
       // dialog — which the first version of this component did.
-      final action = boxesOf<SizedBox3d>(it.surface).last;
+      final action = boxesOf<RenderSizedBox3d>(it.surface).last;
       expect(
         offsetInPanel(it, action).x + action.size.width / _dp,
         closeTo(dialog.minWidth - dialog.padding.right, _tol),
@@ -267,14 +267,14 @@ void main() {
       final it = await pumpComponent(
         tester,
         () => AlertDialog3d(
-          icon: const SceneSizedBox3d(width: 0.24, height: 0.24),
-          title: const SceneSizedBox3d(width: 1.0, height: 0.3),
-          content: const SceneSizedBox3d(width: 2.0, height: 0.4),
+          icon: const SizedBox3d(width: 0.24, height: 0.24),
+          title: const SizedBox3d(width: 1.0, height: 0.3),
+          content: const SizedBox3d(width: 2.0, height: 0.4),
         ),
         size: const Size3d(8, 6, 0.5),
       );
       // By height: the 16dp gaps between the sections are sized boxes too.
-      SizedBox3d tall(double height) => boxesOf<SizedBox3d>(
+      RenderSizedBox3d tall(double height) => boxesOf<RenderSizedBox3d>(
         it.surface,
       ).singleWhere((box) => box.height == height);
       final (icon, title, body) = (tall(0.24), tall(0.3), tall(0.4));
@@ -297,12 +297,12 @@ void main() {
       final it = await pumpComponent(
         tester,
         () => const AlertDialog3d(
-          title: SceneSizedBox3d(width: 1.0, height: 0.3),
-          content: SceneSizedBox3d(width: 3.0, height: 0.4),
+          title: SizedBox3d(width: 1.0, height: 0.3),
+          content: SizedBox3d(width: 3.0, height: 0.4),
         ),
         size: const Size3d(8, 6, 0.5),
       );
-      final title = boxesOf<SizedBox3d>(it.surface).first;
+      final title = boxesOf<RenderSizedBox3d>(it.surface).first;
       expect(
         offsetInPanel(it, title).x,
         closeTo(DialogStyle3d.of(theme).padding.left, _tol),
@@ -317,12 +317,12 @@ void main() {
           title: 'Delete this file?',
           content: 'It will be gone from every device.',
           actions: <Widget>[
-            TextButton3d(onPressed: () {}, child: const SceneText3d('Delete')),
+            TextButton3d(onPressed: () {}, child: const Text3d('Delete')),
           ],
         ),
         size: const Size3d(8, 6, 0.5),
       );
-      expect(find3d.bySubtype<Text3d>(), standsOnItsPanel3d);
+      expect(find3d.bySubtype<RenderText3d>(), standsOnItsPanel3d);
     });
   });
 
@@ -353,7 +353,7 @@ void main() {
     ) async {
       final it = await pumpComponent(
         tester,
-        () => const AlertDialog3d(title: SceneText3d('Delete?')),
+        () => const AlertDialog3d(title: Text3d('Delete?')),
       );
       expect(it.semantics.properties.label, isNull);
       expect(it.semantics.properties.namesRoute, isFalse);

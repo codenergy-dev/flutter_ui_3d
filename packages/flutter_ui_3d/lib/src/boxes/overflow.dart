@@ -19,25 +19,25 @@ import '../rendering/object.dart';
 /// A box that caps an axis only when nothing else has, the 3D analogue of
 /// [LimitedBox].
 ///
-/// It is worth more here than in Flutter. A `Layout3dSurface` is unbounded on
-/// all three axes unless it is given a size, and a `Viewport3d` hands its
+/// It is worth more here than in Flutter. A `RenderSurface3d` is unbounded on
+/// all three axes unless it is given a size, and a `RenderViewport3d` hands its
 /// child unbounded room along the scroll axis, so "no upper bound" is the
 /// ordinary case rather than the error case. A box that would fill whatever
-/// it is offered — an [Align3d], a [Stack3d] with a positioned child — has
-/// nothing to fill when the offer is infinite; this states the fallback it
-/// should use, and states it *only* for that case:
+/// it is offered — a [RenderAlign3d], a [RenderStack3d] with a positioned child
+/// — has nothing to fill when the offer is infinite; this states the fallback
+/// it should use, and states it *only* for that case:
 ///
 /// ```dart
-/// LimitedBox3d(maxHeight: 2, child: Column3d(children: rows))
+/// RenderLimitedBox3d(maxHeight: 2, child: RenderColumn3d(children: rows))
 /// ```
 ///
 /// A limit on an axis the parent already bounded is ignored outright, which
-/// is what separates this from a [ConstrainedBox3d]. Use that one to impose a
-/// cap that always applies.
-class LimitedBox3d extends RenderSingleChild3d
+/// is what separates this from a [RenderConstrainedBox3d]. Use that one to
+/// impose a cap that always applies.
+class RenderLimitedBox3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d {
   /// Creates a box that limits its child's unbounded axes.
-  LimitedBox3d({
+  RenderLimitedBox3d({
     double maxWidth = double.infinity,
     double maxHeight = double.infinity,
     double maxDepth = double.infinity,
@@ -163,7 +163,7 @@ class LimitedBox3d extends RenderSingleChild3d
 /// space its own parent allowed. A child bigger than that overflows: its
 /// geometry sticks out of the box, and, because nothing here paints into a
 /// rectangle, that is a thing the viewer simply sees rather than an error.
-/// Wrap the result in a [ClipBox3d] to cut it off.
+/// Wrap the result in a [RenderClipBox3d] to cut it off.
 ///
 /// The usual reason to reach for it is measurement: a child laid out under
 /// unbounded constraints reports the size it *wants*, which is what an
@@ -173,10 +173,10 @@ class LimitedBox3d extends RenderSingleChild3d
 /// keeping depth bounded — `constrainedAxes: {Axis3d.depth}` — is the common
 /// case here: a panel may overflow across the surface without poking through
 /// it.
-class UnconstrainedBox3d extends RenderSingleChild3d
+class RenderUnconstrainedBox3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d, RenderOverflowReportingMixin3d {
   /// Creates a box that frees its child's constraints.
-  UnconstrainedBox3d({
+  RenderUnconstrainedBox3d({
     AlignmentGeometry3d alignment = Alignment3d.center,
     TextDirection? textDirection,
     Set<Axis3d> constrainedAxes = const <Axis3d>{},
@@ -297,26 +297,26 @@ class UnconstrainedBox3d extends RenderSingleChild3d
 /// A box that imposes constraints of its own and lets the child spill out of
 /// the size it reports, the 3D analogue of [OverflowBox].
 ///
-/// The difference from a [ConstrainedBox3d] is which side wins. A constrained
-/// box combines what it wants with what it was given and reports the child's
-/// size, so the parent's limits are never broken; this one *replaces* the
-/// bounds it names outright, sizes itself to the room its parent offered, and
-/// aligns the child inside — which is how a child comes to be bigger than the
-/// box it is in.
+/// The difference from a [RenderConstrainedBox3d] is which side wins. A
+/// constrained box combines what it wants with what it was given and reports
+/// the child's size, so the parent's limits are never broken; this one
+/// *replaces* the bounds it names outright, sizes itself to the room its parent
+/// offered, and aligns the child inside — which is how a child comes to be
+/// bigger than the box it is in.
 ///
 /// The size it reports is the room offered on every axis the parent bounded.
 /// On an unbounded axis there is no such room to report, so it shrink-wraps
-/// the child there instead; that is the same choice [Align3d] makes, and it
-/// keeps an infinite extent from ever reaching the scene.
+/// the child there instead; that is the same choice [RenderAlign3d] makes, and
+/// it keeps an infinite extent from ever reaching the scene.
 ///
 /// ```dart
 /// // A ripple that spreads past the button it belongs to.
-/// OverflowBox3d(maxWidth: 4, maxHeight: 4, child: ripple)
+/// RenderOverflowBox3d(maxWidth: 4, maxHeight: 4, child: ripple)
 /// ```
-class OverflowBox3d extends RenderSingleChild3d
+class RenderOverflowBox3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d {
   /// Creates a box that overrides the bounds given, per axis.
-  OverflowBox3d({
+  RenderOverflowBox3d({
     double? minWidth,
     double? maxWidth,
     double? minHeight,
@@ -489,19 +489,20 @@ class OverflowBox3d extends RenderSingleChild3d
 /// analogue of [FractionallySizedBox].
 ///
 /// Each axis is independent, and an axis with no factor is left loose, so
-/// `FractionallySizedBox3d(widthFactor: 0.5)` is "half as wide as the space,
-/// as tall and deep as the child wants". A factor above one makes the child
-/// larger than the box, which overflows exactly as an [OverflowBox3d] does.
+/// `RenderFractionallySizedBox3d(widthFactor: 0.5)` is "half as wide as the
+/// space, as tall and deep as the child wants". A factor above one makes the
+/// child larger than the box, which overflows exactly as a
+/// [RenderOverflowBox3d] does.
 ///
 /// A factor needs a finite extent to be a fraction *of*, and an unbounded axis
 /// is the normal case on a surface, so an axis that has no upper bound is
 /// left to the child and says so in debug mode. Give the box bounded room —
-/// a `SizedBox3d` around it, or a surface with a size — rather than expecting
-/// a fraction of infinity.
-class FractionallySizedBox3d extends RenderSingleChild3d
+/// a `RenderSizedBox3d` around it, or a surface with a size — rather than
+/// expecting a fraction of infinity.
+class RenderFractionallySizedBox3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d {
   /// Creates a box sizing its child to a fraction of its own room.
-  FractionallySizedBox3d({
+  RenderFractionallySizedBox3d({
     double? widthFactor,
     double? heightFactor,
     double? depthFactor,
@@ -597,9 +598,9 @@ class FractionallySizedBox3d extends RenderSingleChild3d
       if (factor == null) continue;
       assert(
         constraints.hasBoundedAlong(axis),
-        'FractionallySizedBox3d was given a factor for $axis but no upper '
+        'RenderFractionallySizedBox3d was given a factor for $axis but no upper '
         'bound on it, and a fraction of an unbounded extent is not a length. '
-        'Bound the axis — a SizedBox3d around this one, or a sized surface — '
+        'Bound the axis — a RenderSizedBox3d around this one, or a sized surface — '
         'or drop the factor and let the child choose.',
       );
       if (!constraints.hasBoundedAlong(axis)) continue;
@@ -614,12 +615,13 @@ class FractionallySizedBox3d extends RenderSingleChild3d
     final child = this.child;
     if (child == null) {
       // Nothing to wrap, so the box is as small as it is allowed to be —
-      // the same answer Align3d gives with no child on a shrink-wrapped axis.
+      // the same answer RenderAlign3d gives with no child on a shrink-wrapped
+      // axis.
       size = constraints.smallest;
       return;
     }
     child.layout(childConstraints, parentUsesSize: true);
-    // Like Align3d: fill a bounded axis, shrink-wrap an unbounded one.
+    // Like RenderAlign3d: fill a bounded axis, shrink-wrap an unbounded one.
     var chosen = Size3d.zero;
     for (final axis in Axis3d.values) {
       chosen = chosen.withAxis(

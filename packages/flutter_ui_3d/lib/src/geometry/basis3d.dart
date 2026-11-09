@@ -9,9 +9,9 @@ import 'size3d.dart';
 /// Layout space is Flutter's coordinate system with a depth axis: `x` right,
 /// `y` **down**, `z` **away from the viewer**. Scene space is the engine's:
 /// `x` right, `y` up, `z` toward the viewer. Every layout in the tree does
-/// its arithmetic in layout space, so `Column3d` and `Align3d` are direct
-/// ports of their Flutter counterparts, and the surface applies this basis
-/// once at the root to put the whole plane into the scene.
+/// its arithmetic in layout space, so `RenderColumn3d` and `RenderAlign3d` are
+/// direct ports of their Flutter counterparts, and the surface applies this
+/// basis once at the root to put the whole plane into the scene.
 ///
 /// [xy] stands the plane up facing the camera, the default and the right
 /// choice for panels and HUDs. [xz] lays it flat on the ground, for boards,
@@ -23,15 +23,16 @@ import 'size3d.dart';
 /// naive axis pairing. flutter_scene builds its view basis with
 /// `right = up x forward`, so for a camera in front of a plane the direction
 /// that appears to the *right* on screen is world `-x`, not `+x`. A basis
-/// mapping layout `x` to world `+x` would run every `Row3d` backwards, so
+/// mapping layout `x` to world `+x` would run every `RenderRow3d` backwards, so
 /// [xy] and [xz] map "layout right" to the direction that actually reads as
 /// right when you look at the plane's front face.
 ///
 /// That makes these bases orientation-reversing (the engine's world frame is
 /// left-handed as seen from the screen, while layout space is the ordinary
-/// right-handed screen frame). It does not mirror any content: a `NodeBox3d`
-/// applies the inverse basis to what it holds, so a model keeps the exact
-/// orientation it was authored with and only its *placement* is mapped.
+/// right-handed screen frame). It does not mirror any content: a
+/// `RenderNodeBox3d` applies the inverse basis to what it holds, so a model
+/// keeps the exact orientation it was authored with and only its *placement* is
+/// mapped.
 ///
 /// This is only the plane's internal orientation. Moving, turning, or scaling
 /// the whole plane is done on the surface's [Node], and the children follow

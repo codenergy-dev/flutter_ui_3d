@@ -2,50 +2,33 @@ import 'package:flutter/widgets.dart'
     show BuildContext, InheritedWidget, StatelessWidget, Widget;
 import 'package:flutter_ui_3d/rendering.dart' show Text3dRendererFactory;
 import 'package:flutter_ui_3d/widgets.dart'
-    show DefaultTextRenderer3d, SceneSlotProvider3d;
+    show DefaultTextRenderer3d, SlotProvider3d;
 
 import 'theme_data.dart';
 
-/// The widget-layer half of the theme: `Theme3d.of(context)`.
+/// The widget-layer half of the theme, the part `Theme3d.of(context)` reads.
 ///
-/// An ordinary inherited widget, spelled the way Flutter's `Theme` is, so a
-/// widget that builds a component reads the tokens the way it always has. It is
-/// only half the channel — a `RenderObject3d` has no `BuildContext` — and
-/// [SceneTheme3d] is what installs both halves at once. Use this class directly
-/// only to theme a widget subtree that has no layout in it, or to read the
-/// theme.
-class Theme3d extends InheritedWidget {
+/// An ordinary inherited widget, the counterpart of the private one Flutter's
+/// `Theme` builds, so a widget that builds a component reads the tokens the way
+/// it always has. It is only half the channel — a `RenderObject3d` has no
+/// `BuildContext` — and [Theme3d] is what installs both halves at once. Use
+/// this class directly only to theme a widget subtree that has no layout in
+/// it.
+class InheritedTheme3d extends InheritedWidget {
   /// Publishes [data] to the widgets below.
-  const Theme3d({super.key, required this.data, required super.child});
+  const InheritedTheme3d({super.key, required this.data, required super.child});
 
   /// The tokens in force.
   final Theme3dData data;
 
-  /// The theme in force at [context], or [Theme3dData.light] when there is
-  /// none.
-  ///
-  /// **It does not throw.** A missing theme yields the baseline light theme,
-  /// matching what a `RenderObject3d` sees through `theme3d` and what
-  /// `RenderObject3d.metrics` does with a missing unit contract. The reasoning
-  /// is that a component rendered in the wrong-but-valid baseline is visible
-  /// and diagnosable — you can see that it is not your theme — whereas a
-  /// throw during a build over a missing default costs more than it explains.
-  /// Use [maybeOf] when the difference matters to you.
-  static Theme3dData of(BuildContext context) =>
-      maybeOf(context) ?? Theme3dData.light;
-
-  /// The theme in force at [context], or null when nothing published one.
-  static Theme3dData? maybeOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<Theme3d>()?.data;
-
   @override
-  bool updateShouldNotify(Theme3d oldWidget) => data != oldWidget.data;
+  bool updateShouldNotify(InheritedTheme3d oldWidget) => data != oldWidget.data;
 }
 
 /// Installs a theme for both layers: the widgets above the layout and the
 /// boxes inside it.
 ///
-/// One widget, two writes. It publishes [data] as a [Theme3d] for
+/// One widget, two writes. It publishes [data] as an [InheritedTheme3d] for
 /// `Theme3d.of(context)`, and into the surface's `'material3d.theme'` owner
 /// slot for a `RenderObject3d` reading `theme3d` inside `performLayout`.
 /// Without the second, a component whose *size* comes from a token — a 40dp
@@ -53,9 +36,9 @@ class Theme3d extends InheritedWidget {
 /// all.
 ///
 /// ```dart
-/// SceneLayout3d(
+/// Surface3d(
 ///   size: const Size3d(4, 3, 0.5),
-///   child: SceneTheme3d(
+///   child: Theme3d(
 ///     data: Theme3dData.dark,
 ///     textRendererFactory: AtlasText3dRenderer.new,
 ///     child: screen,
@@ -64,13 +47,13 @@ class Theme3d extends InheritedWidget {
 /// ```
 ///
 /// **It is a layout widget, so it goes inside the surface**, under a
-/// `SceneLayout3d` and not above it — the slot is written by a box that has
+/// `Surface3d` and not above it — the slot is written by a box that has
 /// to attach to an owner to write anything. To theme a subtree that contains
-/// no layout, use [Theme3d] on its own; to theme a surface from its own
-/// constructor, pass the slot to `SceneLayout3d.slots`:
+/// no layout, use [InheritedTheme3d] on its own; to theme a surface from its
+/// own constructor, pass the slot to `Surface3d.slots`:
 ///
 /// ```dart
-/// SceneLayout3d(
+/// Surface3d(
 ///   slots: {Theme3dData.slot: Theme3dData.dark},
 ///   child: screen,
 /// )
@@ -98,16 +81,16 @@ class Theme3d extends InheritedWidget {
 /// is exactly why `DefaultTextRenderer3d` carries a factory rather than an
 /// instance. A theme that silently created resources would be reaching past
 /// what a theme is for, and an application drawing labels some other way —
-/// a `RichText3d` subtree, a renderer of its own — would have to opt out of
-/// something it never asked for. Offered, never assumed.
+/// a `RenderRichText3d` subtree, a renderer of its own — would have to opt
+/// out of something it never asked for. Offered, never assumed.
 ///
 /// Whatever you pass must be a **stable** function: a constructor tear-off
 /// (`AtlasText3dRenderer.new`) or a field on a `State`. A closure written
 /// inline in `build` is a new function every build, and every label in the
 /// tree rebuilds its renderer.
-class SceneTheme3d extends StatelessWidget {
+class Theme3d extends StatelessWidget {
   /// Publishes [data] to the widgets and the boxes below.
-  const SceneTheme3d({
+  const Theme3d({
     super.key,
     required this.data,
     this.textRendererFactory,
@@ -125,15 +108,32 @@ class SceneTheme3d extends StatelessWidget {
   /// The subtree the theme covers.
   final Widget child;
 
+  /// The theme in force at [context], or [Theme3dData.light] when there is
+  /// none.
+  ///
+  /// **It does not throw.** A missing theme yields the baseline light theme,
+  /// matching what a `RenderObject3d` sees through `theme3d` and what
+  /// `RenderObject3d.metrics` does with a missing unit contract. The reasoning
+  /// is that a component rendered in the wrong-but-valid baseline is visible
+  /// and diagnosable — you can see that it is not your theme — whereas a
+  /// throw during a build over a missing default costs more than it explains.
+  /// Use [maybeOf] when the difference matters to you.
+  static Theme3dData of(BuildContext context) =>
+      maybeOf(context) ?? Theme3dData.light;
+
+  /// The theme in force at [context], or null when nothing published one.
+  static Theme3dData? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<InheritedTheme3d>()?.data;
+
   @override
   Widget build(BuildContext context) {
     final factory = textRendererFactory;
     final content = factory == null
         ? child
         : DefaultTextRenderer3d(factory: factory, child: child);
-    return Theme3d(
+    return InheritedTheme3d(
       data: data,
-      child: SceneSlotProvider3d<Theme3dData>(
+      child: SlotProvider3d<Theme3dData>(
         slot: Theme3dData.slot,
         value: data,
         child: content,

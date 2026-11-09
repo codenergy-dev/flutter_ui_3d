@@ -1,5 +1,6 @@
-// Opacity3d, FadeTransition3d, the inherited value they publish, and what
-// the three things this package draws with do when they are told about it.
+// RenderOpacity3d, RenderFadeTransition3d, the inherited value they publish,
+// and what the three things this package draws with do when they are told about
+// it.
 //
 // What is checkable here is the arithmetic and the plumbing: which value is in
 // force on which box, that it composes, that it reaches a painter and a
@@ -72,19 +73,19 @@ void main() {
 
   group('the value in force', () {
     test('is one when nothing above fades', () {
-      final box = TestBox(const Size3d(1, 1, 0));
+      final box = RenderTestBox(const Size3d(1, 1, 0));
       laidOut(box);
       expect(box.inheritedOpacity, 1.0);
     });
 
     test(
-      'an Opacity3d imposes its own on everything below it, not on itself',
+      'a RenderOpacity3d imposes its own on everything below it, not on itself',
       () {
-        final box = TestBox(const Size3d(1, 1, 0));
-        final fade = Opacity3d(opacity: 0.4, child: box);
+        final box = RenderTestBox(const Size3d(1, 1, 0));
+        final fade = RenderOpacity3d(opacity: 0.4, child: box);
         laidOut(fade);
-        // The same distinction ClipBox3d draws: a box imposes on its children
-        // and is not itself inside what it imposes.
+        // The same distinction RenderClipBox3d draws: a box imposes on its
+        // children and is not itself inside what it imposes.
         expect(fade.inheritedOpacity, 1.0);
         expect(fade.opacity, 0.4);
         expect(box.inheritedOpacity, closeTo(0.4, 1e-9));
@@ -92,21 +93,24 @@ void main() {
     );
 
     test('two of them multiply, as two nested Opacity widgets do', () {
-      final box = TestBox(const Size3d(1, 1, 0));
+      final box = RenderTestBox(const Size3d(1, 1, 0));
       laidOut(
-        Opacity3d(opacity: 0.5, child: Opacity3d(opacity: 0.5, child: box)),
+        RenderOpacity3d(
+          opacity: 0.5,
+          child: RenderOpacity3d(opacity: 0.5, child: box),
+        ),
       );
       expect(box.inheritedOpacity, closeTo(0.25, 1e-9));
     });
 
     test('it reaches through the boxes in between', () {
-      final box = TestBox(const Size3d(0.4, 0.4, 0));
+      final box = RenderTestBox(const Size3d(0.4, 0.4, 0));
       laidOut(
-        Opacity3d(
+        RenderOpacity3d(
           opacity: 0.6,
-          child: Padding3d(
+          child: RenderPadding3d(
             padding: const EdgeInsets3d.all(0.1),
-            child: Center3d(child: box),
+            child: RenderCenter3d(child: box),
           ),
         ),
       );
@@ -114,8 +118,8 @@ void main() {
     });
 
     test('it is clamped rather than trusted', () {
-      final box = TestBox(const Size3d(1, 1, 0));
-      final fade = Opacity3d(opacity: 4.0, child: box);
+      final box = RenderTestBox(const Size3d(1, 1, 0));
+      final fade = RenderOpacity3d(opacity: 4.0, child: box);
       laidOut(fade);
       expect(fade.opacity, 1.0);
       fade.opacity = -2.0;
@@ -125,8 +129,8 @@ void main() {
 
   group('republishing', () {
     test('a change reaches the whole subtree without laying anything out', () {
-      final box = TestBox(const Size3d(1, 1, 0));
-      final fade = Opacity3d(opacity: 1.0, child: box);
+      final box = RenderTestBox(const Size3d(1, 1, 0));
+      final fade = RenderOpacity3d(opacity: 1.0, child: box);
       laidOut(fade);
       final layouts = box.layoutCount;
 
@@ -140,7 +144,7 @@ void main() {
     test('writing the same value again does nothing', () {
       var refreshes = 0;
       final box = _CountingBox(() => refreshes++);
-      final fade = Opacity3d(opacity: 0.5, child: box);
+      final fade = RenderOpacity3d(opacity: 0.5, child: box);
       laidOut(fade);
       final after = refreshes;
 
@@ -155,7 +159,7 @@ void main() {
       // first value a box ever sees is already the right one.
       var seen = -1.0;
       final box = _CountingBox(null, onRefresh: (value) => seen = value);
-      laidOut(Opacity3d(opacity: 0.3, child: box));
+      laidOut(RenderOpacity3d(opacity: 0.3, child: box));
       expect(box.inheritedOpacity, closeTo(0.3, 1e-9));
       expect(seen, -1.0, reason: 'nothing changed, so nothing was republished');
     });
@@ -166,10 +170,10 @@ void main() {
       final painter = FadeRecordingPainter();
       BoxDecoration3d.painterFactory = (_) => painter;
 
-      final panel = DecoratedBox3d(
+      final panel = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(color: Color(0xFF203040)),
       );
-      final fade = Opacity3d(opacity: 1.0, child: panel);
+      final fade = RenderOpacity3d(opacity: 1.0, child: panel);
       laidOut(fade, constraints: Constraints3d.tight(const Size3d(1, 1, 0.1)));
       expect(painter.lastOpacity, 1.0);
 
@@ -199,12 +203,12 @@ void main() {
       GlyphMaterial3d.factory = FadeRecordingGlyphMaterial.new;
 
       final renderer = _RecordingTextRenderer();
-      final label = Text3d(
+      final label = RenderText3d(
         'Ag',
         style: const TextStyle(fontSize: 14),
         renderer: renderer,
       );
-      final fade = Opacity3d(opacity: 1.0, child: label);
+      final fade = RenderOpacity3d(opacity: 1.0, child: label);
       laidOut(fade);
       expect(renderer.lastOpacity, 1.0);
 
@@ -222,14 +226,14 @@ void main() {
       );
     });
 
-    test('a NodeBox3d spends it on the callback it was given', () {
+    test('a RenderNodeBox3d spends it on the callback it was given', () {
       final seen = <double>[];
-      final box = NodeBox3d(
+      final box = RenderNodeBox3d(
         content: Node(),
         explicitSize: const Size3d(1, 1, 0),
         onFade: seen.add,
       );
-      final fade = Opacity3d(opacity: 1.0, child: box);
+      final fade = RenderOpacity3d(opacity: 1.0, child: box);
       laidOut(fade);
       expect(seen.last, 1.0);
 
@@ -237,20 +241,23 @@ void main() {
       expect(seen.last, closeTo(0.5, 1e-9));
     });
 
-    test('a NodeBox3d that cannot fade says so instead of drawing solid', () {
-      final box = NodeBox3d(
-        content: Node(),
-        explicitSize: const Size3d(1, 1, 0),
-        name: 'model',
-      );
-      final fade = Opacity3d(opacity: 1.0, child: box);
-      laidOut(fade);
+    test(
+      'a RenderNodeBox3d that cannot fade says so instead of drawing solid',
+      () {
+        final box = RenderNodeBox3d(
+          content: Node(),
+          explicitSize: const Size3d(1, 1, 0),
+          name: 'model',
+        );
+        final fade = RenderOpacity3d(opacity: 1.0, child: box);
+        laidOut(fade);
 
-      expect(() => fade.opacity = 0.5, throwsA(isA<AssertionError>()));
-    });
+        expect(() => fade.opacity = 0.5, throwsA(isA<AssertionError>()));
+      },
+    );
   });
 
-  group('FadeTransition3d', () {
+  group('RenderFadeTransition3d', () {
     testWidgets('follows its animation without laying anything out', (
       tester,
     ) async {
@@ -260,8 +267,8 @@ void main() {
       );
       addTearDown(controller.dispose);
 
-      final box = TestBox(const Size3d(1, 1, 0));
-      final fade = FadeTransition3d(opacity: controller, child: box);
+      final box = RenderTestBox(const Size3d(1, 1, 0));
+      final fade = RenderFadeTransition3d(opacity: controller, child: box);
       laidOut(fade);
       expect(box.inheritedOpacity, 0.0);
       final layouts = box.layoutCount;
@@ -282,8 +289,8 @@ void main() {
       addTearDown(first.dispose);
       addTearDown(second.dispose);
 
-      final box = TestBox(const Size3d(1, 1, 0));
-      final fade = FadeTransition3d(opacity: first, child: box);
+      final box = RenderTestBox(const Size3d(1, 1, 0));
+      final fade = RenderFadeTransition3d(opacity: first, child: box);
       laidOut(fade);
       expect(box.inheritedOpacity, closeTo(0.2, 1e-9));
 
@@ -322,8 +329,8 @@ void main() {
       );
       addTearDown(controller.dispose);
 
-      final box = TestBox(const Size3d(1, 1, 0));
-      final transition = MotionTransition3d(
+      final box = RenderTestBox(const Size3d(1, 1, 0));
+      final transition = RenderMotionTransition3d(
         animation: controller,
         motion: const Motion3d(scale: 0.8, opacity: 0.0),
         child: box,
@@ -348,9 +355,9 @@ void main() {
       );
       addTearDown(controller.dispose);
 
-      final box = TestBox(const Size3d(1, 1, 0));
+      final box = RenderTestBox(const Size3d(1, 1, 0));
       laidOut(
-        MotionTransition3d(
+        RenderMotionTransition3d(
           animation: controller,
           motion: Motion3d.fromBelow,
           child: box,

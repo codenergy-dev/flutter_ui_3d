@@ -9,7 +9,7 @@ import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
 import '../rendering/object.dart';
 
-/// How a [Wrap3d] distributes leftover room, the 3D analogue of
+/// How a [RenderWrap3d] distributes leftover room, the 3D analogue of
 /// [WrapAlignment].
 ///
 /// Used twice over: along the main axis, to place the children inside a run,
@@ -35,7 +35,7 @@ enum WrapAlignment3d {
   spaceEvenly,
 }
 
-/// How a [Wrap3d] positions a child across its run, the 3D analogue of
+/// How a [RenderWrap3d] positions a child across its run, the 3D analogue of
 /// [WrapCrossAlignment].
 ///
 /// There is no `stretch` here, as in Flutter: a run is only as thick as its
@@ -51,7 +51,7 @@ enum WrapCrossAlignment3d {
   center,
 }
 
-/// One run of a [Wrap3d], measured during layout.
+/// One run of a [RenderWrap3d], measured during layout.
 class _Run3d {
   _Run3d(this.start);
 
@@ -67,26 +67,26 @@ class _Run3d {
 /// Lays children out in runs, starting a new one whenever the current run is
 /// full, the 3D analogue of [Wrap].
 ///
-/// A [Flex3d] given more children than fit overflows; a wrap breaks instead.
-/// Children are placed one after another along [direction] until the next one
-/// would not fit in the room available, and then a new run begins, offset
-/// along the first cross axis. That is Flutter's algorithm exactly, and the
-/// second cross axis (the depth axis of a `Row3d`-style wrap) is not a
-/// wrapping axis but an alignment one: every child is placed in the depth the
+/// A [RenderFlex3d] given more children than fit overflows; a wrap breaks
+/// instead. Children are placed one after another along [direction] until the
+/// next one would not fit in the room available, and then a new run begins,
+/// offset along the first cross axis. That is Flutter's algorithm exactly, and
+/// the second cross axis (the depth axis of a `RenderRow3d`-style wrap) is not
+/// a wrapping axis but an alignment one: every child is placed in the depth the
 /// thickest of them needs, according to [depthAxisAlignment].
 ///
 /// Runs need a bound to break against. Given unbounded constraints along
 /// [direction] every child lands in a single run, the same as Flutter.
 ///
 /// [textDirection] and [verticalDirection] flip whichever of the main and run
-/// axes are horizontal and vertical, the way they do for `Flex3d`, and with
-/// Flutter's walk: children in a flipped run are placed from the last one,
+/// axes are horizontal and vertical, the way they do for `RenderFlex3d`, and
+/// with Flutter's walk: children in a flipped run are placed from the last one,
 /// runs on a flipped cross axis from the last run, and the cross alignment's
 /// start and end trade places. Which children share a run never changes.
 /// Depth never flips, and a null [textDirection] reads left to right.
-class Wrap3d extends RenderMultiChild3d<ParentData3d> {
+class RenderWrap3d extends RenderMultiChild3d<ParentData3d> {
   /// Creates a wrapping box.
-  Wrap3d({
+  RenderWrap3d({
     Axis3d direction = Axis3d.horizontal,
     WrapAlignment3d alignment = WrapAlignment3d.start,
     double spacing = 0.0,

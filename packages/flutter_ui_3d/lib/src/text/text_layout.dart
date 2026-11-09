@@ -106,7 +106,7 @@ class TextLine3d {
 ///
 /// Produced by [TextMeasurement3d.layout], and, for the segmented policy,
 /// produced without touching the font at all. Every extent is in logical
-/// pixels; a [Text3d] scales the whole thing by its own
+/// pixels; a [RenderText3d] scales the whole thing by its own
 /// `logicalPixelScale` on the way into world units.
 class TextLayout3d {
   /// Records a laid-out string.

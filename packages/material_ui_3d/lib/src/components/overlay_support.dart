@@ -10,17 +10,17 @@ import 'package:flutter_ui_3d/rendering.dart'
         BoxDecoration3d,
         Layout3dMetrics,
         Navigator3d,
-        Overlay3d,
+        RenderOverlay3d,
         OverlayLayer3d,
         StackFit3d;
 import 'package:flutter_ui_3d/widgets.dart'
     show
-        SceneDecoratedBox3d,
-        SceneFadeTransition3d,
-        SceneOpacity3d,
-        SceneModalBarrier3d,
-        SceneOverlay3d,
-        SceneStack3d;
+        DecoratedBox3d,
+        FadeTransition3d,
+        Opacity3d,
+        ModalBarrier3d,
+        Overlay3d,
+        Stack3d;
 
 import 'package:flutter/painting.dart' show Color;
 
@@ -36,9 +36,9 @@ import 'scaffold.dart';
 /// only the body, and it clears it by construction: adding a slot to
 /// `Scaffold3dSlot` moves this with it.
 ///
-/// It is emphatically **not** `Overlay3d.defaultLift`, which is eight logical
-/// pixels — a depth-buffer separation between two things with no thickness,
-/// and about a seventh of what a Material screen has already spent.
+/// It is emphatically **not** `RenderOverlay3d.defaultLift`, which is eight
+/// logical pixels — a depth-buffer separation between two things with no
+/// thickness, and about a seventh of what a Material screen has already spent.
 double overlayLift3d(Theme3dData theme, Layout3dMetrics metrics) =>
     metrics.dp(Scaffold3d.overlayLift(theme.thickness.depthStep));
 
@@ -53,12 +53,12 @@ OverlayLayer3d overlayLayer3d(Theme3dData theme, Layout3dMetrics metrics) =>
 /// one, and an application that never thought about routes still gets a
 /// dialog that returns a future.
 Navigator3d navigatorOf3d(BuildContext context) {
-  final overlay = SceneOverlay3d.of(context);
+  final overlay = Overlay3d.of(context);
   return Navigator3d.of(overlay) ?? Navigator3d(overlay);
 }
 
 /// The overlay above [context].
-Overlay3d overlayOf3d(BuildContext context) => SceneOverlay3d.of(context);
+RenderOverlay3d overlayOf3d(BuildContext context) => Overlay3d.of(context);
 
 /// How much of a scrim's fragments survive, out of [scrimColor]'s alpha.
 ///
@@ -93,7 +93,7 @@ Overlay3d overlayOf3d(BuildContext context) => SceneOverlay3d.of(context);
 ///    scrim and the rest is screen.
 ///
 /// The cost is that the dim is dithered rather than smooth — the same
-/// screen-door coverage `Opacity3d` fades a subtree with, and the same
+/// screen-door coverage `RenderOpacity3d` fades a subtree with, and the same
 /// trade. It was chosen by looking at a window, which is the only thing that
 /// answers whether a dither reads.
 double scrimCoverage3d(Color scrimColor) => scrimColor.a;
@@ -128,7 +128,7 @@ Widget modalFrame3d({
   required VoidCallback onDismiss,
   Alignment3d alignment = Alignment3d.center,
   Animation<double>? scrimFade,
-}) => SceneStack3d(
+}) => Stack3d(
   // The caller's alignment across, and the **front** face in depth, whatever
   // it said. A scrim is the backmost thing in this frame and still has to be
   // in front of the whole screen; centred in the frame's depth it sits a
@@ -143,23 +143,23 @@ Widget modalFrame3d({
   fit: StackFit3d.loose,
   depthStep: depthStep,
   children: <Widget>[
-    SceneModalBarrier3d(
+    ModalBarrier3d(
       dismissible: dismissible,
       onDismiss: onDismiss,
       thickness: scrimThickness,
       // Null for a menu, which dims nothing: the barrier is still there and
       // still closes what is above it, and a barrier with no child shows
-      // nothing at all, which is exactly what `ModalBarrier3d` documents.
+      // nothing at all, which is exactly what `RenderModalBarrier3d` documents.
       child: scrimColor == null
           ? null
           // **A scrim's alpha is spent as coverage, not as a blend**, so the
           // slab is drawn in its colour at full strength and keeps that
           // fraction of its fragments. See `scrimCoverage3d`.
-          : SceneFadeTransition3d(
+          : FadeTransition3d(
               opacity: scrimFade,
-              child: SceneOpacity3d(
+              child: Opacity3d(
                 opacity: scrimCoverage3d(scrimColor),
-                child: SceneDecoratedBox3d(
+                child: DecoratedBox3d(
                   decoration: BoxDecoration3d(
                     color: scrimColor.withValues(alpha: 1.0),
                   ),

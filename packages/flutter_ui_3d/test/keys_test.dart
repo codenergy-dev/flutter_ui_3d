@@ -44,8 +44,8 @@ import 'support.dart';
 void settleFocus() => FocusManager.instance.applyFocusChangesIfNeeded();
 
 /// A focusable unit box.
-Focus3d box({String? name}) =>
-    Focus3d(name: name, child: TestBox(const Size3d(1, 1, 0)));
+RenderFocus3d box({String? name}) =>
+    RenderFocus3d(name: name, child: RenderTestBox(const Size3d(1, 1, 0)));
 
 /// An intent of this file's own, so a test can tell its binding from a
 /// default.
@@ -72,7 +72,7 @@ class Recording<T extends Intent> extends Action<T> {
 }
 
 /// Lays [child] out on a surface of [size], disposed at the end of the test.
-Layout3dSurface surfaceOf(
+RenderSurface3d surfaceOf(
   RenderObject3d child, {
   Size3d size = const Size3d(3, 3, 0),
 }) {
@@ -96,11 +96,11 @@ void main() {
       final log = <String>[];
       final button = box();
       surfaceOf(
-        Actions3d(
+        RenderActions3d(
           actions: <Type, Action<Intent>>{
             ActivateIntent: Recording<ActivateIntent>(log, 'outer'),
           },
-          child: Actions3d(
+          child: RenderActions3d(
             actions: <Type, Action<Intent>>{
               ActivateIntent: Recording<ActivateIntent>(log, 'inner'),
             },
@@ -126,11 +126,11 @@ void main() {
       final log = <String>[];
       final button = box();
       surfaceOf(
-        Actions3d(
+        RenderActions3d(
           actions: <Type, Action<Intent>>{
             ActivateIntent: Recording<ActivateIntent>(log, 'outer'),
           },
-          child: Actions3d(
+          child: RenderActions3d(
             actions: <Type, Action<Intent>>{
               ActivateIntent: Recording<ActivateIntent>(
                 log,
@@ -153,13 +153,13 @@ void main() {
       final log = <String>[];
       final button = box();
       surfaceOf(
-        Shortcuts3d(
+        RenderShortcuts3d(
           shortcuts: const <ShortcutActivator, Intent>{
             SingleActivator(LogicalKeyboardKey.enter): SaveIntent(),
             SingleActivator(LogicalKeyboardKey.space):
                 DoNothingAndStopPropagationIntent(),
           },
-          child: Actions3d(
+          child: RenderActions3d(
             actions: <Type, Action<Intent>>{
               SaveIntent: Recording<SaveIntent>(log, 'save'),
               ActivateIntent: Recording<ActivateIntent>(log, 'activate'),
@@ -179,14 +179,14 @@ void main() {
       expect(log, <String>['save']);
     });
 
-    testWidgets('a Focus3d around a region hears the keys inside it', (
+    testWidgets('a RenderFocus3d around a region hears the keys inside it', (
       tester,
     ) async {
       // The bubbling Flutter's `Focus` has and a flat focus tree cannot give.
       final heard = <String>[];
       final inner = box(name: 'inner');
       surfaceOf(
-        Focus3d(
+        RenderFocus3d(
           canRequestFocus: false,
           onKeyEvent: (node, event) {
             // A key sent in a test is a down and an up; the up is ignored
@@ -213,16 +213,16 @@ void main() {
       tester,
     ) async {
       final log = <String>[];
-      final button = Focus3d(
+      final button = RenderFocus3d(
         onKeyEvent: (node, event) {
           if (event is! KeyDownEvent) return KeyEventResult.ignored;
           log.add('own');
           return KeyEventResult.handled;
         },
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       surfaceOf(
-        Actions3d(
+        RenderActions3d(
           actions: <Type, Action<Intent>>{
             ActivateIntent: Recording<ActivateIntent>(log, 'activate'),
           },
@@ -248,9 +248,9 @@ void main() {
 
       final node = FocusNode(onKeyEvent: own);
       addTearDown(node.dispose);
-      final button = Focus3d(
+      final button = RenderFocus3d(
         focusNode: node,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       surfaceOf(button);
       button.requestFocus();
@@ -267,7 +267,7 @@ void main() {
       final log = <String>[];
       final button = box();
       surfaceOf(
-        Actions3d(
+        RenderActions3d(
           actions: <Type, Action<Intent>>{
             SaveIntent: CallbackAction<SaveIntent>(
               onInvoke: (_) {
@@ -280,7 +280,7 @@ void main() {
         ),
       );
 
-      final (enabled, result) = Actions3d.maybeInvoke(
+      final (enabled, result) = RenderActions3d.maybeInvoke(
         button,
         const SaveIntent(),
       );
@@ -288,29 +288,32 @@ void main() {
       expect(enabled, isTrue);
       expect(result, 'done');
       expect(log, <String>['saved']);
-      expect(Actions3d.maybeInvoke(button, const ActivateIntent()).$1, isFalse);
+      expect(
+        RenderActions3d.maybeInvoke(button, const ActivateIntent()).$1,
+        isFalse,
+      );
     });
 
     test('a key binding does not cut off a tap target\'s reach', () {
       // Wrapped round a target, a box the size of the control would gate the
       // ray on that size and the margin the target grants would be dead.
       final log = <String>[];
-      final target = TapTarget3d(
+      final target = RenderTapTarget3d(
         minimumSize: const Size3d(2, 2, 0),
-        child: GestureDetector3d(
+        child: RenderGestureDetector3d(
           onTapDown: (_) => log.add('down'),
-          child: TestBox(const Size3d(1, 1, 0)),
+          child: RenderTestBox(const Size3d(1, 1, 0)),
         ),
       );
       final surface = surfaceOf(
-        Center3d(
-          child: Actions3d(child: Shortcuts3d(child: target)),
+        RenderCenter3d(
+          child: RenderActions3d(child: RenderShortcuts3d(child: target)),
         ),
       );
 
       final hit = surface.hitTestAt(const Offset3d(1.1, 1.5, 0));
 
-      expect(hit.firstOf<TapTarget3d>(), same(target));
+      expect(hit.firstOf<RenderTapTarget3d>(), same(target));
     });
   });
 
@@ -321,7 +324,7 @@ void main() {
       final a = box(name: 'a');
       final b = box(name: 'b');
       final c = box(name: 'c');
-      surfaceOf(Row3d(children: <RenderObject3d>[a, b, c]));
+      surfaceOf(RenderRow3d(children: <RenderObject3d>[a, b, c]));
       a.requestFocus();
       settleFocus();
 
@@ -344,10 +347,10 @@ void main() {
       final b = box(name: 'b');
       final c = box(name: 'c');
       surfaceOf(
-        Column3d(
+        RenderColumn3d(
           children: <RenderObject3d>[
-            Row3d(children: <RenderObject3d>[a, b]),
-            Row3d(children: <RenderObject3d>[c]),
+            RenderRow3d(children: <RenderObject3d>[a, b]),
+            RenderRow3d(children: <RenderObject3d>[c]),
           ],
         ),
         size: const Size3d(2, 2, 0),
@@ -370,10 +373,12 @@ void main() {
       final c = box(name: 'c');
       final d = box(name: 'd');
       final surface = surfaceOf(
-        Column3d(
+        RenderColumn3d(
           children: <RenderObject3d>[
             a,
-            FocusScope3d(child: Row3d(children: <RenderObject3d>[c, d])),
+            RenderFocusScope3d(
+              child: RenderRow3d(children: <RenderObject3d>[c, d]),
+            ),
             b,
           ],
         ),
@@ -414,14 +419,14 @@ void main() {
       // tree: the scope above it, with nothing focused inside.
       final a = box(name: 'a');
       final b = box(name: 'b');
-      final surface = surfaceOf(Row3d(children: <RenderObject3d>[a, b]));
+      final surface = surfaceOf(RenderRow3d(children: <RenderObject3d>[a, b]));
       surface.owner!.focusScope.requestFocus();
       settleFocus();
       expect(
         FocusManager.instance.primaryFocus,
         same(surface.owner!.focusScope),
       );
-      expect(Focus3d.layoutFor(surface.owner!.focusScope), same(surface));
+      expect(RenderFocus3d.layoutFor(surface.owner!.focusScope), same(surface));
 
       await tester.sendKeyEvent(LogicalKeyboardKey.tab);
 
@@ -430,7 +435,7 @@ void main() {
 
     testWidgets('Page Down scrolls the list the focus is in', (tester) async {
       final rows = List.generate(8, (index) => box(name: 'row $index'));
-      final list = ListView3d(children: rows);
+      final list = RenderListView3d(children: rows);
       surfaceOf(list, size: const Size3d(1, 2, 0));
       rows.first.requestFocus();
       settleFocus();
@@ -463,9 +468,10 @@ void main() {
   });
 
   group('a modal entry', () {
-    ({Layout3dSurface surface, Overlay3d overlay, Focus3d opener}) page() {
+    ({RenderSurface3d surface, RenderOverlay3d overlay, RenderFocus3d opener})
+    page() {
       final opener = box(name: 'opener');
-      final overlay = Overlay3d(children: <RenderObject3d>[opener]);
+      final overlay = RenderOverlay3d(children: <RenderObject3d>[opener]);
       final surface = surfaceOf(overlay, size: const Size3d(4, 3, 0));
       opener.requestFocus();
       settleFocus();
@@ -480,7 +486,7 @@ void main() {
       host.overlay.insertEntry(
         Overlay3dEntry(
           modal: true,
-          builder: (_) => Actions3d(
+          builder: (_) => RenderActions3d(
             actions: <Type, Action<Intent>>{
               ActivateIntent: Recording<ActivateIntent>(log, 'dialog'),
             },
@@ -507,9 +513,9 @@ void main() {
       tester,
     ) async {
       final host = page();
-      final inside = Focus3d(
+      final inside = RenderFocus3d(
         autofocus: true,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       host.overlay.insertEntry(
         Overlay3dEntry(modal: true, builder: (_) => inside),
@@ -591,7 +597,7 @@ void main() {
     });
   });
 
-  group('SceneInput3d', () {
+  group('Input3d', () {
     PerspectiveCamera camera() => PerspectiveCamera(
       fovRadiansY: math.pi / 4,
       position: Vector3(0, 0, 5),
@@ -602,7 +608,7 @@ void main() {
       required List<Widget> children,
       bool autofocus = false,
       Input3dController? controller,
-    }) => SceneInput3d(
+    }) => Input3d(
       camera: camera(),
       autofocus: autofocus,
       controller: controller,
@@ -610,10 +616,10 @@ void main() {
         child: Stack(
           alignment: Alignment.topLeft,
           children: <Widget>[
-            SceneLayout3d(
+            Surface3d(
               parent: Node(),
               size: const Size3d(4, 4, 0.2),
-              child: SceneRow3d(children: children),
+              child: Row3d(children: children),
             ),
           ],
         ),
@@ -621,17 +627,17 @@ void main() {
     );
 
     /// A focusable box that writes its label down when it gains the focus.
-    Widget labelled(String label, List<String> focused) => SceneFocus3d(
+    Widget labelled(String label, List<String> focused) => Focus3d(
       onFocusChange: (has) {
         if (has) focused.add(label);
       },
-      child: const SceneSizedBox3d.cube(1),
+      child: const SizedBox3d.cube(1),
     );
 
-    Widget panel(List<Widget> children) => SceneLayout3d(
+    Widget panel(List<Widget> children) => Surface3d(
       parent: Node(),
       size: const Size3d(4, 4, 0.2),
-      child: SceneRow3d(children: children),
+      child: Row3d(children: children),
     );
 
     /// A scene of [panels], with a focusable widget above it when [elsewhere]
@@ -641,7 +647,7 @@ void main() {
       Input3dController? controller,
       FocusNode? elsewhere,
     }) {
-      final view = SceneInput3d(
+      final view = Input3d(
         camera: camera(),
         controller: controller,
         // Arriving, which is what a first Tab from the page would do too:
@@ -745,14 +751,12 @@ void main() {
       final overlay = Overlay3dController();
       await tester.pumpWidget(
         page(<Widget>[
-          SceneLayout3d(
+          Surface3d(
             parent: Node(),
             size: const Size3d(4, 4, 0.2),
-            child: SceneOverlay3d(
+            child: Overlay3d(
               controller: overlay,
-              child: SceneRow3d(
-                children: <Widget>[labelled('screen', focused)],
-              ),
+              child: Row3d(children: <Widget>[labelled('screen', focused)]),
             ),
           ),
           panel(<Widget>[labelled('beside', focused)]),
@@ -763,11 +767,11 @@ void main() {
       overlay.overlay!.insertEntry(
         Overlay3dEntry(
           layer: const OverlayLayer3d.detached(),
-          builder: (_) => Focus3d(
+          builder: (_) => RenderFocus3d(
             onFocusChange: (has) {
               if (has) focused.add('snack bar');
             },
-            child: TestBox(const Size3d(1, 1, 0)),
+            child: RenderTestBox(const Size3d(1, 1, 0)),
           ),
         ),
       );
@@ -789,11 +793,11 @@ void main() {
           autofocus: true,
           children: <Widget>[
             for (final label in <String>['first', 'second'])
-              SceneActions3d(
+              Actions3d(
                 actions: <Type, Action<Intent>>{
                   ActivateIntent: Recording<ActivateIntent>(log, label),
                 },
-                child: const SceneFocus3d(child: SceneSizedBox3d.cube(1)),
+                child: const Focus3d(child: SizedBox3d.cube(1)),
               ),
           ],
         ),
@@ -811,16 +815,12 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        scene(
-          children: const <Widget>[
-            SceneFocus3d(child: SceneSizedBox3d.cube(1)),
-          ],
-        ),
+        scene(children: const <Widget>[Focus3d(child: SizedBox3d.cube(1))]),
       );
       await tester.pump();
 
       final focused = FocusManager.instance.primaryFocus;
-      expect(focused == null ? null : Focus3d.layoutFor(focused), isNull);
+      expect(focused == null ? null : RenderFocus3d.layoutFor(focused), isNull);
     });
 
     testWidgets('the keyboard comes back to where it was', (tester) async {
@@ -840,11 +840,11 @@ void main() {
               controller: controller,
               children: <Widget>[
                 for (final label in <String>['first', 'second'])
-                  SceneActions3d(
+                  Actions3d(
                     actions: <Type, Action<Intent>>{
                       ActivateIntent: Recording<ActivateIntent>(log, label),
                     },
-                    child: const SceneFocus3d(child: SceneSizedBox3d.cube(1)),
+                    child: const Focus3d(child: SizedBox3d.cube(1)),
                   ),
               ],
             ),
@@ -871,15 +871,15 @@ void main() {
       Widget frame(LogicalKeyboardKey key) => scene(
         autofocus: true,
         children: <Widget>[
-          SceneShortcuts3d(
+          Shortcuts3d(
             shortcuts: <ShortcutActivator, Intent>{
               SingleActivator(key): const SaveIntent(),
             },
-            child: SceneActions3d(
+            child: Actions3d(
               actions: <Type, Action<Intent>>{
                 SaveIntent: Recording<SaveIntent>(log, key.keyLabel),
               },
-              child: const SceneFocus3d(child: SceneSizedBox3d.cube(1)),
+              child: const Focus3d(child: SizedBox3d.cube(1)),
             ),
           ),
         ],

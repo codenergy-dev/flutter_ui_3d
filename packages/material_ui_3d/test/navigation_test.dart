@@ -25,19 +25,19 @@ const List<NavigationDestination3d> _destinations = <NavigationDestination3d>[
 
 /// A bar at the bottom of a screen-shaped column; see `app_bar_test.dart`
 /// for why a bar cannot be pumped straight onto a surface.
-Widget screenWith(Widget bar) => SceneColumn3d(
+Widget screenWith(Widget bar) => Column3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
-    const SceneExpanded3d(child: SceneSizedBox3d()),
+    const Expanded3d(child: SizedBox3d()),
     bar,
   ],
 );
 
-Widget railBeside(Widget rail) => SceneRow3d(
+Widget railBeside(Widget rail) => Row3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
     rail,
-    const SceneExpanded3d(child: SceneSizedBox3d()),
+    const Expanded3d(child: SizedBox3d()),
   ],
 );
 
@@ -112,7 +112,7 @@ void main() {
         ),
         centred: false,
       );
-      final stacks = boxesOf<Stack3d>(pumped.surface);
+      final stacks = boxesOf<RenderStack3d>(pumped.surface);
       expect(stacks, hasLength(_destinations.length));
       final step = stacks.first.depthStep;
       expect(step, closeTo(_theme.thickness.thin * _dp, 1e-9));
@@ -140,7 +140,7 @@ void main() {
         ),
         centred: false,
       );
-      final announced = boxesOf<Semantics3d>(pumped.surface);
+      final announced = boxesOf<RenderSemantics3d>(pumped.surface);
       expect(announced, hasLength(3));
       expect(announced.map((s) => s.properties.label), <String>[
         'Inbox',
@@ -172,7 +172,7 @@ void main() {
       // the arrangement `ListTile3d` uses and for the same reason — one
       // target rather than two nested ones disagreeing about where the
       // control is.
-      final all = boxesOf<TapTarget3d>(pumped.surface);
+      final all = boxesOf<RenderTapTarget3d>(pumped.surface);
       expect(all, hasLength(6));
       final targets = all
           .where((t) => t.effectiveMinimumSize.width > 0.0)
@@ -197,7 +197,7 @@ void main() {
         ),
         centred: false,
       );
-      final targets = boxesOf<TapTarget3d>(pumped.surface)
+      final targets = boxesOf<RenderTapTarget3d>(pumped.surface)
           .where((t) => t.effectiveMinimumSize.width > 0.0)
           .toList(growable: false);
       final middle = targets[1].drawnOffsetInSurface + targets[1].size.center;
@@ -221,7 +221,7 @@ void main() {
         ),
         centred: false,
       );
-      final target = boxesOf<TapTarget3d>(
+      final target = boxesOf<RenderTapTarget3d>(
         pumped.surface,
       ).firstWhere((t) => t.effectiveMinimumSize.width > 0.0);
       final middle = target.drawnOffsetInSurface + target.size.center;
@@ -306,7 +306,7 @@ void main() {
         centred: false,
       );
       // Three destinations plus the button's own announcement.
-      final announced = boxesOf<Semantics3d>(pumped.surface);
+      final announced = boxesOf<RenderSemantics3d>(pumped.surface);
       expect(announced.map((s) => s.properties.label), contains('Compose'));
       expect(announced.map((s) => s.properties.label), contains('Trash'));
     });
@@ -318,7 +318,7 @@ void main() {
       // rail is the first thing with something to separate.
       final pumped = await pumpComponent(
         tester,
-        () => SceneRow3d(
+        () => Row3d(
           crossAxisAlignment: CrossAxisAlignment3d.stretch,
           children: <Widget>[
             const NavigationRail3d(
@@ -326,7 +326,7 @@ void main() {
               selectedIndex: 0,
             ),
             const VerticalDivider3d(),
-            const SceneExpanded3d(child: SceneSizedBox3d()),
+            const Expanded3d(child: SizedBox3d()),
           ],
         ),
         centred: false,

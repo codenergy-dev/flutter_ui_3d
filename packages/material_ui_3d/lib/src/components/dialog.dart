@@ -15,16 +15,16 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneAlign3d,
-        SceneColumn3d,
-        SceneConstrainedBox3d,
-        SceneIntrinsicWidth3d,
-        SceneMotionTransition3d,
-        ScenePadding3d,
-        SceneRow3d,
-        SceneSemantics3d,
-        SceneSizedBox3d,
-        SceneText3d,
+        Align3d,
+        Column3d,
+        ConstrainedBox3d,
+        IntrinsicWidth3d,
+        MotionTransition3d,
+        Padding3d,
+        Row3d,
+        Semantics3d,
+        SizedBox3d,
+        Text3d,
         WidgetPageRoute3d;
 
 import '../theme/theme.dart';
@@ -41,11 +41,11 @@ import 'text_style.dart';
 ///   context: context,
 ///   builder: (context) => Dialog3d(
 ///     semanticLabel: 'Delete this file?',
-///     child: SceneColumn3d(
+///     child: Column3d(
 ///       mainAxisSize: MainAxisSize3d.min,
 ///       crossAxisAlignment: CrossAxisAlignment3d.start,
 ///       children: <Widget>[
-///         const SceneText3d('Delete this file?'),
+///         const Text3d('Delete this file?'),
 ///         TextButton3d(
 ///           label: 'Delete',
 ///           semanticLabel: 'Delete',
@@ -72,7 +72,7 @@ import 'text_style.dart';
 /// construction: add a slot to `Scaffold3dSlot` and the overlay moves with
 /// it.
 ///
-/// `Overlay3d.defaultLift` is **not** that number. It is eight logical
+/// `RenderOverlay3d.defaultLift` is **not** that number. It is eight logical
 /// pixels, which the layout package describes as a depth-buffer separation
 /// rather than a distance, and a Material screen is far deeper than that.
 ///
@@ -110,8 +110,8 @@ class Dialog3d extends StatelessWidget {
 
   /// What a screen reader announces the dialog as.
   ///
-  /// **State it.** A `Semantics3d` gathers nothing from the labels inside the
-  /// dialog, so one without this announces a route with no name.
+  /// **State it.** A `RenderSemantics3d` gathers nothing from the labels inside
+  /// the dialog, so one without this announces a route with no name.
   final String? semanticLabel;
 
   /// The direction [semanticLabel] reads in.
@@ -126,16 +126,16 @@ class Dialog3d extends StatelessWidget {
     final metrics = Layout3dMetricsScope.of(context);
     final resolved = style ?? DialogStyle3d.of(theme);
 
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: SemanticsProperties(
         scopesRoute: true,
         namesRoute: semanticLabel != null,
         label: semanticLabel,
         textDirection: readingDirection3d(context, textDirection),
       ),
-      child: ScenePadding3d(
+      child: Padding3d(
         padding: metrics.dpInsets(resolved.insetPadding),
-        child: SceneConstrainedBox3d(
+        child: ConstrainedBox3d(
           constraints: Constraints3d(
             minWidth: metrics.dp(resolved.minWidth),
             maxWidth: metrics.dp(resolved.maxWidth),
@@ -159,7 +159,7 @@ class Dialog3d extends StatelessWidget {
             // come out the size of the screen. This is the shape `Button3d`
             // found in phase 3 and it is the same trap.
             alignment: null,
-            child: SceneAlign3d(
+            child: Align3d(
               alignment: Alignment3d.frontCenter,
               widthFactor: 1.0,
               heightFactor: 1.0,
@@ -183,12 +183,12 @@ class Dialog3d extends StatelessWidget {
 ///     content: 'It will be gone from every device.',
 ///     actions: <Widget>[
 ///       TextButton3d(
-///         onPressed: () => Navigator3d.of(SceneOverlay3d.of(context))?.pop(false),
-///         child: const SceneText3d('Cancel'),
+///         onPressed: () => Navigator3d.of(Overlay3d.of(context))?.pop(false),
+///         child: const Text3d('Cancel'),
 ///       ),
 ///       TextButton3d(
-///         onPressed: () => Navigator3d.of(SceneOverlay3d.of(context))?.pop(true),
-///         child: const SceneText3d('Delete'),
+///         onPressed: () => Navigator3d.of(Overlay3d.of(context))?.pop(true),
+///         child: const Text3d('Delete'),
 ///       ),
 ///     ],
 ///   ),
@@ -199,7 +199,7 @@ class Dialog3d extends StatelessWidget {
 ///
 /// The catalogue's phase 6 declined this: it is a column of a title, some
 /// text and a row of buttons, nothing about that is three-dimensional, and a
-/// component that exists only to save a caller writing a `SceneColumn3d` is
+/// component that exists only to save a caller writing a `Column3d` is
 /// not worth having. That judgement was a catalogue's. **An application
 /// porting fifty dialogs reads it differently**, because the column has one
 /// arrangement that is right and two obvious ones that are not: a column
@@ -223,10 +223,10 @@ class Dialog3d extends StatelessWidget {
 ///
 /// ## What it announces
 ///
-/// A `Semantics3d` gathers nothing, so a dialog built out of widgets announces
-/// a route with no name unless it is given a [semanticLabel]. [AlertDialog3d.text]
-/// takes strings and names the route after its title, the way
-/// `ListTile3d.text` composes a tile's label.
+/// A `RenderSemantics3d` gathers nothing, so a dialog built out of widgets
+/// announces a route with no name unless it is given a [semanticLabel].
+/// [AlertDialog3d.text] takes strings and names the route after its title, the
+/// way `ListTile3d.text` composes a tile's label.
 ///
 /// ## What it leaves out
 ///
@@ -234,7 +234,7 @@ class Dialog3d extends StatelessWidget {
 /// not fit in one row, and `scrollable`, which puts a long body in a scroll
 /// view. Both are the second dialog a port asks for rather than the first;
 /// until then a body too long for the screen overflows, and a caller who
-/// needs one scrolls it in a `SceneListView3d` of its own.
+/// needs one scrolls it in a `ListView3d` of its own.
 class AlertDialog3d extends StatelessWidget {
   /// Creates an alert dialog out of widgets, announcing [semanticLabel].
   const AlertDialog3d({
@@ -262,8 +262,8 @@ class AlertDialog3d extends StatelessWidget {
     this.alertStyle,
     String? semanticLabel,
     this.textDirection,
-  }) : title = SceneText3d(title),
-       content = content == null ? null : SceneText3d(content),
+  }) : title = Text3d(title),
+       content = content == null ? null : Text3d(content),
        semanticLabel = semanticLabel ?? title;
 
   /// A glyph above the title, usually an `Icon3d`, drawn in the icon colour.
@@ -300,12 +300,12 @@ class AlertDialog3d extends StatelessWidget {
     final centred = icon != null;
     final actions = this.actions ?? const <Widget>[];
 
-    Widget gap(double logical) => SceneSizedBox3d(height: metrics.dp(logical));
+    Widget gap(double logical) => SizedBox3d(height: metrics.dp(logical));
 
     // A centred box in a stretched column: the column hands it the whole
     // width, and a factor of one on the other two axes keeps it the size of
     // what it holds rather than filling the dialog's height.
-    Widget centre(Widget child) => SceneAlign3d(
+    Widget centre(Widget child) => Align3d(
       alignment: Alignment3d.frontCenter,
       heightFactor: 1.0,
       depthFactor: 1.0,
@@ -323,7 +323,7 @@ class AlertDialog3d extends StatelessWidget {
         if (title != null || content != null) gap(resolved.iconGap),
       ],
       if (title != null) ...<Widget>[
-        SceneTextStyle3d(
+        TextStyle3d(
           style: resolved.titleStyle,
           color: resolved.titleColor,
           child: centred ? centre(title!) : title!,
@@ -331,7 +331,7 @@ class AlertDialog3d extends StatelessWidget {
         if (content != null) gap(resolved.titleGap),
       ],
       if (content != null)
-        SceneTextStyle3d(
+        TextStyle3d(
           style: resolved.contentStyle,
           color: resolved.contentColor,
           child: content!,
@@ -339,7 +339,7 @@ class AlertDialog3d extends StatelessWidget {
       if (actions.isNotEmpty) ...<Widget>[
         if (icon != null || title != null || content != null)
           gap(resolved.actionsGap),
-        SceneRow3d(
+        Row3d(
           mainAxisAlignment: MainAxisAlignment3d.end,
           depthAxisAlignment: CrossAxisAlignment3d.start,
           spacing: metrics.dp(resolved.actionsSpacing),
@@ -356,14 +356,14 @@ class AlertDialog3d extends StatelessWidget {
       // this component exists: as wide as the widest section, and every
       // section that wide — which is what lets the actions reach the
       // trailing edge without the dialog reaching the screen's.
-      child: SceneIntrinsicWidth3d(
+      child: IntrinsicWidth3d(
         // And never narrower than the dialog's own minimum, measured inside
         // its padding. `Dialog3d` centres what it holds in a loose box, so a
         // column narrower than 280dp would come out *centred* in the dialog
         // with its actions short of the trailing edge — the one thing this
         // arrangement is for. Flutter does not meet this: its `Dialog` hands
         // the minimum straight down, and `IntrinsicWidth` honours it.
-        child: SceneConstrainedBox3d(
+        child: ConstrainedBox3d(
           constraints: Constraints3d(
             minWidth: metrics.dp(
               math.max(
@@ -372,7 +372,7 @@ class AlertDialog3d extends StatelessWidget {
               ),
             ),
           ),
-          child: SceneColumn3d(
+          child: Column3d(
             mainAxisSize: MainAxisSize3d.min,
             crossAxisAlignment: CrossAxisAlignment3d.stretch,
             // On the dialog's front face. A flex centres its children in the
@@ -452,7 +452,7 @@ Future<T?> showDialog3d<T>({
       onDismiss: route.pop,
       // The dim comes up with the dialog and does not travel with it.
       scrimFade: route.animation,
-      child: SceneMotionTransition3d(
+      child: MotionTransition3d(
         animation: route.animation,
         motion: resolved.arrival.motion,
         child: builder(context),

@@ -15,7 +15,7 @@ import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
 import '../rendering/object.dart';
 
-/// How a [Flex3d] distributes leftover room along its main axis, the 3D
+/// How a [RenderFlex3d] distributes leftover room along its main axis, the 3D
 /// analogue of [MainAxisAlignment].
 enum MainAxisAlignment3d {
   /// Children packed at the start: the left, or the right in right-to-left;
@@ -38,7 +38,7 @@ enum MainAxisAlignment3d {
   spaceEvenly,
 }
 
-/// How a [Flex3d] positions children on a cross axis, the 3D analogue of
+/// How a [RenderFlex3d] positions children on a cross axis, the 3D analogue of
 /// [CrossAxisAlignment].
 enum CrossAxisAlignment3d {
   /// Children at the start of the cross axis, which follows the line's
@@ -65,8 +65,8 @@ enum CrossAxisAlignment3d {
   baseline,
 }
 
-/// Whether a [Flex3d] should be as big as possible along its main axis or as
-/// small as its children allow, the 3D analogue of [MainAxisSize].
+/// Whether a [RenderFlex3d] should be as big as possible along its main axis or
+/// as small as its children allow, the 3D analogue of [MainAxisSize].
 enum MainAxisSize3d {
   /// Shrink-wrap the children.
   min,
@@ -75,8 +75,8 @@ enum MainAxisSize3d {
   max,
 }
 
-/// How a [Flexible3d] child fills the space allotted to it, the 3D analogue
-/// of [FlexFit].
+/// How a [RenderFlexible3d] child fills the space allotted to it, the 3D
+/// analogue of [FlexFit].
 enum FlexFit3d {
   /// The child must exactly fill its share.
   tight,
@@ -85,22 +85,22 @@ enum FlexFit3d {
   loose,
 }
 
-/// Marks a child of a [Flex3d] as taking a share of the leftover main-axis
-/// space, the 3D analogue of [Flexible].
+/// Marks a child of a [RenderFlex3d] as taking a share of the leftover
+/// main-axis space, the 3D analogue of [Flexible].
 ///
 /// Unlike Flutter's, this is a real layout rather than a parent-data widget:
-/// it sits in the tree, sizes itself to its child, and the enclosing [Flex3d]
-/// reads [flex] and [fit] off it.
-class Flexible3d extends RenderProxyBox3d {
+/// it sits in the tree, sizes itself to its child, and the enclosing
+/// [RenderFlex3d] reads [flex] and [fit] off it.
+class RenderFlexible3d extends RenderProxyBox3d {
   /// Creates a flexible child.
-  Flexible3d({
+  RenderFlexible3d({
     int flex = 1,
     FlexFit3d fit = FlexFit3d.loose,
     super.child,
     super.name,
   }) : _flex = flex,
        _fit = fit,
-       assert(flex >= 0, 'Flexible3d.flex must not be negative.');
+       assert(flex >= 0, 'RenderFlexible3d.flex must not be negative.');
 
   int _flex;
 
@@ -133,19 +133,19 @@ class Flexible3d extends RenderProxyBox3d {
   }
 }
 
-/// A [Flexible3d] whose child must fill its share, the 3D analogue of
+/// A [RenderFlexible3d] whose child must fill its share, the 3D analogue of
 /// [Expanded].
-class Expanded3d extends Flexible3d {
+class RenderExpanded3d extends RenderFlexible3d {
   /// Creates an expanding child.
-  Expanded3d({super.flex, super.child, super.name})
+  RenderExpanded3d({super.flex, super.child, super.name})
     : super(fit: FlexFit3d.tight);
 }
 
-/// Empty space that takes a share of a [Flex3d]'s main axis, the 3D analogue
-/// of [Spacer].
-class Spacer3d extends Flexible3d {
+/// Empty space that takes a share of a [RenderFlex3d]'s main axis, the 3D
+/// analogue of [Spacer].
+class RenderSpacer3d extends RenderFlexible3d {
   /// Creates a flexible gap.
-  Spacer3d({super.flex, super.name})
+  RenderSpacer3d({super.flex, super.name})
     : super(fit: FlexFit3d.tight, child: _EmptyBox3d());
 }
 
@@ -166,15 +166,15 @@ class _EmptyBox3d extends RenderObject3d {
 ///
 /// The protocol is Flutter's: inflexible children are laid out first with
 /// unbounded room along the main axis, whatever is left over is divided among
-/// the [Flexible3d] children by their flex factors, and then the whole line is
-/// positioned by [mainAxisAlignment].
+/// the [RenderFlexible3d] children by their flex factors, and then the whole
+/// line is positioned by [mainAxisAlignment].
 ///
 /// The 3D difference is that a line has *two* cross axes. Which enum applies
 /// to which axis follows canonical `x`, `y`, `z` order with the main axis
-/// removed: for a [Row3d] (main `x`) [crossAxisAlignment] is vertical and
-/// [depthAxisAlignment] is depth; for a [Column3d] (main `y`)
+/// removed: for a [RenderRow3d] (main `x`) [crossAxisAlignment] is vertical and
+/// [depthAxisAlignment] is depth; for a [RenderColumn3d] (main `y`)
 /// [crossAxisAlignment] is horizontal and [depthAxisAlignment] is depth; for
-/// a [Depth3d] (main `z`) they are horizontal and vertical.
+/// a [RenderDepth3d] (main `z`) they are horizontal and vertical.
 ///
 /// **The two cross axes do not default alike, and that is deliberate.**
 /// [crossAxisAlignment] centres, the way Flutter's does; [depthAxisAlignment]
@@ -191,23 +191,23 @@ class _EmptyBox3d extends RenderObject3d {
 /// ## Reading direction
 ///
 /// [textDirection] decides which end of the line's *horizontal* axis is the
-/// start — the main axis of a [Row3d], the first cross axis of a [Column3d]
-/// and of a [Depth3d] — and [verticalDirection] does the same for the
-/// vertical one. Depth never flips: front is where the viewer is in every
-/// language. The placement is Flutter's: a flipped line is walked in visual
-/// order from its top-left child, so an overflowing right-to-left row keeps
-/// its *last* child at the left edge and pushes its first out past the right,
-/// exactly as a Flutter row does. Baseline alignment ignores the cross flip,
-/// also as in Flutter.
+/// start — the main axis of a [RenderRow3d], the first cross axis of a
+/// [RenderColumn3d] and of a [RenderDepth3d] — and [verticalDirection] does the
+/// same for the vertical one. Depth never flips: front is where the viewer is
+/// in every language. The placement is Flutter's: a flipped line is walked in
+/// visual order from its top-left child, so an overflowing right-to-left row
+/// keeps its *last* child at the left edge and pushes its first out past the
+/// right, exactly as a Flutter row does. Baseline alignment ignores the cross
+/// flip, also as in Flutter.
 ///
 /// A null [textDirection] reads left to right. Flutter's `RenderFlex` asserts
 /// instead; a line here has always been allowed to say nothing, and the
 /// widget forms fill the direction in from the ambient `Directionality`, the
 /// way Flutter's `Flex` widget does.
-class Flex3d extends RenderMultiChild3d<ParentData3d>
+class RenderFlex3d extends RenderMultiChild3d<ParentData3d>
     with RenderOverflowReportingMixin3d {
   /// Creates a flex line along [direction].
-  Flex3d({
+  RenderFlex3d({
     required Axis3d direction,
     MainAxisAlignment3d mainAxisAlignment = MainAxisAlignment3d.start,
     MainAxisSize3d mainAxisSize = MainAxisSize3d.max,
@@ -226,7 +226,7 @@ class Flex3d extends RenderMultiChild3d<ParentData3d>
        _crossAxisAlignment = crossAxisAlignment,
        _depthAxisAlignment = depthAxisAlignment,
        _spacing = spacing,
-       assert(spacing >= 0, 'Flex3d.spacing must not be negative.');
+       assert(spacing >= 0, 'RenderFlex3d.spacing must not be negative.');
 
   Axis3d _direction;
 
@@ -276,11 +276,11 @@ class Flex3d extends RenderMultiChild3d<ParentData3d>
 
   /// The alignment the second cross axis takes when a caller names none.
   ///
-  /// The front face when that axis is the depth axis — a [Row3d] or a
-  /// [Column3d] — and centred when it is not, which is a [Depth3d]: its main
-  /// axis is depth, so its second cross axis is *vertical* and the argument
-  /// for the front does not apply to it. The name says which slot it is,
-  /// not which axis it lands on.
+  /// The front face when that axis is the depth axis — a [RenderRow3d] or a
+  /// [RenderColumn3d] — and centred when it is not, which is a [RenderDepth3d]:
+  /// its main axis is depth, so its second cross axis is *vertical* and the
+  /// argument for the front does not apply to it. The name says which slot it
+  /// is, not which axis it lands on.
   static CrossAxisAlignment3d defaultDepthAxisAlignmentFor(Axis3d direction) =>
       direction == Axis3d.depth
       ? CrossAxisAlignment3d.center
@@ -332,8 +332,9 @@ class Flex3d extends RenderMultiChild3d<ParentData3d>
 
   /// Which end of the vertical axis is the start.
   ///
-  /// [VerticalDirection.up] is a [Column3d] whose first child is at the
-  /// bottom, and a [Row3d] whose `start` cross alignment is the bottom edge.
+  /// [VerticalDirection.up] is a [RenderColumn3d] whose first child is at the
+  /// bottom, and a [RenderRow3d] whose `start` cross alignment is the bottom
+  /// edge.
   VerticalDirection get verticalDirection => _verticalDirection;
 
   set verticalDirection(VerticalDirection value) {
@@ -355,10 +356,10 @@ class Flex3d extends RenderMultiChild3d<ParentData3d>
   (Axis3d, Axis3d) get crossAxes => _direction.others;
 
   static int _flexOf(RenderObject3d child) =>
-      child is Flexible3d ? child.flex : 0;
+      child is RenderFlexible3d ? child.flex : 0;
 
   static FlexFit3d _fitOf(RenderObject3d child) =>
-      child is Flexible3d ? child.fit : FlexFit3d.tight;
+      child is RenderFlexible3d ? child.fit : FlexFit3d.tight;
 
   CrossAxisAlignment3d _alignmentFor(Axis3d axis) {
     final (first, _) = crossAxes;
@@ -378,7 +379,7 @@ class Flex3d extends RenderMultiChild3d<ParentData3d>
           _alignmentFor(axis) == CrossAxisAlignment3d.stretch && limit.isFinite;
       assert(
         _alignmentFor(axis) != CrossAxisAlignment3d.stretch || limit.isFinite,
-        'Flex3d cannot stretch on $axis: it was given unbounded constraints '
+        'RenderFlex3d cannot stretch on $axis: it was given unbounded constraints '
         'on that axis. Give the flex a bounded size, or use '
         'CrossAxisAlignment3d.center.',
       );
@@ -556,7 +557,7 @@ class Flex3d extends RenderMultiChild3d<ParentData3d>
     if (totalFlex > 0) {
       assert(
         canFlex,
-        'Flex3d has flexible children but was given unbounded constraints '
+        'RenderFlex3d has flexible children but was given unbounded constraints '
         'along $mainAxis, so there is no free space to divide. Give the flex '
         'a bounded extent on that axis, or size the children directly.',
       );
@@ -616,7 +617,7 @@ class Flex3d extends RenderMultiChild3d<ParentData3d>
           .withAxis(secondCross, secondCrossSize - actualSecondCross),
       hint:
           'Either the children are too big for the room this $runtimeType '
-          'was given, or one of them should be Flexible3d so it takes only '
+          'was given, or one of them should be RenderFlexible3d so it takes only '
           'what is left over.',
     );
     final gaps = math.max(0, childCount - 1);
@@ -746,13 +747,13 @@ class Flex3d extends RenderMultiChild3d<ParentData3d>
   }
 }
 
-/// A [Flex3d] running left to right, the 3D analogue of [Row].
+/// A [RenderFlex3d] running left to right, the 3D analogue of [Row].
 ///
 /// Left to right unless [textDirection] says otherwise: in right-to-left the
 /// first child is at the right.
-class Row3d extends Flex3d {
+class RenderRow3d extends RenderFlex3d {
   /// Creates a horizontal line of children.
-  Row3d({
+  RenderRow3d({
     super.mainAxisAlignment,
     super.mainAxisSize,
     super.crossAxisAlignment,
@@ -765,15 +766,15 @@ class Row3d extends Flex3d {
   }) : super(direction: Axis3d.horizontal);
 }
 
-/// A [Flex3d] running top to bottom, the 3D analogue of [Column].
+/// A [RenderFlex3d] running top to bottom, the 3D analogue of [Column].
 ///
 /// Top to bottom means toward `-y` in the scene under the default
 /// [LayoutBasis3d.xy]: the first child is the highest one on the plane, the
 /// way the first child of a Flutter `Column` is the topmost — unless
 /// [verticalDirection] is up, which puts it at the bottom.
-class Column3d extends Flex3d {
+class RenderColumn3d extends RenderFlex3d {
   /// Creates a vertical line of children.
-  Column3d({
+  RenderColumn3d({
     super.mainAxisAlignment,
     super.mainAxisSize,
     super.crossAxisAlignment,
@@ -786,12 +787,13 @@ class Column3d extends Flex3d {
   }) : super(direction: Axis3d.vertical);
 }
 
-/// A [Flex3d] running away from the viewer, the axis Flutter does not have.
+/// A [RenderFlex3d] running away from the viewer, the axis Flutter does not
+/// have.
 ///
 /// The first child is the one closest to the viewer.
-class Depth3d extends Flex3d {
+class RenderDepth3d extends RenderFlex3d {
   /// Creates a line of children receding from the viewer.
-  Depth3d({
+  RenderDepth3d({
     super.mainAxisAlignment,
     super.mainAxisSize,
     super.crossAxisAlignment,

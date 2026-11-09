@@ -57,7 +57,7 @@ void main() {
     testWidgets('is a surface with the sheet tokens on it', (tester) async {
       final pumped = await pumpOverlay(
         tester,
-        child: const BottomSheet3d(child: SceneSizedBox3d.cube(0.4)),
+        child: const BottomSheet3d(child: SizedBox3d.cube(0.4)),
       );
       final style = BottomSheetStyle3d.of(Theme3dData.light);
       final decoration = pumped.panels.single.decoration as BoxDecoration3d;
@@ -74,10 +74,10 @@ void main() {
         tester,
         child: const BottomSheet3d(
           semanticLabel: 'Share with',
-          child: SceneSizedBox3d.cube(0.4),
+          child: SizedBox3d.cube(0.4),
         ),
       );
-      final semantics = oneOf<Semantics3d>(pumped.surface);
+      final semantics = oneOf<RenderSemantics3d>(pumped.surface);
       expect(semantics.properties.label, 'Share with');
       expect(semantics.properties.scopesRoute, isTrue);
     });
@@ -89,16 +89,16 @@ void main() {
       final result = showModalBottomSheet3d<String>(
         context: pumped.context,
         builder: (context) => const BottomSheet3d(
-          child: SceneSizedBox3d(width: 2, height: 0.8, depth: 0.02),
+          child: SizedBox3d(width: 2, height: 0.8, depth: 0.02),
         ),
       );
       // Settled: a sheet rises one whole height over two hundred and fifty
       // milliseconds, and this test is about where it comes to rest.
       await tester.pumpAndSettle();
 
-      expect(boxesOf<ModalBarrier3d>(pumped.surface), hasLength(1));
+      expect(boxesOf<RenderModalBarrier3d>(pumped.surface), hasLength(1));
       final scrim = scrimOf(pumped.surface)!;
-      final sheet = boxesOf<DecoratedBox3d>(
+      final sheet = boxesOf<RenderDecoratedBox3d>(
         pumped.surface,
       ).firstWhere((box) => !identical(box, scrim));
 
@@ -117,8 +117,7 @@ void main() {
       final pumped = await pumpOverlay(tester);
       final result = showModalBottomSheet3d<String>(
         context: pumped.context,
-        builder: (context) =>
-            const BottomSheet3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const BottomSheet3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pumpAndSettle();
 
@@ -138,12 +137,12 @@ void main() {
         edge: Sheet3dEdge.right,
         builder: (context) => const BottomSheet3d(
           edge: Sheet3dEdge.right,
-          child: SceneSizedBox3d(width: 1.5, height: 2, depth: 0.02),
+          child: SizedBox3d(width: 1.5, height: 2, depth: 0.02),
         ),
       );
       await tester.pumpAndSettle();
 
-      final sheet = boxesOf<DecoratedBox3d>(
+      final sheet = boxesOf<RenderDecoratedBox3d>(
         pumped.surface,
       ).firstWhere((box) => (box.decoration as BoxDecoration3d).color.a == 1.0);
       final at = sheet.drawnOffsetInSurface;
@@ -158,22 +157,22 @@ void main() {
       var taps = 0;
       final pumped = await pumpOverlay(
         tester,
-        child: SceneGestureDetector3d(
+        child: GestureDetector3d(
           onTap: () => taps++,
-          child: const SceneSizedBox3d(width: 8, height: 6, depth: 0.1),
+          child: const SizedBox3d(width: 8, height: 6, depth: 0.1),
         ),
       );
 
       final result = showBottomSheet3d<String>(
         context: pumped.context,
         builder: (context) => const BottomSheet3d(
-          child: SceneSizedBox3d(width: 2, height: 0.8, depth: 0.02),
+          child: SizedBox3d(width: 2, height: 0.8, depth: 0.02),
         ),
       );
       await tester.pumpAndSettle();
 
       // No barrier, no scrim: the persistent form is part of the screen.
-      expect(boxesOf<ModalBarrier3d>(pumped.surface), isEmpty);
+      expect(boxesOf<RenderModalBarrier3d>(pumped.surface), isEmpty);
       expect(pumped.overlay.entries, hasLength(1));
 
       // And the screen under it still works.
@@ -193,8 +192,7 @@ void main() {
       final pumped = await pumpOverlay(tester);
       showBottomSheet3d<void>(
         context: pumped.context,
-        builder: (context) =>
-            const BottomSheet3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const BottomSheet3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pumpAndSettle();
       final entry = pumped.overlay.entries.single;

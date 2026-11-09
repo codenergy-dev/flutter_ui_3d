@@ -24,7 +24,7 @@ import '../rendering/object.dart';
 /// through the front of a panel are all invisible until something draws the
 /// boxes, and a `Size3d` in a test failure does not say *where* the box is.
 ///
-/// Set it, then flush the surface — [Layout3dSurface.flush] syncs the
+/// Set it, then flush the surface — [RenderSurface3d.flush] syncs the
 /// overlay, so the next frame carries it. Clearing it and flushing again
 /// takes every line back out of the scene.
 ///
@@ -37,8 +37,8 @@ bool debugPaintLayout3dSize = false;
 ///
 /// Rides on [debugPaintLayout3dSize] rather than replacing it, because both
 /// answers are about the same box. A baseline is otherwise entirely
-/// invisible — [Baseline3d] and `CrossAxisAlignment3d.baseline` move content
-/// by a number nothing draws — and the offset line, running from the
+/// invisible — [RenderBaseline3d] and `CrossAxisAlignment3d.baseline` move
+/// content by a number nothing draws — and the offset line, running from the
 /// parent's origin corner to this box's, is what tells a misplaced child from
 /// a mis-sized one.
 bool debugPaintLayout3dBaselines = false;
@@ -137,7 +137,7 @@ const Color debugPaintLayout3dOffsetColor = Color(0xFFFF00FF);
 
 /// Syncs the debug overlay for the whole tree under [root].
 ///
-/// Called by [Layout3dSurface.flush]; call it yourself for a tree you drive
+/// Called by [RenderSurface3d.flush]; call it yourself for a tree you drive
 /// by hand. Cheap when the flags have never been set — it does nothing at all
 /// until the first time one of them is — and a walk of the tree afterwards,
 /// which is the price of a debug flag that can be turned on at any moment.
@@ -154,9 +154,9 @@ bool debugSyncLayout3dWireframes(RenderObject3d root) {
       : null;
   if (wanted && wireframe == null) return false;
   void visit(RenderObject3d box, {required bool visible}) {
-    // Hidden means hidden all the way down: what a ListView3d has culled out
-    // of its window, or an Offstage3d has taken out of the scene, has no
-    // lines either. A box whose own node is visible inside a hidden subtree
+    // Hidden means hidden all the way down: what a RenderListView3d has culled
+    // out of its window, or a RenderOffstage3d has taken out of the scene, has
+    // no lines either. A box whose own node is visible inside a hidden subtree
     // is still not on screen.
     final showing = visible && box.node.visible;
     if (wireframe == null) {

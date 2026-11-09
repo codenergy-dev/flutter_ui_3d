@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart' show protected;
 
 import 'boxes/flex.dart' show CrossAxisAlignment3d;
-import 'boxes/visibility.dart' show KeepAlive3d;
+import 'boxes/visibility.dart' show RenderKeepAlive3d;
 import 'geometry/constraints3d.dart';
 import 'geometry/offset3d.dart';
 import 'layout_pass.dart';
@@ -37,10 +37,10 @@ double scrollCrossOffset(
 /// out yet" assert) and never released.
 ///
 /// Written once because two layouts refuse the same edit: the view that keeps
-/// the map, and a `BoxScrollView3d` that forwards its child list to one. The
-/// wrapper has to say so in its own name — a caller who wrote
-/// `ListView3d.builder` is not helped by a message about the sliver inside it
-/// — so it asserts before forwarding, with this.
+/// the map, and a `RenderBoxScrollView3d` that forwards its child list to one.
+/// The wrapper has to say so in its own name — a caller who wrote
+/// `RenderListView3d.builder` is not helped by a message about the sliver
+/// inside it — so it asserts before forwarding, with this.
 String builtChildEditRefused({
   required Object view,
   required String method,
@@ -55,8 +55,8 @@ String builtChildEditRefused({
 ///
 /// The mirror of [builtChildEditRefused], and written beside it for the same
 /// reason: the wrapper has to refuse in its own name, or a caller who wrote
-/// `ListView3d(children: ...)` is told about a `SliverList3d` they never
-/// mentioned.
+/// `RenderListView3d(children: ...)` is told about a `RenderSliverList3d` they
+/// never mentioned.
 String explicitChildCountRefused({
   required Object view,
   required String itemNoun,
@@ -68,11 +68,11 @@ String explicitChildCountRefused({
 /// A layout that can point at the view holding its built children.
 ///
 /// Two layouts answer this: a view that holds them itself, and a
-/// `BoxScrollView3d`, which is a window around one sliver and forwards
+/// `RenderBoxScrollView3d`, which is a window around one sliver and forwards
 /// everything about its children to it. The declarative layer needs the
-/// difference resolved — a `SceneListView3d.builder` creates a `ListView3d`
-/// but the manager belongs on the `SliverList3d` inside it — and this is how
-/// it asks without knowing which it has.
+/// difference resolved — a `ListView3d.builder` creates a `RenderListView3d`
+/// but the manager belongs on the `RenderSliverList3d` inside it — and this is
+/// how it asks without knowing which it has.
 abstract interface class RenderObject3dBuiltChildrenHost {
   /// The view that holds the children, which may be this layout itself.
   RenderBuiltChildrenMixin3d get builtChildren;
@@ -97,8 +97,8 @@ RenderBuiltChildrenMixin3d builtChildrenOf(RenderObject3d layout) {
 /// lazily built child be a *widget* rather than a bare [RenderObject3d]. A view
 /// that mixes in [RenderBuiltChildrenMixin3d] asks its manager for the child at
 /// an index instead of calling a [RenderObject3dItemBuilder] itself, so the
-/// same `SliverList3d` serves both shapes: the imperative builder, which is a
-/// manager over a function, and the declarative one, whose manager is an
+/// same `RenderSliverList3d` serves both shapes: the imperative builder, which
+/// is a manager over a function, and the declarative one, whose manager is an
 /// element that inflates a widget inside a build scope.
 ///
 /// Every call happens inside the view's layout pass. That is legal for the
@@ -140,12 +140,13 @@ abstract class RenderObject3dChildManager {
 
 /// A child list that may be built on demand, for the views that hold one.
 ///
-/// `ListView3d`, `GridView3d`, `SliverList3d` and `SliverGrid3d` all offer the
-/// same two shapes: an explicit list of children, or an [itemBuilder] and a
-/// count. The second shape needs bookkeeping the box protocol does not have —
-/// a map from index to the child currently standing for it, built as the
-/// window reaches it and disposed as the window leaves — and the four views
-/// need exactly the same bookkeeping. This is it.
+/// `RenderListView3d`, `RenderGridView3d`, `RenderSliverList3d` and
+/// `RenderSliverGrid3d` all offer the same two shapes: an explicit list of
+/// children, or an [itemBuilder] and a count. The second shape needs
+/// bookkeeping the box protocol does not have — a map from index to the child
+/// currently standing for it, built as the window reaches it and disposed as
+/// the window leaves — and the four views need exactly the same bookkeeping.
+/// This is it.
 ///
 /// A view mixes this in, implements [itemBuilder], and calls [runLayoutPass],
 /// [obtainChild], [releaseOutside] and [positionedChildren] from its own
@@ -259,17 +260,18 @@ mixin RenderBuiltChildrenMixin3d<ParentDataType extends ParentData3d>
   /// Out of the layout tree and out of [positionedChildren]: a parked child is
   /// not laid out, not drawn, not hit-tested and not walked for semantics. It
   /// is here so that the window coming back to the index finds the child it
-  /// left, with everything the child's subtree holds — a [KeepAlive3d]'s
+  /// left, with everything the child's subtree holds — a [RenderKeepAlive3d]'s
   /// reason for existing is that the `State` above it survives the trip.
   Iterable<int> get keptAliveIndices => _keptAlive.keys;
 
   /// Wraps what was built, before this view adopts it.
   ///
   /// The seam for a view whose children are not the children that were built.
-  /// A `SliverReorderableList3d` puts every item inside a `Draggable3d` of its
-  /// own, so that a press on an item picks it up without the caller building a
-  /// drag handle; returning [built] — the default, and every other view here —
-  /// is a view that holds what it was handed.
+  /// A `RenderSliverReorderableList3d` puts every item inside a
+  /// `RenderDraggable3d` of its own, so that a press on an item picks it up
+  /// without the caller building a drag handle; returning [built] — the
+  /// default, and every other view here — is a view that holds what it was
+  /// handed.
   ///
   /// This runs on both paths, the [itemBuilder] and the [childManager], which
   /// is the point of it being here rather than in a builder a view overrode:
@@ -312,7 +314,7 @@ mixin RenderBuiltChildrenMixin3d<ParentDataType extends ParentData3d>
   /// Whether the child standing at an index asked not to be released.
   bool _wantsKeepAlive(RenderObject3d adopted) {
     final built = builtChildOf(adopted);
-    return built is KeepAlive3d && built.keepAlive;
+    return built is RenderKeepAlive3d && built.keepAlive;
   }
 
   /// Releases a child this view has already taken off its books, through
@@ -395,7 +397,7 @@ mixin RenderBuiltChildrenMixin3d<ParentDataType extends ParentData3d>
   RenderObject3d obtainChild(int index, Constraints3d childConstraints) {
     var child = _active[index];
     if (child == null) {
-      // A child parked by [KeepAlive3d] is the one that belongs here, and
+      // A child parked by [RenderKeepAlive3d] is the one that belongs here, and
       // taking it back is the whole point of having parked it. Parking hid it;
       // what its visibility should be from here is the view's own answer,
       // written as it places what it holds.
@@ -427,8 +429,8 @@ mixin RenderBuiltChildrenMixin3d<ParentDataType extends ParentData3d>
   ///
   /// [obtainChild] builds an index once and then keeps it, which is what a
   /// scrolling view wants: the item at index 7 does not change because the
-  /// window moved. A `LayoutBuilder3d` is the other case — its one child is a
-  /// function of the constraints, so a new set of constraints means asking
+  /// window moved. A `RenderLayoutBuilder3d` is the other case — its one child
+  /// is a function of the constraints, so a new set of constraints means asking
   /// for it again — and this is that ask.
   ///
   /// The manager reconciles rather than rebuilds from nothing, so the item's
@@ -461,7 +463,7 @@ mixin RenderBuiltChildrenMixin3d<ParentDataType extends ParentData3d>
   }
 
   /// Disposes every built child outside `[first, last]`, except the ones a
-  /// [KeepAlive3d] asked this view to park instead.
+  /// [RenderKeepAlive3d] asked this view to park instead.
   @protected
   void releaseOutside(int first, int last) {
     final count = itemCount;
@@ -601,8 +603,8 @@ typedef Layout3dContentExtentEstimator = double Function(int itemCount);
 /// A grid knows where its cells are by arithmetic and needs none of this. A
 /// list of free-sized children does not: it has to measure a child to know
 /// where the next one starts, so it keeps the running sums as it goes and can
-/// only estimate the part it has not reached yet. `ListView3d` and
-/// `SliverList3d` share the whole of that.
+/// only estimate the part it has not reached yet. `RenderListView3d` and
+/// `RenderSliverList3d` share the whole of that.
 ///
 /// The prefix is never dropped as the window moves on, so scrolling back needs
 /// no re-measuring; it is dropped when something invalidates it outright, and
@@ -657,10 +659,10 @@ mixin RenderMeasuredChildrenMixin3d<ParentDataType extends ParentData3d>
   /// have used [itemExtent]:
   ///
   /// ```dart
-  /// ListView3d.builder(
+  /// RenderListView3d.builder(
   ///   itemCount: 5000,
-  ///   prototypeItem: () => NodeBox3d(content: sampleCard),
-  ///   itemBuilder: (index) => NodeBox3d(content: cards[index]),
+  ///   prototypeItem: () => RenderNodeBox3d(content: sampleCard),
+  ///   itemBuilder: (index) => RenderNodeBox3d(content: cards[index]),
   /// )
   /// ```
   ///

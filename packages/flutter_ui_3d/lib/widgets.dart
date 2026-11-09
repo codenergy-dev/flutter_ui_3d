@@ -8,7 +8,7 @@
 /// moved, and reordered children are handled by the same machinery every
 /// other Flutter widget uses.
 ///
-/// Start with [SceneLayout3d], the surface, among a `SceneView`'s children.
+/// Start with [Surface3d], the surface, among a `SceneView`'s children.
 /// The value types ([Size3d], [Constraints3d], [EdgeInsets3d],
 /// [Alignment3d], the alignment enums) are re-exported here, so this import
 /// is usually all a declarative app needs.
@@ -16,13 +16,13 @@
 /// ```dart
 /// SceneView.declarative(
 ///   children: [
-///     SceneLayout3d(
+///     Surface3d(
 ///       size: const Size3d(4, 3, 0.5),
-///       child: SceneRow3d(
+///       child: Row3d(
 ///         mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
 ///         children: [
-///           SceneNodeBox3d(content: cube),
-///           SceneExpanded3d(child: SceneNodeBox3d(content: banner)),
+///           NodeBox3d(content: cube),
+///           Expanded3d(child: NodeBox3d(content: banner)),
 ///         ],
 ///       ),
 ///     ),
@@ -39,23 +39,23 @@ export 'src/animation/implicit.dart'
         ImplicitlyAnimatedLayout3dWidgetState,
         Layout3dTweenConstructor,
         Layout3dTweenVisitor,
-        SceneAnimatedAlign3d,
-        SceneAnimatedContainer3d,
-        SceneAnimatedPositioned3d,
-        SceneAnimatedSizedBox3d;
+        AnimatedAlign3d,
+        AnimatedContainer3d,
+        AnimatedPositioned3d,
+        AnimatedSizedBox3d;
 export 'src/animation/hero.dart'
     show
-        Hero3d,
+        RenderHero3d,
         Hero3dFit,
         Hero3dFlight,
         Hero3dFlightBuilder,
-        Hero3dFlightBox,
+        RenderHero3dFlightBox,
         Hero3dFlightDirection,
-        SceneHero3d;
-export 'src/animation/motion.dart' show Motion3d, MotionTransition3d;
-export 'src/animation/node_transform.dart' show NodeTransform3d;
+        Hero3d;
+export 'src/animation/motion.dart' show Motion3d, RenderMotionTransition3d;
+export 'src/animation/node_transform.dart' show RenderNodeTransform3d;
 export 'src/animation/node_widgets.dart'
-    show SceneAnimatedSlide3d, SceneMotionTransition3d, SceneNodeTransform3d;
+    show AnimatedSlide3d, MotionTransition3d, NodeTransform3d;
 export 'src/animation/tweens.dart'
     show
         Alignment3dTween,
@@ -117,7 +117,7 @@ export 'src/geometry/offset3d.dart' show Axis3d, Offset3d;
 export 'src/geometry/size3d.dart' show Size3d;
 export 'src/hit_test.dart' show HitTestEntry3d, HitTestResult3d, Ray3d;
 export 'src/input/dismissible.dart'
-    show Dismiss3dConfirmCallback, Dismiss3dDirection, Dismissible3d;
+    show Dismiss3dConfirmCallback, Dismiss3dDirection, RenderDismissible3d;
 export 'src/input/drag.dart'
     show
         Drag3dAnchor,
@@ -132,21 +132,22 @@ export 'src/input/draggable.dart'
         Drag3dStartMode,
         Drag3dTargetCallback,
         Drag3dWillAccept,
-        DragTarget3d,
-        Draggable3d;
+        RenderDragTarget3d,
+        RenderDraggable3d;
 export 'src/input/autoscroll.dart' show Drag3dAutoscroll;
 export 'src/input/events.dart'
     show HitTestBehavior3d, HitTestTarget3d, PointerEvent3d;
-export 'src/input/focus.dart' show Focus3d, Focus3dTraversal, FocusScope3d;
-export 'src/input/shortcuts.dart' show Actions3d, Shortcuts3d;
+export 'src/input/focus.dart'
+    show RenderFocus3d, Focus3dTraversal, RenderFocusScope3d;
+export 'src/input/shortcuts.dart' show RenderActions3d, RenderShortcuts3d;
 export 'src/input/listener.dart' show PointerEvent3dCallback;
 export 'src/input/pointer.dart' show Layout3dPointer, PointerScroll3d;
 export 'src/input/pointer_group.dart' show Layout3dPointerGroup;
 export 'src/opacity.dart'
-    show FadeTransition3d, RenderOpacityMixin3d, Opacity3d;
+    show RenderFadeTransition3d, RenderOpacityMixin3d, RenderOpacity3d;
 export 'src/widgets/opacity.dart'
-    show SceneAnimatedOpacity3d, SceneFadeTransition3d, SceneOpacity3d;
-export 'src/overlay/modal_barrier.dart' show ModalBarrier3d;
+    show AnimatedOpacity3d, FadeTransition3d, Opacity3d;
+export 'src/overlay/modal_barrier.dart' show RenderModalBarrier3d;
 export 'src/overlay/navigator.dart'
     show
         Navigator3d,
@@ -158,19 +159,19 @@ export 'src/overlay/overlay.dart'
     show
         DetachedOverlayLayer3d,
         InPlaneOverlayLayer3d,
-        Overlay3d,
+        RenderOverlay3d,
         Overlay3dBuilder,
         Overlay3dEntry,
         OverlayLayer3d;
 export 'src/widgets/media_query.dart'
-    show MediaQuery3d, MediaQuery3dData, SceneSafeArea3d;
-export 'src/widgets/text_scaling.dart' show SceneTextScaling3d;
+    show MediaQuery3d, MediaQuery3dData, SafeArea3d;
+export 'src/widgets/text_scaling.dart' show TextScaling3d;
 export 'src/widgets/overlay.dart'
     show
-        Overlay3dContentSlot3d,
+        RenderOverlay3dContentSlot3d,
         Overlay3dController,
-        SceneModalBarrier3d,
-        SceneOverlay3d,
+        ModalBarrier3d,
+        Overlay3d,
         WidgetOverlay3dBuilder,
         WidgetOverlay3dEntry,
         WidgetPageRoute3d;
@@ -178,7 +179,7 @@ export 'src/metrics.dart' show Layout3dMetrics, VisualDensity3d;
 export 'src/rendering/object.dart'
     show RenderObject3d, RenderObject3dItemBuilder;
 export 'src/semantics.dart'
-    show Semantics3d, debugFocusableBoxesWithoutSemantics;
+    show RenderSemantics3d, debugFocusableBoxesWithoutSemantics;
 export 'src/scroll/grid_delegate.dart'
     show
         Grid3dDelegate,
@@ -196,11 +197,11 @@ export 'src/scroll/scroll_physics.dart'
         Scroll3dPhysics;
 export 'src/scroll/scrollable.dart'
     show Scrollable3d, ensureVisible3d, offsetToReveal3d;
-export 'src/sliver/sliver.dart' show Sliver3d;
+export 'src/sliver/sliver.dart' show RenderSliver3d;
 export 'src/sliver/sliver_constraints.dart'
     show SliverConstraints3d, SliverGeometry3d;
 export 'src/slot.dart' show Layout3dSlot;
-export 'src/surface.dart' show Layout3dSurface;
+export 'src/surface.dart' show RenderSurface3d;
 export 'src/view.dart' show Layout3dView;
 export 'src/text/atlas_text_renderer.dart' show AtlasText3dRenderer;
 export 'src/text/glyph_material.dart'
@@ -217,7 +218,7 @@ export 'src/text/glyph_material.dart'
         linearColor;
 export 'src/text/break_rules.dart'
     show OverflowWrap3d, TextBreakRules3d, TextWhitespace3d, WordBreak3d;
-export 'src/text/text3d.dart' show Text3d;
+export 'src/text/text3d.dart' show RenderText3d;
 export 'src/text/text_layout.dart' show TextLayout3d, TextLine3d, TextRun3d;
 export 'src/text/text_measurement.dart'
     show
@@ -227,8 +228,7 @@ export 'src/text/text_measurement.dart'
 export 'src/text/text_renderer.dart'
     show Text3dRenderRequest, Text3dRenderer, Text3dRendererFactory;
 export 'src/widgets/default_text_renderer.dart' show DefaultTextRenderer3d;
-export 'src/widgets/drag.dart'
-    show SceneDismissible3d, SceneDragTarget3d, SceneDraggable3d;
+export 'src/widgets/drag.dart' show Dismissible3d, DragTarget3d, Draggable3d;
 export 'src/widgets/framework.dart'
     show
         LazyRenderObjectWidget3d,
@@ -243,76 +243,76 @@ export 'src/widgets/input.dart'
         Input3dHitPhase,
         Input3dHost,
         Input3dScope,
-        SceneInput3d;
+        Input3d;
 export 'src/widgets/layouts.dart'
     show
         Layout3dWidgetBuilder,
-        SceneAbsorbPointer3d,
-        SceneActions3d,
-        SceneAlign3d,
-        SceneAspectRatio3d,
-        SceneBaseline3d,
-        SceneCenter3d,
-        SceneClipBox3d,
-        SceneColumn3d,
-        SceneConstrainedBox3d,
-        SceneCustomMultiChildLayout3d,
-        SceneCustomScrollView3d,
-        SceneContainer3d,
-        SceneDecoratedBox3d,
-        SceneImage3d,
-        SceneDepth3d,
-        SceneExpanded3d,
-        SceneFittedBox3d,
-        SceneFlow3d,
-        SceneFractionallySizedBox3d,
-        SceneFlex3d,
-        SceneFocus3d,
-        SceneFlexible3d,
-        SceneGestureDetector3d,
-        SceneGridView3d,
-        SceneHitTestArea3d,
-        SceneIgnorePointer3d,
-        SceneIndexedStack3d,
-        SceneIntrinsicDepth3d,
-        SceneIntrinsicExtent3d,
-        SceneIntrinsicHeight3d,
-        SceneIntrinsicWidth3d,
-        SceneKeepAlive3d,
-        SceneLayoutBuilder3d,
-        SceneLayoutId3d,
-        SceneLimitedBox3d,
-        SceneListener3d,
-        SceneListView3d,
-        SceneNodeBox3d,
-        SceneOffstage3d,
-        SceneOverflowBox3d,
-        ScenePageView3d,
-        ScenePadding3d,
-        ScenePositioned3d,
-        ScenePositionedDirectional3d,
-        SceneReorderableList3d,
-        SceneRichText3d,
-        SceneRow3d,
-        SceneSemantics3d,
-        SceneShortcuts3d,
-        SceneSizedBox3d,
-        SceneSlotProvider3d,
-        SceneSliverGrid3d,
-        SceneSliverList3d,
-        SceneSliverPadding3d,
-        SceneSliverPersistentHeader3d,
-        SceneSliverReorderableList3d,
-        SceneSliverToBoxAdapter3d,
-        SceneSpacer3d,
-        SceneStack3d,
-        SceneTable3d,
-        SceneTapTarget3d,
-        SceneText3d,
-        SceneTransform3d,
-        SceneUnconstrainedBox3d,
-        SceneViewport3d,
-        SceneVisibility3d,
-        SceneWrap3d;
+        AbsorbPointer3d,
+        Actions3d,
+        Align3d,
+        AspectRatio3d,
+        Baseline3d,
+        Center3d,
+        ClipBox3d,
+        Column3d,
+        ConstrainedBox3d,
+        CustomMultiChildLayout3d,
+        CustomScrollView3d,
+        Container3d,
+        DecoratedBox3d,
+        Image3d,
+        Depth3d,
+        Expanded3d,
+        FittedBox3d,
+        Flow3d,
+        FractionallySizedBox3d,
+        Flex3d,
+        Focus3d,
+        Flexible3d,
+        GestureDetector3d,
+        GridView3d,
+        HitTestArea3d,
+        IgnorePointer3d,
+        IndexedStack3d,
+        IntrinsicDepth3d,
+        IntrinsicExtent3d,
+        IntrinsicHeight3d,
+        IntrinsicWidth3d,
+        KeepAlive3d,
+        LayoutBuilder3d,
+        LayoutId3d,
+        LimitedBox3d,
+        Listener3d,
+        ListView3d,
+        NodeBox3d,
+        Offstage3d,
+        OverflowBox3d,
+        PageView3d,
+        Padding3d,
+        Positioned3d,
+        PositionedDirectional3d,
+        ReorderableList3d,
+        RichText3d,
+        Row3d,
+        Semantics3d,
+        Shortcuts3d,
+        SizedBox3d,
+        SlotProvider3d,
+        SliverGrid3d,
+        SliverList3d,
+        SliverPadding3d,
+        SliverPersistentHeader3d,
+        SliverReorderableList3d,
+        SliverToBoxAdapter3d,
+        Spacer3d,
+        Stack3d,
+        Table3d,
+        TapTarget3d,
+        Text3d,
+        Transform3d,
+        UnconstrainedBox3d,
+        Viewport3d,
+        Visibility3d,
+        Wrap3d;
 export 'src/widgets/surface.dart'
-    show Layout3dController, Layout3dMetricsScope, SceneLayout3d;
+    show Layout3dController, Layout3dMetricsScope, Surface3d;

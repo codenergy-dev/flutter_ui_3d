@@ -52,14 +52,14 @@ void main() {
 
   group('toStringDeep', () {
     test('describes a small tree the way a render tree dump does', () {
-      final surface = Layout3dSurface(
+      final surface = RenderSurface3d(
         constraints: Constraints3d.tight(const Size3d(4, 3, 1)),
-        child: Column3d(
+        child: RenderColumn3d(
           mainAxisAlignment: MainAxisAlignment3d.center,
           children: <RenderObject3d>[
-            Padding3d(
+            RenderPadding3d(
               padding: const EdgeInsets3d.all(0.5),
-              child: SizedBox3d(width: 1, height: 1, depth: 1),
+              child: RenderSizedBox3d(width: 1, height: 1, depth: 1),
             ),
           ],
         ),
@@ -70,7 +70,7 @@ void main() {
       expect(
         surface.child!.toStringDeep(),
         equalsIgnoringHashCodes(
-          'Column3d#00000\n'
+          'RenderColumn3d#00000\n'
           ' │ constraints: Constraints3d(w: 4.0..4.0, h: 3.0..3.0, d: 1.0..1.0)\n'
           ' │ size: Size3d(4.000, 3.000, 1.000)\n'
           ' │ direction: vertical\n'
@@ -78,14 +78,14 @@ void main() {
           ' │ mainAxisSize: max\n'
           ' │ crossAxisAlignment: center\n'
           ' │\n'
-          ' └─child: Padding3d#00000\n'
+          ' └─child: RenderPadding3d#00000\n'
           '   │ constraints: Constraints3d(w: 0.0..4.0, h: 0.0..Infinity, d:\n'
           '   │   0.0..1.0)\n'
           '   │ size: Size3d(2.000, 2.000, 1.000)\n'
           '   │ offset: Offset3d(1.000, 0.500, 0.000)\n'
           '   │ padding: EdgeInsets3d(0.5, 0.5, 0.5, 0.5, 0.5, 0.5)\n'
           '   │\n'
-          '   └─child: SizedBox3d#00000\n'
+          '   └─child: RenderSizedBox3d#00000\n'
           '       constraints: Constraints3d(w: 0.0..3.0, h: 0.0..Infinity, d:\n'
           '         0.0..0.0)\n'
           '       size: Size3d(1.000, 1.000, 0.000)\n'
@@ -97,16 +97,16 @@ void main() {
     });
 
     test('says so when a box has never been laid out', () {
-      final box = SizedBox3d(width: 1, height: 1);
+      final box = RenderSizedBox3d(width: 1, height: 1);
       expect(box.toStringShallow(), contains('size: MISSING'));
       expect(box.toStringShallow(), contains('NEEDS-LAYOUT'));
       expect(box.toStringShallow(), contains('DETACHED'));
     });
 
     test('names the relayout boundary at the fine level', () {
-      final inner = TestBox(const Size3d(1, 1, 0));
+      final inner = RenderTestBox(const Size3d(1, 1, 0));
       final surface = laidOut(
-        Padding3d(padding: const EdgeInsets3d.all(1), child: inner),
+        RenderPadding3d(padding: const EdgeInsets3d.all(1), child: inner),
       );
       addTearDown(surface.dispose);
       // Nothing below the surface is tightly constrained here, so dirt from
@@ -128,22 +128,22 @@ void main() {
     });
 
     test('the ancestry of a box reads from the box up', () {
-      final inner = TestBox(const Size3d(1, 1, 0));
+      final inner = RenderTestBox(const Size3d(1, 1, 0));
       final surface = laidOut(
-        Center3d(
-          child: Padding3d(padding: EdgeInsets3d.all(1), child: inner),
+        RenderCenter3d(
+          child: RenderPadding3d(padding: EdgeInsets3d.all(1), child: inner),
         ),
       );
       addTearDown(surface.dispose);
       final chain = debugDescribeRenderObject3dAncestry(inner);
-      expect(chain, contains('TestBox'));
-      expect(chain, contains('Padding3d'));
-      expect(chain, contains('Center3d'));
-      expect(chain, contains('Layout3dSurface'));
+      expect(chain, contains('RenderTestBox'));
+      expect(chain, contains('RenderPadding3d'));
+      expect(chain, contains('RenderCenter3d'));
+      expect(chain, contains('RenderSurface3d'));
     });
 
     test('debugDescribeRenderObject3dTree is what the dump prints', () {
-      final surface = laidOut(TestBox(const Size3d(1, 1, 1)));
+      final surface = laidOut(RenderTestBox(const Size3d(1, 1, 1)));
       addTearDown(surface.dispose);
       expect(debugDescribeRenderObject3dTree(surface), surface.toStringDeep());
     });
@@ -155,12 +155,12 @@ void main() {
       final previous = FlutterError.onError;
       FlutterError.onError = errors.add;
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 4),
           child: const Padding(
             padding: EdgeInsets.all(8),
-            child: SceneSizedBox3d.cube(1),
+            child: SizedBox3d.cube(1),
           ),
         ),
       );
@@ -172,8 +172,8 @@ void main() {
       // The message has to name the widget the developer wrote, not only the
       // render object nobody typed, and it has to say what was lost.
       expect(message, contains('The Padding widget'));
-      expect(message, contains('SizedBox3d'));
-      expect(message, contains('ScenePadding3d'));
+      expect(message, contains('RenderSizedBox3d'));
+      expect(message, contains('Padding3d'));
     });
 
     testWidgets('a Builder, a StatefulWidget and an InheritedWidget are not', (
@@ -181,29 +181,29 @@ void main() {
     ) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 4),
           controller: controller,
           child: Builder(
             builder: (context) => const _Rebuilds(
-              child: _Ambient(value: 1, child: SceneSizedBox3d.cube(1)),
+              child: _Ambient(value: 1, child: SizedBox3d.cube(1)),
             ),
           ),
         ),
       );
       expect(tester.takeException(), isNull);
-      expect(controller.surface!.child, isA<SizedBox3d>());
+      expect(controller.surface!.child, isA<RenderSizedBox3d>());
     });
 
     testWidgets('an interposed render object with nothing 3D below is fine', (
       tester,
     ) async {
       // The check is about lost layouts, not about render objects: a Flutter
-      // widget beside the layout tree, holding no `Scene*3d` widget of its
+      // widget beside the layout tree, holding no layout widget of its
       // own, is a legitimate thing to build.
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 4),
           child: const Padding(padding: EdgeInsets.all(8)),
@@ -226,10 +226,10 @@ void main() {
     });
 
     test('a row wider than its room reports once, with the amount', () {
-      final row = Row3d(
+      final row = RenderRow3d(
         children: <RenderObject3d>[
-          TestBox(const Size3d(3, 1, 0)),
-          TestBox(const Size3d(3, 1, 0)),
+          RenderTestBox(const Size3d(3, 1, 0)),
+          RenderTestBox(const Size3d(3, 1, 0)),
         ],
       );
       final surface = laidOut(
@@ -257,10 +257,10 @@ void main() {
       // the panel holding them is not a clipped edge, it is geometry standing
       // out of the front of the panel, and nothing about that reads as a
       // layout mistake until something says the word "overflow".
-      final line = Depth3d(
+      final line = RenderDepth3d(
         children: <RenderObject3d>[
-          TestBox(const Size3d(1, 1, 2)),
-          TestBox(const Size3d(1, 1, 2)),
+          RenderTestBox(const Size3d(1, 1, 2)),
+          RenderTestBox(const Size3d(1, 1, 2)),
         ],
       );
       final surface = laidOut(
@@ -278,8 +278,8 @@ void main() {
     });
 
     test('a row that fits reports nothing, and clears a previous report', () {
-      final child = TestBox(const Size3d(6, 1, 0));
-      final row = Row3d(children: <RenderObject3d>[child]);
+      final child = RenderTestBox(const Size3d(6, 1, 0));
+      final row = RenderRow3d(children: <RenderObject3d>[child]);
       final surface = laidOut(
         row,
         constraints: Constraints3d.tight(const Size3d(4, 2, 0)),
@@ -299,7 +299,9 @@ void main() {
     });
 
     test('an unconstrained box reports the child it could not hold', () {
-      final box = UnconstrainedBox3d(child: TestBox(const Size3d(6, 1, 0)));
+      final box = RenderUnconstrainedBox3d(
+        child: RenderTestBox(const Size3d(6, 1, 0)),
+      );
       final surface = laidOut(
         box,
         constraints: Constraints3d.tight(const Size3d(2, 2, 0)),
@@ -318,7 +320,9 @@ void main() {
       final previous = FlutterError.onError;
       FlutterError.onError = errors.add;
       final surface = laidOut(
-        Row3d(children: <RenderObject3d>[TestBox(const Size3d(9, 1, 0))]),
+        RenderRow3d(
+          children: <RenderObject3d>[RenderTestBox(const Size3d(9, 1, 0))],
+        ),
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
       );
       FlutterError.onError = previous;
@@ -326,7 +330,7 @@ void main() {
 
       expect(errors, hasLength(1));
       final message = errors.single.exception.toString();
-      expect(message, contains('Row3d overflowed the right by 8.000'));
+      expect(message, contains('RenderRow3d overflowed the right by 8.000'));
       expect(message, contains('The overflowing box was'));
     });
   });
@@ -346,9 +350,9 @@ void main() {
     });
 
     test('draws every laid-out box at its own extent, and stops on demand', () {
-      final inner = TestBox(const Size3d(1, 2, 0));
+      final inner = RenderTestBox(const Size3d(1, 2, 0));
       final surface = laidOut(
-        Padding3d(padding: const EdgeInsets3d.all(0.5), child: inner),
+        RenderPadding3d(padding: const EdgeInsets3d.all(0.5), child: inner),
       );
       addTearDown(surface.dispose);
       expect(wireframe.shown, isEmpty);
@@ -369,9 +373,9 @@ void main() {
     });
 
     test('draws the offset a parent placed a box at', () {
-      final inner = TestBox(const Size3d(1, 1, 0));
+      final inner = RenderTestBox(const Size3d(1, 1, 0));
       final surface = laidOut(
-        Padding3d(padding: const EdgeInsets3d.all(0.5), child: inner),
+        RenderPadding3d(padding: const EdgeInsets3d.all(0.5), child: inner),
         constraints: Constraints3d.tight(const Size3d(4, 4, 0)),
       );
       addTearDown(surface.dispose);
@@ -391,10 +395,10 @@ void main() {
     });
 
     test('draws a baseline that is otherwise invisible', () {
-      final baseline = Baseline3d(
+      final baseline = RenderBaseline3d(
         baseline: 1.5,
         axis: Axis3d.vertical,
-        child: TestBox(const Size3d(2, 1, 0)),
+        child: RenderTestBox(const Size3d(2, 1, 0)),
       );
       final surface = laidOut(baseline);
       addTearDown(surface.dispose);
@@ -411,9 +415,9 @@ void main() {
     });
 
     test('a hidden box gives its lines back', () {
-      final hidden = TestBox(const Size3d(1, 1, 0));
+      final hidden = RenderTestBox(const Size3d(1, 1, 0));
       final surface = laidOut(
-        Visibility3d(visible: true, child: hidden),
+        RenderVisibility3d(visible: true, child: hidden),
         constraints: Constraints3d.tight(const Size3d(2, 2, 0)),
       );
       addTearDown(surface.dispose);
@@ -422,7 +426,7 @@ void main() {
       surface.flush();
       expect(wireframe.shown.containsKey(hidden.node), isTrue);
 
-      (surface.child! as Visibility3d).visible = false;
+      (surface.child! as RenderVisibility3d).visible = false;
       surface.flush();
       expect(wireframe.shown.containsKey(hidden.node), isFalse);
       expect(wireframe.hidden, contains(hidden.node));
@@ -430,7 +434,7 @@ void main() {
 
     test('the default factory draws nothing while the engine is not ready', () {
       debugLayout3dWireframeFactory = defaultLayout3dWireframeFactory;
-      final surface = laidOut(TestBox(const Size3d(1, 1, 0)));
+      final surface = laidOut(RenderTestBox(const Size3d(1, 1, 0)));
       addTearDown(surface.dispose);
       debugPaintLayout3dSize = true;
       expect(debugSyncLayout3dWireframes(surface), isFalse);
@@ -438,15 +442,15 @@ void main() {
     });
   });
 
-  group('Semantics3d', () {
+  group('RenderSemantics3d', () {
     test('publishes a node sized from the box, not from the geometry', () {
-      final semantics = Semantics3d(
+      final semantics = RenderSemantics3d(
         properties: const SemanticsProperties(
           label: 'Continue',
           button: true,
           textDirection: TextDirection.ltr,
         ),
-        child: TestBox(const Size3d(2, 1, 0.25)),
+        child: RenderTestBox(const Size3d(2, 1, 0.25)),
       );
       final surface = laidOut(semantics);
       addTearDown(surface.dispose);
@@ -464,11 +468,11 @@ void main() {
       // The reason the bounds come from layout rather than from the meshes:
       // what hangs under the node is a small label, and what the reader has
       // to be able to focus is the padded control around it.
-      final semantics = Semantics3d(
+      final semantics = RenderSemantics3d(
         properties: const SemanticsProperties(label: 'Play'),
-        child: Padding3d(
+        child: RenderPadding3d(
           padding: const EdgeInsets3d.all(1),
-          child: TestBox(const Size3d(0.5, 0.5, 0)),
+          child: RenderTestBox(const Size3d(0.5, 0.5, 0)),
         ),
       );
       final surface = laidOut(semantics);
@@ -478,8 +482,8 @@ void main() {
     });
 
     test('a new label writes one field and lays nothing out again', () {
-      final child = TestBox(const Size3d(1, 1, 0));
-      final semantics = Semantics3d(
+      final child = RenderTestBox(const Size3d(1, 1, 0));
+      final semantics = RenderSemantics3d(
         properties: const SemanticsProperties(label: 'Play'),
         child: child,
       );
@@ -495,9 +499,9 @@ void main() {
     });
 
     test('disabling takes the box out of the semantics tree', () {
-      final semantics = Semantics3d(
+      final semantics = RenderSemantics3d(
         properties: const SemanticsProperties(label: 'Play'),
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(semantics);
       addTearDown(surface.dispose);
@@ -509,15 +513,15 @@ void main() {
     });
 
     test('traversal order is layout order, through the scene graph', () {
-      final first = Semantics3d(
+      final first = RenderSemantics3d(
         properties: const SemanticsProperties(label: 'first'),
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
-      final second = Semantics3d(
+      final second = RenderSemantics3d(
         properties: const SemanticsProperties(label: 'second'),
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
-      final column = Column3d(children: <RenderObject3d>[first, second]);
+      final column = RenderColumn3d(children: <RenderObject3d>[first, second]);
       final surface = laidOut(column);
       addTearDown(surface.dispose);
 
@@ -529,18 +533,20 @@ void main() {
     });
 
     test('a focusable box with no semantics is reported', () {
-      final bare = Focus3d(child: TestBox(const Size3d(1, 1, 0)));
-      final spoken = Semantics3d(
+      final bare = RenderFocus3d(child: RenderTestBox(const Size3d(1, 1, 0)));
+      final spoken = RenderSemantics3d(
         properties: const SemanticsProperties(label: 'Save'),
-        child: Focus3d(child: TestBox(const Size3d(1, 1, 0))),
+        child: RenderFocus3d(child: RenderTestBox(const Size3d(1, 1, 0))),
       );
       final surface = laidOut(
-        Column3d(children: <RenderObject3d>[bare, spoken]),
+        RenderColumn3d(children: <RenderObject3d>[bare, spoken]),
         constraints: Constraints3d.tight(const Size3d(4, 4, 0)),
       );
       addTearDown(surface.dispose);
 
-      expect(debugFocusableBoxesWithoutSemantics(surface), <Focus3d>[bare]);
+      expect(debugFocusableBoxesWithoutSemantics(surface), <RenderFocus3d>[
+        bare,
+      ]);
     });
   });
 }

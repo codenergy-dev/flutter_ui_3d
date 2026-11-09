@@ -28,16 +28,17 @@ Offset3d _origin(RenderObject3d box) {
   return at;
 }
 
-Semantics3d _header(Layout3dSurface surface) => boxesOf<Semantics3d>(
-  surface,
-).firstWhere((box) => box.properties.label == 'Advanced');
+RenderSemantics3d _header(RenderSurface3d surface) =>
+    boxesOf<RenderSemantics3d>(
+      surface,
+    ).firstWhere((box) => box.properties.label == 'Advanced');
 
 /// The tile at the top of a screen-shaped column, so its height is its own.
-Widget _atTop(Widget tile) => SceneColumn3d(
+Widget _atTop(Widget tile) => Column3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
     tile,
-    const SceneExpanded3d(child: SceneSizedBox3d()),
+    const Expanded3d(child: SizedBox3d()),
   ],
 );
 
@@ -61,8 +62,8 @@ Widget _tile({
 );
 
 /// The whole tile: the column's first child.
-RenderObject3d _tileBox(Layout3dSurface surface) {
-  final column = outermostOf<Flex3d>(surface);
+RenderObject3d _tileBox(RenderSurface3d surface) {
+  final column = outermostOf<RenderFlex3d>(surface);
   return boxesOf<RenderObject3d>(
     surface,
   ).firstWhere((box) => identical(box.parent, column));
@@ -80,11 +81,11 @@ Future<void> _press(WidgetTester tester, PumpedSurface pumped) async {
   pumped.pointer.up();
 }
 
-bool _hasChildren(Layout3dSurface surface) =>
-    boxesOf<Text3d>(surface).any((box) => box.data == 'Sync');
+bool _hasChildren(RenderSurface3d surface) =>
+    boxesOf<RenderText3d>(surface).any((box) => box.data == 'Sync');
 
-List<DecoratedBox3d> _rules(Layout3dSurface surface) =>
-    boxesOf<DecoratedBox3d>(surface)
+List<RenderDecoratedBox3d> _rules(RenderSurface3d surface) =>
+    boxesOf<RenderDecoratedBox3d>(surface)
         .where(
           (box) =>
               (box.decoration as BoxDecoration3d).color ==
@@ -166,7 +167,7 @@ void main() {
       await _press(tester, pumped);
       await tester.pumpAndSettle();
       expect(_hasChildren(pumped.surface), isTrue);
-      expect(boxesOf<Offstage3d>(pumped.surface).single.offstage, isTrue);
+      expect(boxesOf<RenderOffstage3d>(pumped.surface).single.offstage, isTrue);
       expect(_tileBox(pumped.surface).size.height, closeTo(58 * _dp, 1e-9));
     });
   });
@@ -182,7 +183,7 @@ void main() {
 
       final eased = Curves.easeIn.transform(0.5);
       final reveal =
-          namedBox(pumped.surface, ExpansionTile3d.revealName) as Align3d;
+          namedBox(pumped.surface, ExpansionTile3d.revealName) as RenderAlign3d;
       expect(reveal.heightFactor, closeTo(eased, 1e-6));
 
       final chevron = namedBox(pumped.surface, ExpansionTile3d.chevronName);
@@ -233,7 +234,7 @@ void main() {
     testWidgets('is at the trailing edge, which is the left in right to '
         'left', (tester) async {
       final ltr = await pumpComponent(tester, _tile, centred: false);
-      final title = boxesOf<Text3d>(
+      final title = boxesOf<RenderText3d>(
         ltr.surface,
       ).singleWhere((box) => box.data == 'Advanced');
       expect(
@@ -247,7 +248,7 @@ void main() {
         centred: false,
         textDirection: TextDirection.rtl,
       );
-      final rtlTitle = boxesOf<Text3d>(
+      final rtlTitle = boxesOf<RenderText3d>(
         rtl.surface,
       ).singleWhere((box) => box.data == 'Advanced');
       expect(
@@ -262,7 +263,7 @@ void main() {
         () => _tile(controlAffinity: ListTileControlAffinity3d.leading),
         centred: false,
       );
-      final title = boxesOf<Text3d>(
+      final title = boxesOf<RenderText3d>(
         pumped.surface,
       ).singleWhere((box) => box.data == 'Advanced');
       expect(
@@ -273,7 +274,7 @@ void main() {
 
     testWidgets('is onSurfaceVariant closed and primary open', (tester) async {
       final pumped = await pumpComponent(tester, _tile, centred: false);
-      Text3d glyph() => boxesOf<Text3d>(
+      RenderText3d glyph() => boxesOf<RenderText3d>(
         pumped.surface,
       ).firstWhere((box) => box.data.codeUnitAt(0) > 0xE000);
       expect(glyph().style.color, _theme.colorScheme.onSurfaceVariant);

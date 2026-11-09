@@ -7,12 +7,12 @@ import 'package:flutter_ui_3d/widgets.dart' show MultiChildRenderObjectWidget3d;
 import 'package:material_ui_3d/material_ui_3d.dart';
 
 /// A surface holding [child], already laid out.
-Layout3dSurface laidOut(
+RenderSurface3d laidOut(
   RenderObject3d child, {
   Constraints3d constraints = const Constraints3d(),
   Layout3dMetrics metrics = Layout3dMetrics.standard,
 }) {
-  final surface = Layout3dSurface(
+  final surface = RenderSurface3d(
     constraints: constraints,
     metrics: metrics,
     child: child,
@@ -52,11 +52,11 @@ class ThemedBox extends RenderObject3d {
 /// A leaf that asks for [preferred] and settles for what the constraints
 /// allow, standing in for the content of a component.
 ///
-/// A copy of the layout package's own `TestBox`, because a test package
+/// A copy of the layout package's own `RenderTestBox`, because a test package
 /// cannot import another package's `test/` directory. It counts its layouts,
 /// which is what the interaction tests are actually about.
-class TestBox extends RenderObject3d {
-  TestBox(this._preferred, {super.name});
+class RenderTestBox extends RenderObject3d {
+  RenderTestBox(this._preferred, {super.name});
 
   Size3d _preferred;
 
@@ -83,47 +83,49 @@ class TestBox extends RenderObject3d {
   }
 }
 
-/// Hosts a [TestBox] in the widget tree and hands it back, so a test can
+/// Hosts a [RenderTestBox] in the widget tree and hands it back, so a test can
 /// count the layouts a rebuild actually causes.
-class SceneTestBox extends MultiChildRenderObjectWidget3d {
-  const SceneTestBox(this.preferred, this.onCreated, {super.key});
+class TestBox extends MultiChildRenderObjectWidget3d {
+  const TestBox(this.preferred, this.onCreated, {super.key});
 
   /// What the box asks for.
   final Size3d preferred;
 
   /// Called with the box the first time it is created.
-  final void Function(TestBox box) onCreated;
+  final void Function(RenderTestBox box) onCreated;
 
   @override
-  TestBox createLayout(BuildContext context) {
-    final box = TestBox(preferred);
+  RenderTestBox createLayout(BuildContext context) {
+    final box = RenderTestBox(preferred);
     onCreated(box);
     return box;
   }
 
   @override
-  void updateLayout(BuildContext context, TestBox layout) {
+  void updateLayout(BuildContext context, RenderTestBox layout) {
     layout.preferred = preferred;
   }
 }
 
-/// The one [DecoratedBox3d] in [surface], which is the panel a `Material3d`
-/// draws.
+/// The one [RenderDecoratedBox3d] in [surface], which is the panel a
+/// `Material3d` draws.
 ///
 /// A component is a small tree — a decorated box over a container over the
 /// child — and a test that reached for it by walking `child!.child!` would
 /// break the first time the composition changed. This asks the tree what is
 /// in it instead.
-DecoratedBox3d decoratedBoxIn(Layout3dSurface surface) {
-  final found = <DecoratedBox3d>[];
+RenderDecoratedBox3d decoratedBoxIn(RenderSurface3d surface) {
+  final found = <RenderDecoratedBox3d>[];
   void walk(RenderObject3d box) {
-    if (box is DecoratedBox3d) found.add(box);
+    if (box is RenderDecoratedBox3d) found.add(box);
     box.visitChildren(walk);
   }
 
   walk(surface.child!);
   if (found.length != 1) {
-    throw StateError('expected one DecoratedBox3d, found ${found.length}');
+    throw StateError(
+      'expected one RenderDecoratedBox3d, found ${found.length}',
+    );
   }
   return found.single;
 }
@@ -131,8 +133,8 @@ DecoratedBox3d decoratedBoxIn(Layout3dSurface surface) {
 /// A ray aimed straight at [point] on [surface]'s plane, from in front of it.
 ///
 /// A copy of the layout package's own test helper, for the same reason
-/// [TestBox] is one.
-Ray rayAt(Layout3dSurface surface, Offset3d point) {
+/// [RenderTestBox] is one.
+Ray rayAt(RenderSurface3d surface, Offset3d point) {
   final toWorld = surface.node.globalTransform;
   final origin = toWorld.transformed3(
     Vector3(point.x, point.y, point.z - 10.0),
@@ -141,23 +143,23 @@ Ray rayAt(Layout3dSurface surface, Offset3d point) {
   return Ray.originDirection(origin, direction);
 }
 
-/// The one [Focus3d] in [surface], which is the focusable box an `InkWell3d`
-/// installs.
+/// The one [RenderFocus3d] in [surface], which is the focusable box an
+/// `InkWell3d` installs.
 ///
 /// Focusing it through this rather than through a bare `FocusNode` matters:
-/// [Focus3d.requestFocus] is what reparents the node into the *surface's*
+/// [RenderFocus3d.requestFocus] is what reparents the node into the *surface's*
 /// focus scope, and a node that was never parented there takes no focus at
 /// all however often it is asked.
-Focus3d focusIn(Layout3dSurface surface) {
-  final found = <Focus3d>[];
+RenderFocus3d focusIn(RenderSurface3d surface) {
+  final found = <RenderFocus3d>[];
   void walk(RenderObject3d box) {
-    if (box is Focus3d) found.add(box);
+    if (box is RenderFocus3d) found.add(box);
     box.visitChildren(walk);
   }
 
   walk(surface.child!);
   if (found.length != 1) {
-    throw StateError('expected one Focus3d, found ${found.length}');
+    throw StateError('expected one RenderFocus3d, found ${found.length}');
   }
   return found.single;
 }

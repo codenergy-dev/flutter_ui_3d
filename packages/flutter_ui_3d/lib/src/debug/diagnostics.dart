@@ -18,11 +18,11 @@ import '../rendering/object.dart';
 /// ```
 ///
 /// ```
-/// Layout3dSurface#a1b2c
+/// RenderSurface3d#a1b2c
 ///  │ constraints: Constraints3d(0.0<=w<=4.0, 0.0<=h<=3.0, 0.0<=d<=Infinity)
 ///  │ size: Size3d(4.000, 3.000, 0.000)
 ///  │
-///  └─child: Column3d#d4e5f
+///  └─child: RenderColumn3d#d4e5f
 ///      │ mainAxisAlignment: center
 ///      │ size: Size3d(4.000, 3.000, 0.000)
 ///      ...

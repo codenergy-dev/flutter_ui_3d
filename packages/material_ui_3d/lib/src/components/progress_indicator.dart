@@ -27,7 +27,7 @@ import 'package:flutter_ui_3d/rendering.dart'
         Border3d,
         BoxDecoration3d,
         Constraints3d,
-        DecoratedBox3d,
+        RenderDecoratedBox3d,
         Offset3d,
         RenderProxyBox3d,
         RenderSingleChild3d,
@@ -36,10 +36,10 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneSemantics3d,
-        SceneSizedBox3d,
+        Semantics3d,
+        SizedBox3d,
         MultiChildRenderObjectWidget3d,
-        SceneStack3d,
+        Stack3d,
         SingleChildRenderObjectWidget3d;
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
@@ -231,14 +231,14 @@ class _LinearProgressIndicator3dState extends State<LinearProgressIndicator3d>
     final bar = slab(widget.color ?? tokens.color);
     final spans = value == null
         ? <Widget>[
-            _SceneProgressSpan3d(
+            _ProgressSpan3d(
               animation: _clock,
               spanAt: LinearProgressIndicator3d.firstLineAt,
               rtl: rtl,
               name: 'LinearProgressIndicator3d first line',
               child: bar,
             ),
-            _SceneProgressSpan3d(
+            _ProgressSpan3d(
               animation: _clock,
               spanAt: LinearProgressIndicator3d.secondLineAt,
               rtl: rtl,
@@ -247,7 +247,7 @@ class _LinearProgressIndicator3dState extends State<LinearProgressIndicator3d>
             ),
           ]
         : <Widget>[
-            _SceneProgressSpan3d(
+            _ProgressSpan3d(
               start: 0.0,
               end: value,
               rtl: rtl,
@@ -256,7 +256,7 @@ class _LinearProgressIndicator3dState extends State<LinearProgressIndicator3d>
             ),
           ];
 
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: _semantics(
         context,
         value: value,
@@ -266,10 +266,10 @@ class _LinearProgressIndicator3dState extends State<LinearProgressIndicator3d>
       ),
       // As wide as the parent allows, as Flutter's is: its bar is a
       // `Container` with an infinite minimum width.
-      child: SceneSizedBox3d(
+      child: SizedBox3d(
         width: double.infinity,
         height: metrics.dp(widget.minHeight ?? tokens.linearMinHeight),
-        child: SceneStack3d(
+        child: Stack3d(
           alignment: Alignment3d.frontCenter,
           // Every slab fills the bar in the plane and keeps its own depth:
           // `expand` would hand each one the stack's depth as well.
@@ -290,7 +290,7 @@ class _LinearProgressIndicator3dState extends State<LinearProgressIndicator3d>
 /// under way.
 ///
 /// ```dart
-/// SceneSizedBox3d(
+/// SizedBox3d(
 ///   width: metrics.dp(20),
 ///   height: metrics.dp(20),
 ///   child: const CircularProgressIndicator3d(strokeWidth: 2),
@@ -457,7 +457,7 @@ class _CircularProgressIndicator3dState
     final value = widget.value?.clamp(0.0, 1.0);
     final side = metrics.dp(tokens.circularSize);
 
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: _semantics(
         context,
         value: value,
@@ -465,13 +465,13 @@ class _CircularProgressIndicator3dState
         semanticsValue: widget.semanticsValue,
         textDirection: widget.textDirection,
       ),
-      child: SceneSizedBox3d(
+      child: SizedBox3d(
         width: side,
         height: side,
-        child: _SceneRingFrame3d(
+        child: _RingFrame3d(
           strokeWidth: widget.strokeWidth ?? tokens.strokeWidth,
           thickness: tokens.thickness,
-          child: _SceneRingPanel3d(
+          child: _RingPanel3d(
             // Everything but the border, which the ring writes itself: the
             // resolution stays in the one place a token becomes a decoration.
             base: Material3d.decorationFor(
@@ -516,8 +516,8 @@ SemanticsProperties _semantics(
   );
 }
 
-/// The span of a bar a [_ProgressSpan3d] stretches its child over, from the
-/// end the bar grows from.
+/// The span of a bar a [_RenderProgressSpan3d] stretches its child over, from
+/// the end the bar grows from.
 typedef _SpanAt = (double, double) Function(double t);
 
 /// Stretches its child over a span of its own width **on the node tier**.
@@ -527,8 +527,8 @@ typedef _SpanAt = (double, double) Function(double t);
 /// they change and whenever it is laid out — the second because the width is
 /// not known until then. The transform pivots on the box's origin corner, so
 /// the span's left end is `x₀` of the way across.
-class _ProgressSpan3d extends RenderProxyBox3d {
-  _ProgressSpan3d({
+class _RenderProgressSpan3d extends RenderProxyBox3d {
+  _RenderProgressSpan3d({
     double start = 0.0,
     double end = 1.0,
     Animation<double>? animation,
@@ -615,8 +615,8 @@ class _ProgressSpan3d extends RenderProxyBox3d {
   }
 }
 
-class _SceneProgressSpan3d extends SingleChildRenderObjectWidget3d {
-  const _SceneProgressSpan3d({
+class _ProgressSpan3d extends SingleChildRenderObjectWidget3d {
+  const _ProgressSpan3d({
     this.start = 0.0,
     this.end = 1.0,
     this.animation,
@@ -634,17 +634,18 @@ class _SceneProgressSpan3d extends SingleChildRenderObjectWidget3d {
   final String name;
 
   @override
-  _ProgressSpan3d createLayout(BuildContext context) => _ProgressSpan3d(
-    start: start,
-    end: end,
-    animation: animation,
-    spanAt: spanAt,
-    rtl: rtl,
-    name: name,
-  );
+  _RenderProgressSpan3d createLayout(BuildContext context) =>
+      _RenderProgressSpan3d(
+        start: start,
+        end: end,
+        animation: animation,
+        spanAt: spanAt,
+        rtl: rtl,
+        name: name,
+      );
 
   @override
-  void updateLayout(BuildContext context, _ProgressSpan3d layout) {
+  void updateLayout(BuildContext context, _RenderProgressSpan3d layout) {
     layout
       ..start = start
       ..end = end
@@ -658,11 +659,11 @@ class _SceneProgressSpan3d extends SingleChildRenderObjectWidget3d {
 /// ring half a stroke larger on every side.
 ///
 /// Pure layout: the box is whatever size it is given, and its one child —
-/// the [_RingPanel3d] — is laid out as the box's shorter side plus one stroke
-/// across and placed over the box's centre. That is Flutter's geometry, whose
-/// stroke is centred on the circle the box inscribes.
-class _RingFrame3d extends RenderSingleChild3d {
-  _RingFrame3d({required double strokeWidth, required double thickness})
+/// the [_RenderRingPanel3d] — is laid out as the box's shorter side plus one
+/// stroke across and placed over the box's centre. That is Flutter's geometry,
+/// whose stroke is centred on the circle the box inscribes.
+class _RenderRingFrame3d extends RenderSingleChild3d {
+  _RenderRingFrame3d({required double strokeWidth, required double thickness})
     : _strokeWidth = strokeWidth,
       _thickness = thickness,
       super(name: 'CircularProgressIndicator3d');
@@ -701,8 +702,8 @@ class _RingFrame3d extends RenderSingleChild3d {
   }
 }
 
-class _SceneRingFrame3d extends SingleChildRenderObjectWidget3d {
-  const _SceneRingFrame3d({
+class _RingFrame3d extends SingleChildRenderObjectWidget3d {
+  const _RingFrame3d({
     required this.strokeWidth,
     required this.thickness,
     super.child,
@@ -712,11 +713,11 @@ class _SceneRingFrame3d extends SingleChildRenderObjectWidget3d {
   final double thickness;
 
   @override
-  _RingFrame3d createLayout(BuildContext context) =>
-      _RingFrame3d(strokeWidth: strokeWidth, thickness: thickness);
+  _RenderRingFrame3d createLayout(BuildContext context) =>
+      _RenderRingFrame3d(strokeWidth: strokeWidth, thickness: thickness);
 
   @override
-  void updateLayout(BuildContext context, _RingFrame3d layout) {
+  void updateLayout(BuildContext context, _RenderRingFrame3d layout) {
     layout
       ..strokeWidth = strokeWidth
       ..thickness = thickness;
@@ -725,13 +726,13 @@ class _SceneRingFrame3d extends SingleChildRenderObjectWidget3d {
 
 /// The ring itself: a panel that writes its own border and its own turn.
 ///
-/// A `DecoratedBox3d` rather than a widget-built one because both are
+/// A `RenderDecoratedBox3d` rather than a widget-built one because both are
 /// written every frame of an indeterminate arc — the arc's length into the
 /// border's gradient, which is a shader parameter, and its start into the
 /// node transform, which is a matrix — and a widget would have to be rebuilt
 /// to do either. Neither lays anything out.
-class _RingPanel3d extends DecoratedBox3d {
-  _RingPanel3d({
+class _RenderRingPanel3d extends RenderDecoratedBox3d {
+  _RenderRingPanel3d({
     required BoxDecoration3d base,
     required Color color,
     required Color? track,
@@ -856,8 +857,8 @@ class _RingPanel3d extends DecoratedBox3d {
 
 /// A leaf as far as the widget layer knows: the panel draws everything it
 /// needs itself.
-class _SceneRingPanel3d extends MultiChildRenderObjectWidget3d {
-  const _SceneRingPanel3d({
+class _RingPanel3d extends MultiChildRenderObjectWidget3d {
+  const _RingPanel3d({
     required this.base,
     required this.color,
     required this.track,
@@ -874,7 +875,7 @@ class _SceneRingPanel3d extends MultiChildRenderObjectWidget3d {
   final Animation<double>? animation;
 
   @override
-  _RingPanel3d createLayout(BuildContext context) => _RingPanel3d(
+  _RenderRingPanel3d createLayout(BuildContext context) => _RenderRingPanel3d(
     base: base,
     color: color,
     track: track,
@@ -884,7 +885,7 @@ class _SceneRingPanel3d extends MultiChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, _RingPanel3d layout) {
+  void updateLayout(BuildContext context, _RenderRingPanel3d layout) {
     layout
       ..base = base
       ..color = color

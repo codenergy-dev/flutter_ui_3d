@@ -68,11 +68,11 @@ class DecoratedItem extends SingleChildRenderObjectWidget3d {
   const DecoratedItem({super.key, super.child});
 
   @override
-  DecoratedBox3d createLayout(BuildContext context) =>
-      DecoratedBox3d(decoration: const TestDecoration3d('panel'));
+  RenderDecoratedBox3d createLayout(BuildContext context) =>
+      RenderDecoratedBox3d(decoration: const TestDecoration3d('panel'));
 
   @override
-  void updateLayout(BuildContext context, DecoratedBox3d layout) {}
+  void updateLayout(BuildContext context, RenderDecoratedBox3d layout) {}
 }
 
 /// The extent an item should take, handed down the widget tree rather than
@@ -118,7 +118,7 @@ class TrackedItemState extends State<TrackedItem> {
 
   @override
   Widget build(BuildContext context) =>
-      const SceneSizedBox3d(width: 4, height: 2, depth: 1);
+      const SizedBox3d(width: 4, height: 2, depth: 1);
 }
 
 void main() {
@@ -129,23 +129,23 @@ void main() {
       final built = <int>[];
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 6, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             controller: scroll,
             itemCount: 1000,
             itemExtent: 2,
             itemBuilder: (context, index) {
               built.add(index);
-              return const SceneSizedBox3d(width: 4, height: 2, depth: 1);
+              return const SizedBox3d(width: 4, height: 2, depth: 1);
             },
           ),
         ),
       );
 
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       // Six of room, two to an item: four of them start inside the window.
       expect(built, <int>[0, 1, 2, 3]);
       expect(list.activeIndices, <int>[0, 1, 2, 3]);
@@ -163,22 +163,22 @@ void main() {
       final built = <int>[];
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             controller: scroll,
             itemCount: 50,
             itemExtent: 2,
             itemBuilder: (context, index) {
               built.add(index);
-              return const SceneSizedBox3d(width: 4, height: 2, depth: 1);
+              return const SizedBox3d(width: 4, height: 2, depth: 1);
             },
           ),
         ),
       );
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       expect(built, <int>[0, 1, 2]);
       final leaving = list.children.first;
 
@@ -201,24 +201,21 @@ void main() {
 
       Widget frame(double extent) => ItemExtent(
         extent: extent,
-        child: SceneLayout3d(
+        child: Surface3d(
           parent: Node(),
           size: const Size3d(4, 6, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             itemCount: 20,
             itemExtent: 2,
-            itemBuilder: (context, index) => SceneSizedBox3d(
-              width: ItemExtent.of(context),
-              height: 2,
-              depth: 1,
-            ),
+            itemBuilder: (context, index) =>
+                SizedBox3d(width: ItemExtent.of(context), height: 2, depth: 1),
           ),
         ),
       );
 
       await tester.pumpWidget(frame(3));
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       expect(list.children.first.size.width, 3);
 
       // The item is a real element, so the inherited value reaching it is
@@ -234,11 +231,11 @@ void main() {
       final log = <String>[];
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             controller: scroll,
             itemCount: 50,
             itemExtent: 2,
@@ -268,11 +265,11 @@ void main() {
       final controller = Layout3dController();
       final log = <String>[];
 
-      Widget frame(List<String> labels) => SceneLayout3d(
+      Widget frame(List<String> labels) => Surface3d(
         parent: Node(),
         size: const Size3d(4, 8, 1),
         controller: controller,
-        child: SceneListView3d.builder(
+        child: ListView3d.builder(
           itemCount: labels.length,
           itemExtent: 2,
           itemBuilder: (context, index) => TrackedItem(
@@ -289,7 +286,7 @@ void main() {
       log.clear();
       await tester.pumpWidget(frame(<String>['c', 'a', 'b']));
 
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       expect(list.activeIndices, <int>[0, 1, 2]);
       expect(list.children, hasLength(3));
       // A local key only says "this index holds something else now", so the
@@ -307,11 +304,11 @@ void main() {
       final key = GlobalKey<TrackedItemState>();
       final log = <String>[];
 
-      Widget frame(List<String> labels) => SceneLayout3d(
+      Widget frame(List<String> labels) => Surface3d(
         parent: Node(),
         size: const Size3d(4, 8, 1),
         controller: controller,
-        child: SceneListView3d.builder(
+        child: ListView3d.builder(
           itemCount: labels.length,
           itemExtent: 2,
           itemBuilder: (context, index) => TrackedItem(
@@ -334,7 +331,7 @@ void main() {
       expect(key.currentState, same(state));
       expect(key.currentState!.marker, 7);
       expect(log.where((entry) => entry.startsWith('init moved')), isEmpty);
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       expect(list.activeIndices, <int>[0, 1, 2]);
       expect(list.children, hasLength(3));
     });
@@ -343,22 +340,22 @@ void main() {
       final controller = Layout3dController();
       final built = <int>[];
 
-      Widget frame(int count) => SceneLayout3d(
+      Widget frame(int count) => Surface3d(
         parent: Node(),
         size: const Size3d(4, 20, 1),
         controller: controller,
-        child: SceneListView3d.builder(
+        child: ListView3d.builder(
           itemCount: count,
           itemExtent: 2,
           itemBuilder: (context, index) {
             built.add(index);
-            return const SceneSizedBox3d(width: 4, height: 2, depth: 1);
+            return const SizedBox3d(width: 4, height: 2, depth: 1);
           },
         ),
       );
 
       await tester.pumpWidget(frame(3));
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       expect(list.activeIndices, <int>[0, 1, 2]);
 
       built.clear();
@@ -384,23 +381,20 @@ void main() {
       final scroll = Scroll3dController();
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             controller: scroll,
             itemCount: 10,
-            itemBuilder: (context, index) => SceneSizedBox3d(
-              width: 4,
-              height: index.isEven ? 1 : 3,
-              depth: 1,
-            ),
+            itemBuilder: (context, index) =>
+                SizedBox3d(width: 4, height: index.isEven ? 1 : 3, depth: 1),
           ),
         ),
       );
 
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       // Item 0 is one tall and item 1 three, so item 2 starts exactly at the
       // end of the window and is not in it.
       expect(list.activeIndices, <int>[0, 1]);
@@ -413,18 +407,18 @@ void main() {
   });
 
   group('the other three views', () {
-    testWidgets('SceneGridView3d.builder builds the cells in the window', (
+    testWidgets('GridView3d.builder builds the cells in the window', (
       tester,
     ) async {
       final controller = Layout3dController();
       final built = <int>[];
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 1),
           controller: controller,
-          child: SceneGridView3d.builder(
+          child: GridView3d.builder(
             gridDelegate: const Grid3dDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               mainAxisExtent: 2,
@@ -432,20 +426,20 @@ void main() {
             itemCount: 100,
             itemBuilder: (context, index) {
               built.add(index);
-              return const SceneSizedBox3d(width: 2, height: 2, depth: 1);
+              return const SizedBox3d(width: 2, height: 2, depth: 1);
             },
           ),
         ),
       );
 
-      final grid = rootOf(controller) as GridView3d;
+      final grid = rootOf(controller) as RenderGridView3d;
       // Two cells to a row, two rows in the window, and the row that starts
       // exactly at the far edge of it.
       expect(built, <int>[0, 1, 2, 3, 4, 5]);
       expect(grid.activeIndices, <int>[0, 1, 2, 3, 4, 5]);
     });
 
-    testWidgets('the sliver views build inside a CustomScrollView3d', (
+    testWidgets('the sliver views build inside a RenderCustomScrollView3d', (
       tester,
     ) async {
       final controller = Layout3dController();
@@ -453,21 +447,21 @@ void main() {
       final gridBuilt = <int>[];
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 6, 1),
           controller: controller,
-          child: SceneCustomScrollView3d(
+          child: CustomScrollView3d(
             slivers: [
-              SceneSliverList3d.builder(
+              SliverList3d.builder(
                 itemCount: 100,
                 itemExtent: 2,
                 itemBuilder: (context, index) {
                   listBuilt.add(index);
-                  return const SceneSizedBox3d(width: 4, height: 2, depth: 1);
+                  return const SizedBox3d(width: 4, height: 2, depth: 1);
                 },
               ),
-              SceneSliverGrid3d.builder(
+              SliverGrid3d.builder(
                 gridDelegate: const Grid3dDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   mainAxisExtent: 2,
@@ -475,7 +469,7 @@ void main() {
                 itemCount: 100,
                 itemBuilder: (context, index) {
                   gridBuilt.add(index);
-                  return const SceneSizedBox3d(width: 2, height: 2, depth: 1);
+                  return const SizedBox3d(width: 2, height: 2, depth: 1);
                 },
               ),
             ],
@@ -483,13 +477,13 @@ void main() {
         ),
       );
 
-      final view = rootOf(controller) as CustomScrollView3d;
+      final view = rootOf(controller) as RenderCustomScrollView3d;
       expect(listBuilt, <int>[0, 1, 2, 3]);
       // The list fills the window on its own, so the grid below it has
       // nothing to paint; it still builds its first row, which is the row
       // that starts at its own leading edge.
       expect(gridBuilt, <int>[0, 1]);
-      expect((view.slivers[0] as SliverList3d).activeIndices, <int>[
+      expect((view.slivers[0] as RenderSliverList3d).activeIndices, <int>[
         0,
         1,
         2,
@@ -505,22 +499,22 @@ void main() {
       final scroll = Scroll3dController();
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             controller: scroll,
             itemCount: 50,
             itemExtent: 2,
             itemBuilder: (context, index) => const DecoratedItem(
-              child: SceneSizedBox3d(width: 4, height: 2, depth: 1),
+              child: SizedBox3d(width: 4, height: 2, depth: 1),
             ),
           ),
         ),
       );
 
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       final owner = list.owner!;
       final leaving = list.children.first;
       // One painter, shared by the three decorated items in the window.
@@ -541,23 +535,22 @@ void main() {
       final scroll = Scroll3dController();
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             controller: scroll,
             itemCount: 50,
             itemExtent: 2,
-            itemBuilder: (context, index) => const SceneFocus3d(
-              child: SceneSizedBox3d(width: 4, height: 2, depth: 1),
-            ),
+            itemBuilder: (context, index) =>
+                const Focus3d(child: SizedBox3d(width: 4, height: 2, depth: 1)),
           ),
         ),
       );
 
-      final list = rootOf(controller) as ListView3d;
-      final leaving = list.children.first as Focus3d;
+      final list = rootOf(controller) as RenderListView3d;
+      final leaving = list.children.first as RenderFocus3d;
       final FocusNode node = leaving.focusNode;
 
       scroll.jumpTo(20);
@@ -574,24 +567,24 @@ void main() {
     ) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             itemCount: 50,
             itemExtent: 2,
             itemBuilder: (context, index) => const DecoratedItem(
-              child: SceneSizedBox3d(width: 4, height: 2, depth: 1),
+              child: SizedBox3d(width: 4, height: 2, depth: 1),
             ),
           ),
         ),
       );
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       final items = List<RenderObject3d>.of(list.children);
       expect(items, isNotEmpty);
 
-      await tester.pumpWidget(SceneLayout3d(parent: Node()));
+      await tester.pumpWidget(Surface3d(parent: Node()));
 
       expect(tester.takeException(), isNull);
       expect(controller.surface, isNull);
@@ -607,16 +600,16 @@ void main() {
       final built = <int>[];
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 6, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             itemCount: 40,
             itemExtent: 2,
             itemBuilder: (context, index) {
               built.add(index);
-              return const SceneSizedBox3d(width: 4, height: 2, depth: 1);
+              return const SizedBox3d(width: 4, height: 2, depth: 1);
             },
           ),
         ),
@@ -641,25 +634,25 @@ void main() {
       // drives is the one that has to build the items the list can now
       // reach. A flush from a box that does not contain the list is the case
       // this is here for.
-      Widget frame(int spacers) => SceneLayout3d(
+      Widget frame(int spacers) => Surface3d(
         parent: Node(),
         size: const Size3d(4, 10, 1),
         controller: controller,
-        child: SceneColumn3d(
+        child: Column3d(
           children: [
-            SceneColumn3d(
+            Column3d(
               children: <Widget>[
                 for (var i = 0; i < spacers; i++)
-                  SceneSizedBox3d(key: ValueKey(i), width: 4, height: 1),
+                  SizedBox3d(key: ValueKey(i), width: 4, height: 1),
               ],
             ),
-            SceneExpanded3d(
-              child: SceneListView3d.builder(
+            Expanded3d(
+              child: ListView3d.builder(
                 itemCount: 40,
                 itemExtent: 2,
                 itemBuilder: (context, index) {
                   built.add(index);
-                  return const SceneSizedBox3d(width: 4, height: 2, depth: 1);
+                  return const SizedBox3d(width: 4, height: 2, depth: 1);
                 },
               ),
             ),

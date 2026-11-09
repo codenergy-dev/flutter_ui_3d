@@ -10,7 +10,7 @@ import 'package:flutter/widgets.dart'
         StatelessWidget,
         TextDirection,
         Widget;
-import 'package:flutter_ui_3d/widgets.dart' show SceneSemantics3d, SceneText3d;
+import 'package:flutter_ui_3d/widgets.dart' show Semantics3d, Text3d;
 
 import '../theme/theme.dart';
 import 'reading_direction.dart';
@@ -22,7 +22,7 @@ import 'reading_direction.dart';
 /// ```
 ///
 /// The design bet the catalogue plan made and phase 2 verified on a GPU: an
-/// icon here is a one-character [SceneText3d] in the icon font, drawn out of
+/// icon here is a one-character [Text3d] in the icon font, drawn out of
 /// the same `GlyphAtlasCache3d` as every label. `examples/render_probe`'s
 /// `icon_glyph` scene is the proof — it rasterizes a `MaterialIcons` code
 /// point, puts the ink inside the box layout gave it, tints it, and its
@@ -55,10 +55,10 @@ import 'reading_direction.dart';
 /// contrast has to be chosen against the *unlit* glyph and the *lit* panel,
 /// and a catalogue that ignores it drifts.
 ///
-/// **It answers hit tests on its own account**, as any `Text3d` does. Inside
-/// an [InkWell3d] that is harmless: the gesture detector below the ink well
-/// is opaque and is found first. An icon that has to let a ray through to
-/// something behind it wants a `SceneIgnorePointer3d`.
+/// **It answers hit tests on its own account**, as any `RenderText3d` does.
+/// Inside an [InkWell3d] that is harmless: the gesture detector below the ink
+/// well is opaque and is found first. An icon that has to let a ray through to
+/// something behind it wants an `IgnorePointer3d`.
 ///
 /// **`IconData.matchTextDirection` is not honoured.** A mirrored icon would
 /// need a negative scale on the glyph quad, which the atlas renderer does not
@@ -108,7 +108,7 @@ class Icon3d extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme3d.of(context);
     final inherited = DefaultTextStyle.of(context).style;
-    final glyph = SceneText3d(
+    final glyph = Text3d(
       String.fromCharCode(icon.codePoint),
       // An icon is a glyph of a font and not a line of type, so the reader's
       // font setting does not grow it — Flutter's `Icon` is a `RichText`,
@@ -134,7 +134,7 @@ class Icon3d extends StatelessWidget {
 
     final label = semanticLabel;
     if (label == null) return glyph;
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: SemanticsProperties(
         label: label,
         textDirection: readingDirection3d(context, textDirection),

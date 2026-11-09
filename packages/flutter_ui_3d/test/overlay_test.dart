@@ -11,9 +11,9 @@ import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dController,
         Overlay3dController,
-        SceneLayout3d,
-        SceneOverlay3d,
-        SceneSizedBox3d;
+        Surface3d,
+        Overlay3d,
+        SizedBox3d;
 import 'package:vector_math/vector_math.dart' show Matrix4, Quaternion, Vector3;
 
 import 'support.dart';
@@ -44,12 +44,13 @@ void main() {
     settleFocus();
   });
 
-  ({Layout3dSurface surface, Overlay3d overlay, TestBox page}) panel({
+  ({RenderSurface3d surface, RenderOverlay3d overlay, RenderTestBox page})
+  panel({
     Size3d size = const Size3d(4, 3, 0.5),
     Alignment3d alignment = Alignment3d.center,
   }) {
-    final page = TestBox(size, pointable: true, name: 'page');
-    final overlay = Overlay3d(
+    final page = RenderTestBox(size, pointable: true, name: 'page');
+    final overlay = RenderOverlay3d(
       alignment: alignment,
       children: <RenderObject3d>[page],
     );
@@ -63,10 +64,10 @@ void main() {
       final host = panel();
       // The insertion a component makes: it has a box deep in the tree and no
       // handle, and finds the overlay by walking up from it.
-      final found = Overlay3d.of(host.page);
+      final found = RenderOverlay3d.of(host.page);
       expect(found, same(host.overlay));
 
-      final dialog = TestBox(const Size3d(1, 1, 0), pointable: true);
+      final dialog = RenderTestBox(const Size3d(1, 1, 0), pointable: true);
       final entry = Overlay3dEntry(builder: (_) => dialog);
       found!.insertEntry(entry);
       host.surface.flush();
@@ -77,19 +78,19 @@ void main() {
       expect(hit.target, same(dialog));
       // And the page is still on the path behind it, since a ray that reached
       // the dialog passed through the overlay, not through the page.
-      expect(hit.firstOf<Overlay3d>(), same(host.overlay));
+      expect(hit.firstOf<RenderOverlay3d>(), same(host.overlay));
     });
 
     test('entries stack in order, and can be inserted around each other', () {
       final host = panel();
       final first = Overlay3dEntry(
-        builder: (_) => TestBox(const Size3d(1, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
       );
       final second = Overlay3dEntry(
-        builder: (_) => TestBox(const Size3d(1, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
       );
       final third = Overlay3dEntry(
-        builder: (_) => TestBox(const Size3d(1, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
       );
 
       host.overlay
@@ -111,7 +112,7 @@ void main() {
     test('the base children survive the entries coming and going', () {
       final host = panel();
       final entry = Overlay3dEntry(
-        builder: (_) => TestBox(const Size3d(1, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
       );
 
       host.overlay.insertEntry(entry);
@@ -124,7 +125,7 @@ void main() {
 
     test('removing an entry disposes what it built', () {
       final host = panel();
-      final dialog = TestBox(const Size3d(1, 1, 0));
+      final dialog = RenderTestBox(const Size3d(1, 1, 0));
       final entry = Overlay3dEntry(builder: (_) => dialog);
       host.overlay.insertEntry(entry);
       host.surface.flush();
@@ -136,11 +137,11 @@ void main() {
     test('markNeedsBuild swaps the content in place', () {
       final host = panel();
       var built = 0;
-      final boxes = <TestBox>[];
+      final boxes = <RenderTestBox>[];
       final entry = Overlay3dEntry(
         builder: (_) {
           built++;
-          final box = TestBox(const Size3d(1, 1, 0));
+          final box = RenderTestBox(const Size3d(1, 1, 0));
           boxes.add(box);
           return box;
         },
@@ -162,13 +163,13 @@ void main() {
   group('the lift', () {
     test('moves the geometry and leaves the box where it was', () {
       final host = panel();
-      final dialog = TestBox(const Size3d(1, 1, 0));
+      final dialog = RenderTestBox(const Size3d(1, 1, 0));
       final entry = Overlay3dEntry(builder: (_) => dialog);
       host.overlay.insertEntry(entry);
       host.surface.flush();
 
       final entryHost = dialog.parent!;
-      final lift = Layout3dMetrics.standard.dp(Overlay3d.defaultLift);
+      final lift = Layout3dMetrics.standard.dp(RenderOverlay3d.defaultLift);
 
       // Centred across and **pinned to the front face** in depth. This test
       // used to assert `z: 0.25` — the middle of the panel — and that was the
@@ -191,8 +192,8 @@ void main() {
       // distance. Pinned, the depth of what is inside an entry cannot move
       // where the entry starts.
       final host = panel();
-      final thin = TestBox(const Size3d(1, 1, 0));
-      final thick = TestBox(const Size3d(1, 1, 0.3));
+      final thin = RenderTestBox(const Size3d(1, 1, 0));
+      final thick = RenderTestBox(const Size3d(1, 1, 0.3));
       host.overlay
         ..insertEntry(Overlay3dEntry(builder: (_) => thin))
         ..insertEntry(Overlay3dEntry(builder: (_) => thick));
@@ -208,16 +209,16 @@ void main() {
       // not from wherever an alignment left the box. Before this, the two
       // differed by half the panel's depth.
       Offset3d liftedIn(Alignment3d alignment) {
-        final overlay = Overlay3d(
+        final overlay = RenderOverlay3d(
           alignment: alignment,
-          children: <RenderObject3d>[TestBox(const Size3d(4, 3, 0.5))],
+          children: <RenderObject3d>[RenderTestBox(const Size3d(4, 3, 0.5))],
         );
         final surface = laidOut(
           overlay,
           constraints: Constraints3d.tight(const Size3d(4, 3, 0.5)),
         );
         addTearDown(surface.dispose);
-        final dialog = TestBox(const Size3d(1, 1, 0));
+        final dialog = RenderTestBox(const Size3d(1, 1, 0));
         overlay.insertEntry(Overlay3dEntry(builder: (_) => dialog));
         surface.flush();
         return translationOf(dialog.parent!);
@@ -231,7 +232,7 @@ void main() {
 
     test('an explicit lift overrides the one taken from the metrics', () {
       final host = panel();
-      final dialog = TestBox(const Size3d(1, 1, 0));
+      final dialog = RenderTestBox(const Size3d(1, 1, 0));
       final entry = Overlay3dEntry(
         layer: const OverlayLayer3d.inPlane(lift: 0.2),
         builder: (_) => dialog,
@@ -247,12 +248,12 @@ void main() {
 
     test('a pin inside a lifted entry still lands where it was pinned', () {
       final host = panel();
-      final pinned = TestBox(const Size3d(1, 1, 0));
-      late final Stack3d inner;
+      final pinned = RenderTestBox(const Size3d(1, 1, 0));
+      late final RenderStack3d inner;
       final entry = Overlay3dEntry(
-        builder: (_) => inner = Stack3d(
+        builder: (_) => inner = RenderStack3d(
           children: <RenderObject3d>[
-            Positioned3d(right: 0, bottom: 0, child: pinned),
+            RenderPositioned3d(right: 0, bottom: 0, child: pinned),
           ],
         ),
       );
@@ -262,7 +263,7 @@ void main() {
       // The stack fills the overlay, and the pin is against its far corner:
       // the lift moved the geometry, and layout never heard about it.
       expect(inner.size, const Size3d(4, 3, 0.5));
-      // The pin is the Positioned3d wrapping the box, which is what the
+      // The pin is the RenderPositioned3d wrapping the box, which is what the
       // stack placed.
       expect(pinned.parent!.offset, const Offset3d(3, 2, 0));
       expect(pinned.hasSize, isTrue);
@@ -270,7 +271,7 @@ void main() {
 
     test('a ray reaches the entry at the box, not at the lifted geometry', () {
       final host = panel();
-      final dialog = TestBox(const Size3d(1, 1, 0), pointable: true);
+      final dialog = RenderTestBox(const Size3d(1, 1, 0), pointable: true);
       final entry = Overlay3dEntry(
         layer: const OverlayLayer3d.inPlane(lift: 0.2),
         builder: (_) => dialog,
@@ -291,16 +292,16 @@ void main() {
 
   group('the barrier', () {
     ({
-      Layout3dSurface surface,
-      Overlay3d overlay,
-      TestBox page,
-      TestBox dialog,
+      RenderSurface3d surface,
+      RenderOverlay3d overlay,
+      RenderTestBox page,
+      RenderTestBox dialog,
       Overlay3dEntry entry,
       List<int> dismissals,
     })
     modal({bool dismissible = true}) {
       final host = panel();
-      final dialog = TestBox(const Size3d(1, 1, 0), pointable: true);
+      final dialog = RenderTestBox(const Size3d(1, 1, 0), pointable: true);
       final dismissals = <int>[];
       final entry = Overlay3dEntry(
         modal: true,
@@ -325,8 +326,8 @@ void main() {
 
       // Away from the dialog, over the page: the barrier answers instead.
       final hit = control.surface.hitTestAt(const Offset3d(0.2, 0.2, 0));
-      expect(hit.target, isA<ModalBarrier3d>());
-      expect(hit.firstOf<TestBox>(), isNull);
+      expect(hit.target, isA<RenderModalBarrier3d>());
+      expect(hit.firstOf<RenderTestBox>(), isNull);
     });
 
     test('a tap outside dismisses, and a tap inside does not', () {
@@ -350,12 +351,12 @@ void main() {
       pointer.up();
 
       expect(control.dismissals, isEmpty);
-      expect(pointer.lastHit.target, isA<ModalBarrier3d>());
+      expect(pointer.lastHit.target, isA<RenderModalBarrier3d>());
     });
 
     test('it fills the overlay and is as deep as it was told to be', () {
       final host = panel();
-      final barrier = ModalBarrier3d(thickness: 0.1);
+      final barrier = RenderModalBarrier3d(thickness: 0.1);
       final entry = Overlay3dEntry(builder: (_) => barrier);
       host.overlay.insertEntry(entry);
       host.surface.flush();
@@ -365,11 +366,11 @@ void main() {
 
     test('a scrim is geometry inside the barrier, sized to it', () {
       final host = panel();
-      final scrim = TestBox(const Size3d(0.1, 0.1, 0));
+      final scrim = RenderTestBox(const Size3d(0.1, 0.1, 0));
       final entry = Overlay3dEntry(
         modal: true,
         scrimBuilder: (_) => scrim,
-        builder: (_) => TestBox(const Size3d(1, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
       );
       host.overlay.insertEntry(entry);
       host.surface.flush();
@@ -381,7 +382,7 @@ void main() {
   group('detached entries', () {
     test('an entry gets a surface of its own, constrained by the host', () {
       final host = panel();
-      final dialog = TestBox(const Size3d(1, 1, 0), pointable: true);
+      final dialog = RenderTestBox(const Size3d(1, 1, 0), pointable: true);
       final entry = Overlay3dEntry(
         layer: const OverlayLayer3d.detached(),
         builder: (_) => dialog,
@@ -396,7 +397,7 @@ void main() {
       // Unbounded in depth: escaping the panel's thickness is half the reason
       // to detach at all.
       expect(detached.configuration.maxDepth, double.infinity);
-      expect(host.overlay.detachedSurfaces, <Layout3dSurface>[detached]);
+      expect(host.overlay.detachedSurfaces, <RenderSurface3d>[detached]);
 
       // The entry is not reachable through the host surface at all; it is a
       // surface of its own, and the router is what finds it.
@@ -412,7 +413,7 @@ void main() {
 
     test('it may overhang the panel, which an in-plane entry cannot', () {
       final host = panel();
-      final wide = TestBox(const Size3d(6, 1, 0));
+      final wide = RenderTestBox(const Size3d(6, 1, 0));
       final entry = Overlay3dEntry(
         layer: const OverlayLayer3d.detached(constraints: Constraints3d()),
         builder: (_) => wide,
@@ -426,7 +427,7 @@ void main() {
 
     test('the overlay is still found from inside a detached entry', () {
       final host = panel();
-      final inside = TestBox(const Size3d(1, 1, 0));
+      final inside = RenderTestBox(const Size3d(1, 1, 0));
       final entry = Overlay3dEntry(
         layer: const OverlayLayer3d.detached(),
         builder: (_) => inside,
@@ -434,14 +435,14 @@ void main() {
       host.overlay.insertEntry(entry);
       host.surface.flush();
 
-      expect(Overlay3d.of(inside), same(host.overlay));
+      expect(RenderOverlay3d.of(inside), same(host.overlay));
     });
 
     test('it follows the panel when the panel turns', () {
       final host = panel();
       final entry = Overlay3dEntry(
         layer: const OverlayLayer3d.detached(offset: Offset3d(1, 0, 0)),
-        builder: (_) => TestBox(const Size3d(1, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
       );
       host.overlay.insertEntry(entry);
       host.surface.flush();
@@ -466,7 +467,7 @@ void main() {
           offset: Offset3d(1, 0, 0),
           binding: Layout3dCameraBinding.billboard(),
         ),
-        builder: (_) => TestBox(const Size3d(1, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
       );
       host.overlay.insertEntry(entry);
       host.surface.flush();
@@ -511,9 +512,9 @@ void main() {
 
     test('dirt inside a detached entry reaches the host flush', () {
       var updates = 0;
-      final page = TestBox(const Size3d(4, 3, 0.5));
-      final overlay = Overlay3d(children: <RenderObject3d>[page]);
-      final surface = Layout3dSurface(
+      final page = RenderTestBox(const Size3d(4, 3, 0.5));
+      final overlay = RenderOverlay3d(children: <RenderObject3d>[page]);
+      final surface = RenderSurface3d(
         constraints: Constraints3d.tight(const Size3d(4, 3, 0.5)),
         onNeedVisualUpdate: () => updates++,
         child: overlay,
@@ -521,7 +522,7 @@ void main() {
       addTearDown(surface.dispose);
       surface.flush();
 
-      final inside = TestBox(const Size3d(1, 1, 0));
+      final inside = RenderTestBox(const Size3d(1, 1, 0));
       final entry = Overlay3dEntry(
         layer: const OverlayLayer3d.detached(),
         builder: (_) => inside,
@@ -540,7 +541,7 @@ void main() {
 
     test('removing a detached entry disposes its surface and its content', () {
       final host = panel();
-      final inside = TestBox(const Size3d(1, 1, 0));
+      final inside = RenderTestBox(const Size3d(1, 1, 0));
       final entry = Overlay3dEntry(
         layer: const OverlayLayer3d.detached(),
         builder: (_) => inside,
@@ -559,8 +560,8 @@ void main() {
   });
 
   group('routing a ray across surfaces', () {
-    ({Layout3dSurface surface, TestBox content}) plate(String name) {
-      final content = TestBox(
+    ({RenderSurface3d surface, RenderTestBox content}) plate(String name) {
+      final content = RenderTestBox(
         const Size3d(1, 1, 0),
         pointable: true,
         name: name,
@@ -583,7 +584,7 @@ void main() {
           ..addSurface(front.surface, zOrder: 1);
         addTearDown(group.dispose);
 
-        expect(group.surfaces, <Layout3dSurface>[front.surface, back.surface]);
+        expect(group.surfaces, <RenderSurface3d>[front.surface, back.surface]);
 
         final hit = group.hitTest(
           rayAt(front.surface, const Offset3d(0.5, 0.5, 0)),
@@ -609,7 +610,7 @@ void main() {
 
       group.down(rayAt(front.surface, const Offset3d(0.5, 0.5, 0)));
 
-      expect(group.capturedBy(0), <Layout3dSurface>[front.surface]);
+      expect(group.capturedBy(0), <RenderSurface3d>[front.surface]);
       expect(group.pointerFor(front.surface)!.isDown(0), isTrue);
       expect(group.pointerFor(back.surface)!.isDown(0), isFalse);
 
@@ -627,7 +628,7 @@ void main() {
 
       group.down(rayAt(front.surface, const Offset3d(0.5, 0.5, 0)));
 
-      expect(group.capturedBy(0), <Layout3dSurface>[
+      expect(group.capturedBy(0), <RenderSurface3d>[
         front.surface,
         back.surface,
       ]);
@@ -679,7 +680,7 @@ void main() {
       final group = Layout3dPointerGroup()..addSurface(host.surface);
       addTearDown(group.dispose);
 
-      final dialog = TestBox(const Size3d(1, 1, 0), pointable: true);
+      final dialog = RenderTestBox(const Size3d(1, 1, 0), pointable: true);
       final entry = Overlay3dEntry(
         layer: const OverlayLayer3d.detached(),
         builder: (_) => dialog,
@@ -697,7 +698,7 @@ void main() {
       host.overlay.removeEntry(entry);
       group.syncDetachedEntries(host.overlay);
 
-      expect(group.surfaces, <Layout3dSurface>[host.surface]);
+      expect(group.surfaces, <RenderSurface3d>[host.surface]);
     });
 
     test('hover goes to the front surface and leaves the others', () {
@@ -718,11 +719,13 @@ void main() {
   group('focus', () {
     test('a modal entry traps focus in a scope of its own', () {
       final host = panel();
-      final background = Focus3d(child: TestBox(const Size3d(1, 1, 0)));
+      final background = RenderFocus3d(
+        child: RenderTestBox(const Size3d(1, 1, 0)),
+      );
       host.overlay.add(background);
       host.surface.flush();
 
-      final inside = Focus3d(child: TestBox(const Size3d(1, 1, 0)));
+      final inside = RenderFocus3d(child: RenderTestBox(const Size3d(1, 1, 0)));
       final entry = Overlay3dEntry(modal: true, builder: (_) => inside);
       host.overlay.insertEntry(entry);
       host.surface.flush();
@@ -736,14 +739,17 @@ void main() {
 
     test('traversal from inside a modal stays inside it', () {
       final host = panel();
-      final background = Focus3d(child: TestBox(const Size3d(1, 1, 0)));
+      final background = RenderFocus3d(
+        child: RenderTestBox(const Size3d(1, 1, 0)),
+      );
       host.overlay.add(background);
 
-      final first = Focus3d(child: TestBox(const Size3d(1, 1, 0)));
-      final second = Focus3d(child: TestBox(const Size3d(1, 1, 0)));
+      final first = RenderFocus3d(child: RenderTestBox(const Size3d(1, 1, 0)));
+      final second = RenderFocus3d(child: RenderTestBox(const Size3d(1, 1, 0)));
       final entry = Overlay3dEntry(
         modal: true,
-        builder: (_) => Column3d(children: <RenderObject3d>[first, second]),
+        builder: (_) =>
+            RenderColumn3d(children: <RenderObject3d>[first, second]),
       );
       host.overlay.insertEntry(entry);
       host.surface.flush();
@@ -757,7 +763,9 @@ void main() {
 
     test('pushing and popping restores focus', () async {
       final host = panel();
-      final background = Focus3d(child: TestBox(const Size3d(1, 1, 0)));
+      final background = RenderFocus3d(
+        child: RenderTestBox(const Size3d(1, 1, 0)),
+      );
       host.overlay.add(background);
       host.surface.flush();
 
@@ -766,9 +774,9 @@ void main() {
       expect(background.hasPrimaryFocus, isTrue);
 
       final navigator = Navigator3d(host.overlay);
-      final inside = Focus3d(
+      final inside = RenderFocus3d(
         autofocus: true,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final popped = navigator.push(
         PageRoute3d<String>(builder: (_) => inside),
@@ -791,7 +799,7 @@ void main() {
     test('a push shows a route and a pop completes its future', () async {
       final host = panel();
       final navigator = Navigator3d(host.overlay);
-      final dialog = TestBox(const Size3d(1, 1, 0), pointable: true);
+      final dialog = RenderTestBox(const Size3d(1, 1, 0), pointable: true);
 
       final popped = navigator.push(PageRoute3d<int>(builder: (_) => dialog));
       host.surface.flush();
@@ -815,7 +823,7 @@ void main() {
       final navigator = Navigator3d(host.overlay);
       final popped = navigator.push(
         PageRoute3d<String>(
-          builder: (_) => TestBox(const Size3d(1, 1, 0), pointable: true),
+          builder: (_) => RenderTestBox(const Size3d(1, 1, 0), pointable: true),
         ),
       );
       host.surface.flush();
@@ -832,10 +840,10 @@ void main() {
       final host = panel();
       final navigator = Navigator3d(host.overlay);
       final under = PageRoute3d<int>(
-        builder: (_) => TestBox(const Size3d(1, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
       );
       final over = PageRoute3d<int>(
-        builder: (_) => TestBox(const Size3d(1, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
       );
       final first = navigator.push(under);
       navigator.push(over);
@@ -860,7 +868,9 @@ void main() {
         );
 
         final popped = navigator.push(
-          PageRoute3d<void>(builder: (_) => TestBox(const Size3d(1, 1, 0))),
+          PageRoute3d<void>(
+            builder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
+          ),
         );
         await Future<void>.delayed(Duration.zero);
         expect(events, <String>['forward:1']);
@@ -877,7 +887,7 @@ void main() {
     test('a control deep inside a route finds the navigator', () {
       final host = panel();
       final navigator = Navigator3d(host.overlay);
-      final inside = TestBox(const Size3d(1, 1, 0));
+      final inside = RenderTestBox(const Size3d(1, 1, 0));
       navigator.push(PageRoute3d<void>(builder: (_) => inside));
       host.surface.flush();
 
@@ -888,14 +898,14 @@ void main() {
       final host = panel();
       final navigator = Navigator3d(host.overlay);
       final bottom = PageRoute3d<void>(
-        builder: (_) => TestBox(const Size3d(1, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
       );
       navigator.push(bottom);
       navigator.push(
-        PageRoute3d<void>(builder: (_) => TestBox(const Size3d(1, 1, 0))),
+        PageRoute3d<void>(builder: (_) => RenderTestBox(const Size3d(1, 1, 0))),
       );
       navigator.push(
-        PageRoute3d<void>(builder: (_) => TestBox(const Size3d(1, 1, 0))),
+        PageRoute3d<void>(builder: (_) => RenderTestBox(const Size3d(1, 1, 0))),
       );
 
       navigator.popUntil((route) => identical(route, bottom));
@@ -911,14 +921,14 @@ void main() {
 
   group('teardown', () {
     test('disposing the surface takes the entries with it', () {
-      final page = TestBox(const Size3d(4, 3, 0.5));
-      final overlay = Overlay3d(children: <RenderObject3d>[page]);
-      final surface = Layout3dSurface(
+      final page = RenderTestBox(const Size3d(4, 3, 0.5));
+      final overlay = RenderOverlay3d(children: <RenderObject3d>[page]);
+      final surface = RenderSurface3d(
         constraints: Constraints3d.tight(const Size3d(4, 3, 0.5)),
         child: overlay,
       );
-      final inPlane = TestBox(const Size3d(1, 1, 0));
-      final detached = TestBox(const Size3d(1, 1, 0));
+      final inPlane = RenderTestBox(const Size3d(1, 1, 0));
+      final detached = RenderTestBox(const Size3d(1, 1, 0));
       overlay
         ..insertEntry(Overlay3dEntry(builder: (_) => inPlane))
         ..insertEntry(
@@ -944,7 +954,7 @@ class _RecordingTransition extends Route3dTransition {
   _RecordingTransition(this.events, this.overlay);
 
   final List<String> events;
-  final Overlay3d overlay;
+  final RenderOverlay3d overlay;
 
   @override
   Future<void> forward(Route3d<Object?> route) async {
@@ -966,18 +976,18 @@ void widgetTests() {
     tester,
   ) async {
     final controller = Layout3dController();
-    final overlays = <Overlay3d>[];
+    final overlays = <RenderOverlay3d>[];
 
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: const Size3d(10, 10, 10),
         controller: controller,
-        child: SceneOverlay3d(
+        child: Overlay3d(
           child: Builder(
             builder: (context) {
-              overlays.add(SceneOverlay3d.of(context));
-              return const SceneSizedBox3d.cube(2);
+              overlays.add(Overlay3d.of(context));
+              return const SizedBox3d.cube(2);
             },
           ),
         ),
@@ -988,14 +998,14 @@ void widgetTests() {
     expect(controller.surface!.child, same(overlay));
     expect(overlay.children, hasLength(1));
 
-    final dialog = TestBox(const Size3d(1, 1, 0), pointable: true);
+    final dialog = RenderTestBox(const Size3d(1, 1, 0), pointable: true);
     overlay.insertEntry(Overlay3dEntry(builder: (_) => dialog));
     await tester.pump();
 
     // The base child described in widgets and the entry inserted by hand are
     // both there, the entry last: the widget layer mirrors the base onto the
     // overlay and the entries are appended after whatever it mirrored.
-    expect(overlay.children.first, isA<SizedBox3d>());
+    expect(overlay.children.first, isA<RenderSizedBox3d>());
     expect(overlay.children.length, 2);
     expect(dialog.hasSize, isTrue);
     expect(
@@ -1011,15 +1021,15 @@ void widgetTests() {
 
   testWidgets('unmounting the overlay releases its entries', (tester) async {
     final controller = Overlay3dController();
-    final detached = TestBox(const Size3d(1, 1, 0));
+    final detached = RenderTestBox(const Size3d(1, 1, 0));
 
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: const Size3d(10, 10, 10),
-        child: SceneOverlay3d(
+        child: Overlay3d(
           controller: controller,
-          child: const SceneSizedBox3d.cube(2),
+          child: const SizedBox3d.cube(2),
         ),
       ),
     );

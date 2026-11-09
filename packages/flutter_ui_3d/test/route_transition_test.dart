@@ -14,9 +14,9 @@ import 'package:flutter_ui_3d/rendering.dart';
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dController,
-        SceneLayout3d,
-        SceneOverlay3d,
-        SceneSizedBox3d,
+        Surface3d,
+        Overlay3d,
+        SizedBox3d,
         WidgetPageRoute3d;
 import 'package:vector_math/vector_math.dart' show Vector3;
 
@@ -154,12 +154,17 @@ void main() {
   });
 
   group('the box that applies it', () {
-    ({Layout3dSurface surface, MotionTransition3d box, TestBox child}) sheet({
+    ({
+      RenderSurface3d surface,
+      RenderMotionTransition3d box,
+      RenderTestBox child,
+    })
+    sheet({
       AnimationController? controller,
       Motion3d motion = Motion3d.fromBelow,
     }) {
-      final child = TestBox(const Size3d(2, 3, 0), pointable: true);
-      final box = MotionTransition3d(
+      final child = RenderTestBox(const Size3d(2, 3, 0), pointable: true);
+      final box = RenderMotionTransition3d(
         animation: controller,
         motion: motion,
         child: child,
@@ -234,10 +239,10 @@ void main() {
   });
 
   group('the clock a route carries', () {
-    ({Layout3dSurface surface, Overlay3d overlay}) panel() {
-      final overlay = Overlay3d(
+    ({RenderSurface3d surface, RenderOverlay3d overlay}) panel() {
+      final overlay = RenderOverlay3d(
         children: <RenderObject3d>[
-          TestBox(const Size3d(4, 3, 0), pointable: true),
+          RenderTestBox(const Size3d(4, 3, 0), pointable: true),
         ],
       );
       final surface = laidOut(
@@ -253,13 +258,13 @@ void main() {
       final navigator = Navigator3d(host.overlay);
       final route = PageRoute3d<void>(
         motion: Motion3d.fromBelow,
-        builder: (_) => TestBox(const Size3d(2, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(2, 1, 0)),
       );
       unawaited(navigator.push(route));
       host.surface.flush();
 
       expect(route.animation.value, 1.0);
-      final moving = findIn<MotionTransition3d>(route.entry!.content!)!;
+      final moving = findIn<RenderMotionTransition3d>(route.entry!.content!)!;
       expect(moving.nodeOffset, Offset3d.zero);
       expect(moving.nodeTransform, isNull);
     });
@@ -275,7 +280,7 @@ void main() {
           curve: Curves.linear,
         ),
       );
-      final content = TestBox(const Size3d(2, 1, 0));
+      final content = RenderTestBox(const Size3d(2, 1, 0));
       final route = PageRoute3d<String>(
         motion: Motion3d.fromBelow,
         builder: (_) => content,
@@ -286,7 +291,7 @@ void main() {
       // At rest is 1; a timed forward puts the route at its start in the same
       // turn as the push, before anything has been laid out.
       expect(route.animation.value, 0.0);
-      final moving = content.parent! as MotionTransition3d;
+      final moving = content.parent! as RenderMotionTransition3d;
       expect(moving.nodeOffset, const Offset3d(0, 1, 0));
 
       await tester.pump();
@@ -335,7 +340,7 @@ void main() {
         ),
       );
       final route = PageRoute3d<void>(
-        builder: (_) => TestBox(const Size3d(2, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(2, 1, 0)),
       );
       unawaited(navigator.push(route));
       host.surface.flush();
@@ -360,7 +365,7 @@ void main() {
         transition: const TimedRoute3dTransition(duration: Duration.zero),
       );
       final route = PageRoute3d<int>(
-        builder: (_) => TestBox(const Size3d(2, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(2, 1, 0)),
       );
       unawaited(navigator.push(route));
       host.surface.flush();
@@ -391,7 +396,7 @@ void main() {
           curve: Curves.linear,
         ),
       );
-      final content = TestBox(const Size3d(2, 1, 0));
+      final content = RenderTestBox(const Size3d(2, 1, 0));
       final route = PageRoute3d<void>(
         modal: true,
         motion: Motion3d.fromBelow,
@@ -402,7 +407,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      final barrier = findIn<ModalBarrier3d>(route.entry!.content!);
+      final barrier = findIn<RenderModalBarrier3d>(route.entry!.content!);
       expect(barrier, isNotNull);
       expect(
         barrier!.nodeOffset,
@@ -410,7 +415,7 @@ void main() {
         reason: 'a scrim does not slide in with what it dims',
       );
       expect(
-        (content.parent! as MotionTransition3d).nodeOffset.y,
+        (content.parent! as RenderMotionTransition3d).nodeOffset.y,
         closeTo(0.5, 0.05),
       );
 
@@ -422,16 +427,16 @@ void main() {
     testWidgets('a widget route arrives too, one frame later', (tester) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0),
           controller: controller,
-          child: SceneOverlay3d(
-            child: const SceneSizedBox3d(width: 2, height: 1, depth: 0),
+          child: Overlay3d(
+            child: const SizedBox3d(width: 2, height: 1, depth: 0),
           ),
         ),
       );
-      final overlay = controller.surface!.child! as Overlay3d;
+      final overlay = controller.surface!.child! as RenderOverlay3d;
       final vsync = _Vsync();
       final navigator = Navigator3d(
         overlay,
@@ -444,12 +449,12 @@ void main() {
       final route = WidgetPageRoute3d<void>(
         motion: Motion3d.fromBelow,
         builder: (context, self) =>
-            const SceneSizedBox3d(width: 2, height: 1, depth: 0),
+            const SizedBox3d(width: 2, height: 1, depth: 0),
       );
       unawaited(navigator.push(route));
       await tester.pump();
 
-      final moving = findIn<MotionTransition3d>(route.entry!.content!);
+      final moving = findIn<RenderMotionTransition3d>(route.entry!.content!);
       expect(moving, isNotNull, reason: 'the slot was filled on the rebuild');
       expect(moving!.nodeOffset.y, closeTo(1.0, 0.1));
 
@@ -463,10 +468,10 @@ void main() {
   });
 
   group('a route that carries its own clock', () {
-    ({Layout3dSurface surface, Overlay3d overlay}) panel() {
-      final overlay = Overlay3d(
+    ({RenderSurface3d surface, RenderOverlay3d overlay}) panel() {
+      final overlay = RenderOverlay3d(
         children: <RenderObject3d>[
-          TestBox(const Size3d(4, 3, 0), pointable: true),
+          RenderTestBox(const Size3d(4, 3, 0), pointable: true),
         ],
       );
       final surface = laidOut(
@@ -496,7 +501,7 @@ void main() {
           duration: Duration(milliseconds: 100),
           curve: Curves.linear,
         ),
-        builder: (_) => TestBox(const Size3d(2, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(2, 1, 0)),
       );
       unawaited(navigator.push(route));
       host.surface.flush();
@@ -534,14 +539,14 @@ void main() {
           duration: Duration(milliseconds: 400),
           curve: Curves.linear,
         ),
-        builder: (_) => TestBox(const Size3d(2, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(2, 1, 0)),
       );
       final dialog = PageRoute3d<void>(
         transition: const TimedRoute3dTransition(
           duration: Duration(milliseconds: 100),
           curve: Curves.linear,
         ),
-        builder: (_) => TestBox(const Size3d(1, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(1, 1, 0)),
       );
       unawaited(navigator.push(sheet));
       unawaited(navigator.push(dialog));
@@ -585,7 +590,7 @@ void main() {
       );
       final route = PageRoute3d<int>(
         transition: Route3dTransition.none,
-        builder: (_) => TestBox(const Size3d(2, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(2, 1, 0)),
       );
       unawaited(navigator.push(route));
       host.surface.flush();
@@ -606,7 +611,7 @@ void main() {
         transition: const TimedRoute3dTransition(duration: Duration.zero),
       );
       final route = PageRoute3d<void>(
-        builder: (_) => TestBox(const Size3d(2, 1, 0)),
+        builder: (_) => RenderTestBox(const Size3d(2, 1, 0)),
       );
       expect(route.transition, isNull);
       unawaited(navigator.push(route));

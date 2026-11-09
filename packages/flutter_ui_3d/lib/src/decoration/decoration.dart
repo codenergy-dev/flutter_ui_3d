@@ -129,8 +129,8 @@ class Ripple3d {
 /// handed to the decoration's material — and that is the whole point.
 /// A second mesh would mean geometry per state; a second box would mean
 /// layout per state. A uniform means a pressed button costs a parameter write
-/// and a frame, and [DecoratedBox3d.stateLayer] enforces that by not marking
-/// anything dirty for layout when it is set.
+/// and a frame, and [RenderDecoratedBox3d.stateLayer] enforces that by not
+/// marking anything dirty for layout when it is set.
 ///
 /// [ripple] is the one thing a single colour and a single opacity cannot say:
 /// *where* the press landed. It rides on the same object, on the same tier,
@@ -165,7 +165,7 @@ class StateLayer3d {
   ///
   /// Setting this is on the same tier as [opacity] — one uniform, one
   /// repaint — which is what makes an animated ripple legal at all. See
-  /// [DecoratedBox3d.stateLayer].
+  /// [RenderDecoratedBox3d.stateLayer].
   final Ripple3d? ripple;
 
   /// Whether this layer changes anything.
@@ -220,12 +220,12 @@ class StateLayer3d {
 
 /// The part of a decoration that stands off its parent.
 ///
-/// Implemented by [BoxDecoration3d], and named separately so [DecoratedBox3d]
-/// can lift any decoration that has a height without knowing what else is on
-/// it. A decoration of your own that wants the same lift implements this and
-/// reports a figure in logical pixels. The lift is a real displacement toward
-/// the viewer and not a shadow; see [BoxDecoration3d.elevation] for why there
-/// is no shadow to go with it.
+/// Implemented by [BoxDecoration3d], and named separately so
+/// [RenderDecoratedBox3d] can lift any decoration that has a height without
+/// knowing what else is on it. A decoration of your own that wants the same
+/// lift implements this and reports a figure in logical pixels. The lift is a
+/// real displacement toward the viewer and not a shadow; see
+/// [BoxDecoration3d.elevation] for why there is no shadow to go with it.
 abstract class Decoration3dElevation {
   /// How far the decoration stands off its parent, in logical pixels.
   double get elevation;
@@ -274,9 +274,9 @@ abstract class Decoration3d {
   ///
   /// Null is the normal answer in a headless test and on a surface built
   /// before `Scene.initializeStaticResources()` has resolved. A
-  /// [DecoratedBox3d] with no painter lays out, sizes and hit-tests exactly
-  /// as it otherwise would and draws nothing, which is the same bargain
-  /// `Text3d` strikes with `Text3dRenderer`.
+  /// [RenderDecoratedBox3d] with no painter lays out, sizes and hit-tests
+  /// exactly as it otherwise would and draws nothing, which is the same bargain
+  /// `RenderText3d` strikes with `Text3dRenderer`.
   Decoration3dPainter? createPainter();
 }
 
@@ -330,13 +330,13 @@ class Decoration3dPaintRequest {
   /// is a uniform on the same shader.
   final double elevation;
 
-  /// The overlay in force, from [DecoratedBox3d.stateLayer].
+  /// The overlay in force, from [RenderDecoratedBox3d.stateLayer].
   final StateLayer3d stateLayer;
 
   /// The clip the box sits inside, in the box's own layout frame.
   ///
-  /// [Clip3dRegion.none] unless a [ClipBox3d] is above it. A painter whose
-  /// material can honour clip planes packs it with
+  /// [Clip3dRegion.none] unless a [RenderClipBox3d] is above it. A painter
+  /// whose material can honour clip planes packs it with
   /// [Clip3dRegion.toPlaneBlock]; one that cannot may ignore it, because the
   /// clip box has already hidden whatever falls entirely outside.
   final Clip3dRegion clip;
@@ -344,14 +344,14 @@ class Decoration3dPaintRequest {
   /// The mapping from layout space to the surface's scene space.
   ///
   /// Geometry authored in scene axes — the engine's own primitives, a loaded
-  /// model — has to undo this the way `NodeBox3d` does. Geometry generated in
-  /// layout axes does not.
+  /// model — has to undo this the way `RenderNodeBox3d` does. Geometry
+  /// generated in layout axes does not.
   final LayoutBasis3d basis;
 
   /// How much of this box is drawn, from 0 to 1, from
   /// [RenderObject3d.inheritedOpacity].
   ///
-  /// One unless an [Opacity3d] is above the box. **It is coverage rather
+  /// One unless a [RenderOpacity3d] is above the box. **It is coverage rather
   /// than alpha**: a painter honours it by discarding that share of its
   /// fragments, not by multiplying it into a colour — which is what keeps a
   /// faded panel from becoming a partly transparent slab that writes depth

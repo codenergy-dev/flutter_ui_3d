@@ -35,9 +35,9 @@ import 'package:flutter_ui_3d/widgets.dart'
 /// hooks a follower needs. A scrolling view places its rows rather than
 /// relaying them out, so a follower watching only for a relayout would never
 /// hear about a scroll.
-class Anchor3d extends RenderProxyBox3d {
+class RenderAnchor3d extends RenderProxyBox3d {
   /// Creates an anchor.
-  Anchor3d({super.name = 'Anchor3d'});
+  RenderAnchor3d({super.name = 'RenderAnchor3d'});
 
   /// Called after this box has been positioned, every pass.
   VoidCallback? onPlaced;
@@ -49,7 +49,7 @@ class Anchor3d extends RenderProxyBox3d {
   }
 }
 
-/// Hands the [Anchor3d] it creates back to whoever asked for it.
+/// Hands the [RenderAnchor3d] it creates back to whoever asked for it.
 class Anchor3dWidget extends SingleChildRenderObjectWidget3d {
   /// Creates an anchor around [child].
   const Anchor3dWidget({
@@ -59,17 +59,17 @@ class Anchor3dWidget extends SingleChildRenderObjectWidget3d {
   });
 
   /// Called once, with the anchor this widget owns.
-  final ValueChanged<Anchor3d> onCreated;
+  final ValueChanged<RenderAnchor3d> onCreated;
 
   @override
-  Anchor3d createLayout(BuildContext context) {
-    final anchor = Anchor3d();
+  RenderAnchor3d createLayout(BuildContext context) {
+    final anchor = RenderAnchor3d();
     onCreated(anchor);
     return anchor;
   }
 
   @override
-  void updateLayout(BuildContext context, Anchor3d layout) {}
+  void updateLayout(BuildContext context, RenderAnchor3d layout) {}
 }
 
 /// Keeps its child over [anchor], on the node tier.
@@ -87,20 +87,20 @@ class Anchor3dWidget extends SingleChildRenderObjectWidget3d {
 /// `CompositedTransformFollower` does with its own offset. A menu item used
 /// to answer in the empty middle of the panel while a press on the item, at
 /// its button, reached the barrier and closed the menu.
-class Follower3d extends RenderProxyBox3d {
+class RenderFollower3d extends RenderProxyBox3d {
   /// Creates a follower for [anchor].
-  Follower3d({
-    required Anchor3d anchor,
+  RenderFollower3d({
+    required RenderAnchor3d anchor,
     Alignment3d self = Alignment3d.topLeft,
     Alignment3d target = Alignment3d.bottomLeft,
-    super.name = 'Follower3d',
+    super.name = 'RenderFollower3d',
   }) : _anchor = anchor,
        _self = self,
        _target = target {
     anchor.onPlaced = reanchor;
   }
 
-  Anchor3d _anchor;
+  RenderAnchor3d _anchor;
 
   Alignment3d _self;
 
@@ -128,9 +128,9 @@ class Follower3d extends RenderProxyBox3d {
   }
 
   /// The box being followed.
-  Anchor3d get anchor => _anchor;
+  RenderAnchor3d get anchor => _anchor;
 
-  set anchor(Anchor3d value) {
+  set anchor(RenderAnchor3d value) {
     if (identical(_anchor, value)) return;
     if (identical(_anchor.onPlaced, reanchor)) _anchor.onPlaced = null;
     _anchor = value..onPlaced = reanchor;
@@ -164,7 +164,7 @@ class Follower3d extends RenderProxyBox3d {
   }
 }
 
-/// The declarative form of [Follower3d]: keeps [child] over [anchor].
+/// The declarative form of [RenderFollower3d]: keeps [child] over [anchor].
 ///
 /// Stateful, because following an anchor is not something a build method can
 /// do: the anchor moves without anything in the widget tree changing. The
@@ -181,7 +181,7 @@ class Follower3dWidget extends StatefulWidget {
   });
 
   /// The box to follow.
-  final Anchor3d anchor;
+  final RenderAnchor3d anchor;
 
   /// Which point of the child sits on the anchor's [target] point.
   ///
@@ -202,7 +202,7 @@ class Follower3dWidget extends StatefulWidget {
 }
 
 class _Follower3dWidgetState extends State<Follower3dWidget> {
-  Follower3d? _follower;
+  RenderFollower3d? _follower;
   bool _scheduled = false;
 
   @override
@@ -224,7 +224,7 @@ class _Follower3dWidgetState extends State<Follower3dWidget> {
   /// and never runs. When something does move there is a frame, and the menu
   /// is back over its button by the end of it.
   ///
-  /// The two `place` hooks inside [Follower3d] are what keep the common
+  /// The two `place` hooks inside [RenderFollower3d] are what keep the common
   /// cases from being a frame behind — the frame the menu opens on, and any
   /// move that relays the overlay out. This is the backstop for the rest: an
   /// ancestor of the button that moves without the boxes below it being
@@ -259,15 +259,15 @@ class _Follower3dHost extends SingleChildRenderObjectWidget3d {
     required super.child,
   });
 
-  final Anchor3d anchor;
+  final RenderAnchor3d anchor;
   final AlignmentGeometry3d self;
   final AlignmentGeometry3d target;
-  final ValueChanged<Follower3d> onCreated;
+  final ValueChanged<RenderFollower3d> onCreated;
 
   @override
-  Follower3d createLayout(BuildContext context) {
+  RenderFollower3d createLayout(BuildContext context) {
     final direction = Directionality.maybeOf(context);
-    final follower = Follower3d(
+    final follower = RenderFollower3d(
       anchor: anchor,
       self: self.resolve(direction),
       target: target.resolve(direction),
@@ -277,7 +277,7 @@ class _Follower3dHost extends SingleChildRenderObjectWidget3d {
   }
 
   @override
-  void updateLayout(BuildContext context, Follower3d layout) {
+  void updateLayout(BuildContext context, RenderFollower3d layout) {
     final direction = Directionality.maybeOf(context);
     layout
       ..anchor = anchor

@@ -16,17 +16,17 @@ import 'sliver_constraints.dart';
 /// Where a box is asked "given these constraints, how big are you?", a sliver
 /// is asked "given this window and how far you have scrolled through it, what
 /// did you fill?". It answers with a [SliverGeometry3d], and that is what lets
-/// a `CustomScrollView3d` put several sections on one scroll position, and a
-/// long section describe itself without laying out all of it.
+/// a `RenderCustomScrollView3d` put several sections on one scroll position,
+/// and a long section describe itself without laying out all of it.
 ///
 /// A sliver is still a [RenderObject3d]: it owns a scene node, it is placed by
 /// its parent, and it is hit-tested like anything else. Its [size] is derived
 /// from the geometry it reported — the visible extent along the scroll axis,
 /// the room given across the other two — so the volume it occupies in the
 /// scene is the volume the viewer can actually see.
-abstract class Sliver3d extends RenderObject3d {
+abstract class RenderSliver3d extends RenderObject3d {
   /// Creates a sliver.
-  Sliver3d({super.name});
+  RenderSliver3d({super.name});
 
   SliverConstraints3d? _sliverConstraints;
 
@@ -35,7 +35,7 @@ abstract class Sliver3d extends RenderObject3d {
     assert(
       _sliverConstraints != null,
       '$runtimeType has not been laid out by a viewport yet, so it has no '
-      'sliver constraints. A Sliver3d belongs in a CustomScrollView3d; it '
+      'sliver constraints. A RenderSliver3d belongs in a RenderCustomScrollView3d; it '
       'cannot be laid out as an ordinary box.',
     );
     return _sliverConstraints!;
@@ -120,12 +120,13 @@ abstract class Sliver3d extends RenderObject3d {
 /// Puts one box in a sliver world, the 3D analogue of [SliverToBoxAdapter].
 ///
 /// The glue between the two protocols: everything else in this package is a
-/// box, and this is how a box takes its turn in a `CustomScrollView3d`
+/// box, and this is how a box takes its turn in a `RenderCustomScrollView3d`
 /// alongside the lists and grids. The child is laid out once, at its natural
 /// extent along the scroll axis, and scrolls as one piece.
-class SliverToBoxAdapter3d extends Sliver3d with RenderObjectWithChildMixin3d {
+class RenderSliverToBoxAdapter3d extends RenderSliver3d
+    with RenderObjectWithChildMixin3d {
   /// Creates an adapter around [child].
-  SliverToBoxAdapter3d({RenderObject3d? child, super.name}) {
+  RenderSliverToBoxAdapter3d({RenderObject3d? child, super.name}) {
     this.child = child;
   }
 
@@ -154,18 +155,19 @@ class SliverToBoxAdapter3d extends Sliver3d with RenderObjectWithChildMixin3d {
 /// A sliver holding a list of children it may build on demand, the 3D
 /// analogue of [RenderSliverMultiBoxAdaptor].
 ///
-/// What [SliverList3d] and [SliverGrid3d] have in common, which is everything
-/// except where a child goes: the child list, the index-keyed bookkeeping of
-/// a builder, and a layout pass that ignores the dirt it raises by building.
+/// What [RenderSliverList3d] and [RenderSliverGrid3d] have in common, which is
+/// everything except where a child goes: the child list, the index-keyed
+/// bookkeeping of a builder, and a layout pass that ignores the dirt it raises
+/// by building.
 ///
-/// It is also the sliver a [BoxScrollView3d] puts in its window, and the
+/// It is also the sliver a [RenderBoxScrollView3d] puts in its window, and the
 /// reason that class can forward a child list to whichever of the two it
 /// holds.
-abstract class SliverMultiBoxAdaptor3d extends Sliver3d
+abstract class RenderSliverMultiBoxAdaptor3d extends RenderSliver3d
     with
         ContainerRenderObjectMixin3d<ParentData3d>,
         RenderLayoutPassMixin3d,
         RenderBuiltChildrenMixin3d<ParentData3d> {
   /// Creates a sliver over a child list.
-  SliverMultiBoxAdaptor3d({super.name});
+  RenderSliverMultiBoxAdaptor3d({super.name});
 }

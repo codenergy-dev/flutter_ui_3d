@@ -20,19 +20,19 @@ import 'package:material_ui_3d/material_ui_3d.dart';
 /// Mounts [screen] on a surface the size the gallery gives it, under a
 /// camera that looks straight at it.
 ///
-/// No `textRendererFactory`: a `Text3d` with no renderer measures and lays out
-/// fine, and rasterizing a glyph wants a GPU that `flutter test` does not
-/// have. The gallery installs one; this asks the arithmetic questions.
-Future<Layout3dSurface> pumpScreen(
+/// No `textRendererFactory`: a `RenderText3d` with no renderer measures and
+/// lays out fine, and rasterizing a glyph wants a GPU that `flutter test` does
+/// not have. The gallery installs one; this asks the arithmetic questions.
+Future<RenderSurface3d> pumpScreen(
   WidgetTester tester,
   Widget screen, {
   Size3d size = const Size3d(3.5, 4.8, 0.6),
   LayoutBasis3d? basis,
   Layout3dMetrics? metrics,
 }) => tester.pumpSurface3d(
-  SceneTheme3d(
+  Theme3d(
     data: Theme3dData.dark,
-    child: SceneOverlay3d(child: screen),
+    child: Overlay3d(child: screen),
   ),
   size: size,
   basis: basis,
@@ -48,7 +48,7 @@ void main() {
     // navigation bar, the button, the chips, the cards and the tiles. If the
     // decoration ever stops reaching a component, this says so long before
     // anyone starts a GPU.
-    expect(find3d.bySubtype<DecoratedBox3d>(), findsAtLeast(11));
+    expect(find3d.bySubtype<RenderDecoratedBox3d>(), findsAtLeast(11));
     for (final label in <String>['Inbox', 'Settings', 'Compose']) {
       expect(find3d.bySemanticsLabel(label), findsAny);
     }
@@ -60,7 +60,7 @@ void main() {
     await pumpScreen(tester, const MaterialScreen());
 
     expect(
-      find3d.bySubtype<ListView3d>(),
+      find3d.bySubtype<RenderListView3d>(),
       findsAny,
       reason: 'the inbox is a list taller than the body it sits in',
     );
@@ -75,13 +75,13 @@ void main() {
 
     expect(find3d.bySemanticsLabel('Volume'), findsOne);
     // The inbox's own rows are gone. This used to ask whether *any*
-    // `ListView3d` was left, which stopped meaning "the inbox is gone" the
-    // day the settings tab became a list of its own — it had to, because the
-    // theme picker is one row more than the panel holds.
+    // `RenderListView3d` was left, which stopped meaning "the inbox is gone"
+    // the day the settings tab became a list of its own — it had to, because
+    // the theme picker is one row more than the panel holds.
     expect(find3d.bySemanticsLabel('Ada Lovelace'), findsNothing);
     // And the settings are on pages: a page view, holding a list per page
     // that has been reached.
-    expect(find3d.bySubtype<PageView3d>(), findsOne);
+    expect(find3d.bySubtype<RenderPageView3d>(), findsOne);
   });
 
   testWidgets('every control on the settings screen stands on the face of '
@@ -103,7 +103,7 @@ void main() {
         expect(
           find3d.ancestor(
             of: control,
-            matching: find3d.bySubtype<DecoratedBox3d>(),
+            matching: find3d.bySubtype<RenderDecoratedBox3d>(),
           ),
           findsAny,
           reason: '"$label" is on no surface at all',
@@ -137,7 +137,7 @@ void main() {
       // a panel this size, and the lane asks of what a press can reach.
     ]);
     // And the same question of every label on the screen at once.
-    expect(find3d.bySubtype<Text3d>(), standsOnItsPanel3d);
+    expect(find3d.bySubtype<RenderText3d>(), standsOnItsPanel3d);
   });
 
   testWidgets('save spins for a moment, and the volume has a bar', (
@@ -195,7 +195,7 @@ void main() {
     // one, and it is a property of the plane rather than of the layout: the
     // boxes below it never hear about it.
     expect(surface.basis, LayoutBasis3d.xz);
-    expect(find3d.bySubtype<Text3d>(), standsOnItsPanel3d);
+    expect(find3d.bySubtype<RenderText3d>(), standsOnItsPanel3d);
   });
   testWidgets('the overflow menu opens, and the dialog it opens arrives', (
     tester,
@@ -222,7 +222,7 @@ void main() {
     // the dialog it dims, so aiming a press there presses the dialog. That
     // the scrim closes a dialog is the catalogue's own test to make.
     final navigator = Navigator3d.of(
-      tester.layout3d<RenderObject3d>(find3d.bySubtype<ModalBarrier3d>()),
+      tester.layout3d<RenderObject3d>(find3d.bySubtype<RenderModalBarrier3d>()),
     );
     expect(navigator!.pop(), isTrue);
     await tester.pumpAndSettle();
@@ -236,9 +236,9 @@ void main() {
     // ends while it is up, and puts them back afterwards. Whether it reads
     // as one object moving is a question only the window answers.
     final surface = await pumpScreen(tester, const MaterialScreen());
-    final rows = <Hero3d>{};
+    final rows = <RenderHero3d>{};
     void collect(RenderObject3d box) {
-      if (box is Hero3d) rows.add(box);
+      if (box is RenderHero3d) rows.add(box);
       box.visitChildren(collect);
     }
 
@@ -277,14 +277,14 @@ void main() {
           brightness: brightness,
           onSeedChanged: (value) => setState(() => seed = value),
           onBrightnessChanged: (value) => setState(() => brightness = value),
-          child: SceneTheme3d(
+          child: Theme3d(
             data: Theme3dData(
               colorScheme: ColorScheme3d.fromSeed(
                 seedColor: seed,
                 brightness: brightness,
               ),
             ),
-            child: const SceneOverlay3d(child: MaterialScreen()),
+            child: const Overlay3d(child: MaterialScreen()),
           ),
         ),
       ),
@@ -367,10 +367,10 @@ void main() {
 
   group('phase 4 of the components a screen still needs', () {
     /// Every label on [surface], in tree order.
-    List<String> labels(Layout3dSurface surface) {
+    List<String> labels(RenderSurface3d surface) {
       final found = <String>[];
       void walk(RenderObject3d box) {
-        if (box is Text3d) found.add(box.data);
+        if (box is RenderText3d) found.add(box.data);
         box.visitChildren(walk);
       }
 
@@ -387,7 +387,9 @@ void main() {
       await tester.tap3d(find3d.bySemanticsLabel('Ada Lovelace'));
       await tester.pumpAndSettle();
       Navigator3d.of(
-        tester.layout3d<RenderObject3d>(find3d.bySubtype<ModalBarrier3d>()),
+        tester.layout3d<RenderObject3d>(
+          find3d.bySubtype<RenderModalBarrier3d>(),
+        ),
       )!.pop();
       await tester.pumpAndSettle();
       expect(labels(surface), contains('4'));

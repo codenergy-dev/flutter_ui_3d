@@ -37,7 +37,7 @@ import 'package:flutter_scene/scene.dart'
         SceneView,
         SphereGeometry;
 import 'package:flutter_ui_3d/rendering.dart' show Size3d;
-import 'package:flutter_ui_3d/widgets.dart' show SceneLayout3d, SceneSizedBox3d;
+import 'package:flutter_ui_3d/widgets.dart' show Surface3d, SizedBox3d;
 import 'package:vector_math/vector_math.dart' show Vector3, Vector4;
 
 const bool _withScene = bool.fromEnvironment('scene');
@@ -163,10 +163,7 @@ Future<void> main() async {
       ),
       children: <Widget>[
         if (_withLayout)
-          const SceneLayout3d(
-            size: Size3d(2, 2, 0.4),
-            child: SceneSizedBox3d.cube(1),
-          ),
+          const Surface3d(size: Size3d(2, 2, 0.4), child: SizedBox3d.cube(1)),
       ],
     );
   }

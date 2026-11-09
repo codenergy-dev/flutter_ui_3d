@@ -21,7 +21,7 @@ import 'decoration_image.dart';
 
 /// A picture, as a box of its own.
 ///
-/// The 3D counterpart of `Image`, and it is a [DecoratedBox3d] underneath
+/// The 3D counterpart of `Image`, and it is a [RenderDecoratedBox3d] underneath
 /// rather than a leaf with a quad in it. That is the whole design decision of
 /// this feature in one sentence: **the picture is drawn by the panel shader**,
 /// so a corner radius carves it, a border frames it, a hover washes it, a
@@ -29,7 +29,7 @@ import 'decoration_image.dart';
 /// textured quad could be given, because a rounded clip does not exist here.
 ///
 /// ```dart
-/// Image3d(
+/// RenderImage3d(
 ///   image: const AssetImage('assets/avatar.jpg'),
 ///   fit: BoxFit.cover,
 ///   borderRadius: const BorderRadius3d.circular(999),   // a circle
@@ -39,12 +39,12 @@ import 'decoration_image.dart';
 /// **It sizes itself to the picture, once the picture arrives.** With no
 /// picture yet it takes the smallest size its constraints allow, exactly as
 /// `RenderImage` does, and lays out again when the size is known — which
-/// moves whatever is beside it, once. Give it a [SizedBox3d] (or tight
+/// moves whatever is beside it, once. Give it a [RenderSizedBox3d] (or tight
 /// constraints) when that matters, which is Flutter's advice for the same
 /// reason.
-class Image3d extends DecoratedBox3d {
+class RenderImage3d extends RenderDecoratedBox3d {
   /// Creates a box drawing [image].
-  Image3d({
+  RenderImage3d({
     required ImageProvider image,
     BoxFit? fit,
     AlignmentGeometry alignment = Alignment.center,
@@ -82,7 +82,7 @@ class Image3d extends DecoratedBox3d {
   ///
   /// The colour is **transparent**: a picture's box is the picture, and a
   /// fill behind it would show wherever the fit leaves the box uncovered.
-  /// Put the box in a `DecoratedBox3d` for a surface to stand it on.
+  /// Put the box in a `RenderDecoratedBox3d` for a surface to stand it on.
   static BoxDecoration3d _decorationFor({
     required ImageProvider image,
     required BoxFit? fit,

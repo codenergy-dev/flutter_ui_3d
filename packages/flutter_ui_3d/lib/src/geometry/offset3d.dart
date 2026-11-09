@@ -25,10 +25,11 @@ enum Axis3d {
 
   /// The other two axes, in canonical (`x`, `y`, `z`) order.
   ///
-  /// A [Flex3d] uses this to decide which axis its `crossAxisAlignment`
+  /// A [RenderFlex3d] uses this to decide which axis its `crossAxisAlignment`
   /// applies to (the first) and which its `depthAxisAlignment` applies to
-  /// (the second): a [Axis3d.horizontal] flex (a `Row3d`) crosses on `y` then
-  /// `z`, a [Axis3d.vertical] flex (a `Column3d`) crosses on `x` then `z`.
+  /// (the second): a [Axis3d.horizontal] flex (a `RenderRow3d`) crosses on `y`
+  /// then `z`, a [Axis3d.vertical] flex (a `RenderColumn3d`) crosses on `x`
+  /// then `z`.
   (Axis3d, Axis3d) get others => switch (this) {
     Axis3d.horizontal => (Axis3d.vertical, Axis3d.depth),
     Axis3d.vertical => (Axis3d.horizontal, Axis3d.depth),

@@ -130,7 +130,7 @@ class SegmentedButtonStyle3d {
 
   /// How tall the button lays out: 48dp, the outline centred in it.
   ///
-  /// **In the layout, as Flutter's is**, rather than in a `TapTarget3d`'s
+  /// **In the layout, as Flutter's is**, rather than in a `RenderTapTarget3d`'s
   /// reach the way every other control here has it. A press in a reach's
   /// margin arrives at the control's centre, and the centre of a button of
   /// three segments is the middle one — so a press 4dp above the first

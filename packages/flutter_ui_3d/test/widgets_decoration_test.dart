@@ -1,4 +1,4 @@
-// SceneDecoratedBox3d: the declarative layer's one way of drawing something,
+// DecoratedBox3d: the declarative layer's one way of drawing something,
 // and the promise that neither of its properties touches layout.
 
 import 'dart:ui' show Color;
@@ -54,23 +54,23 @@ class _TestDecoration3d extends Decoration3d {
   int get hashCode => tag;
 }
 
-/// Hosts a [TestBox] in the widget tree, so a test can count the layouts the
-/// declarative layer actually causes.
-class _SceneTestBox extends MultiChildRenderObjectWidget3d {
-  const _SceneTestBox(this.preferred, this.sink);
+/// Hosts a [RenderTestBox] in the widget tree, so a test can count the layouts
+/// the declarative layer actually causes.
+class _TestBox extends MultiChildRenderObjectWidget3d {
+  const _TestBox(this.preferred, this.sink);
 
   final Size3d preferred;
-  final void Function(TestBox) sink;
+  final void Function(RenderTestBox) sink;
 
   @override
   RenderObject3d createLayout(BuildContext context) {
-    final box = TestBox(preferred);
+    final box = RenderTestBox(preferred);
     sink(box);
     return box;
   }
 
   @override
-  void updateLayout(BuildContext context, TestBox layout) {
+  void updateLayout(BuildContext context, RenderTestBox layout) {
     layout.preferred = preferred;
   }
 }
@@ -79,25 +79,28 @@ void main() {
   setUp(_RecordingPainter.created.clear);
   tearDown(_RecordingPainter.created.clear);
 
-  testWidgets('builds a DecoratedBox3d and updates it in place', (
+  testWidgets('builds a RenderDecoratedBox3d and updates it in place', (
     tester,
   ) async {
     final controller = Layout3dController();
 
-    Widget frame(Decoration3d decoration) => SceneLayout3d(
+    Widget frame(Decoration3d decoration) => Surface3d(
       parent: Node(),
       constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
       controller: controller,
-      child: SceneDecoratedBox3d(
+      child: DecoratedBox3d(
         decoration: decoration,
-        child: const SceneSizedBox3d.cube(2),
+        child: const SizedBox3d.cube(2),
       ),
     );
 
     await tester.pumpWidget(frame(const _TestDecoration3d()));
     final layout = controller.surface!.child!;
-    expect(layout, isA<DecoratedBox3d>());
-    expect((layout as DecoratedBox3d).decoration, const _TestDecoration3d());
+    expect(layout, isA<RenderDecoratedBox3d>());
+    expect(
+      (layout as RenderDecoratedBox3d).decoration,
+      const _TestDecoration3d(),
+    );
     expect(layout.size, const Size3d(2, 2, 2));
 
     await tester.pumpWidget(frame(const _TestDecoration3d(tag: 1)));
@@ -108,22 +111,22 @@ void main() {
   testWidgets('a rebuild that changes only the state layer lays nothing out', (
     tester,
   ) async {
-    // The whole reason DecoratedBox3d keeps decoration and stateLayer as
+    // The whole reason RenderDecoratedBox3d keeps decoration and stateLayer as
     // setters: a pointer crossing a screen of controls writes one of these on
     // every box it touches, and a design where that relayouts is a design
     // where hovering a list is a stutter. The widget form has to keep the
     // promise, which means updateLayout may not go near markNeedsLayout.
-    late TestBox child;
+    late RenderTestBox child;
     final controller = Layout3dController();
 
-    Widget frame(StateLayer3d stateLayer) => SceneLayout3d(
+    Widget frame(StateLayer3d stateLayer) => Surface3d(
       parent: Node(),
       size: const Size3d(10, 10, 10),
       controller: controller,
-      child: SceneDecoratedBox3d(
+      child: DecoratedBox3d(
         decoration: const _TestDecoration3d(),
         stateLayer: stateLayer,
-        child: _SceneTestBox(const Size3d(2, 2, 0), (box) => child = box),
+        child: _TestBox(const Size3d(2, 2, 0), (box) => child = box),
       ),
     );
 
@@ -145,16 +148,16 @@ void main() {
   testWidgets('a decoration change repaints without laying out either', (
     tester,
   ) async {
-    late TestBox child;
+    late RenderTestBox child;
     final controller = Layout3dController();
 
-    Widget frame(int tag) => SceneLayout3d(
+    Widget frame(int tag) => Surface3d(
       parent: Node(),
       size: const Size3d(10, 10, 10),
       controller: controller,
-      child: SceneDecoratedBox3d(
+      child: DecoratedBox3d(
         decoration: _TestDecoration3d(tag: tag),
-        child: _SceneTestBox(const Size3d(2, 2, 0), (box) => child = box),
+        child: _TestBox(const Size3d(2, 2, 0), (box) => child = box),
       ),
     );
 
@@ -177,19 +180,19 @@ void main() {
   ) async {
     final controller = Layout3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: const Size3d(4, 4, 1),
         controller: controller,
-        child: const SceneDecoratedBox3d(
+        child: const DecoratedBox3d(
           decoration: _TestDecoration3d(),
-          child: SceneSizedBox3d(width: 4, height: 4, depth: 1),
+          child: SizedBox3d(width: 4, height: 4, depth: 1),
         ),
       ),
     );
 
     final surface = controller.surface!;
     final hit = surface.hitTestAt(const Offset3d(2, 2, 0.5));
-    expect(hit.firstOf<DecoratedBox3d>(), isNotNull);
+    expect(hit.firstOf<RenderDecoratedBox3d>(), isNotNull);
   });
 }

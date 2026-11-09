@@ -1,5 +1,14 @@
 ## Unreleased
 
+- **The widgets and render objects here follow the layout package's names.**
+  `SceneTheme3d` is `Theme3d`, as `Theme` is in Flutter, and the inherited widget
+  that was `Theme3d` is `InheritedTheme3d`, its name for what that half is. So
+  `Theme3d(data: theme, child: screen)` is what an application writes, and
+  `Theme3d.of(context)` still reads a theme, now from the widget that installed
+  it. The render objects under the components took `Render`, as the layout
+  package's did, so `Anchor3d` is `RenderAnchor3d` and `SliderGesture3d` is
+  `RenderSliderGesture3d`. Nothing changes in behaviour.
+
 - **The render objects this is built on are called render objects.** The layout
   package renamed its base classes to the name Flutter uses, then `3d`, and
   everything here that names one follows: `Layout3d` is `RenderObject3d`,

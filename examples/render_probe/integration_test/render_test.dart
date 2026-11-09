@@ -281,7 +281,9 @@ void main() {
       );
     });
 
-    testWidgets('a NodeBox3d measures the geometry it holds', (tester) async {
+    testWidgets('a RenderNodeBox3d measures the geometry it holds', (
+      tester,
+    ) async {
       final capture = await _draw(
         tester,
         kProbeScenes.byId('intrinsic_sizing'),
@@ -427,7 +429,7 @@ void main() {
       // AtlasText3dRenderer.render builds a real Mesh, so a headless test
       // cannot reach it at all.
       final capture = await _draw(tester, kProbeScenes.byId('text_label'));
-      final label = capture.state.content.probes['label']! as Text3d;
+      final label = capture.state.content.probes['label']! as RenderText3d;
       final renderer = label.renderer! as AtlasText3dRenderer;
 
       final mesh = renderer.meshNode;
@@ -435,9 +437,9 @@ void main() {
       expect(mesh, isNotNull, reason: 'the label drew no glyphs at all');
       expect(quads, greaterThan(0));
 
-      // Lay out again with everything unchanged. Text3d hands back the same
-      // cached TextLayout3d, so the renderer's guard should recognise it and
-      // keep the mesh it already built.
+      // Lay out again with everything unchanged. RenderText3d hands back the
+      // same cached TextLayout3d, so the renderer's guard should recognise it
+      // and keep the mesh it already built.
       label.markNeedsLayout();
       capture.state.content.surfaces.single.flush();
 
@@ -502,7 +504,7 @@ void main() {
       expect(
         undrawnLabel,
         lessThan(0.02),
-        reason: 'a Text3d with no renderer drew something anyway',
+        reason: 'a RenderText3d with no renderer drew something anyway',
       );
 
       // The glyphs are the colour the style asked for, not the white they
@@ -530,7 +532,7 @@ void main() {
       // oracle is asked what it did before the frame is asked where the ink
       // is. This is the layout tree keeping the assertion honest.
       expect(
-        (label as Text3d).textLayout!.lineCount,
+        (label as RenderText3d).textLayout!.lineCount,
         1,
         reason: 'the label wrapped; the centroid below would mean nothing',
       );
@@ -643,7 +645,7 @@ void main() {
       }
     });
 
-    testWidgets('a RichText3d captures its subtree onto its own box', (
+    testWidgets('a RenderRichText3d captures its subtree onto its own box', (
       tester,
     ) async {
       final capture = await _draw(tester, kProbeScenes.byId('rich_text'));
@@ -844,12 +846,12 @@ void main() {
         );
       }
 
-      // The oracle. `DecoratedBox3d` puts the lift in `localTransform` and
-      // returns null from `hitTestTransform`, so `worldTransform` does *not*
-      // undo it: the projection of an elevated panel follows the geometry,
-      // while a ray still reaches the box where layout put it. That asymmetry
-      // is the whole design of elevation, and it is what makes these two
-      // numbers different.
+      // The oracle. `RenderDecoratedBox3d` puts the lift in `localTransform`
+      // and returns null from `hitTestTransform`, so `worldTransform` does
+      // *not* undo it: the projection of an elevated panel follows the
+      // geometry, while a ray still reaches the box where layout put it. That
+      // asymmetry is the whole design of elevation, and it is what makes these
+      // two numbers different.
       final flatEdge = flat.pointOf('panel', const Offset3d(1, 0.5, 0));
       final raisedEdge = raised.pointOf('panel', const Offset3d(1, 0.5, 0));
       expect(
@@ -1103,8 +1105,8 @@ void main() {
       );
 
       // `screenCenter` already follows the drag. The box that carries the
-      // node offset is the `IgnorePointer3d` `Draggable3d` wraps the feedback
-      // in — an *ancestor* of anything a caller can name — and
+      // node offset is the `RenderIgnorePointer3d` `RenderDraggable3d` wraps
+      // the feedback in — an *ancestor* of anything a caller can name — and
       // `worldTransform` undoes only a box's own nudges, so an ancestor's
       // stays in the projection. Reconstructing the offset by hand would read
       // this box's own, which is zero.
@@ -1503,11 +1505,12 @@ void main() {
       tester,
     ) async {
       // The question the whole `Icon3d` design hangs on, and it cannot be
-      // reasoned out: `Text3d` measures an unknown glyph happily and draws a
-      // blank, and Flutter's text engine either resolves `MaterialIcons` or
-      // silently falls back to something that has no such code point. Paired
-      // with its own control, like every other text scene here, so that "ink
-      // where the icon is" is evidence rather than a coincidence.
+      // reasoned out: `RenderText3d` measures an unknown glyph happily and
+      // draws a blank, and Flutter's text engine either resolves
+      // `MaterialIcons` or silently falls back to something that has no such
+      // code point. Paired with its own control, like every other text scene
+      // here, so that "ink where the icon is" is evidence rather than a
+      // coincidence.
       final drawn = await _draw(tester, kProbeScenes.byId('icon_glyph'));
       final undrawn = await _draw(
         tester,
@@ -1533,7 +1536,7 @@ void main() {
       expect(
         undrawnIcon,
         lessThan(0.02),
-        reason: 'a Text3d with no renderer drew an icon anyway',
+        reason: 'a RenderText3d with no renderer drew an icon anyway',
       );
 
       // And it is bounded by the box layout gave it: an atlas that uploaded
@@ -1576,7 +1579,7 @@ void main() {
       // every row published the unbounded clip block while
       // `RenderObject3d.clipRegion` went on answering correctly to anything
       // that asked afterwards — the same failure shape phase 4 found in
-      // `ClipBox3d`, in a second place.
+      // `RenderClipBox3d`, in a second place.
       //
       // The bar is half the viewport's width, and that is what makes the
       // frame able to say anything at all: a full-width opaque bar covers
@@ -2225,8 +2228,9 @@ void main() {
       tester,
     ) async {
       // Two claims, and the scene is mid-drag for both: a real
-      // `Layout3dPointer` drives the component's own `SliderGesture3d` three
-      // quarters of the way across the track before the frame is captured.
+      // `Layout3dPointer` drives the component's own `RenderSliderGesture3d`
+      // three quarters of the way across the track before the frame is
+      // captured.
       //
       // The oracle is the body — the 48dp box that does not move — because
       // both the thumb and the fill are moved on the node tier and
@@ -2503,8 +2507,8 @@ void main() {
     });
 
     testWidgets('so does a paragraph, by a different route', (tester) async {
-      // The same claim over the other mechanism. A `RichText3d`'s wall is not
-      // traced out of the atlas — there is no atlas — but off a second, CPU
+      // The same claim over the other mechanism. A `RenderRichText3d`'s wall is
+      // not traced out of the atlas — there is no atlas — but off a second, CPU
       // rasterization of the box's own `TextPainter`, and everything from the
       // rasterization to the sampled colours is code the glyph path never
       // runs.
@@ -2645,7 +2649,7 @@ void main() {
       );
     });
 
-    testWidgets('an Image3d comes out the shape of its picture', (
+    testWidgets('a RenderImage3d comes out the shape of its picture', (
       tester,
     ) async {
       // The box sized itself, and the layout tree is the oracle for it: the

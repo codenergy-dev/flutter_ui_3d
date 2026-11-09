@@ -38,19 +38,19 @@ import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
         MultiChildRenderObjectWidget3d,
-        SceneAlign3d,
-        SceneClipBox3d,
-        SceneColumn3d,
-        SceneConstrainedBox3d,
-        SceneExpanded3d,
-        SceneIgnorePointer3d,
-        ScenePadding3d,
-        ScenePageView3d,
-        SceneRow3d,
-        SceneSemantics3d,
-        SceneSizedBox3d,
-        SceneTapTarget3d,
-        SceneText3d,
+        Align3d,
+        ClipBox3d,
+        Column3d,
+        ConstrainedBox3d,
+        Expanded3d,
+        IgnorePointer3d,
+        Padding3d,
+        PageView3d,
+        Row3d,
+        Semantics3d,
+        SizedBox3d,
+        TapTarget3d,
+        Text3d,
         SingleChildRenderObjectWidget3d;
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
@@ -73,8 +73,8 @@ const Color _none = Color(0x00000000);
 ///
 /// Flutter's `Tab`: 46dp tall with one of the two, 72dp with both, the label
 /// centred and as wide as it is. **The label is a `String`**, for
-/// `NavigationDestination3d`'s reason — a `Semantics3d` gathers nothing from
-/// below, and this one string is both what is drawn and what the tab
+/// `NavigationDestination3d`'s reason — a `RenderSemantics3d` gathers nothing
+/// from below, and this one string is both what is drawn and what the tab
 /// announces. [child] stands in for it when a tab needs more than a word,
 /// and then [semanticLabel] is the only name it has.
 ///
@@ -124,21 +124,18 @@ class Tab3d extends StatelessWidget {
       Theme3d.of(context),
       TabBarVariant3d.primary,
     );
-    final Widget label = child ?? SceneText3d(text ?? '');
+    final Widget label = child ?? Text3d(text ?? '');
     final Widget content;
     if (icon == null) {
       content = label;
     } else if (text == null && child == null) {
       content = icon!;
     } else {
-      content = SceneColumn3d(
+      content = Column3d(
         mainAxisSize: MainAxisSize3d.min,
         mainAxisAlignment: MainAxisAlignment3d.center,
         children: <Widget>[
-          ScenePadding3d(
-            padding: metrics.dpInsets(style.iconMargin),
-            child: icon,
-          ),
+          Padding3d(padding: metrics.dpInsets(style.iconMargin), child: icon),
           label,
         ],
       );
@@ -146,9 +143,9 @@ class Tab3d extends StatelessWidget {
     final tall =
         height ??
         (hasTextAndIcon ? style.textAndIconTabHeight : style.tabHeight);
-    return SceneConstrainedBox3d(
+    return ConstrainedBox3d(
       constraints: Constraints3d(minHeight: metrics.dp(tall)),
-      child: SceneAlign3d(
+      child: Align3d(
         alignment: Alignment3d.frontCenter,
         widthFactor: 1.0,
         heightFactor: 1.0,
@@ -163,11 +160,11 @@ class Tab3d extends StatelessWidget {
 /// ```dart
 /// DefaultTabController(
 ///   length: 2,
-///   child: SceneColumn3d(
+///   child: Column3d(
 ///     crossAxisAlignment: CrossAxisAlignment3d.stretch,
 ///     children: const <Widget>[
 ///       TabBar3d(tabs: <Tab3d>[Tab3d(text: 'Inbox'), Tab3d(text: 'Sent')]),
-///       SceneExpanded3d(
+///       Expanded3d(
 ///         child: TabBarView3d(children: <Widget>[inbox, sent]),
 ///       ),
 ///     ],
@@ -227,8 +224,8 @@ class Tab3d extends StatelessWidget {
 /// Each tab announces its label with Flutter's `tab` role, `selected` on the
 /// one shown. **The bar publishes nothing of its own**, where Flutter's wears
 /// the `tabBar` role: Flutter checks that a tab bar's children are tabs, and a
-/// `Semantics3d` has no children in that tree — a `tabBar` node here is an
-/// empty bar, and with semantics on the frame will not build. The pages each
+/// `RenderSemantics3d` has no children in that tree — a `tabBar` node here is
+/// an empty bar, and with semantics on the frame will not build. The pages each
 /// wear `tabPanel`, which asks nothing of its children.
 class TabBar3d extends StatefulWidget {
   /// Creates a primary tab bar.
@@ -341,10 +338,10 @@ class _TabBar3dState extends State<TabBar3d> {
     final anyTall = widget.tabs.any((tab) => tab.hasTextAndIcon);
     final lift = (resolved.textAndIconTabHeight - resolved.tabHeight) / 2.0;
 
-    final row = SceneRow3d(
+    final row = Row3d(
       children: <Widget>[
         for (var i = 0; i < widget.tabs.length; i++)
-          SceneExpanded3d(
+          Expanded3d(
             child: _tab(
               context,
               resolved,
@@ -358,7 +355,7 @@ class _TabBar3dState extends State<TabBar3d> {
       ],
     );
 
-    final divider = SceneIgnorePointer3d(
+    final divider = IgnorePointer3d(
       child: resolved.dividerHeight > 0.0
           ? Divider3d(
               space: resolved.dividerHeight,
@@ -366,10 +363,10 @@ class _TabBar3dState extends State<TabBar3d> {
               depth: resolved.thickness,
               color: resolved.dividerColor,
             )
-          : const SceneSizedBox3d(),
+          : const SizedBox3d(),
     );
 
-    final indicator = SceneIgnorePointer3d(
+    final indicator = IgnorePointer3d(
       child: Material3d(
         color: resolved.indicatorColor,
         shape: resolved.indicatorShape,
@@ -380,11 +377,11 @@ class _TabBar3dState extends State<TabBar3d> {
     );
 
     // No `tabBar` node around the tabs. Flutter checks, whenever semantics
-    // are on, that a tab bar's children are tabs — and a `Semantics3d` has no
-    // children in that tree, so the node read as an empty bar and the frame
-    // would not build. The gallery found it with a screen reader's semantics
-    // on; no headless test turns them on through a scene.
-    return _SceneTabBarLayout3d(
+    // are on, that a tab bar's children are tabs — and a `RenderSemantics3d`
+    // has no children in that tree, so the node read as an empty bar and the
+    // frame would not build. The gallery found it with a screen reader's
+    // semantics on; no headless test turns them on through a scene.
+    return _TabBarLayout3d(
       controller: controller,
       geometry: _geometry,
       labelSized: resolved.indicatorSize == TabBarIndicatorSize3d.label,
@@ -410,14 +407,14 @@ class _TabBar3dState extends State<TabBar3d> {
     final color = chosen ? resolved.labelColor : resolved.unselectedLabelColor;
     void tap() => _pressed(index);
 
-    final label = _SceneTabMeasure3d(
+    final label = _TabMeasure3d(
       geometry: _geometry,
       index: index,
       label: true,
-      child: SceneTextStyle3d(
+      child: TextStyle3d(
         style: resolved.labelStyle,
         color: color,
-        child: SceneIgnorePointer3d(child: tab),
+        child: IgnorePointer3d(child: tab),
       ),
     );
 
@@ -437,24 +434,21 @@ class _TabBar3dState extends State<TabBar3d> {
         onTap: tap,
         // The space under the tab is the tab's, as Flutter's `InkWell` wraps
         // its padding: a press on the indicator is a press on its tab.
-        child: ScenePadding3d(
+        child: Padding3d(
           padding: metrics.dpInsets(
             EdgeInsets3d.only(bottom: resolved.reservedHeight),
           ),
-          child: ScenePadding3d(
+          child: Padding3d(
             padding: metrics.dpInsets(
               resolved.labelPadding + EdgeInsets3d.symmetric(vertical: raise),
             ),
-            child: SceneAlign3d(
-              alignment: Alignment3d.frontCenter,
-              child: label,
-            ),
+            child: Align3d(alignment: Alignment3d.frontCenter, child: label),
           ),
         ),
       ),
     );
 
-    final announced = SceneSemantics3d(
+    final announced = Semantics3d(
       properties: SemanticsProperties(
         role: SemanticsRole.tab,
         selected: chosen,
@@ -466,12 +460,12 @@ class _TabBar3dState extends State<TabBar3d> {
       child: surface,
     );
 
-    return _SceneTabMeasure3d(
+    return _TabMeasure3d(
       geometry: _geometry,
       index: index,
       label: false,
       // Outermost, for the reason every control here puts it there.
-      child: SceneTapTarget3d(child: announced),
+      child: TapTarget3d(child: announced),
     );
   }
 }
@@ -479,9 +473,9 @@ class _TabBar3dState extends State<TabBar3d> {
 /// Where the tabs of one bar ended up, by index: the box each tab fills and
 /// the box its label is.
 ///
-/// Written by [_TabMeasure3d] when a box is made or handed a new index, and
-/// read by [_TabBarLayout3d] once the row of tabs has been laid out — so it
-/// holds boxes, not numbers, and the numbers are always this pass's.
+/// Written by [_RenderTabMeasure3d] when a box is made or handed a new index,
+/// and read by [_RenderTabBarLayout3d] once the row of tabs has been laid out —
+/// so it holds boxes, not numbers, and the numbers are always this pass's.
 class _TabGeometry3d {
   final List<RenderObject3d?> _slots = <RenderObject3d?>[];
   final List<RenderObject3d?> _labels = <RenderObject3d?>[];
@@ -540,8 +534,8 @@ class _TabGeometry3d {
 }
 
 /// Records a tab's box, or its label's, in a [_TabGeometry3d].
-class _TabMeasure3d extends RenderProxyBox3d {
-  _TabMeasure3d({
+class _RenderTabMeasure3d extends RenderProxyBox3d {
+  _RenderTabMeasure3d({
     required _TabGeometry3d geometry,
     required int index,
     required bool label,
@@ -571,8 +565,8 @@ class _TabMeasure3d extends RenderProxyBox3d {
   }
 }
 
-class _SceneTabMeasure3d extends SingleChildRenderObjectWidget3d {
-  const _SceneTabMeasure3d({
+class _TabMeasure3d extends SingleChildRenderObjectWidget3d {
+  const _TabMeasure3d({
     required this.geometry,
     required this.index,
     required this.label,
@@ -584,11 +578,11 @@ class _SceneTabMeasure3d extends SingleChildRenderObjectWidget3d {
   final bool label;
 
   @override
-  _TabMeasure3d createLayout(BuildContext context) =>
-      _TabMeasure3d(geometry: geometry, index: index, label: label);
+  _RenderTabMeasure3d createLayout(BuildContext context) =>
+      _RenderTabMeasure3d(geometry: geometry, index: index, label: label);
 
   @override
-  void updateLayout(BuildContext context, _TabMeasure3d layout) =>
+  void updateLayout(BuildContext context, _RenderTabMeasure3d layout) =>
       layout.update(geometry, index);
 }
 
@@ -602,8 +596,8 @@ class _SceneTabMeasure3d extends SingleChildRenderObjectWidget3d {
 /// that width changes. Everything between two resting places is the node
 /// tier: [_applyNode] writes a translation and a stretch on every tick of the
 /// controller's animation and marks nothing for layout.
-class _TabBarLayout3d extends RenderMultiChild3d<ParentData3d> {
-  _TabBarLayout3d({
+class _RenderTabBarLayout3d extends RenderMultiChild3d<ParentData3d> {
+  _RenderTabBarLayout3d({
     required TabController controller,
     required this.geometry,
     required this.labelSized,
@@ -773,15 +767,15 @@ class _TabBarLayout3d extends RenderMultiChild3d<ParentData3d> {
     final scale = (right - left) / rest.$2;
     indicator.nodeOffset = Offset3d(left - rest.$1, 0.0, 0.0);
     // About the indicator's own left edge, which is where a node transform
-    // pivots: the same arithmetic `NodeShift3d` does for a slider's fill.
+    // pivots: the same arithmetic `RenderNodeShift3d` does for a slider's fill.
     indicator.nodeTransform = (scale - 1.0).abs() < 1e-9
         ? null
         : Matrix4.diagonal3Values(scale, 1.0, 1.0);
   }
 }
 
-class _SceneTabBarLayout3d extends MultiChildRenderObjectWidget3d {
-  const _SceneTabBarLayout3d({
+class _TabBarLayout3d extends MultiChildRenderObjectWidget3d {
+  const _TabBarLayout3d({
     required this.controller,
     required this.geometry,
     required this.labelSized,
@@ -803,19 +797,20 @@ class _SceneTabBarLayout3d extends MultiChildRenderObjectWidget3d {
   final double depthStep;
 
   @override
-  _TabBarLayout3d createLayout(BuildContext context) => _TabBarLayout3d(
-    controller: controller,
-    geometry: geometry,
-    labelSized: labelSized,
-    animation: animation,
-    direction: direction,
-    indicatorWeight: indicatorWeight,
-    dividerHeight: dividerHeight,
-    depthStep: depthStep,
-  );
+  _RenderTabBarLayout3d createLayout(BuildContext context) =>
+      _RenderTabBarLayout3d(
+        controller: controller,
+        geometry: geometry,
+        labelSized: labelSized,
+        animation: animation,
+        direction: direction,
+        indicatorWeight: indicatorWeight,
+        dividerHeight: dividerHeight,
+        depthStep: depthStep,
+      );
 
   @override
-  void updateLayout(BuildContext context, _TabBarLayout3d layout) {
+  void updateLayout(BuildContext context, _RenderTabBarLayout3d layout) {
     layout.controller = controller;
     if (layout.labelSized != labelSized ||
         layout.indicatorWeight != indicatorWeight ||
@@ -932,15 +927,15 @@ class _SceneTabBarLayout3d extends MultiChildRenderObjectWidget3d {
 /// A press on a tab animates the pages to it, with the controller's own
 /// duration on `Curves.ease`; a swipe writes the controller's `offset` as it
 /// goes, so the indicator follows the finger, and its `index` when the pages
-/// come to rest. It is a [ScenePageView3d], snapping a page at a time, and it
+/// come to rest. It is a [PageView3d], snapping a page at a time, and it
 /// needs a bounded extent along its width, as every page view does.
 ///
 /// **It clips its pages to its own window**, as Flutter's does by default: a
-/// scroll view here does not clip on its own, so the view is a `ClipBox3d`
-/// around one. A page half across it has its panels cut at the edge by their
-/// shader, and its labels — which a clip plane does not reach — are not drawn
-/// once they are wholly outside. A label straddling the edge is drawn whole
-/// for the frames it straddles.
+/// scroll view here does not clip on its own, so the view is a
+/// `RenderClipBox3d` around one. A page half across it has its panels cut at
+/// the edge by their shader, and its labels — which a clip plane does not reach
+/// — are not drawn once they are wholly outside. A label straddling the edge is
+/// drawn whole for the frames it straddles.
 ///
 /// ## Right to left reads the pages backwards
 ///
@@ -1127,11 +1122,11 @@ class _TabBarView3dState extends State<TabBarView3d>
     // Clipped to its own window, as Flutter's `TabBarView` is by default: a
     // scroll view here does not clip on its own, and a page half across it
     // would otherwise draw its panels and its labels outside the view.
-    return SceneClipBox3d(
-      child: ScenePageView3d.builder(
+    return ClipBox3d(
+      child: PageView3d.builder(
         controller: _pages,
         itemCount: count,
-        itemBuilder: (context, position) => SceneSemantics3d(
+        itemBuilder: (context, position) => Semantics3d(
           properties: const SemanticsProperties(role: SemanticsRole.tabPanel),
           child: widget.children[rightToLeft ? count - 1 - position : position],
         ),

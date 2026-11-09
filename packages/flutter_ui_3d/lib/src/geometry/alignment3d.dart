@@ -183,8 +183,9 @@ class Alignment3d extends AlignmentGeometry3d {
   /// The origin corner of a [child] box placed inside a [container] box at
   /// this alignment.
   ///
-  /// This is the positioning rule every aligning layout uses: `Align3d`,
-  /// `Center3d`, `Container3d`, `Stack3d`, and the cross axes of `Flex3d`.
+  /// This is the positioning rule every aligning layout uses: `RenderAlign3d`,
+  /// `RenderCenter3d`, `RenderContainer3d`, `RenderStack3d`, and the cross axes
+  /// of `RenderFlex3d`.
   Offset3d inscribe(Size3d child, Size3d container) => Offset3d(
     (1.0 + x) / 2.0 * (container.width - child.width),
     (1.0 + y) / 2.0 * (container.height - child.height),

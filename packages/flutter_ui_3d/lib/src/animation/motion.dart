@@ -13,12 +13,12 @@ import '../rendering/object.dart';
 ///
 /// A value, not a machine: it says how far off, how much smaller and how far
 /// turned the content is at the start of its arrival, and
-/// [MotionTransition3d] walks it back to [none] as an animation runs. A
+/// [RenderMotionTransition3d] walks it back to [none] as an animation runs. A
 /// dialog grows, a sheet comes up from below, a panel swings in about its
 /// leading edge, and all three are one of these plus a duration.
 ///
 /// ```dart
-/// MotionTransition3d(
+/// RenderMotionTransition3d(
 ///   animation: route.animation,
 ///   motion: Motion3d.fromBelow,
 ///   child: sheet,
@@ -48,8 +48,8 @@ import '../rendering/object.dart';
 /// `Node.opacity` never mattered, because this package draws with materials
 /// it owns; what stood in the way was `depth_write`, and screen-door
 /// coverage goes around it. So the fade reaches the panel, the label and the
-/// wall around the label's letters alike. See [Opacity3d], which is what a
-/// [MotionTransition3d] imposes on the subtree below it.
+/// wall around the label's letters alike. See [RenderOpacity3d], which is what
+/// a [RenderMotionTransition3d] imposes on the subtree below it.
 class Motion3d {
   /// Creates a motion from its parts; everything left out is at rest.
   const Motion3d({
@@ -137,7 +137,7 @@ class Motion3d {
   /// **It is coverage rather than alpha**, which is what makes it reach a
   /// whole subtree instead of one decoration — a faded panel, its label and
   /// the wall around that label's letters all discard the same fragments.
-  /// [Opacity3d] has what that costs in the picture, and it is not free:
+  /// [RenderOpacity3d] has what that costs in the picture, and it is not free:
   /// group opacity is approximated, and the approximation is largest exactly
   /// in the middle of an arrival. It is also invisible at both ends, which
   /// for something that lasts two hundred milliseconds is the trade worth
@@ -266,14 +266,14 @@ class Motion3d {
 /// a panel a component slides in — can use on its own.
 ///
 /// ```dart
-/// MotionTransition3d(
+/// RenderMotionTransition3d(
 ///   animation: route.animation,
 ///   motion: const Motion3d.grow(),
 ///   child: dialog,
 /// )
 /// ```
 ///
-/// ## Why it is not [NodeTransform3d]
+/// ## Why it is not [RenderNodeTransform3d]
 ///
 /// That box takes an `Animation<Offset3d>` or an `Animation<Matrix4>` — the
 /// values themselves, already resolved. Two of the things a transition wants
@@ -296,14 +296,15 @@ class Motion3d {
 /// the node tier's contract everywhere in this package, and for the couple of
 /// hundred milliseconds an arrival lasts it is the right trade: a press lands
 /// where the dialog is about to be.
-class MotionTransition3d extends RenderProxyBox3d with RenderOpacityMixin3d {
+class RenderMotionTransition3d extends RenderProxyBox3d
+    with RenderOpacityMixin3d {
   /// Creates a box that moves [child] from [motion] to rest as [animation]
   /// runs.
-  MotionTransition3d({
+  RenderMotionTransition3d({
     Animation<double>? animation,
     Motion3d motion = Motion3d.none,
     super.child,
-    super.name = 'MotionTransition3d',
+    super.name = 'RenderMotionTransition3d',
   }) : _animation = animation,
        _motion = motion {
     animation?.addListener(_handleTick);

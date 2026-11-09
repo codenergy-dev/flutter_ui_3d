@@ -8,7 +8,7 @@ extension Layout3dTestGeometry on RenderObject3d {
   /// frame of the surface at the root of its tree.
   ///
   /// Every offset between the surface and the box counts, the box's own
-  /// included: the one layout gave each box, the depth step a `Stack3d`
+  /// included: the one layout gave each box, the depth step a `RenderStack3d`
   /// writes into `sceneOffset`, and the `nodeOffset` and `nodeTransform` an
   /// animation or a lift puts on the node. That is where the geometry is, so
   /// it is the frame to compare two boxes' depths in, and the frame a ray aimed

@@ -30,8 +30,8 @@ enum ScrollDirection3d {
   reverse,
 }
 
-/// The scroll offset of a [Viewport3d] or [ListView3d], the metrics the view
-/// reports back, and the animation and physics over both.
+/// The scroll offset of a [RenderViewport3d] or [RenderListView3d], the metrics
+/// the view reports back, and the animation and physics over both.
 ///
 /// Still deliberately thin about *input*: in a 3D scene the gesture that
 /// drives scrolling is the application's to choose (a drag on the
@@ -172,8 +172,8 @@ class Scroll3dController extends ChangeNotifier {
   /// Which way the position last moved, or [ScrollDirection3d.idle] when
   /// nothing is moving it.
   ///
-  /// Read by [SliverPersistentHeader3d]: a floating header comes back when
-  /// the viewer scrolls forward, and should *not* come back because a
+  /// Read by [RenderSliverPersistentHeader3d]: a floating header comes back
+  /// when the viewer scrolls forward, and should *not* come back because a
   /// bouncing fling overshot the end and the spring is carrying the offset
   /// backwards on its own. Idle while a programmatic [jumpTo] or
   /// [animateTo] moves the position, since neither is the viewer scrolling.

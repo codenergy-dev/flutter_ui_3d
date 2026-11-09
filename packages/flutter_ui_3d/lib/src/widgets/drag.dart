@@ -11,29 +11,29 @@ import '../input/events.dart';
 import '../overlay/overlay.dart';
 import 'framework.dart';
 
-/// A box whose contents can be picked up, the widget form of [Draggable3d].
+/// A box whose contents can be picked up, the widget form of
+/// [RenderDraggable3d].
 ///
 /// ```dart
-/// SceneDraggable3d<Photo>(
+/// Draggable3d<Photo>(
 ///   data: photo,
 ///   startMode: const Drag3dStartMode.longPress(),
-///   feedbackBuilder: (_) => DecoratedBox3d(
+///   feedbackBuilder: (_) => RenderDecoratedBox3d(
 ///     decoration: cardDecoration,
-///     child: SizedBox3d(width: 0.6, height: 0.4, depth: 0.02),
+///     child: RenderSizedBox3d(width: 0.6, height: 0.4, depth: 0.02),
 ///   ),
-///   child: SceneDecoratedBox3d(decoration: thumbnail, child: label),
+///   child: DecoratedBox3d(decoration: thumbnail, child: label),
 /// )
 /// ```
 ///
 /// The feedback is built by a [Drag3dFeedbackBuilder] rather than by a
-/// `Widget`, because it is inserted into an [Overlay3d] by the layout tier
+/// `Widget`, because it is inserted into a [RenderOverlay3d] by the layout tier
 /// while a drag is being recognized — outside any build phase. It is the same
-/// arrangement [SceneOverlay3d] uses for its entries, and for the same
+/// arrangement [Overlay3d] uses for its entries, and for the same
 /// reason.
-class SceneDraggable3d<T extends Object>
-    extends SingleChildRenderObjectWidget3d {
+class Draggable3d<T extends Object> extends SingleChildRenderObjectWidget3d {
   /// Creates a draggable box carrying [data].
-  const SceneDraggable3d({
+  const Draggable3d({
     super.key,
     this.data,
     this.feedbackBuilder,
@@ -70,7 +70,7 @@ class SceneDraggable3d<T extends Object>
   final Drag3dAnchor anchor;
 
   /// The overlay the feedback goes into, or null for the nearest one above.
-  final Overlay3d? overlay;
+  final RenderOverlay3d? overlay;
 
   /// Which layer of the overlay the feedback goes on.
   final OverlayLayer3d feedbackLayer;
@@ -103,27 +103,28 @@ class SceneDraggable3d<T extends Object>
   final HitTestBehavior3d behavior;
 
   @override
-  Draggable3d<T> createLayout(BuildContext context) => Draggable3d<T>(
-    data: data,
-    feedbackBuilder: feedbackBuilder,
-    startMode: startMode,
-    axis: axis,
-    anchor: anchor,
-    overlay: overlay,
-    feedbackLayer: feedbackLayer,
-    dropDuration: dropDuration,
-    dropCurve: dropCurve,
-    vsync: vsync,
-    onDragStarted: onDragStarted,
-    onDragUpdate: onDragUpdate,
-    onDragEnd: onDragEnd,
-    onDragCompleted: onDragCompleted,
-    onDraggableCanceled: onDraggableCanceled,
-    behavior: behavior,
-  );
+  RenderDraggable3d<T> createLayout(BuildContext context) =>
+      RenderDraggable3d<T>(
+        data: data,
+        feedbackBuilder: feedbackBuilder,
+        startMode: startMode,
+        axis: axis,
+        anchor: anchor,
+        overlay: overlay,
+        feedbackLayer: feedbackLayer,
+        dropDuration: dropDuration,
+        dropCurve: dropCurve,
+        vsync: vsync,
+        onDragStarted: onDragStarted,
+        onDragUpdate: onDragUpdate,
+        onDragEnd: onDragEnd,
+        onDragCompleted: onDragCompleted,
+        onDraggableCanceled: onDraggableCanceled,
+        behavior: behavior,
+      );
 
   @override
-  void updateLayout(BuildContext context, Draggable3d<T> layout) {
+  void updateLayout(BuildContext context, RenderDraggable3d<T> layout) {
     layout
       ..data = data
       ..feedbackBuilder = feedbackBuilder
@@ -144,10 +145,10 @@ class SceneDraggable3d<T extends Object>
   }
 }
 
-/// A box that catches a payload, the widget form of [DragTarget3d].
+/// A box that catches a payload, the widget form of [RenderDragTarget3d].
 ///
 /// ```dart
-/// SceneDragTarget3d<Photo>(
+/// DragTarget3d<Photo>(
 ///   onWillAccept: (photo, _) => photo.album != album,
 ///   onAccept: (photo, _) => setState(() => album.add(photo)),
 ///   child: dropZone,
@@ -158,10 +159,9 @@ class SceneDraggable3d<T extends Object>
 /// [onEnter] and [onLeave] should write a decoration or a state layer rather
 /// than call `setState`, because a rebuild during a drag is exactly what the
 /// node tier exists to avoid.
-class SceneDragTarget3d<T extends Object>
-    extends SingleChildRenderObjectWidget3d {
+class DragTarget3d<T extends Object> extends SingleChildRenderObjectWidget3d {
   /// Creates a drop target for payloads of type [T].
-  const SceneDragTarget3d({
+  const DragTarget3d({
     super.key,
     this.onWillAccept,
     this.onEnter,
@@ -191,17 +191,18 @@ class SceneDragTarget3d<T extends Object>
   final HitTestBehavior3d behavior;
 
   @override
-  DragTarget3d<T> createLayout(BuildContext context) => DragTarget3d<T>(
-    onWillAccept: onWillAccept,
-    onEnter: onEnter,
-    onMove: onMove,
-    onLeave: onLeave,
-    onAccept: onAccept,
-    behavior: behavior,
-  );
+  RenderDragTarget3d<T> createLayout(BuildContext context) =>
+      RenderDragTarget3d<T>(
+        onWillAccept: onWillAccept,
+        onEnter: onEnter,
+        onMove: onMove,
+        onLeave: onLeave,
+        onAccept: onAccept,
+        behavior: behavior,
+      );
 
   @override
-  void updateLayout(BuildContext context, DragTarget3d<T> layout) {
+  void updateLayout(BuildContext context, RenderDragTarget3d<T> layout) {
     layout
       ..onWillAccept = onWillAccept
       ..onEnter = onEnter
@@ -212,11 +213,11 @@ class SceneDragTarget3d<T extends Object>
   }
 }
 
-/// A box that is swiped away, the widget form of [Dismissible3d].
+/// A box that is swiped away, the widget form of [RenderDismissible3d].
 ///
 /// ```dart
-/// SceneDismissible3d(
-///   background: SceneDecoratedBox3d(decoration: deleteRed),
+/// Dismissible3d(
+///   background: DecoratedBox3d(decoration: deleteRed),
 ///   onDismissed: (_) => setState(() => items.removeAt(index)),
 ///   child: row,
 /// )
@@ -231,9 +232,9 @@ class SceneDragTarget3d<T extends Object>
 /// and taking the item out of the list is a rebuild by definition. [onUpdate]
 /// runs every frame of the swipe — write a decoration or a state layer from
 /// it, never a rebuild.
-class SceneDismissible3d extends MultiChildRenderObjectWidget3d {
+class Dismissible3d extends MultiChildRenderObjectWidget3d {
   /// Creates a box that can be swiped away.
-  const SceneDismissible3d({
+  const Dismissible3d({
     super.key,
     this.child,
     this.background,
@@ -255,12 +256,12 @@ class SceneDismissible3d extends MultiChildRenderObjectWidget3d {
     this.onDismissed,
   }) : assert(
          child != null || (background == null && secondaryBackground == null),
-         'SceneDismissible3d has nothing to swipe: a background needs a '
+         'Dismissible3d has nothing to swipe: a background needs a '
          'child.',
        ),
        assert(
          background != null || secondaryBackground == null,
-         'SceneDismissible3d.secondaryBackground needs a background beside '
+         'Dismissible3d.secondaryBackground needs a background beside '
          'it.',
        );
 
@@ -327,7 +328,7 @@ class SceneDismissible3d extends MultiChildRenderObjectWidget3d {
   ];
 
   @override
-  Dismissible3d createLayout(BuildContext context) => Dismissible3d(
+  RenderDismissible3d createLayout(BuildContext context) => RenderDismissible3d(
     axis: axis,
     direction: direction,
     dismissThreshold: dismissThreshold,
@@ -346,7 +347,7 @@ class SceneDismissible3d extends MultiChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, Dismissible3d layout) {
+  void updateLayout(BuildContext context, RenderDismissible3d layout) {
     // The slots are not written here: they are children, and the framework
     // mirrors the reconciled child list onto the layout for us.
     layout

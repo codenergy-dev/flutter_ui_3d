@@ -19,30 +19,29 @@ import 'package:flutter_ui_3d/widgets.dart';
 import 'package:vector_math/vector_math.dart' show Quaternion, Vector3;
 
 /// A labelled control that logs its taps.
-Widget control(String label, List<String> log, {Size3d? size}) =>
-    SceneSemantics3d(
-      properties: SemanticsProperties(label: label),
-      child: SceneGestureDetector3d(
-        onTap: () => log.add(label),
-        child: SceneSizedBox3d(
-          width: (size ?? const Size3d(1, 0.5, 0.1)).width,
-          height: (size ?? const Size3d(1, 0.5, 0.1)).height,
-          depth: (size ?? const Size3d(1, 0.5, 0.1)).depth,
-        ),
-      ),
-    );
+Widget control(String label, List<String> log, {Size3d? size}) => Semantics3d(
+  properties: SemanticsProperties(label: label),
+  child: GestureDetector3d(
+    onTap: () => log.add(label),
+    child: SizedBox3d(
+      width: (size ?? const Size3d(1, 0.5, 0.1)).width,
+      height: (size ?? const Size3d(1, 0.5, 0.1)).height,
+      depth: (size ?? const Size3d(1, 0.5, 0.1)).depth,
+    ),
+  ),
+);
 
 /// A panel with a card on it and something on the card, padded by [padding].
-Widget card({required EdgeInsets3d padding, Widget? content}) => SceneCenter3d(
-  child: SceneDecoratedBox3d(
+Widget card({required EdgeInsets3d padding, Widget? content}) => Center3d(
+  child: DecoratedBox3d(
     decoration: const BoxDecoration3d(),
-    child: SceneSizedBox3d(
+    child: SizedBox3d(
       width: 3,
       height: 2,
       depth: 0.04,
-      child: ScenePadding3d(
+      child: Padding3d(
         padding: padding,
-        child: content ?? const SceneText3d('Volume'),
+        child: content ?? const Text3d('Volume'),
       ),
     ),
   ),
@@ -78,11 +77,11 @@ void main() {
   group('find3d', () {
     testWidgets('finds a box by what a person reads on it', (tester) async {
       await tester.pumpSurface3d(
-        SceneColumn3d(
+        Column3d(
           children: <Widget>[
             control('Inbox', <String>[]),
             control('Settings', <String>[]),
-            const SceneText3d('Two unread'),
+            const Text3d('Two unread'),
           ],
         ),
       );
@@ -101,7 +100,7 @@ void main() {
       tester,
     ) async {
       final surface = await tester.pumpSurface3d(
-        SceneColumn3d(
+        Column3d(
           children: <Widget>[
             control('a', <String>[]),
             control('b', <String>[]),
@@ -109,22 +108,24 @@ void main() {
         ),
       );
 
-      expect(find3d.byType(Semantics3d), findsExactly(2));
+      expect(find3d.byType(RenderSemantics3d), findsExactly(2));
       expect(find3d.bySubtype<RenderProxyBox3d>(), findsAtLeast(2));
-      expect(find3d.byType(Layout3dSurface), findsOne);
+      expect(find3d.byType(RenderSurface3d), findsOne);
       expect(find3d.byLayout(surface), findsOne);
-      // A SceneColumn3d builds a Flex3d, and a node is named after the box.
-      expect(find3d.byName('Flex3d'), findsOne);
+      // A Column3d builds a RenderFlex3d, and a node is named after the box.
+      expect(find3d.byName('RenderFlex3d'), findsOne);
       expect(
-        find3d.byPredicate((box) => box is SizedBox3d && box.size.width == 1),
+        find3d.byPredicate(
+          (box) => box is RenderSizedBox3d && box.size.width == 1,
+        ),
         findsExactly(2),
       );
-      expect(tester.surfaces3d, <Layout3dSurface>[surface]);
+      expect(tester.surfaces3d, <RenderSurface3d>[surface]);
     });
 
     testWidgets('descendant and ancestor walk the layout tree', (tester) async {
       await tester.pumpSurface3d(
-        SceneColumn3d(
+        Column3d(
           children: <Widget>[
             control('a', <String>[]),
             control('b', <String>[]),
@@ -134,13 +135,13 @@ void main() {
 
       final underA = find3d.descendant(
         of: find3d.bySemanticsLabel('a'),
-        matching: find3d.bySubtype<SizedBox3d>(),
+        matching: find3d.bySubtype<RenderSizedBox3d>(),
       );
       expect(underA, findsOne);
       expect(
         find3d.descendant(
           of: find3d.bySemanticsLabel('a'),
-          matching: find3d.byType(Semantics3d),
+          matching: find3d.byType(RenderSemantics3d),
         ),
         findsNothing,
         reason: 'the root is not its own descendant',
@@ -148,7 +149,7 @@ void main() {
       expect(
         find3d.descendant(
           of: find3d.bySemanticsLabel('a'),
-          matching: find3d.byType(Semantics3d),
+          matching: find3d.byType(RenderSemantics3d),
           matchRoot: true,
         ),
         findsOne,
@@ -156,11 +157,11 @@ void main() {
 
       final above = find3d.ancestor(
         of: underA,
-        matching: find3d.bySubtype<Semantics3d>(),
+        matching: find3d.bySubtype<RenderSemantics3d>(),
       );
       expect(above, findsOne);
       expect(
-        tester.layout3d<Semantics3d>(above).properties.label,
+        tester.layout3d<RenderSemantics3d>(above).properties.label,
         'a',
         reason: 'the nearest one, not the other control',
       );
@@ -170,7 +171,7 @@ void main() {
       final node = FocusNode();
       addTearDown(node.dispose);
       await tester.pumpSurface3d(
-        SceneFocus3d(focusNode: node, child: control('focusable', <String>[])),
+        Focus3d(focusNode: node, child: control('focusable', <String>[])),
       );
       expect(find3d.focused(), findsNothing);
 
@@ -178,7 +179,10 @@ void main() {
       await tester.pump();
 
       expect(find3d.focused(), findsOne);
-      expect(tester.layout3d<RenderObject3d>(find3d.focused()), isA<Focus3d>());
+      expect(
+        tester.layout3d<RenderObject3d>(find3d.focused()),
+        isA<RenderFocus3d>(),
+      );
     });
 
     testWidgets('finds a detached entry, on the surface of its own', (
@@ -186,7 +190,7 @@ void main() {
     ) async {
       final overlay = Overlay3dController();
       final surface = await tester.pumpSurface3d(
-        SceneOverlay3d(controller: overlay, child: control('page', <String>[])),
+        Overlay3d(controller: overlay, child: control('page', <String>[])),
       );
       expect(find3d.bySemanticsLabel('dialog'), findsNothing);
 
@@ -216,7 +220,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpSurface3d(
-        SceneColumn3d(
+        Column3d(
           children: <Widget>[
             control('twin', <String>[]),
             control('twin', <String>[]),
@@ -230,18 +234,19 @@ void main() {
         <String>['box with semantics label "twin"', 'found 2'],
       );
       await expectFailure(
-        () async =>
-            tester.layout3d<Text3d>(find3d.bySemanticsLabel('twin').first),
-        <String>['to be a Text3d', 'Semantics3d', '"twin"'],
+        () async => tester.layout3d<RenderText3d>(
+          find3d.bySemanticsLabel('twin').first,
+        ),
+        <String>['to be a RenderText3d', 'RenderSemantics3d', '"twin"'],
       );
     });
   });
 
   group('pumping', () {
     testWidgets('frames the surface in the middle of the view', (tester) async {
-      await tester.pumpSurface3d(const SceneSizedBox3d.cube(1));
+      await tester.pumpSurface3d(const SizedBox3d.cube(1));
 
-      final middle = tester.getCenter3d(find3d.byType(Layout3dSurface));
+      final middle = tester.getCenter3d(find3d.byType(RenderSurface3d));
       expect(middle.dx, closeTo(400, 1e-6));
       expect(middle.dy, closeTo(300, 1e-6));
     });
@@ -250,14 +255,14 @@ void main() {
       tester,
     ) async {
       await tester.pumpSurface3d(
-        SceneStack3d(
+        Stack3d(
           children: <Widget>[
-            ScenePositioned3d(
+            Positioned3d(
               left: 0,
               top: 0,
               child: control('top left', <String>[]),
             ),
-            ScenePositioned3d(
+            Positioned3d(
               right: 0,
               bottom: 0,
               child: control('bottom right', <String>[]),
@@ -282,9 +287,9 @@ void main() {
     testWidgets('frames a surface on the ground from above', (tester) async {
       final log = <String>[];
       await tester.pumpSurface3d(
-        SceneStack3d(
+        Stack3d(
           children: <Widget>[
-            ScenePositioned3d(left: 0, top: 0, child: control('far', log)),
+            Positioned3d(left: 0, top: 0, child: control('far', log)),
           ],
         ),
         basis: LayoutBasis3d.xz,
@@ -302,11 +307,11 @@ void main() {
     ) async {
       final log = <String>[];
       await tester.pumpScene3d(<Widget>[
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0.2),
           rotation: Quaternion.axisAngle(Vector3(0, 1, 0), 0.7),
-          child: SceneCenter3d(child: control('turned', log)),
+          child: Center3d(child: control('turned', log)),
         ),
       ], camera: PerspectiveCamera(position: Vector3(0, 0, 6)));
 
@@ -322,16 +327,16 @@ void main() {
         position: Vector3(0, 0, 5),
       );
       await tester.pumpWidget(
-        SceneInput3d(
+        Input3d(
           camera: camera,
           child: SizedBox.expand(
             child: Stack(
               alignment: Alignment.topLeft,
               children: <Widget>[
-                SceneLayout3d(
+                Surface3d(
                   parent: Node(),
                   size: const Size3d(4, 4, 0.2),
-                  child: SceneCenter3d(child: control('own', log)),
+                  child: Center3d(child: control('own', log)),
                 ),
               ],
             ),
@@ -348,7 +353,7 @@ void main() {
     testWidgets('tap3d delivers a tap through the host', (tester) async {
       final log = <String>[];
       await tester.pumpSurface3d(
-        SceneRow3d(
+        Row3d(
           mainAxisAlignment: MainAxisAlignment3d.spaceEvenly,
           children: <Widget>[control('left', log), control('right', log)],
         ),
@@ -365,17 +370,17 @@ void main() {
     ) async {
       final log = <String>[];
       await tester.pumpScene3d(<Widget>[
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(8, 6, 0.2),
-          child: SceneCenter3d(child: control('behind', log)),
+          child: Center3d(child: control('behind', log)),
         ),
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(8, 6, 0.2),
           position: Vector3(0, 0, 0.5),
           zOrder: 1,
-          child: SceneCenter3d(child: control('in front', log)),
+          child: Center3d(child: control('in front', log)),
         ),
       ]);
 
@@ -383,7 +388,7 @@ void main() {
         () => tester.tap3d(find3d.bySemanticsLabel('behind')),
         <String>[
           'tap3d() cannot press the box with semantics label "behind"',
-          'GestureDetector3d',
+          'RenderGestureDetector3d',
           'under "in front" first, on a surface in front of it',
           'checkReachable: false',
         ],
@@ -402,10 +407,10 @@ void main() {
       tester,
     ) async {
       await tester.pumpSurface3d(
-        const SceneCenter3d(
-          child: SceneSemantics3d(
+        const Center3d(
+          child: Semantics3d(
             properties: SemanticsProperties(label: 'decoration only'),
-            child: SceneSizedBox3d.cube(1),
+            child: SizedBox3d.cube(1),
           ),
         ),
       );
@@ -418,7 +423,7 @@ void main() {
 
     testWidgets('tap3d refuses a box off the screen', (tester) async {
       await tester.pumpScene3d(<Widget>[
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(1, 1, 0.1),
           position: Vector3(40, 0, 0),
@@ -434,7 +439,7 @@ void main() {
 
     testWidgets('tap3d refuses a box with no host above it', (tester) async {
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(2, 2, 0.1),
           child: control('unhosted', <String>[]),
@@ -444,7 +449,7 @@ void main() {
       expect(find3d.bySemanticsLabel('unhosted'), findsOne);
       await expectFailure(
         () => tester.tap3d(find3d.bySemanticsLabel('unhosted')),
-        <String>['not under a SceneInput3d', 'pumpSurface3d'],
+        <String>['not under an Input3d', 'pumpSurface3d'],
       );
     });
 
@@ -453,9 +458,9 @@ void main() {
       final log = <String>[];
       final overlay = Overlay3dController();
       await tester.pumpSurface3d(
-        SceneOverlay3d(
+        Overlay3d(
           controller: overlay,
-          child: SceneCenter3d(child: control('page', log)),
+          child: Center3d(child: control('page', log)),
         ),
       );
       overlay.overlay!.insertEntry(
@@ -478,7 +483,7 @@ void main() {
       final controller = Scroll3dController();
       addTearDown(controller.dispose);
       await tester.pumpSurface3d(
-        SceneListView3d(
+        ListView3d(
           controller: controller,
           children: List<Widget>.generate(
             12,
@@ -488,7 +493,10 @@ void main() {
         size: const Size3d(4, 3, 0.2),
       );
 
-      await tester.scroll3d(find3d.byType(ListView3d), const Offset(0, 50));
+      await tester.scroll3d(
+        find3d.byType(RenderListView3d),
+        const Offset(0, 50),
+      );
       // A notch is measured in logical pixels on the plane: 50dp at the
       // standard metrics.
       expect(controller.offset, closeTo(0.5, 1e-9));
@@ -503,13 +511,14 @@ void main() {
 
     testWidgets('hitTest3d answers what a press would reach, and nothing '
         'outside the view', (tester) async {
-      await tester.pumpSurface3d(
-        SceneCenter3d(child: control('here', <String>[])),
-      );
+      await tester.pumpSurface3d(Center3d(child: control('here', <String>[])));
 
       final paths = tester.hitTest3d(const Offset(400, 300));
       expect(paths, hasLength(1));
-      expect(paths.single.firstOf<Semantics3d>()!.properties.label, 'here');
+      expect(
+        paths.single.firstOf<RenderSemantics3d>()!.properties.label,
+        'here',
+      );
       expect(tester.hitTest3d(const Offset(-10, -10)), isEmpty);
     });
   });
@@ -521,17 +530,17 @@ void main() {
       final log = <String>[];
       final input = Input3dController();
       Widget panel(String label, {required double z, required bool absorbs}) =>
-          SceneLayout3d(
+          Surface3d(
             parent: Node(),
             size: const Size3d(8, 6, 0.2),
             position: Vector3(0, 0, z),
             zOrder: z,
             absorbsPointer: absorbs,
-            child: SceneCenter3d(child: control(label, log)),
+            child: Center3d(child: control(label, log)),
           );
       final camera = PerspectiveCamera(position: Vector3(0, 0, 8));
       await tester.pumpWidget(
-        SceneInput3d(
+        Input3d(
           camera: camera,
           controller: input,
           child: SizedBox.expand(
@@ -551,7 +560,9 @@ void main() {
       final paths = host.hitTestAt(const Offset(400, 300));
 
       expect(
-        paths.map((path) => path.firstOf<Semantics3d>()!.properties.label),
+        paths.map(
+          (path) => path.firstOf<RenderSemantics3d>()!.properties.label,
+        ),
         <String>['hud', 'back'],
       );
       expect(log, isEmpty, reason: 'nothing was dispatched');
@@ -564,7 +575,11 @@ void main() {
         const Size(800, 600),
       );
       expect(
-        host.pointers.hitTest(ray).firstOf<Semantics3d>()!.properties.label,
+        host.pointers
+            .hitTest(ray)
+            .firstOf<RenderSemantics3d>()!
+            .properties
+            .label,
         'hud',
       );
     });
@@ -572,7 +587,7 @@ void main() {
     testWidgets('an empty answer with no camera', (tester) async {
       final input = Input3dController();
       await tester.pumpWidget(
-        SceneInput3d(controller: input, child: const SizedBox.expand()),
+        Input3d(controller: input, child: const SizedBox.expand()),
       );
       expect(input.host!.hitTestAt(const Offset(400, 300)), isEmpty);
     });
@@ -583,17 +598,17 @@ void main() {
       tester,
     ) async {
       await tester.pumpSurface3d(
-        ScenePadding3d(
+        Padding3d(
           padding: const EdgeInsets3d.only(left: 1, top: 0.5),
-          child: SceneColumn3d(
+          child: Column3d(
             children: <Widget>[
-              const SceneSizedBox3d(height: 0.25),
+              const SizedBox3d(height: 0.25),
               control('below', <String>[]),
             ],
           ),
         ),
       );
-      final box = tester.layout3d<Semantics3d>(
+      final box = tester.layout3d<RenderSemantics3d>(
         find3d.bySemanticsLabel('below'),
       );
 
@@ -609,15 +624,15 @@ void main() {
     testWidgets('a stack\'s depth step and a node offset above the box both '
         'count, because that is where the geometry is', (tester) async {
       await tester.pumpSurface3d(
-        SceneStack3d(
+        Stack3d(
           depthStep: 0.1,
           children: <Widget>[
-            const SceneSizedBox3d.cube(1),
-            SceneCenter3d(child: control('front', <String>[])),
+            const SizedBox3d.cube(1),
+            Center3d(child: control('front', <String>[])),
           ],
         ),
       );
-      final box = tester.layout3d<Semantics3d>(
+      final box = tester.layout3d<RenderSemantics3d>(
         find3d.bySemanticsLabel('front'),
       );
       final before = box.drawnOffsetInSurface;
@@ -634,7 +649,7 @@ void main() {
 
     testWidgets('a box that is not under a surface says so', (tester) async {
       expect(
-        () => SizedBox3d(width: 1).drawnOffsetInSurface,
+        () => RenderSizedBox3d(width: 1).drawnOffsetInSurface,
         throwsA(
           isA<StateError>().having(
             (error) => error.message,
@@ -651,7 +666,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpSurface3d(
-        SceneCenter3d(
+        Center3d(
           child: control('slab', <String>[], size: const Size3d(1, 0.48, 0.04)),
         ),
       );
@@ -674,7 +689,7 @@ void main() {
     testWidgets('a matcher over nothing fails rather than passing vacuously', (
       tester,
     ) async {
-      await tester.pumpSurface3d(const SceneSizedBox3d.cube(1));
+      await tester.pumpSurface3d(const SizedBox3d.cube(1));
 
       expect(
         mismatchOf(hasSizeDp(width: 1), find3d.bySemanticsLabel('absent')),
@@ -696,9 +711,9 @@ void main() {
       expect(
         mismatchOf(standsOnItsPanel3d, label),
         allOf(
-          contains('Text3d'),
+          contains('RenderText3d'),
           contains('"Volume"'),
-          contains('12 dp behind the front face of DecoratedBox3d'),
+          contains('12 dp behind the front face of RenderDecoratedBox3d'),
           contains('EdgeInsets3d.all'),
         ),
       );
@@ -717,13 +732,13 @@ void main() {
     testWidgets('standsOnItsPanel3d passes a box on no panel at all, and '
         'reports every box that fails', (tester) async {
       await tester.pumpSurface3d(
-        SceneColumn3d(
+        Column3d(
           children: <Widget>[
-            const SceneText3d('loose'),
+            const Text3d('loose'),
             card(
               padding: const EdgeInsets3d.all(0.12),
-              content: const SceneColumn3d(
-                children: <Widget>[SceneText3d('one'), SceneText3d('two')],
+              content: const Column3d(
+                children: <Widget>[Text3d('one'), Text3d('two')],
               ),
             ),
           ],
@@ -732,7 +747,7 @@ void main() {
 
       expect(find3d.text('loose'), standsOnItsPanel3d);
       expect(
-        mismatchOf(standsOnItsPanel3d, find3d.bySubtype<Text3d>()),
+        mismatchOf(standsOnItsPanel3d, find3d.bySubtype<RenderText3d>()),
         allOf(
           contains('2 of them failed'),
           contains('"one"'),

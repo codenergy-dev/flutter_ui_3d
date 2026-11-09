@@ -8,7 +8,7 @@ import 'package:flutter_ui_3d/testing.dart';
 import 'package:flutter_ui_3d/widgets.dart';
 import 'package:material_ui_3d/material_ui_3d.dart';
 
-import 'support.dart' show SceneTestBox, TestBox;
+import 'support.dart' show TestBox, RenderTestBox;
 import 'surfaces_support.dart';
 
 const Theme3dData _theme = Theme3dData.light;
@@ -16,10 +16,10 @@ const double _dp = 0.01;
 
 /// A bar at the foot of a screen-shaped column; see `app_bar_test.dart` for
 /// why a bar cannot be pumped straight onto a surface.
-Widget _atFoot(Widget bar) => SceneColumn3d(
+Widget _atFoot(Widget bar) => Column3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
-    const SceneExpanded3d(child: SceneSizedBox3d()),
+    const Expanded3d(child: SizedBox3d()),
     bar,
   ],
 );
@@ -74,12 +74,12 @@ void main() {
   });
 
   testWidgets('holds its child 16dp in and 12dp down', (tester) async {
-    late TestBox held;
+    late RenderTestBox held;
     final pumped = await pumpComponent(
       tester,
       () => _atFoot(
         BottomAppBar3d(
-          child: SceneTestBox(
+          child: TestBox(
             const Size3d(double.infinity, double.infinity, 0),
             (box) => held = box,
           ),
@@ -97,14 +97,14 @@ void main() {
   testWidgets('grows by the home indicator and keeps its child clear of it', (
     tester,
   ) async {
-    late TestBox held;
+    late RenderTestBox held;
     final pumped = await pumpComponent(
       tester,
       () => _spent(
         const EdgeInsets3d.only(bottom: 34),
         _atFoot(
           BottomAppBar3d(
-            child: SceneTestBox(
+            child: TestBox(
               const Size3d(double.infinity, double.infinity, 0),
               (box) => held = box,
             ),
@@ -121,12 +121,12 @@ void main() {
   testWidgets('in a scaffold, its buttons can be pressed', (tester) async {
     var searched = 0;
     await tester.pumpSurface3d(
-      SceneTheme3d(
+      Theme3d(
         data: _theme,
         child: Scaffold3d(
-          body: const SceneSizedBox3d(),
+          body: const SizedBox3d(),
           bottomNavigationBar: BottomAppBar3d(
-            child: SceneRow3d(
+            child: Row3d(
               children: <Widget>[
                 IconButton3d(
                   icon: Icons.search,
@@ -151,6 +151,6 @@ void main() {
       () => _atFoot(const BottomAppBar3d()),
       centred: false,
     );
-    expect(boxesOf<Semantics3d>(pumped.surface), isEmpty);
+    expect(boxesOf<RenderSemantics3d>(pumped.surface), isEmpty);
   });
 }

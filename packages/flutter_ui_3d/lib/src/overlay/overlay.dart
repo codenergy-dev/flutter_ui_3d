@@ -35,7 +35,7 @@ typedef Overlay3dBuilder = RenderObject3d Function(Overlay3dEntry entry);
 /// Which surface an [Overlay3dEntry] lives on, and how far in front it sits.
 ///
 /// Two answers, both honest, and the caller picks per entry. See the class
-/// documentation on [Overlay3d] for which to reach for.
+/// documentation on [RenderOverlay3d] for which to reach for.
 sealed class OverlayLayer3d {
   const OverlayLayer3d._();
 
@@ -47,12 +47,13 @@ sealed class OverlayLayer3d {
   /// depth the panel has.
   ///
   /// [lift] is the distance toward the viewer, in world units. Null means the
-  /// default, which is [Overlay3d.defaultLift] logical pixels taken through
-  /// the tree's [Layout3dMetrics] — a lift is a depth-buffer separation, and
-  /// a separation stated in world units is wrong at a different density.
+  /// default, which is [RenderOverlay3d.defaultLift] logical pixels taken
+  /// through the tree's [Layout3dMetrics] — a lift is a depth-buffer
+  /// separation, and a separation stated in world units is wrong at a different
+  /// density.
   const factory OverlayLayer3d.inPlane({double? lift}) = InPlaneOverlayLayer3d;
 
-  /// The entry gets a [Layout3dSurface] of its own, in front of the host.
+  /// The entry gets a [RenderSurface3d] of its own, in front of the host.
   ///
   /// Unbounded by the host panel — a menu may overhang it — and bindable to
   /// the camera independently, so a dialog can face the viewer while the
@@ -83,7 +84,7 @@ class InPlaneOverlayLayer3d extends OverlayLayer3d {
 
   @override
   double liftIn(Layout3dMetrics metrics) =>
-      lift ?? metrics.dp(Overlay3d.defaultLift);
+      lift ?? metrics.dp(RenderOverlay3d.defaultLift);
 
   @override
   bool operator ==(Object other) =>
@@ -117,7 +118,7 @@ class DetachedOverlayLayer3d extends OverlayLayer3d {
   /// it, in the host's layout space.
   ///
   /// The anchor itself is a zero-extent box placed by the overlay's own
-  /// [Stack3d.alignment], so the default of zero puts a centred overlay's
+  /// [RenderStack3d.alignment], so the default of zero puts a centred overlay's
   /// entry at the centre of the panel.
   final Offset3d offset;
 
@@ -147,7 +148,7 @@ class DetachedOverlayLayer3d extends OverlayLayer3d {
   /// The reason to reach for a detached entry at all in many cases: a
   /// [Layout3dCameraBinding.billboard] here keeps a dialog facing the viewer
   /// while the panel it belongs to stays angled. Drive it by calling
-  /// [Overlay3d.updateCameraBindings] once a frame.
+  /// [RenderOverlay3d.updateCameraBindings] once a frame.
   final Layout3dCameraBinding? binding;
 
   /// The identity basis: the entry's layout space is the host's.
@@ -166,7 +167,7 @@ class DetachedOverlayLayer3d extends OverlayLayer3d {
 
   @override
   double liftIn(Layout3dMetrics metrics) =>
-      lift ?? metrics.dp(Overlay3d.defaultLift);
+      lift ?? metrics.dp(RenderOverlay3d.defaultLift);
 
   @override
   String toString() =>
@@ -175,8 +176,8 @@ class DetachedOverlayLayer3d extends OverlayLayer3d {
 
 /// One thing put in front of everything else: a dialog, a menu, a snack bar.
 ///
-/// An entry is inert until an [Overlay3d] takes it, and it is finished once
-/// it is removed — an entry is not reinserted, which is the same contract
+/// An entry is inert until a [RenderOverlay3d] takes it, and it is finished
+/// once it is removed — an entry is not reinserted, which is the same contract
 /// Flutter's `OverlayEntry` keeps. [builder] is called when the entry is
 /// inserted and the layout it returns belongs to the entry: removing it
 /// disposes that subtree, and, for a detached entry, the surface it was on.
@@ -185,10 +186,10 @@ class DetachedOverlayLayer3d extends OverlayLayer3d {
 /// final entry = Overlay3dEntry(
 ///   modal: true,
 ///   onDismiss: () => entry.remove(),
-///   builder: (_) => Container3d(
+///   builder: (_) => RenderContainer3d(
 ///     size: const Size3d(1.2, 0.8, 0.05),
 ///     decoration: panelDecoration,
-///     child: Text3d('Delete this?', renderer: renderer),
+///     child: RenderText3d('Delete this?', renderer: renderer),
 ///   ),
 /// );
 /// overlay.insertEntry(entry);
@@ -215,7 +216,7 @@ class Overlay3dEntry {
   /// Which surface this entry lives on, and how far in front.
   final OverlayLayer3d layer;
 
-  /// Whether a [ModalBarrier3d] is put behind the content.
+  /// Whether a [RenderModalBarrier3d] is put behind the content.
   ///
   /// The barrier fills the overlay, absorbs every ray aimed at what is
   /// behind it, and reports a tap on itself through [onDismiss]. It is the
@@ -238,7 +239,7 @@ class Overlay3dEntry {
   /// tap passes `onDismiss: entry.remove`, and a route lets [Navigator3d] pop
   /// it.
   ///
-  /// The Escape half is an [Actions3d] binding `DismissIntent` around the
+  /// The Escape half is a [RenderActions3d] binding `DismissIntent` around the
   /// entry's content, enabled exactly when [dismissible] is true and this is
   /// set. An entry that is neither modal nor trapping — a snack bar, a
   /// tooltip — carries none, and Escape leaves it alone, as it does in
@@ -247,7 +248,8 @@ class Overlay3dEntry {
 
   /// Builds the scrim geometry inside the barrier, if any.
   ///
-  /// A scrim in a scene is a slab, not an alpha wash; see [ModalBarrier3d].
+  /// A scrim in a scene is a slab, not an alpha wash; see
+  /// [RenderModalBarrier3d].
   final Overlay3dBuilder? scrimBuilder;
 
   /// How deep the barrier's slab is, in world units.
@@ -255,16 +257,16 @@ class Overlay3dEntry {
 
   /// Where the content sits inside a modal entry.
   ///
-  /// Null means the overlay's own [Stack3d.alignment]. Ignored when [modal]
-  /// is false, where the content is a plain child of the overlay and the
-  /// overlay's alignment applies directly.
+  /// Null means the overlay's own [RenderStack3d.alignment]. Ignored when
+  /// [modal] is false, where the content is a plain child of the overlay and
+  /// the overlay's alignment applies directly.
   final Alignment3d? alignment;
 
-  /// Whether the entry's content gets a [FocusScope3d] of its own, and takes
-  /// the focus when it is inserted.
+  /// Whether the entry's content gets a [RenderFocusScope3d] of its own, and
+  /// takes the focus when it is inserted.
   ///
-  /// A trapped entry's focus does not leak: [Focus3d.requestFocus] inside it
-  /// asks the entry's scope rather than the surface's, and
+  /// A trapped entry's focus does not leak: [RenderFocus3d.requestFocus] inside
+  /// it asks the entry's scope rather than the surface's, and
   /// [Focus3dTraversal.traversalRootFor] stops the walk at the same place, so
   /// tabbing inside a dialog cycles the dialog. Defaults to [modal].
   ///
@@ -282,19 +284,19 @@ class Overlay3dEntry {
   /// A name for this entry in diagnostics.
   final String? debugLabel;
 
-  Overlay3d? _overlay;
+  RenderOverlay3d? _overlay;
   _Overlay3dEntryHost? _host;
   RenderObject3d? _content;
-  FocusScope3d? _scope;
+  RenderFocusScope3d? _scope;
   FocusNode? _restoreTo;
   FocusNode? _pendingRestore;
 
-  Layout3dSurface? _surface;
+  RenderSurface3d? _surface;
   Node? _frame;
 
   /// The overlay holding this entry, or null before it is inserted and after
   /// it is removed.
-  Overlay3d? get overlay => _overlay;
+  RenderOverlay3d? get overlay => _overlay;
 
   /// Whether this entry is in an overlay.
   bool get isInserted => _overlay != null;
@@ -304,7 +306,7 @@ class Overlay3dEntry {
   /// Null for an in-plane entry, which has no surface of its own, and before
   /// insertion. What a [Layout3dPointerGroup] is handed so the entry can be
   /// pointed at.
-  Layout3dSurface? get surface => _surface;
+  RenderSurface3d? get surface => _surface;
 
   /// The root of the layout this entry built, including the barrier, the
   /// focus scope and the dismissal binding wrapped around it.
@@ -314,7 +316,7 @@ class Overlay3dEntry {
   RenderObject3d? get content => _content;
 
   /// The focus scope this entry traps focus in, when [trapFocus] is set.
-  FocusScope3d? get focusScope => _scope;
+  RenderFocusScope3d? get focusScope => _scope;
 
   /// Takes this entry out of its overlay, disposing what it built.
   ///
@@ -354,14 +356,14 @@ class Overlay3dEntry {
   // ------------------------------------------------------------- internals
 
   /// Builds the content, wrapping it in the barrier and the focus scope.
-  void _build(Overlay3d overlay, {required bool takeFocus}) {
+  void _build(RenderOverlay3d overlay, {required bool takeFocus}) {
     var root = builder(this);
     if (modal) {
-      root = Stack3d(
+      root = RenderStack3d(
         alignment: alignment ?? overlay.alignment,
         name: 'Overlay3dEntry.modal',
         children: <RenderObject3d>[
-          ModalBarrier3d(
+          RenderModalBarrier3d(
             dismissible: dismissible,
             onDismiss: onDismiss,
             thickness: scrimThickness,
@@ -376,7 +378,7 @@ class Overlay3dEntry {
       // attaching it under the new scope before the old scope, disposed with
       // the old subtree, detached it — and the node would end up parented
       // nowhere. A rebuilt entry starts with focus wherever its content asks.
-      root = _scope = FocusScope3d(
+      root = _scope = RenderFocusScope3d(
         debugLabel: debugLabel ?? 'Overlay3dEntry',
         autofocus: takeFocus,
         child: root,
@@ -387,7 +389,7 @@ class Overlay3dEntry {
       // well as above everything in it: a dialog that has just opened holds
       // the focus in its scope, with nothing inside focused yet, and Escape
       // has to work from there.
-      root = Actions3d(
+      root = RenderActions3d(
         actions: <Type, Action<Intent>>{
           DismissIntent: _DismissEntryAction(this),
         },
@@ -398,7 +400,7 @@ class Overlay3dEntry {
     _content = root;
   }
 
-  void _insertInto(Overlay3d overlay) {
+  void _insertInto(RenderOverlay3d overlay) {
     assert(_overlay == null, 'An Overlay3dEntry is inserted once.');
     _overlay = overlay;
     _restoreTo = restoreFocus ? FocusManager.instance.primaryFocus : null;
@@ -422,12 +424,12 @@ class Overlay3dEntry {
   /// what it is hanging under. The plane below it is the surface's own, and
   /// is the thing the binding writes.
   void _attachSurface(
-    Overlay3d overlay,
+    RenderOverlay3d overlay,
     DetachedOverlayLayer3d layer,
     _Overlay3dEntryHost host,
   ) {
     final frame = _frame = Node()..name = 'Overlay3dEntry.frame';
-    final surface = _surface = Layout3dSurface(
+    final surface = _surface = RenderSurface3d(
       constraints: layer.constraints ?? const Constraints3d(),
       basis: layer.effectiveBasis,
       metrics: overlay.metrics,
@@ -436,19 +438,19 @@ class Overlay3dEntry {
       child: _content,
       name: debugLabel ?? 'Overlay3dEntry',
     );
-    Overlay3d._detachedOwners[surface] = overlay;
+    RenderOverlay3d._detachedOwners[surface] = overlay;
     frame.add(surface.plane);
     host.node.add(frame);
   }
 
-  void _removedFrom(Overlay3d overlay) {
+  void _removedFrom(RenderOverlay3d overlay) {
     assert(identical(_overlay, overlay));
     _pendingRestore = (_scope?.scopeNode.hasFocus ?? false) ? _restoreTo : null;
     _overlay = null;
     _restoreTo = null;
     final surface = _surface;
     if (surface != null) {
-      Overlay3d._detachedOwners[surface] = null;
+      RenderOverlay3d._detachedOwners[surface] = null;
       _host?.node.remove(_frame!);
       _frame = null;
       _surface = null;
@@ -524,14 +526,14 @@ class _DismissEntryAction extends DismissAction {
 ///
 /// The lift is applied here rather than by the overlay's [performLayout],
 /// through [RenderObject3d.sceneOffset], so it moves the geometry and nothing
-/// else: the box stays where the stack put it, a [Positioned3d] inside the
-/// entry still pins to the face it named, and a ray still finds the entry by
-/// its place in the stack rather than by how far it was lifted.
+/// else: the box stays where the stack put it, a [RenderPositioned3d] inside
+/// the entry still pins to the face it named, and a ray still finds the entry
+/// by its place in the stack rather than by how far it was lifted.
 ///
 /// ## Why it pins itself to the front face
 ///
-/// An in-plane host is a [Positioned3d] with `front: 0` and nothing else, so
-/// the overlay's alignment still places it across and no longer places it in
+/// An in-plane host is a [RenderPositioned3d] with `front: 0` and nothing else,
+/// so the overlay's alignment still places it across and no longer places it in
 /// **depth**. That is the half of this box that cost real time.
 ///
 /// A lift is a distance from a face, and every caller computing one — a
@@ -557,7 +559,7 @@ class _DismissEntryAction extends DismissAction {
 /// A detached entry is not pinned: it has a surface of its own, placed from
 /// the anchor the overlay gives it, and [DetachedOverlayLayer3d.offset] is
 /// how a caller moves that.
-class _Overlay3dEntryHost extends Positioned3d {
+class _Overlay3dEntryHost extends RenderPositioned3d {
   _Overlay3dEntryHost(this.entry)
     : super(
         front: entry.layer is DetachedOverlayLayer3d ? null : 0.0,
@@ -577,11 +579,11 @@ class _Overlay3dEntryHost extends Positioned3d {
 /// content inserted from anywhere, above everything, outside the bounds of
 /// whatever asked for it. Its children come in two kinds. The ones given as
 /// [children] are the base — the application's own content, laid out as an
-/// ordinary [Stack3d] would — and the [entries] are what has been put in
+/// ordinary [RenderStack3d] would — and the [entries] are what has been put in
 /// front, in order, the last one nearest the viewer.
 ///
 /// ```dart
-/// final overlay = Overlay3d(children: [page]);
+/// final overlay = RenderOverlay3d(children: [page]);
 /// surface.child = overlay;
 ///
 /// final entry = Overlay3dEntry(modal: true, builder: (_) => dialog);
@@ -602,7 +604,7 @@ class _Overlay3dEntryHost extends Positioned3d {
 /// overlay's box, so a menu cannot overhang the panel's edge, and the lift
 /// spends whatever depth the panel has.
 ///
-/// Detached gives the entry a [Layout3dSurface] of its own, hung under the
+/// Detached gives the entry a [RenderSurface3d] of its own, hung under the
 /// overlay's node so it follows the panel, and bindable to a camera on its
 /// own account so that a dialog can face the viewer while the panel behind it
 /// stays angled. Flutter has no analogue of that second half. The cost is
@@ -613,13 +615,13 @@ class _Overlay3dEntryHost extends Positioned3d {
 /// ## Focus
 ///
 /// A modal entry traps focus by default: its content is wrapped in a
-/// [FocusScope3d], [Focus3d.requestFocus] inside it asks that scope, and
-/// [Focus3dTraversal.traversalRootFor] stops the walk there. Removing the
-/// entry hands focus back to whatever held it before, when the entry still
-/// had it.
-class Overlay3d extends Stack3d {
+/// [RenderFocusScope3d], [RenderFocus3d.requestFocus] inside it asks that
+/// scope, and [Focus3dTraversal.traversalRootFor] stops the walk there.
+/// Removing the entry hands focus back to whatever held it before, when the
+/// entry still had it.
+class RenderOverlay3d extends RenderStack3d {
   /// Creates an overlay over [children].
-  Overlay3d({
+  RenderOverlay3d({
     super.alignment = Alignment3d.center,
     super.fit,
     super.depthStep,
@@ -647,9 +649,8 @@ class Overlay3d extends Stack3d {
   /// is what lets [of] answer from inside a detached entry, where the layout
   /// tree ends at the entry's own surface instead of continuing up to the
   /// overlay.
-  static final Expando<Overlay3d> _detachedOwners = Expando<Overlay3d>(
-    'Overlay3d',
-  );
+  static final Expando<RenderOverlay3d> _detachedOwners =
+      Expando<RenderOverlay3d>('RenderOverlay3d');
 
   final List<Overlay3dEntry> _entries = <Overlay3dEntry>[];
 
@@ -663,7 +664,7 @@ class Overlay3d extends Stack3d {
   /// What the declarative layer listens to. An entry's content is a
   /// [RenderObject3d] built by [Overlay3dEntry.builder], but a *widget*-built
   /// entry needs its subtree to exist in the element tree, and only a rebuild
-  /// of the widget that owns the overlay can put it there. [SceneOverlay3d]
+  /// of the widget that owns the overlay can put it there. [Overlay3d]
   /// listens here and rebuilds; nothing else has to.
   ///
   /// **Fired synchronously, from inside the insertion.** A listener that
@@ -680,7 +681,7 @@ class Overlay3d extends Stack3d {
   ///
   /// What a [Layout3dPointerGroup] routes rays through, in the order they
   /// stand in.
-  List<Layout3dSurface> get detachedSurfaces => <Layout3dSurface>[
+  List<RenderSurface3d> get detachedSurfaces => <RenderSurface3d>[
     for (final entry in _entries)
       if (entry._surface case final surface?) surface,
   ];
@@ -691,11 +692,11 @@ class Overlay3d extends Stack3d {
   /// handed a handle. It crosses out of a detached entry: a box inside one
   /// finds the overlay that entry belongs to, not nothing, even though the
   /// layout tree it is in ends at the entry's own surface.
-  static Overlay3d? of(RenderObject3d layout) {
+  static RenderOverlay3d? of(RenderObject3d layout) {
     RenderObject3d? node = layout;
     while (node != null) {
-      if (node is Overlay3d) return node;
-      if (node is Layout3dSurface) {
+      if (node is RenderOverlay3d) return node;
+      if (node is RenderSurface3d) {
         final owner = _detachedOwners[node];
         if (owner == null) return null;
         node = owner;
@@ -951,9 +952,9 @@ class Overlay3d extends Stack3d {
   }
 }
 
-/// Carries [Overlay3d.entriesChanged].
+/// Carries [RenderOverlay3d.entriesChanged].
 ///
-/// A field rather than a mixin on [Overlay3d] itself: a [RenderObject3d]
+/// A field rather than a mixin on [RenderOverlay3d] itself: a [RenderObject3d]
 /// already has a `dispose`, and folding [ChangeNotifier]'s into it would make
 /// the two lifecycles one thing that has to be got right in both directions.
 class _Overlay3dEntriesNotifier extends ChangeNotifier {

@@ -39,11 +39,11 @@ Widget filledButton(
   alignment: null,
   child: InkWell3d(
     onTap: submit,
-    child: ScenePadding3d(
+    child: Padding3d(
       padding: metrics.dpInsets(
         const EdgeInsets3d.symmetric(horizontal: 24, vertical: 10),
       ),
-      child: const SceneText3d('Continue'),
+      child: const Text3d('Continue'),
     ),
   ),
 );
@@ -59,32 +59,32 @@ Widget everyButton({
   required VoidCallback open,
   required VoidCallback dismiss,
   required VoidCallback compose,
-}) => SceneColumn3d(
+}) => Column3d(
   children: <Widget>[
     FilledButton3d(
       onPressed: save,
       semanticLabel: 'Save',
-      child: const SceneText3d('Save'),
+      child: const Text3d('Save'),
     ),
     FilledTonalButton3d(
       onPressed: share,
       semanticLabel: 'Share',
-      child: const SceneText3d('Share'),
+      child: const Text3d('Share'),
     ),
     OutlinedButton3d(
       onPressed: cancel,
       semanticLabel: 'Cancel',
-      child: const SceneText3d('Cancel'),
+      child: const Text3d('Cancel'),
     ),
     TextButton3d(
       onPressed: more,
       semanticLabel: 'More',
-      child: const SceneText3d('More'),
+      child: const Text3d('More'),
     ),
     ElevatedButton3d(
       onPressed: open,
       semanticLabel: 'Open',
-      child: const SceneText3d('Open'),
+      child: const Text3d('Open'),
     ),
     IconButton3d(icon: Icons.close, onPressed: dismiss, semanticLabel: 'Close'),
     FloatingActionButton3d(
@@ -109,21 +109,21 @@ class _ButtonDemoState extends State<ButtonDemo> {
   var _saved = false;
 
   @override
-  Widget build(BuildContext context) => SceneLayout3d(
+  Widget build(BuildContext context) => Surface3d(
     parent: widget.parent,
     size: const Size3d(4, 3, 0.5),
-    child: SceneTheme3d(
+    child: Theme3d(
       data: Theme3dData.light,
       textRendererFactory: AtlasText3dRenderer.new,
-      child: SceneCenter3d(
-        child: SceneRow3d(
+      child: Center3d(
+        child: Row3d(
           mainAxisSize: MainAxisSize3d.min,
           spacing: 0.16,
           children: <Widget>[
             FilledButton3d(
               onPressed: () => setState(() => _saved = true),
               semanticLabel: 'Save',
-              child: const SceneText3d('Save'),
+              child: const Text3d('Save'),
             ),
             // Disabled once it has been saved. There is no opacity anywhere
             // in this stack, so it is drawn in different colours instead:
@@ -131,7 +131,7 @@ class _ButtonDemoState extends State<ButtonDemo> {
             TextButton3d(
               onPressed: _saved ? null : () {},
               semanticLabel: 'Discard',
-              child: const SceneText3d('Discard'),
+              child: const Text3d('Discard'),
             ),
           ],
         ),
@@ -146,19 +146,19 @@ Widget restyledButton(BuildContext context) => FilledButton3d(
     ButtonVariant3d.filled,
   ).copyWith(shape: Theme3d.of(context).shape.small),
   onPressed: () {},
-  child: const SceneText3d('Save'),
+  child: const Text3d('Save'),
 );
 
 // -------------------------------------------------------------- Icons, and
 // naming a type style instead of building one.
 
-Widget icons(Theme3dData theme) => SceneTextStyle3d(
+Widget icons(Theme3dData theme) => TextStyle3d(
   style: Typography3dToken.titleMedium,
   color: theme.colorScheme.onSurfaceVariant,
-  child: SceneColumn3d(
+  child: Column3d(
     children: <Widget>[
       const Icon3d(Icons.favorite, size: 24),
-      SceneText3d(
+      Text3d(
         'Inbox',
         style: theme.textStyle(
           Typography3dToken.labelLarge,
@@ -172,13 +172,13 @@ Widget icons(Theme3dData theme) => SceneTextStyle3d(
 // ---------------------------------------------------------------- Getting a
 // theme in place.
 
-Widget screen(Node parent) => SceneLayout3d(
+Widget screen(Node parent) => Surface3d(
   parent: parent,
   size: const Size3d(4, 3, 0.5),
-  child: SceneTheme3d(
+  child: Theme3d(
     data: Theme3dData.dark,
     textRendererFactory: AtlasText3dRenderer.new,
-    child: SceneCenter3d(
+    child: Center3d(
       child: Builder(
         builder: (context) {
           final theme = Theme3d.of(context);
@@ -194,7 +194,7 @@ Widget screen(Node parent) => SceneLayout3d(
             ),
             child: InkWell3d(
               onTap: () => debugPrint('tapped'),
-              child: const SceneText3d('Continue'),
+              child: const Text3d('Continue'),
             ),
           );
         },
@@ -206,7 +206,7 @@ Widget screen(Node parent) => SceneLayout3d(
 // ------------------------------------------------------ A unit conversion in
 // a build method.
 
-Widget padded(Layout3dMetrics metrics, Widget child) => ScenePadding3d(
+Widget padded(Layout3dMetrics metrics, Widget child) => Padding3d(
   padding: metrics.dpInsets(const EdgeInsets3d.all(16)),
   child: child,
 );
@@ -214,7 +214,7 @@ Widget padded(Layout3dMetrics metrics, Widget child) => ScenePadding3d(
 // ------------------------------------------------------- The imperative-only
 // spelling, and a box reading the theme.
 
-Widget imperativelyThemed(Node parent, Widget screen) => SceneLayout3d(
+Widget imperativelyThemed(Node parent, Widget screen) => Surface3d(
   parent: parent,
   slots: {Theme3dData.slot: Theme3dData.dark}, // not a const map, see below
   child: screen,
@@ -255,7 +255,7 @@ Widget inboxCard({
 }) => ElevatedCard3d(
   onTap: open,
   semanticLabel: 'Yesterday',
-  child: SceneColumn3d(
+  child: Column3d(
     mainAxisSize: MainAxisSize3d.min,
     children: <Widget>[
       ListTile3d.text(
@@ -285,7 +285,7 @@ class _ChipDemoState extends State<ChipDemo> {
 
   @override
   Widget build(BuildContext context) => FilterChip3d(
-    label: const SceneText3d('Unread'),
+    label: const Text3d('Unread'),
     selected: _unreadOnly,
     onSelected: (value) => setState(() => _unreadOnly = value),
     semanticLabel: 'Unread only',
@@ -324,7 +324,7 @@ class _ScreenDemoState extends State<ScreenDemo> {
   @override
   Widget build(BuildContext context) => Scaffold3d(
     appBar: AppBar3d.text(title: 'Inbox'),
-    body: SceneListView3d(children: widget.rows),
+    body: ListView3d(children: widget.rows),
     bottomNavigationBar: NavigationBar3d(
       selectedIndex: _index,
       destinations: destinations,
@@ -339,21 +339,21 @@ class _ScreenDemoState extends State<ScreenDemo> {
 
   /// The scrolling half of the same screen: the bar is a sliver, so it goes
   /// in the body's own scroll view rather than in the `appBar` slot.
-  Widget scrollingBody() => SceneCustomScrollView3d(
+  Widget scrollingBody() => CustomScrollView3d(
     controller: _scroll,
     slivers: <Widget>[
       SliverAppBar3d.text(title: 'Inbox', pinned: true),
-      SceneSliverList3d(children: widget.rows),
+      SliverList3d(children: widget.rows),
     ],
   );
 }
 
 /// A full-view screen: the binding is what the scaffold deliberately does not
 /// own.
-Widget boundScreen(Camera camera, Widget bar, Widget body) => SceneLayout3d(
+Widget boundScreen(Camera camera, Widget bar, Widget body) => Surface3d(
   camera: camera,
   binding: const Layout3dCameraBinding.screenFilling(distance: 2),
-  child: SceneTheme3d(
+  child: Theme3d(
     data: Theme3dData.light,
     textRendererFactory: AtlasText3dRenderer.new,
     child: Scaffold3d(appBar: bar, body: body),
@@ -361,12 +361,12 @@ Widget boundScreen(Camera camera, Widget bar, Widget body) => SceneLayout3d(
 );
 
 /// A rail wants a rule beside it, which is why the vertical divider exists.
-Widget railAndBody(int index, Widget body) => SceneRow3d(
+Widget railAndBody(int index, Widget body) => Row3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
     NavigationRail3d(selectedIndex: index, destinations: destinations),
     const VerticalDivider3d(),
-    SceneExpanded3d(child: body),
+    Expanded3d(child: body),
   ],
 );
 
@@ -374,13 +374,13 @@ Widget railAndBody(int index, Widget body) => SceneRow3d(
 // dialogs, menus, snack bars, tooltips and sheets.
 
 /// The order an application puts an overlay, a messenger and a screen in.
-Widget overlaidApp(Camera camera, Widget bar, Widget body) => SceneLayout3d(
+Widget overlaidApp(Camera camera, Widget bar, Widget body) => Surface3d(
   camera: camera,
   binding: const Layout3dCameraBinding.screenFilling(distance: 2),
-  child: SceneTheme3d(
+  child: Theme3d(
     data: Theme3dData.light,
     textRendererFactory: AtlasText3dRenderer.new,
-    child: SceneOverlay3d(
+    child: Overlay3d(
       camera: camera,
       child: ScaffoldMessenger3d(
         child: Scaffold3d(appBar: bar, body: body),
@@ -399,15 +399,13 @@ Future<void> confirmDelete(BuildContext context) async {
       actions: <Widget>[
         TextButton3d(
           semanticLabel: 'Cancel',
-          onPressed: () =>
-              Navigator3d.of(SceneOverlay3d.of(context))?.pop(false),
-          child: const SceneText3d('Cancel'),
+          onPressed: () => Navigator3d.of(Overlay3d.of(context))?.pop(false),
+          child: const Text3d('Cancel'),
         ),
         TextButton3d(
           semanticLabel: 'Delete',
-          onPressed: () =>
-              Navigator3d.of(SceneOverlay3d.of(context))?.pop(true),
-          child: const SceneText3d('Delete'),
+          onPressed: () => Navigator3d.of(Overlay3d.of(context))?.pop(true),
+          child: const Text3d('Delete'),
         ),
       ],
     ),
@@ -449,7 +447,7 @@ class _SettingsPanelState extends State<SettingsPanel> {
   double _volume = 0.4;
 
   @override
-  Widget build(BuildContext context) => SceneColumn3d(
+  Widget build(BuildContext context) => Column3d(
     crossAxisAlignment: CrossAxisAlignment3d.start,
     children: <Widget>[
       Checkbox3d(
@@ -515,7 +513,7 @@ class _DownloadDemoState extends State<DownloadDemo> {
   final int _total = 10;
 
   @override
-  Widget build(BuildContext context) => SceneColumn3d(
+  Widget build(BuildContext context) => Column3d(
     crossAxisAlignment: CrossAxisAlignment3d.stretch,
     children: <Widget>[
       LinearProgressIndicator3d(
@@ -551,17 +549,17 @@ class _FirstScreenState extends State<FirstScreen> {
     scene,
     camera: camera,
     children: [
-      SceneLayout3d(
+      Surface3d(
         size: const Size3d(3.5, 2.4, 0.6),
-        child: SceneTheme3d(
+        child: Theme3d(
           data: Theme3dData.dark,
           textRendererFactory: AtlasText3dRenderer.new,
           child: Scaffold3d(
-            appBar: const AppBar3d(title: SceneText3d('Inbox')),
-            body: SceneCenter3d(
+            appBar: const AppBar3d(title: Text3d('Inbox')),
+            body: Center3d(
               child: FilledButton3d(
                 onPressed: () {},
-                child: const SceneText3d('Continue'),
+                child: const Text3d('Continue'),
               ),
             ),
           ),
@@ -615,7 +613,7 @@ Widget calendarPicker(Calendar view, void Function(Calendar) setView) =>
 
 Widget mailboxTabs(Widget inbox, Widget sent) => DefaultTabController(
   length: 2,
-  child: SceneColumn3d(
+  child: Column3d(
     crossAxisAlignment: CrossAxisAlignment3d.stretch,
     children: <Widget>[
       const TabBar3d(
@@ -624,7 +622,7 @@ Widget mailboxTabs(Widget inbox, Widget sent) => DefaultTabController(
           Tab3d(text: 'Sent'),
         ],
       ),
-      SceneExpanded3d(child: TabBarView3d(children: <Widget>[inbox, sent])),
+      Expanded3d(child: TabBarView3d(children: <Widget>[inbox, sent])),
     ],
   ),
 );
@@ -633,7 +631,7 @@ Widget deliveryGroup(String delivery, ValueChanged<String> setDelivery) =>
     RadioGroup3d<String>(
       groupValue: delivery,
       onChanged: (value) => setDelivery(value ?? delivery),
-      child: SceneColumn3d(
+      child: Column3d(
         mainAxisSize: MainAxisSize3d.min,
         depthAxisAlignment: CrossAxisAlignment3d.start,
         children: <Widget>[

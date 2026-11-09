@@ -97,7 +97,7 @@ class ColorScheme3d {
   /// This is what an application with a brand actually builds a theme from:
   ///
   /// ```dart
-  /// SceneTheme3d(
+  /// Theme3d(
   ///   data: Theme3dData(
   ///     colorScheme: ColorScheme3d.fromSeed(
   ///       seedColor: const Color(0xFF00696E),

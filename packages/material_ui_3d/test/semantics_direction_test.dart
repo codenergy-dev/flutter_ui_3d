@@ -20,8 +20,8 @@ import 'package:material_ui_3d/material_ui_3d.dart';
 import 'surfaces_support.dart';
 
 /// Every direction published by a box that also publishes a label.
-List<TextDirection?> directionsIn(Layout3dSurface surface) => <TextDirection?>[
-  for (final box in boxesOf<Semantics3d>(surface))
+List<TextDirection?> directionsIn(RenderSurface3d surface) => <TextDirection?>[
+  for (final box in boxesOf<RenderSemantics3d>(surface))
     if (box.properties.label?.isNotEmpty ?? false) box.properties.textDirection,
 ];
 
@@ -42,7 +42,7 @@ void main() {
     'FilledButton3d': () => FilledButton3d(
       semanticLabel: 'Save',
       onPressed: () {},
-      child: const SceneText3d('Save'),
+      child: const Text3d('Save'),
     ),
     'IconButton3d': () => IconButton3d(
       icon: Icons.search,
@@ -52,9 +52,8 @@ void main() {
     'Icon3d': () => const Icon3d(Icons.edit, semanticLabel: 'Compose'),
     'Card3d': () => const Card3d(semanticLabel: 'A card'),
     'ListTile3d': () =>
-        const ListTile3d(title: SceneText3d('Row'), semanticLabel: 'Row'),
-    'Chip3d': () =>
-        const Chip3d(label: SceneText3d('All'), semanticLabel: 'All'),
+        const ListTile3d(title: Text3d('Row'), semanticLabel: 'Row'),
+    'Chip3d': () => const Chip3d(label: Text3d('All'), semanticLabel: 'All'),
     'Divider3d': () => const Divider3d(semanticLabel: 'Section break'),
     'AppBar3d': () => AppBar3d.text(title: 'Inbox'),
     'NavigationBar3d': () => const NavigationBar3d(

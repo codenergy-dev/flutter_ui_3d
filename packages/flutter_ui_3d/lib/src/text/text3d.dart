@@ -26,16 +26,16 @@ import 'text_renderer.dart';
 ///
 /// The leaf every label in a component library is built out of, and the first
 /// thing in this package that answers the measurement protocol with something
-/// real: a `Text3d` reports intrinsic extents that mean what they say, and it
-/// states an alphabetic baseline, which until now only [Baseline3d] could do
-/// and only by being told the number.
+/// real: a `RenderText3d` reports intrinsic extents that mean what they say,
+/// and it states an alphabetic baseline, which until now only
+/// [RenderBaseline3d] could do and only by being told the number.
 ///
 /// ```dart
-/// Row3d(
+/// RenderRow3d(
 ///   crossAxisAlignment: CrossAxisAlignment3d.baseline,
 ///   children: [
-///     Text3d('Save', style: const TextStyle(fontSize: 14)),
-///     Text3d('⌘S', style: const TextStyle(fontSize: 11)),
+///     RenderText3d('Save', style: const TextStyle(fontSize: 14)),
+///     RenderText3d('⌘S', style: const TextStyle(fontSize: 11)),
 ///   ],
 /// )
 /// ```
@@ -50,8 +50,8 @@ import 'text_renderer.dart';
 /// asked for a bigger font, and it costs no re-measurement — which matters,
 /// because changing the metrics relayouts the whole tree. A box holds one
 /// [style], so a `TextScaler` that is not linear *across* sizes still resolves
-/// to one multiplier here; `RichText3d`, which holds many, cannot do this and
-/// hands its painter the scaler instead.
+/// to one multiplier here; `RenderRichText3d`, which holds many, cannot do this
+/// and hands its painter the scaler instead.
 ///
 /// **The box has no thickness.** Glyphs are flat, and the slab behind a label
 /// belongs to whatever draws the label's background. [depth] is there for the
@@ -59,16 +59,16 @@ import 'text_renderer.dart';
 /// reserve room in front of a panel.
 ///
 /// **It draws nothing without a [renderer].** Measurement and rasterization
-/// are separated on purpose (see [Text3dRenderer]); a `Text3d` on its own
+/// are separated on purpose (see [Text3dRenderer]); a `RenderText3d` on its own
 /// lays out, sizes, answers intrinsics and states a baseline, which is
 /// everything the layout protocol needs and everything this package's tests
 /// exercise. A renderer is *owned* by the box that holds it, so a screen of
 /// labels wants one each rather than one shared: hand each box a
 /// [rendererFactory], or, from the widget layer, put a
-/// `DefaultTextRenderer3d` above them and let `SceneText3d` do it.
-class Text3d extends RenderObject3d {
+/// `DefaultTextRenderer3d` above them and let `Text3d` do it.
+class RenderText3d extends RenderObject3d {
   /// Creates a text box over [data].
-  Text3d(
+  RenderText3d(
     String data, {
     TextStyle style = defaultStyle,
     TextAlign textAlign = TextAlign.start,
@@ -98,7 +98,7 @@ class Text3d extends RenderObject3d {
        _renderer = renderer ?? rendererFactory?.call(),
        assert(
          renderer == null || rendererFactory == null,
-         'A Text3d takes a renderer or a factory to make one from, not both.',
+         'A RenderText3d takes a renderer or a factory to make one from, not both.',
        ),
        assert(maxLines == null || maxLines > 0),
        assert(depth >= 0.0);
@@ -108,8 +108,8 @@ class Text3d extends RenderObject3d {
   /// Material's body size, in logical pixels, and nothing else: there is no
   /// `DefaultTextStyle` to inherit from here, because there is no
   /// `BuildContext` in the imperative layer. A component library states its
-  /// own styles and passes them down; this is only so that a `Text3d` written
-  /// in a test or a sketch has a size at all.
+  /// own styles and passes them down; this is only so that a `RenderText3d`
+  /// written in a test or a sketch has a size at all.
   static const TextStyle defaultStyle = TextStyle(fontSize: 14.0);
 
   /// What a truncated line ends with.
@@ -155,7 +155,7 @@ class Text3d extends RenderObject3d {
   ///
   /// Not a second home for the reader's setting: the setting is still the
   /// surface's, and this is what one label does with it. The widget layer
-  /// fills it from `SceneTextScaling3d`, so a component clamps a subtree
+  /// fills it from `TextScaling3d`, so a component clamps a subtree
   /// without reaching every label in it.
   TextScaler? get textScaler => _textScaler;
 
@@ -299,7 +299,7 @@ class Text3d extends RenderObject3d {
   ///
   /// The seam an inherited default hangs off: `DefaultTextRenderer3d` carries
   /// a [Text3dRendererFactory] rather than a renderer, and every
-  /// `SceneText3d` under it writes the same function here. Setting the *same*
+  /// `Text3d` under it writes the same function here. Setting the *same*
   /// function again is a no-op, which is what keeps a rebuild from building
   /// and disposing a renderer per frame; setting a different one disposes
   /// what the old one made and calls the new one once.
@@ -433,9 +433,9 @@ class Text3d extends RenderObject3d {
   /// without a word standing outside it.
   ///
   /// Answered from the prepared handle, with no line breaking and no layout
-  /// pass, which is what makes an [IntrinsicWidth3d] over a column of labels
-  /// affordable. The vertical answer is not free in the same way — a height
-  /// depends on a width, so it has to break lines — but it breaks them
+  /// pass, which is what makes a [RenderIntrinsicWidth3d] over a column of
+  /// labels affordable. The vertical answer is not free in the same way — a
+  /// height depends on a width, so it has to break lines — but it breaks them
   /// arithmetically.
   @override
   double computeMinIntrinsicExtent(Axis3d axis, Size3d limits) =>
@@ -531,9 +531,9 @@ class Text3d extends RenderObject3d {
   /// moved, so this runs on every frame of a scroll without anything laying
   /// out.
   ///
-  /// Only a node this label hid is shown again, for the reason [ClipBox3d]
-  /// restores only what it culled: a list hides its items, and a label that
-  /// is a list's item is not this method's to show.
+  /// Only a node this label hid is shown again, for the reason
+  /// [RenderClipBox3d] restores only what it culled: a list hides its items,
+  /// and a label that is a list's item is not this method's to show.
   ///
   /// The test is against the **ink**, not the box. A label in a column that
   /// stretches its children is as wide as the column, and its glyphs sit at
@@ -578,12 +578,12 @@ class Text3d extends RenderObject3d {
   }
 
   /// A label is something the reader points at, the same way the content of a
-  /// [NodeBox3d] is.
+  /// [RenderNodeBox3d] is.
   ///
   /// The hit is against the box, not the glyphs: a ray through the gap
   /// between two letters still finds the label, which is what makes a word
-  /// easy to click. Wrap it in an [IgnorePointer3d] for a label that should
-  /// let a ray through to whatever is behind it — which is what a label
+  /// easy to click. Wrap it in a [RenderIgnorePointer3d] for a label that
+  /// should let a ray through to whatever is behind it — which is what a label
   /// inside a button wants, so that the button answers rather than the text.
   @override
   bool hitTestSelf(Offset3d position) => true;

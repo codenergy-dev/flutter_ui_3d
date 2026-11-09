@@ -257,13 +257,13 @@ void main() {
       final pumped = await pumpOverlay(tester);
       showDialog3d<void>(
         context: pumped.context,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       // One frame to build the entry's subtree, then half the 150ms.
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 75));
 
-      final moving = oneOf<MotionTransition3d>(pumped.surface);
+      final moving = oneOf<RenderMotionTransition3d>(pumped.surface);
       expect(
         moving.nodeTransform,
         isNotNull,
@@ -275,7 +275,7 @@ void main() {
         reason: 'and part way through its fade',
       );
       // The scrim dims on a box of its own, which is what keeps it still.
-      final scrim = oneOf<FadeTransition3d>(pumped.surface);
+      final scrim = oneOf<RenderFadeTransition3d>(pumped.surface);
       expect(scrim.imposedOpacity, lessThan(1.0));
       expect(scrim.nodeOffset, Offset3d.zero);
 
@@ -303,13 +303,13 @@ void main() {
       showModalBottomSheet3d<void>(
         context: pumped.context,
         builder: (context) => const BottomSheet3d(
-          child: SceneSizedBox3d(width: 2, height: 0.8, depth: 0.02),
+          child: SizedBox3d(width: 2, height: 0.8, depth: 0.02),
         ),
       );
       await tester.pump();
       await tester.pump();
 
-      final moving = oneOf<MotionTransition3d>(pumped.surface);
+      final moving = oneOf<RenderMotionTransition3d>(pumped.surface);
       // Its own height, not a figure: the sheet is 0.8 tall plus its padding,
       // and whatever that came to is how far down it starts.
       expect(moving.nodeOffset.y, closeTo(moving.size.height, 1e-6));
@@ -326,13 +326,13 @@ void main() {
         edge: Sheet3dEdge.right,
         builder: (context) => const BottomSheet3d(
           edge: Sheet3dEdge.right,
-          child: SceneSizedBox3d(width: 1.5, height: 2, depth: 0.02),
+          child: SizedBox3d(width: 1.5, height: 2, depth: 0.02),
         ),
       );
       await tester.pump();
       await tester.pump();
 
-      final moving = oneOf<MotionTransition3d>(pumped.surface);
+      final moving = oneOf<RenderMotionTransition3d>(pumped.surface);
       expect(
         moving.nodeOffset.x,
         closeTo(moving.size.width, 1e-6),
@@ -345,10 +345,7 @@ void main() {
     testWidgets('a tooltip fades and moves nothing', (tester) async {
       final pumped = await pumpOverlay(
         tester,
-        child: const Tooltip3d(
-          message: 'Compose',
-          child: SceneSizedBox3d.cube(0.5),
-        ),
+        child: const Tooltip3d(message: 'Compose', child: SizedBox3d.cube(0.5)),
       );
       final style = TooltipStyle3d.of(Theme3dData.light);
       expect(style.arrival.motion, const Motion3d.fade());
@@ -359,7 +356,7 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 75));
 
-      final moving = oneOf<MotionTransition3d>(pumped.surface);
+      final moving = oneOf<RenderMotionTransition3d>(pumped.surface);
       expect(moving.imposedOpacity, lessThan(1.0));
       expect(moving.nodeOffset, Offset3d.zero, reason: 'a fade moves nothing');
       expect(moving.nodeTransform, isNull);
@@ -373,7 +370,7 @@ void main() {
     ) async {
       final pumped = await pumpOverlay(tester, child: const _Messenger());
       final messenger = ScaffoldMessenger3d.of(
-        tester.element(find.byType(SceneText3d)),
+        tester.element(find.byType(Text3d)),
       );
       messenger.show(const SnackBar3d(message: 'Saved'));
       messenger.show(const SnackBar3d(message: 'Deleted'));
@@ -388,7 +385,7 @@ void main() {
         hasLength(1),
         reason: 'the first is still sinking and the second has not risen',
       );
-      final leaving = oneOf<MotionTransition3d>(pumped.surface);
+      final leaving = oneOf<RenderMotionTransition3d>(pumped.surface);
       expect(leaving.nodeOffset.y, greaterThan(0.0));
 
       await tester.pumpAndSettle();
@@ -398,7 +395,7 @@ void main() {
         reason: 'and now it is the second one, at rest',
       );
       expect(
-        oneOf<MotionTransition3d>(pumped.surface).nodeOffset,
+        oneOf<RenderMotionTransition3d>(pumped.surface).nodeOffset,
         Offset3d.zero,
       );
 
@@ -415,5 +412,5 @@ class _Messenger extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      const ScaffoldMessenger3d(child: SceneText3d('screen'));
+      const ScaffoldMessenger3d(child: Text3d('screen'));
 }

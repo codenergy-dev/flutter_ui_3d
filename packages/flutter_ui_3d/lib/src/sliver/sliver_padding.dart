@@ -12,9 +12,9 @@ import 'sliver_constraints.dart';
 
 /// Insets another sliver, the 3D analogue of [SliverPadding].
 ///
-/// A [Padding3d] cannot do this job, because a sliver does not answer the box
-/// protocol: it is handed a window and reports what it filled, so padding it
-/// means moving the window rather than shrinking a size. This sliver does
+/// A [RenderPadding3d] cannot do this job, because a sliver does not answer the
+/// box protocol: it is handed a window and reports what it filled, so padding
+/// it means moving the window rather than shrinking a size. This sliver does
 /// that translation. It hands its child a window shortened at both ends and
 /// narrowed across, and reports back what the child filled with the insets
 /// added on again.
@@ -33,25 +33,29 @@ import 'sliver_constraints.dart';
 /// shorter one.
 ///
 /// ```dart
-/// CustomScrollView3d(
+/// RenderCustomScrollView3d(
 ///   slivers: [
-///     SliverPadding3d(
+///     RenderSliverPadding3d(
 ///       padding: const EdgeInsets3d.all(0.5),
-///       sliver: SliverList3d(children: rows),
+///       sliver: RenderSliverList3d(children: rows),
 ///     ),
 ///   ],
 /// )
 /// ```
-class SliverPadding3d extends Sliver3d with RenderObjectWithChildMixin3d {
+class RenderSliverPadding3d extends RenderSliver3d
+    with RenderObjectWithChildMixin3d {
   /// Creates a sliver that insets [sliver].
-  SliverPadding3d({
+  RenderSliverPadding3d({
     EdgeInsetsGeometry3d padding = EdgeInsets3d.zero,
     TextDirection? textDirection,
-    Sliver3d? sliver,
+    RenderSliver3d? sliver,
     super.name,
   }) : _padding = padding,
        _textDirection = textDirection,
-       assert(padding.isNonNegative, 'SliverPadding3d.padding is an inset.') {
+       assert(
+         padding.isNonNegative,
+         'RenderSliverPadding3d.padding is an inset.',
+       ) {
     child = sliver;
   }
 
@@ -64,7 +68,7 @@ class SliverPadding3d extends Sliver3d with RenderObjectWithChildMixin3d {
 
   set padding(EdgeInsetsGeometry3d value) {
     if (_padding == value) return;
-    assert(value.isNonNegative, 'SliverPadding3d.padding is an inset.');
+    assert(value.isNonNegative, 'RenderSliverPadding3d.padding is an inset.');
     _padding = value;
     markNeedsLayout();
   }
@@ -85,17 +89,17 @@ class SliverPadding3d extends Sliver3d with RenderObjectWithChildMixin3d {
 
   /// The sliver being inset, the same thing as [child] under the name a
   /// caller uses.
-  Sliver3d? get sliver => child as Sliver3d?;
+  RenderSliver3d? get sliver => child as RenderSliver3d?;
 
-  set sliver(Sliver3d? value) => child = value;
+  set sliver(RenderSliver3d? value) => child = value;
 
   @override
   set child(RenderObject3d? value) {
     assert(
-      value == null || value is Sliver3d,
-      'SliverPadding3d insets a sliver. Wrap a box in a SliverToBoxAdapter3d '
-      'to put it in a CustomScrollView3d, and pad the box itself with a '
-      'Padding3d.',
+      value == null || value is RenderSliver3d,
+      'RenderSliverPadding3d insets a sliver. Wrap a box in a RenderSliverToBoxAdapter3d '
+      'to put it in a RenderCustomScrollView3d, and pad the box itself with a '
+      'RenderPadding3d.',
     );
     super.child = value;
   }

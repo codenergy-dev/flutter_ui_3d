@@ -31,15 +31,17 @@ import 'surfaces_support.dart';
 /// around it, in world units, nearer the viewer being larger.
 ///
 /// Node transforms rather than layout offsets, deliberately: a lift on the
-/// node tier — an elevation's `sceneOffset`, a `Stack3d.depthStep`, a
-/// `NodeShift3d` — moves the geometry without moving the box, and what is
+/// node tier — an elevation's `sceneOffset`, a `RenderStack3d.depthStep`, a
+/// `RenderNodeShift3d` — moves the geometry without moving the box, and what is
 /// being asked here is where the *geometry* ends up.
-List<(String, double, double)> labelsAgainstTheirSlab(Layout3dSurface surface) {
+List<(String, double, double)> labelsAgainstTheirSlab(RenderSurface3d surface) {
   final found = <(String, double, double)>[];
   void walk(RenderObject3d box, double face) {
     final z = box.node.globalTransform.getTranslation().z;
-    final slab = box is DecoratedBox3d ? z : face;
-    if (box is Text3d && box.data.isNotEmpty) found.add((box.data, z, slab));
+    final slab = box is RenderDecoratedBox3d ? z : face;
+    if (box is RenderText3d && box.data.isNotEmpty) {
+      found.add((box.data, z, slab));
+    }
     box.visitChildren((child) => walk(child, slab));
   }
 
@@ -49,7 +51,7 @@ List<(String, double, double)> labelsAgainstTheirSlab(Layout3dSurface surface) {
 }
 
 /// Fails naming the label that sank into the surface it is written on.
-void expectNothingBuried(Layout3dSurface surface) {
+void expectNothingBuried(RenderSurface3d surface) {
   final labels = labelsAgainstTheirSlab(surface);
   expect(labels, isNotEmpty, reason: 'the component drew no labels at all');
   for (final (text, z, face) in labels) {
@@ -81,10 +83,10 @@ typedef Panel3dFace = ({double face, double left, double top, Size3d size});
 /// The depth comes from the node — a lift on the node tier is exactly what
 /// keeps two surfaces apart — and the rectangle from the layout offsets,
 /// which is the frame a size is stated in.
-List<Panel3dFace> opaquePanels(Layout3dSurface surface) {
+List<Panel3dFace> opaquePanels(RenderSurface3d surface) {
   final found = <Panel3dFace>[];
   void walk(RenderObject3d box) {
-    if (box is DecoratedBox3d) {
+    if (box is RenderDecoratedBox3d) {
       final decoration = box.decoration;
       final ink = decoration is BoxDecoration3d ? decoration.color.a : 0.0;
       if (ink > 0.01) {
@@ -112,7 +114,7 @@ List<Panel3dFace> opaquePanels(Layout3dSurface surface) {
 /// with. That is [docs/traps.md]'s "a panel with no ink in it draws nothing
 /// *and writes no depth*", and it is why a navigation destination's own
 /// colourless surface may sit wherever it likes.
-void expectNothingFlush(Layout3dSurface surface) {
+void expectNothingFlush(RenderSurface3d surface) {
   final panels = opaquePanels(surface);
   for (var i = 0; i < panels.length; i++) {
     for (var j = i + 1; j < panels.length; j++) {
@@ -152,8 +154,8 @@ void main() {
         () => const ElevatedCard3d(
           child: ListTile3d(
             leading: Icon3d(Icons.person),
-            title: SceneText3d('Ada Lovelace'),
-            subtitle: SceneText3d('The engine weaves algebraic patterns'),
+            title: Text3d('Ada Lovelace'),
+            subtitle: Text3d('The engine weaves algebraic patterns'),
           ),
         ),
       );
@@ -202,13 +204,10 @@ void main() {
     testWidgets('the buttons, filled and outlined', (tester) async {
       await expectContentOnTheFace(
         tester,
-        () => SceneRow3d(
+        () => Row3d(
           children: <Widget>[
-            FilledButton3d(onPressed: () {}, child: const SceneText3d('Save')),
-            OutlinedButton3d(
-              onPressed: () {},
-              child: const SceneText3d('Undo'),
-            ),
+            FilledButton3d(onPressed: () {}, child: const Text3d('Save')),
+            OutlinedButton3d(onPressed: () {}, child: const Text3d('Undo')),
           ],
         ),
       );
@@ -218,7 +217,7 @@ void main() {
       await expectContentOnTheFace(
         tester,
         () => FilterChip3d(
-          label: const SceneText3d('All'),
+          label: const Text3d('All'),
           selected: true,
           onSelected: (_) {},
         ),
@@ -228,7 +227,7 @@ void main() {
     testWidgets('a dialog and a snack bar', (tester) async {
       await expectContentOnTheFace(
         tester,
-        () => const Dialog3d(child: SceneText3d('This cannot be undone.')),
+        () => const Dialog3d(child: Text3d('This cannot be undone.')),
       );
       await expectContentOnTheFace(
         tester,
@@ -271,13 +270,13 @@ void main() {
       final pumped = await pumpComponent(
         tester,
         () => ElevatedCard3d(
-          child: SceneColumn3d(
+          child: Column3d(
             mainAxisSize: MainAxisSize3d.min,
             children: <Widget>[
               Slider3d(value: 0.5, onChanged: (_) {}),
               Checkbox3d(value: true, onChanged: (_) {}),
               FilterChip3d(
-                label: const SceneText3d('All'),
+                label: const Text3d('All'),
                 selected: true,
                 onSelected: (_) {},
               ),
@@ -299,7 +298,7 @@ void main() {
         () => const Material3d(
           thickness: 40,
           alignment: null,
-          child: SceneCenter3d(child: SceneText3d('sunk')),
+          child: Center3d(child: Text3d('sunk')),
         ),
       );
       expect(
@@ -318,9 +317,9 @@ void main() {
         tester,
         () => const Material3d(
           thickness: 40,
-          child: SceneNodeShift3d(
+          child: NodeShift3d(
             shift: Offset3d(0, 0, 0.002),
-            child: Material3d(thickness: 10, child: SceneText3d('flush')),
+            child: Material3d(thickness: 10, child: Text3d('flush')),
           ),
         ),
       );

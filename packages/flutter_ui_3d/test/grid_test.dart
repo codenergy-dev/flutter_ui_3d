@@ -4,8 +4,10 @@ import 'package:flutter_ui_3d/rendering.dart';
 import 'support.dart';
 
 /// Cells take whatever the grid gives them, which is a tight cell.
-List<TestBox> cells(int count) =>
-    List.generate(count, (index) => TestBox(Size3d.zero, name: 'cell$index'));
+List<RenderTestBox> cells(int count) => List.generate(
+  count,
+  (index) => RenderTestBox(Size3d.zero, name: 'cell$index'),
+);
 
 const Grid3dDelegate twoAcross = Grid3dDelegateWithFixedCrossAxisCount(
   crossAxisCount: 2,
@@ -15,7 +17,7 @@ void main() {
   group('the cell grid', () {
     test('divides the room across the scroll axis', () {
       final boxes = cells(4);
-      final grid = GridView3d(gridDelegate: twoAcross, children: boxes);
+      final grid = RenderGridView3d(gridDelegate: twoAcross, children: boxes);
       laidOut(grid, constraints: Constraints3d.tight(const Size3d(10, 10, 2)));
 
       // Two cells across 10, square by default: 5 by 5. The z of 1 is the
@@ -31,7 +33,7 @@ void main() {
     test('takes the spacings out of the room first', () {
       final boxes = cells(4);
       laidOut(
-        GridView3d(
+        RenderGridView3d(
           gridDelegate: const Grid3dDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             crossAxisSpacing: 2,
@@ -51,7 +53,7 @@ void main() {
     test('the aspect ratio sets the main extent', () {
       final boxes = cells(2);
       laidOut(
-        GridView3d(
+        RenderGridView3d(
           gridDelegate: const Grid3dDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             childAspectRatio: 2.0,
@@ -68,7 +70,7 @@ void main() {
     test('a fixed main extent overrides the aspect ratio', () {
       final boxes = cells(2);
       laidOut(
-        GridView3d(
+        RenderGridView3d(
           gridDelegate: const Grid3dDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             childAspectRatio: 2.0,
@@ -113,7 +115,10 @@ void main() {
 
   group('scrolling', () {
     test('reports the metrics it measured', () {
-      final grid = GridView3d(gridDelegate: twoAcross, children: cells(8));
+      final grid = RenderGridView3d(
+        gridDelegate: twoAcross,
+        children: cells(8),
+      );
       laidOut(grid, constraints: Constraints3d.tight(const Size3d(10, 10, 2)));
 
       // Four rows of 5 is 20 of content in a window of 10.
@@ -124,7 +129,7 @@ void main() {
 
     test('the offset slides the cells', () {
       final boxes = cells(8);
-      final grid = GridView3d(gridDelegate: twoAcross, children: boxes);
+      final grid = RenderGridView3d(gridDelegate: twoAcross, children: boxes);
       final surface = laidOut(
         grid,
         constraints: Constraints3d.tight(const Size3d(10, 10, 2)),
@@ -139,7 +144,7 @@ void main() {
 
     test('hides the rows outside the window', () {
       final boxes = cells(8);
-      final grid = GridView3d(gridDelegate: twoAcross, children: boxes);
+      final grid = RenderGridView3d(gridDelegate: twoAcross, children: boxes);
       laidOut(grid, constraints: Constraints3d.tight(const Size3d(10, 10, 2)));
 
       expect(boxes[0].node.visible, isTrue);
@@ -149,7 +154,7 @@ void main() {
     });
 
     test('takes the hit over the gaps between cells', () {
-      final grid = GridView3d(
+      final grid = RenderGridView3d(
         gridDelegate: const Grid3dDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           crossAxisSpacing: 4,
@@ -168,10 +173,10 @@ void main() {
 
   // What the class is underneath: a viewport over one sliver, the shape
   // Flutter's GridView has. None of it changes what a caller sees.
-  group('GridView3d is a viewport over one SliverGrid3d', () {
+  group('RenderGridView3d is a viewport over one RenderSliverGrid3d', () {
     test('holds the sliver, and answers children with the cells in it', () {
       final boxes = cells(2);
-      final grid = GridView3d(gridDelegate: twoAcross, children: boxes);
+      final grid = RenderGridView3d(gridDelegate: twoAcross, children: boxes);
       laidOut(grid, constraints: Constraints3d.tight(const Size3d(10, 10, 2)));
 
       expect(grid.children, boxes);
@@ -183,12 +188,13 @@ void main() {
   });
 
   group('building on demand', () {
-    GridView3d lazyGrid({double cacheExtent = 0.0, int itemCount = 8}) =>
-        GridView3d.builder(
+    RenderGridView3d lazyGrid({double cacheExtent = 0.0, int itemCount = 8}) =>
+        RenderGridView3d.builder(
           gridDelegate: twoAcross,
           itemCount: itemCount,
           cacheExtent: cacheExtent,
-          itemBuilder: (index) => TestBox(Size3d.zero, name: 'cell$index'),
+          itemBuilder: (index) =>
+              RenderTestBox(Size3d.zero, name: 'cell$index'),
         );
 
     test('builds only the rows in the window', () {
@@ -241,7 +247,10 @@ void main() {
 
   group('the delegate', () {
     test('an equivalent delegate does not relayout', () {
-      final grid = GridView3d(gridDelegate: twoAcross, children: cells(2));
+      final grid = RenderGridView3d(
+        gridDelegate: twoAcross,
+        children: cells(2),
+      );
       final surface = laidOut(
         grid,
         constraints: Constraints3d.tight(const Size3d(10, 10, 2)),
@@ -256,7 +265,7 @@ void main() {
 
     test('a changed one does', () {
       final boxes = cells(2);
-      final grid = GridView3d(gridDelegate: twoAcross, children: boxes);
+      final grid = RenderGridView3d(gridDelegate: twoAcross, children: boxes);
       final surface = laidOut(
         grid,
         constraints: Constraints3d.tight(const Size3d(10, 10, 2)),
@@ -272,7 +281,10 @@ void main() {
     });
 
     test('a delegate of another kind always does', () {
-      final grid = GridView3d(gridDelegate: twoAcross, children: cells(2));
+      final grid = RenderGridView3d(
+        gridDelegate: twoAcross,
+        children: cells(2),
+      );
       final surface = laidOut(
         grid,
         constraints: Constraints3d.tight(const Size3d(10, 10, 2)),
@@ -288,9 +300,9 @@ void main() {
 
   group('the depth axis', () {
     test('cells are as deep as the grid allows, and shallow ones centre', () {
-      final shallow = TestBox(const Size3d(0, 0, 1));
+      final shallow = RenderTestBox(const Size3d(0, 0, 1));
       laidOut(
-        GridView3d(gridDelegate: twoAcross, children: [shallow]),
+        RenderGridView3d(gridDelegate: twoAcross, children: [shallow]),
         constraints: Constraints3d.tight(const Size3d(10, 10, 5)),
       );
 
@@ -299,9 +311,9 @@ void main() {
     });
 
     test('stretch fills the depth instead', () {
-      final box = TestBox(const Size3d(0, 0, 1));
+      final box = RenderTestBox(const Size3d(0, 0, 1));
       laidOut(
-        GridView3d(
+        RenderGridView3d(
           gridDelegate: twoAcross,
           depthAxisAlignment: CrossAxisAlignment3d.stretch,
           children: [box],

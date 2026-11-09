@@ -20,8 +20,8 @@ class Pumped {
   final Layout3dController controller;
   final Overlay3dController overlayController;
 
-  Layout3dSurface get surface => controller.surface!;
-  Overlay3d get overlay => overlayController.overlay!;
+  RenderSurface3d get surface => controller.surface!;
+  RenderOverlay3d get overlay => overlayController.overlay!;
 }
 
 Future<Pumped> pumpOverlay(
@@ -32,18 +32,18 @@ Future<Pumped> pumpOverlay(
   final controller = Layout3dController();
   final overlayController = Overlay3dController();
   await tester.pumpWidget(
-    SceneLayout3d(
+    Surface3d(
       parent: Node(),
       size: size,
       controller: controller,
-      child: SceneOverlay3d(controller: overlayController, child: child),
+      child: Overlay3d(controller: overlayController, child: child),
     ),
   );
   return Pumped(controller, overlayController);
 }
 
 /// Every box of type [T] in [surface].
-List<T> boxesOf<T extends RenderObject3d>(Layout3dSurface surface) {
+List<T> boxesOf<T extends RenderObject3d>(RenderSurface3d surface) {
   final found = <T>[];
   void walk(RenderObject3d box) {
     if (box is T) found.add(box);
@@ -67,7 +67,7 @@ class _Counted extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     builds[0]++;
-    return SceneSizedBox3d(
+    return SizedBox3d(
       width: size.width,
       height: size.height,
       depth: size.depth,
@@ -96,7 +96,7 @@ class _StatefulState extends State<_Stateful> {
   }
 
   @override
-  Widget build(BuildContext context) => const SceneSizedBox3d.cube(1);
+  Widget build(BuildContext context) => const SizedBox3d.cube(1);
 }
 
 // ---------------------------------------------------- The README's two new
@@ -146,14 +146,14 @@ void main() {
       await tester.pump();
 
       expect(builds.single, 1);
-      expect(entry.contentSlot!.child, isA<SizedBox3d>());
+      expect(entry.contentSlot!.child, isA<RenderSizedBox3d>());
       expect(entry.contentSlot!.size, const Size3d(2, 1, 0.1));
     });
 
     testWidgets('is laid out under the entry, not beside it', (tester) async {
       final pumped = await pumpOverlay(tester);
       final entry = WidgetOverlay3dEntry(
-        contentBuilder: (context, _) => const SceneSizedBox3d.cube(2),
+        contentBuilder: (context, _) => const SizedBox3d.cube(2),
       );
       pumped.overlay.insertEntry(entry);
       await tester.pump();
@@ -168,18 +168,15 @@ void main() {
       }
       expect(ancestors, contains(entry.contentSlot));
       expect(ancestors, contains(pumped.overlay));
-      expect(ancestors.last, isA<Layout3dSurface>());
+      expect(ancestors.last, isA<RenderSurface3d>());
     });
 
     testWidgets('leaves a zero-sized anchor among the base children', (
       tester,
     ) async {
-      final pumped = await pumpOverlay(
-        tester,
-        child: const SceneSizedBox3d.cube(3),
-      );
+      final pumped = await pumpOverlay(tester, child: const SizedBox3d.cube(3));
       final entry = WidgetOverlay3dEntry(
-        contentBuilder: (context, _) => const SceneSizedBox3d.cube(2),
+        contentBuilder: (context, _) => const SizedBox3d.cube(2),
       );
       pumped.overlay.insertEntry(entry);
       await tester.pump();
@@ -187,7 +184,7 @@ void main() {
       // Base child, anchor, entry host — in that order, the entry last.
       final children = pumped.overlay.children;
       expect(children, hasLength(3));
-      expect(children.first, isA<SizedBox3d>());
+      expect(children.first, isA<RenderSizedBox3d>());
       expect(children[1].size, Size3d.zero);
     });
 
@@ -208,7 +205,7 @@ void main() {
       // again — which is the whole reason the content is widgets.
       pumped.overlay.insertEntry(
         WidgetOverlay3dEntry(
-          contentBuilder: (context, _) => const SceneSizedBox3d.cube(1),
+          contentBuilder: (context, _) => const SizedBox3d.cube(1),
         ),
       );
       await tester.pump();
@@ -220,7 +217,7 @@ void main() {
     ) async {
       final pumped = await pumpOverlay(tester);
       final entry = WidgetOverlay3dEntry(
-        contentBuilder: (context, _) => const SceneSizedBox3d.cube(2),
+        contentBuilder: (context, _) => const SizedBox3d.cube(2),
       );
       pumped.overlay.insertEntry(entry);
       await tester.pump();
@@ -234,7 +231,7 @@ void main() {
       expect(content.parent, isNull);
 
       await tester.pump();
-      expect(boxesOf<SizedBox3d>(pumped.surface), isEmpty);
+      expect(boxesOf<RenderSizedBox3d>(pumped.surface), isEmpty);
       // Disposed exactly once: a second dispose asserts.
       expect(() => content.dispose(), throwsAssertionError);
     });
@@ -245,14 +242,14 @@ void main() {
       final pumped = await pumpOverlay(tester);
       final entry = WidgetOverlay3dEntry(
         modal: true,
-        contentBuilder: (context, _) => const SceneSizedBox3d.cube(2),
+        contentBuilder: (context, _) => const SizedBox3d.cube(2),
       );
       pumped.overlay.insertEntry(entry);
       await tester.pump();
 
       expect(entry.focusScope, isNotNull);
       // The barrier is up from the insertion, before the content exists.
-      expect(boxesOf<ModalBarrier3d>(pumped.surface), hasLength(1));
+      expect(boxesOf<RenderModalBarrier3d>(pumped.surface), hasLength(1));
     });
 
     testWidgets('an entry with no widgets in it costs no rebuild', (
@@ -264,16 +261,16 @@ void main() {
         child: Builder(
           builder: (context) {
             builds[0]++;
-            return const SceneSizedBox3d.cube(3);
+            return const SizedBox3d.cube(3);
           },
         ),
       );
       expect(builds.single, 1);
 
-      // A `Draggable3d`'s feedback is an entry of this kind, inserted and
+      // A `RenderDraggable3d`'s feedback is an entry of this kind, inserted and
       // removed once per gesture. None of them may rebuild the overlay.
       final entry = Overlay3dEntry(
-        builder: (_) => TestBox(const Size3d(1, 1, 1)),
+        builder: (_) => RenderTestBox(const Size3d(1, 1, 1)),
       );
       pumped.overlay.insertEntry(entry);
       await tester.pump();
@@ -292,12 +289,12 @@ void main() {
 
       late WidgetPageRoute3d<String> route;
       route = WidgetPageRoute3d<String>(
-        builder: (context, self) => const SceneSizedBox3d.cube(2),
+        builder: (context, self) => const SizedBox3d.cube(2),
       );
       final result = navigator.push(route);
       await tester.pump();
 
-      expect(boxesOf<SizedBox3d>(pumped.surface), hasLength(1));
+      expect(boxesOf<RenderSizedBox3d>(pumped.surface), hasLength(1));
       expect(navigator.canPop, isTrue);
 
       route.pop('yes');
@@ -305,7 +302,7 @@ void main() {
 
       expect(await result, 'yes');
       expect(navigator.canPop, isFalse);
-      expect(boxesOf<SizedBox3d>(pumped.surface), isEmpty);
+      expect(boxesOf<RenderSizedBox3d>(pumped.surface), isEmpty);
     });
 
     testWidgets('a tap on the barrier pops it', (tester) async {
@@ -313,7 +310,7 @@ void main() {
       final navigator = Navigator3d(pumped.overlay);
       final result = navigator.push(
         WidgetPageRoute3d<String>(
-          builder: (context, route) => const SceneSizedBox3d.cube(2),
+          builder: (context, route) => const SizedBox3d.cube(2),
         ),
       );
       await tester.pump();
@@ -332,23 +329,23 @@ void main() {
     /// An overlay with a 2 x 2 box pinned to its top-left corner, and a
     /// centred entry holding a 2-cube. The anchor's centre is at (1, 1) and
     /// the entry's at (5, 5).
-    Future<(RenderObject3d anchor, Overlay3dContentSlot3d follower)>
+    Future<(RenderObject3d anchor, RenderOverlay3dContentSlot3d follower)>
     pumpAnchored(WidgetTester tester) async {
       final pumped = await pumpOverlay(
         tester,
-        child: const ScenePositioned3d(
+        child: const Positioned3d(
           left: 0,
           top: 0,
           front: 0,
-          child: SceneSizedBox3d(width: 2, height: 2, depth: 2),
+          child: SizedBox3d(width: 2, height: 2, depth: 2),
         ),
       );
       final entry = WidgetOverlay3dEntry(
-        contentBuilder: (context, _) => const SceneSizedBox3d.cube(2),
+        contentBuilder: (context, _) => const SizedBox3d.cube(2),
       );
       pumped.overlay.insertEntry(entry);
       await tester.pump();
-      final anchor = boxesOf<SizedBox3d>(pumped.surface).first;
+      final anchor = boxesOf<RenderSizedBox3d>(pumped.surface).first;
       return (anchor, entry.contentSlot!);
     }
 
@@ -395,7 +392,10 @@ void main() {
 
     testWidgets('answers null before either box has a size', (tester) async {
       final (anchor, _) = await pumpAnchored(tester);
-      expect(TestBox(const Size3d(1, 1, 1)).anchorOffsetTo(anchor), isNull);
+      expect(
+        RenderTestBox(const Size3d(1, 1, 1)).anchorOffsetTo(anchor),
+        isNull,
+      );
     });
 
     testWidgets('carries an arbitrary point between the two frames', (
@@ -422,7 +422,10 @@ void main() {
     ) async {
       final (anchor, follower) = await pumpAnchored(tester);
       expect(
-        follower.localPointFrom(TestBox(const Size3d(1, 1, 1)), Offset3d.zero),
+        follower.localPointFrom(
+          RenderTestBox(const Size3d(1, 1, 1)),
+          Offset3d.zero,
+        ),
         isNull,
       );
     });

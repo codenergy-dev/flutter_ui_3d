@@ -1,4 +1,4 @@
-// RichText3d: the escape hatch's half that does not need a GPU.
+// RenderRichText3d: the escape hatch's half that does not need a GPU.
 //
 // Measurement, intrinsics and the baseline come from a TextPainter, so all of
 // that is checkable headless and is checked here against the same painter a
@@ -31,7 +31,7 @@ const TextStyle bigger = TextStyle(fontSize: 20);
 TextSpan span(String text, [TextStyle textStyle = style]) =>
     TextSpan(text: text, style: textStyle);
 
-Layout3dSurface panel(
+RenderSurface3d panel(
   RenderObject3d child, {
   Size3d size = const Size3d(4, 3, 0.5),
   Layout3dMetrics metrics = Layout3dMetrics.standard,
@@ -48,8 +48,8 @@ TextPainter truth(TextSpan text, {double maxWidth = double.infinity}) =>
 void main() {
   group('sizing', () {
     test('a paragraph is as big as Flutter makes it, in world units', () {
-      final text = RichText3d(span('hello'));
-      panel(Center3d(child: text));
+      final text = RenderRichText3d(span('hello'));
+      panel(RenderCenter3d(child: text));
       final painter = truth(span('hello'));
       expect(text.size.width, closeTo(painter.width * 0.01, 1e-9));
       expect(text.size.height, closeTo(painter.height * 0.01, 1e-9));
@@ -60,8 +60,8 @@ void main() {
       final mixed = TextSpan(
         children: <TextSpan>[span('ab'), span('cd', bigger)],
       );
-      final text = RichText3d(mixed);
-      panel(Center3d(child: text));
+      final text = RenderRichText3d(mixed);
+      panel(RenderCenter3d(child: text));
       final painter = truth(mixed);
       expect(text.size.width, closeTo(painter.width * 0.01, 1e-9));
       // The taller run sets the line box, which is the whole reason a span
@@ -70,10 +70,10 @@ void main() {
     });
 
     test('it wraps into the room it is given', () {
-      final text = RichText3d(span('hello world'));
+      final text = RenderRichText3d(span('hello world'));
       panel(
-        Center3d(
-          child: ConstrainedBox3d(
+        RenderCenter3d(
+          child: RenderConstrainedBox3d(
             additionalConstraints: const Constraints3d(maxWidth: 0.5),
             child: text,
           ),
@@ -84,10 +84,10 @@ void main() {
     });
 
     test('softWrap false lays it out on one line', () {
-      final text = RichText3d(span('hello world'), softWrap: false);
+      final text = RenderRichText3d(span('hello world'), softWrap: false);
       panel(
-        Center3d(
-          child: ConstrainedBox3d(
+        RenderCenter3d(
+          child: RenderConstrainedBox3d(
             additionalConstraints: const Constraints3d(maxWidth: 0.5),
             child: text,
           ),
@@ -100,14 +100,14 @@ void main() {
     });
 
     test('maxLines with an ellipsis cuts it, as a Text would', () {
-      final text = RichText3d(
+      final text = RenderRichText3d(
         span('hello world again'),
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       );
       panel(
-        Center3d(
-          child: ConstrainedBox3d(
+        RenderCenter3d(
+          child: RenderConstrainedBox3d(
             additionalConstraints: const Constraints3d(maxWidth: 0.5),
             child: text,
           ),
@@ -118,17 +118,17 @@ void main() {
     });
 
     test('depth is reserved room, not something the glyphs fill', () {
-      final text = RichText3d(span('hi'), depth: 0.3);
-      panel(Center3d(child: text));
+      final text = RenderRichText3d(span('hi'), depth: 0.3);
+      panel(RenderCenter3d(child: text));
       expect(text.size.depth, 0.3);
     });
   });
 
   group('the unit contract', () {
     test('a denser surface makes the same paragraph smaller', () {
-      final text = RichText3d(span('hello'));
+      final text = RenderRichText3d(span('hello'));
       panel(
-        Center3d(child: text),
+        RenderCenter3d(child: text),
         metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.005),
       );
       expect(text.size.width, closeTo(0.25, 1e-9));
@@ -136,15 +136,15 @@ void main() {
     });
 
     test('the text scale grows the paragraph, in the painter', () {
-      final text = RichText3d(span('hello'));
+      final text = RenderRichText3d(span('hello'));
       panel(
-        Center3d(child: text),
+        RenderCenter3d(child: text),
         metrics: const Layout3dMetrics(textScaler: TextScaler.linear(1.5)),
       );
       expect(text.size.width, closeTo(0.75, 1e-9));
-      // The scale is the painter's here, unlike in a Text3d: the paragraph is
-      // measured at the scaled sizes, so the logical-pixel numbers already
-      // carry it and the box multiplies by the unit rate alone.
+      // The scale is the painter's here, unlike in a RenderText3d: the
+      // paragraph is measured at the scaled sizes, so the logical-pixel numbers
+      // already carry it and the box multiplies by the unit rate alone.
       expect(text.painter.width, closeTo(75.0, 1e-9));
       expect(text.logicalPixelScale, closeTo(0.01, 1e-12));
     });
@@ -160,9 +160,9 @@ void main() {
           span('bb', const TextStyle(fontSize: 40)),
         ],
       );
-      final text = RichText3d(mixed);
+      final text = RenderRichText3d(mixed);
       panel(
-        Center3d(child: text),
+        RenderCenter3d(child: text),
         metrics: const Layout3dMetrics(textScaler: scaler),
       );
       // The test font is a square em, so a run is its font size per glyph.
@@ -172,8 +172,8 @@ void main() {
 
   group('the measurement protocol', () {
     test('intrinsics are the widest line and the widest word', () {
-      final text = RichText3d(span('hello world'));
-      panel(Center3d(child: text));
+      final text = RenderRichText3d(span('hello world'));
+      panel(RenderCenter3d(child: text));
       expect(
         text.getMaxIntrinsicExtent(Axis3d.horizontal, const Size3d(4, 3, 1)),
         closeTo(1.1, 1e-9),
@@ -185,8 +185,8 @@ void main() {
     });
 
     test('the vertical intrinsic is the height at the width offered', () {
-      final text = RichText3d(span('hello world'));
-      panel(Center3d(child: text));
+      final text = RenderRichText3d(span('hello world'));
+      panel(RenderCenter3d(child: text));
       expect(
         text.getMinIntrinsicExtent(Axis3d.vertical, const Size3d(0.5, 3, 1)),
         closeTo(0.2, 1e-9),
@@ -194,10 +194,10 @@ void main() {
     });
 
     test('an intrinsic query leaves the box laid out as it was', () {
-      final text = RichText3d(span('hello world'));
+      final text = RenderRichText3d(span('hello world'));
       final surface = panel(
-        Center3d(
-          child: ConstrainedBox3d(
+        RenderCenter3d(
+          child: RenderConstrainedBox3d(
             additionalConstraints: const Constraints3d(maxWidth: 0.5),
             child: text,
           ),
@@ -213,10 +213,10 @@ void main() {
     test(
       'the baseline is the first line\'s, and only the vertical has one',
       () {
-        final text = RichText3d(span('hello world'));
+        final text = RenderRichText3d(span('hello world'));
         panel(
-          Center3d(
-            child: ConstrainedBox3d(
+          RenderCenter3d(
+            child: RenderConstrainedBox3d(
               additionalConstraints: const Constraints3d(maxWidth: 0.5),
               child: text,
             ),
@@ -238,10 +238,10 @@ void main() {
     );
 
     test('two sizes of rich text share a baseline in a row', () {
-      final small = RichText3d(span('ab'));
-      final large = RichText3d(span('cd', bigger));
+      final small = RenderRichText3d(span('ab'));
+      final large = RenderRichText3d(span('cd', bigger));
       panel(
-        Row3d(
+        RenderRow3d(
           crossAxisAlignment: CrossAxisAlignment3d.baseline,
           children: <RenderObject3d>[small, large],
         ),
@@ -258,8 +258,8 @@ void main() {
 
   group('the box', () {
     test('a setter that changes the paragraph relays it out', () {
-      final text = RichText3d(span('hi'));
-      final surface = panel(Center3d(child: text));
+      final text = RenderRichText3d(span('hi'));
+      final surface = panel(RenderCenter3d(child: text));
       expect(text.size.width, closeTo(0.2, 1e-9));
       text.text = span('hello');
       expect(text.needsLayout, isTrue);
@@ -268,16 +268,16 @@ void main() {
     });
 
     test('a ray finds the paragraph, gaps between letters included', () {
-      final text = RichText3d(span('hi'));
-      final surface = panel(Center3d(child: text));
+      final text = RenderRichText3d(span('hi'));
+      final surface = panel(RenderCenter3d(child: text));
       // The panel is 4 by 3 and the 0.2 by 0.1 paragraph is centred on it.
       expect(surface.hitTestAt(const Offset3d(2.0, 1.5, 0)).target, same(text));
       expect(surface.hitTestAt(const Offset3d(2.0, 1.0, 0)).isEmpty, isTrue);
     });
 
     test('it draws nothing without a scene to be captured in', () {
-      final text = RichText3d(span('hi'));
-      panel(Center3d(child: text));
+      final text = RenderRichText3d(span('hi'));
+      panel(RenderCenter3d(child: text));
       expect(text.isDrawn, isFalse);
       // The component is attached all the same: what it is missing is a
       // SceneView to host the subtree, not a place to put the capture.
@@ -285,8 +285,8 @@ void main() {
     });
 
     test('disposal lets the surface go', () {
-      final text = RichText3d(span('hi'));
-      panel(Center3d(child: text));
+      final text = RenderRichText3d(span('hi'));
+      panel(RenderCenter3d(child: text));
       text.dispose();
       expect(text.node.children, isEmpty);
     });
@@ -315,24 +315,30 @@ void main() {
   group('the paragraph is extruded', () {
     test('a tenth of the root span\'s size unless one is stated', () {
       expect(
-        RichText3d(
+        RenderRichText3d(
           const TextSpan(text: 'hi', style: TextStyle(fontSize: 40)),
         ).resolvedGlyphDepth,
         closeTo(4.0, 1e-9),
       );
-      expect(RichText3d(span('hi'), glyphDepth: 1.5).resolvedGlyphDepth, 1.5);
-      expect(RichText3d(span('hi'), glyphDepth: 0.0).resolvedGlyphDepth, 0.0);
+      expect(
+        RenderRichText3d(span('hi'), glyphDepth: 1.5).resolvedGlyphDepth,
+        1.5,
+      );
+      expect(
+        RenderRichText3d(span('hi'), glyphDepth: 0.0).resolvedGlyphDepth,
+        0.0,
+      );
       // The same fallback size the measurement half assumes, so the two never
       // disagree about what "the type" is.
       expect(
-        RichText3d(const TextSpan(text: 'hi')).resolvedGlyphDepth,
+        RenderRichText3d(const TextSpan(text: 'hi')).resolvedGlyphDepth,
         closeTo(1.4, 1e-9),
       );
     });
 
     test('nothing is walled before the trace comes back', () {
-      final text = RichText3d(span('hi'));
-      panel(Center3d(child: text));
+      final text = RenderRichText3d(span('hi'));
+      panel(RenderCenter3d(child: text));
       expect(text.wallSegmentCount, 0);
     });
 

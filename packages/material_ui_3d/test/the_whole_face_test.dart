@@ -38,11 +38,11 @@ Offset3d _origin(RenderObject3d box) {
 typedef _Case = ({
   Widget Function(void Function() pressed) build,
   bool centred,
-  RenderObject3d Function(Layout3dSurface surface)? face,
+  RenderObject3d Function(RenderSurface3d surface)? face,
 });
 
-RenderObject3d _labelled(Layout3dSurface surface, String label) =>
-    boxesOf<Semantics3d>(
+RenderObject3d _labelled(RenderSurface3d surface, String label) =>
+    boxesOf<RenderSemantics3d>(
       surface,
     ).firstWhere((box) => box.properties.label == label);
 
@@ -52,7 +52,7 @@ void main() {
       build: (pressed) => FilledButton3d(
         semanticLabel: 'Save',
         onPressed: pressed,
-        child: const SceneText3d('Save'),
+        child: const Text3d('Save'),
       ),
       centred: true,
       face: null,
@@ -61,7 +61,7 @@ void main() {
       build: (pressed) => OutlinedButton3d(
         semanticLabel: 'Save',
         onPressed: pressed,
-        child: const SceneText3d('Save'),
+        child: const Text3d('Save'),
       ),
       centred: true,
       face: null,
@@ -86,7 +86,7 @@ void main() {
     ),
     'a filter chip': (
       build: (pressed) => FilterChip3d(
-        label: const SceneText3d('Unread'),
+        label: const Text3d('Unread'),
         semanticLabel: 'Unread',
         selected: false,
         onSelected: (_) => pressed(),
@@ -95,7 +95,7 @@ void main() {
       face: null,
     ),
     'a list tile': (
-      build: (pressed) => SceneSizedBox3d(
+      build: (pressed) => SizedBox3d(
         width: 3,
         child: ListTile3d.text(title: 'Inbox', onTap: pressed),
       ),
@@ -103,7 +103,7 @@ void main() {
       face: null,
     ),
     'a switch tile': (
-      build: (pressed) => SceneSizedBox3d(
+      build: (pressed) => SizedBox3d(
         width: 3,
         child: SwitchListTile3d.text(
           title: 'Notifications',
@@ -115,10 +115,10 @@ void main() {
       face: null,
     ),
     'a navigation destination': (
-      build: (pressed) => SceneColumn3d(
+      build: (pressed) => Column3d(
         crossAxisAlignment: CrossAxisAlignment3d.stretch,
         children: <Widget>[
-          const SceneExpanded3d(child: SceneSizedBox3d()),
+          const Expanded3d(child: SizedBox3d()),
           NavigationBar3d(
             selectedIndex: 1,
             onDestinationSelected: (index) {
@@ -138,7 +138,7 @@ void main() {
       face: (surface) => _labelled(surface, 'Inbox'),
     ),
     'a navigation drawer destination': (
-      build: (pressed) => SceneRow3d(
+      build: (pressed) => Row3d(
         crossAxisAlignment: CrossAxisAlignment3d.stretch,
         children: <Widget>[
           NavigationDrawer3d(
@@ -157,14 +157,14 @@ void main() {
               ),
             ],
           ),
-          const SceneExpanded3d(child: SceneSizedBox3d()),
+          const Expanded3d(child: SizedBox3d()),
         ],
       ),
       centred: false,
       face: (surface) => _labelled(surface, 'Inbox'),
     ),
     'an expansion tile': (
-      build: (pressed) => SceneSizedBox3d(
+      build: (pressed) => SizedBox3d(
         width: 3,
         child: ExpansionTile3d.text(
           title: 'Advanced',
@@ -190,9 +190,9 @@ void main() {
       build: (pressed) => DefaultTabController(
         length: 2,
         initialIndex: 1,
-        child: SceneSizedBox3d(
+        child: SizedBox3d(
           width: 3,
-          child: SceneColumn3d(
+          child: Column3d(
             mainAxisSize: MainAxisSize3d.min,
             crossAxisAlignment: CrossAxisAlignment3d.stretch,
             children: <Widget>[

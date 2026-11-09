@@ -146,11 +146,11 @@ class Elevation3d {
 ///
 /// ## The two rules that come with it
 ///
-/// **A thickness fights the depth ordering.** `Stack3d.depthStep` pulls each
-/// successive child toward the viewer by a fixed amount, but a child reaches
-/// half its own thickness forward of its plane — so two stacked children are
-/// only genuinely separated when the step exceeds the *mean* of their
-/// thicknesses. Under that, the back child's front face pokes through the
+/// **A thickness fights the depth ordering.** `RenderStack3d.depthStep` pulls
+/// each successive child toward the viewer by a fixed amount, but a child
+/// reaches half its own thickness forward of its plane — so two stacked
+/// children are only genuinely separated when the step exceeds the *mean* of
+/// their thicknesses. Under that, the back child's front face pokes through the
 /// front child, wins the depth test where they overlap, and the stack looks
 /// inverted. Worse, a drop target inherits it: `Drag3dSession` picks the
 /// nearest acceptor along the ray, so a slab that reaches too far forward
@@ -166,7 +166,7 @@ class Elevation3d {
 /// ));
 /// ```
 ///
-/// **[depthStep] is in logical pixels and `Stack3d.depthStep` is in world
+/// **[depthStep] is in logical pixels and `RenderStack3d.depthStep` is in world
 /// units.** Convert at the point of use — `metrics.dp(theme.thickness
 /// .depthStep)` — the same way every other Material figure crosses that
 /// boundary.
@@ -210,8 +210,8 @@ class Thickness3d {
   /// 8dp. An app bar, a navigation bar, a sheet.
   final double structural;
 
-  /// The `Stack3d.depthStep` this scale is meant to be stacked on, in logical
-  /// pixels.
+  /// The `RenderStack3d.depthStep` this scale is meant to be stacked on, in
+  /// logical pixels.
   ///
   /// Not applied by anything automatically — a stack takes its step in world
   /// units and knows nothing about themes. It is here so that the number a

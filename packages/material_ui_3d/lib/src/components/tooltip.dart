@@ -14,18 +14,18 @@ import 'package:flutter/widgets.dart'
         TextDirection,
         Widget;
 import 'package:flutter_ui_3d/rendering.dart'
-    show Alignment3d, EdgeInsets3d, HitTestBehavior3d, Overlay3d;
+    show Alignment3d, EdgeInsets3d, HitTestBehavior3d, RenderOverlay3d;
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneAlign3d,
-        SceneIgnorePointer3d,
-        SceneListener3d,
-        SceneMotionTransition3d,
-        SceneOverlay3d,
-        ScenePadding3d,
-        SceneSemantics3d,
-        SceneText3d,
+        Align3d,
+        IgnorePointer3d,
+        Listener3d,
+        MotionTransition3d,
+        Overlay3d,
+        Padding3d,
+        Semantics3d,
+        Text3d,
         WidgetOverlay3dEntry;
 
 import '../theme/theme.dart';
@@ -68,12 +68,12 @@ import 'reading_direction.dart';
 /// ## Where it appears
 ///
 /// Under the child, [TooltipStyle3d.verticalOffset] below it, anchored with the
-/// same machinery a menu uses: an [Anchor3d] around the child and a
-/// [Follower3d] around the label, driven by `RenderObject3d.anchorOffsetTo` on
-/// the node tier. It follows the child if the child moves, and it goes away
-/// with it.
+/// same machinery a menu uses: a [RenderAnchor3d] around the child and a
+/// [RenderFollower3d] around the label, driven by
+/// `RenderObject3d.anchorOffsetTo` on the node tier. It follows the child if
+/// the child moves, and it goes away with it.
 ///
-/// **It absorbs no pointer.** The label is wrapped in an `IgnorePointer3d`
+/// **It absorbs no pointer.** The label is wrapped in a `RenderIgnorePointer3d`
 /// and the entry has no barrier, because a tooltip that took the ray would
 /// be a tooltip that dismissed itself the instant it appeared.
 ///
@@ -124,8 +124,8 @@ class Tooltip3d extends StatefulWidget {
 
 class _Tooltip3dState extends State<Tooltip3d>
     with SingleTickerProviderStateMixin {
-  Anchor3d? _anchor;
-  Overlay3d? _overlay;
+  RenderAnchor3d? _anchor;
+  RenderOverlay3d? _overlay;
   WidgetOverlay3dEntry? _entry;
   Timer? _timer;
   late final AnimationController _fade = AnimationController(vsync: this)
@@ -142,7 +142,7 @@ class _Tooltip3dState extends State<Tooltip3d>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _overlay = SceneOverlay3d.maybeOf(context);
+    _overlay = Overlay3d.maybeOf(context);
   }
 
   @override
@@ -210,7 +210,7 @@ class _Tooltip3dState extends State<Tooltip3d>
       debugLabel: 'Tooltip3d',
       // A tooltip is not a route and blocks nothing: no barrier, no focus
       // trap, and the label itself lets every ray through.
-      contentBuilder: (context, _) => SceneIgnorePointer3d(
+      contentBuilder: (context, _) => IgnorePointer3d(
         // The fade is inside the follower for the same reason the menu's
         // growth is: the anchoring is one corner on another, and a label that
         // is arriving is still hung where it belongs.
@@ -218,14 +218,14 @@ class _Tooltip3dState extends State<Tooltip3d>
           anchor: anchor,
           self: Alignment3d.topCenter,
           target: Alignment3d.bottomCenter,
-          child: ScenePadding3d(
+          child: Padding3d(
             // The offset is padding *inside* the follower, so the anchoring
             // stays one corner on another and the gap is a box rather than a
             // second number in the arithmetic.
             padding: metrics.dpInsets(
               EdgeInsets3d.only(top: style.verticalOffset),
             ),
-            child: SceneMotionTransition3d(
+            child: MotionTransition3d(
               animation: _fade,
               motion: style.arrival.motion,
               child: _Tooltip3dLabel(message: widget.message, style: style),
@@ -263,12 +263,12 @@ class _Tooltip3dState extends State<Tooltip3d>
   }
 
   @override
-  Widget build(BuildContext context) => SceneSemantics3d(
+  Widget build(BuildContext context) => Semantics3d(
     properties: SemanticsProperties(
       tooltip: widget.semanticLabel ?? widget.message,
       textDirection: readingDirection3d(context, widget.textDirection),
     ),
-    child: SceneListener3d(
+    child: Listener3d(
       onPointerEnter: (_) => _handleEnter(),
       onPointerExit: (_) => _handleExit(),
       // Opaque, unlike `InkWell3d`'s listener, and the difference is the
@@ -305,11 +305,11 @@ class _Tooltip3dLabel extends StatelessWidget {
       surfaceTint: const Color(0x00000000),
       padding: style.padding,
       alignment: null,
-      child: SceneAlign3d(
+      child: Align3d(
         alignment: Alignment3d.frontCenter,
         widthFactor: 1.0,
         heightFactor: 1.0,
-        child: SceneText3d(
+        child: Text3d(
           message,
           style: theme.textStyle(style.textStyle, color: style.contentColor),
         ),

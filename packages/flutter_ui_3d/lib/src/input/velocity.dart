@@ -1,9 +1,9 @@
 /// A one-dimensional velocity estimate over the last stretch of a drag.
 ///
 /// Shared by everything in the package that has to tell a flick from a slow
-/// drag: the scroll drag `_Sequence` runs, and the swipe a [Dismissible3d]
-/// decides on. Internal — a caller with real pointer events has Flutter's own
-/// `VelocityTracker`.
+/// drag: the scroll drag `_Sequence` runs, and the swipe a
+/// [RenderDismissible3d] decides on. Internal — a caller with real pointer
+/// events has Flutter's own `VelocityTracker`.
 ///
 /// Flutter's `VelocityTracker` cannot be used here. It timestamps its own
 /// samples from `GestureBinding.instance.samplingClock`, which in a test

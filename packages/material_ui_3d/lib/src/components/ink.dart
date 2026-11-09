@@ -4,7 +4,7 @@ import 'package:flutter/scheduler.dart' show Ticker, TickerProvider;
 import 'package:flutter/widgets.dart' show BuildContext, InheritedWidget;
 import 'package:flutter_ui_3d/rendering.dart'
     show
-        DecoratedBox3d,
+        RenderDecoratedBox3d,
         RenderObject3d,
         Layout3dAnchoring,
         Offset3d,
@@ -18,8 +18,8 @@ import 'ink_ripple.dart';
 /// **without rebuilding anything**.
 ///
 /// This is the load-bearing class of the interaction layer, and the reason it
-/// exists is the animation tier. `DecoratedBox3d.stateLayer` is a setter that
-/// writes one shader uniform and asks for a repaint; it never calls
+/// exists is the animation tier. `RenderDecoratedBox3d.stateLayer` is a setter
+/// that writes one shader uniform and asks for a repaint; it never calls
 /// `markNeedsLayout` and never marks a widget dirty. An `InkWell3d` that
 /// answered a hover with `setState` would throw all of that away — a pointer
 /// crossing a list of twenty tiles would rebuild twenty subtrees and relay
@@ -144,7 +144,7 @@ class MutableInkController3d implements InkController3d {
        _rippleStyle = rippleStyle;
 
   final Set<Material3dState> _states = <Material3dState>{};
-  DecoratedBox3d? _box;
+  RenderDecoratedBox3d? _box;
   Color _color;
   StateLayerOpacity3d _opacities;
 
@@ -217,7 +217,7 @@ class MutableInkController3d implements InkController3d {
   }
 
   /// The box this controller washes, or null before the first build.
-  DecoratedBox3d? get box => _box;
+  RenderDecoratedBox3d? get box => _box;
 
   /// Points this controller at the box a [Material3d] just created or
   /// updated, and writes the current wash onto it.
@@ -225,7 +225,7 @@ class MutableInkController3d implements InkController3d {
   /// Called from the layout widget's `createLayout` and `updateLayout`, which
   /// is what keeps the box and the controller in step across a rebuild that
   /// replaces neither.
-  void attach(DecoratedBox3d box) {
+  void attach(RenderDecoratedBox3d box) {
     _box = box;
     box.stateLayer = layer;
   }

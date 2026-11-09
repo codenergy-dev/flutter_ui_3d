@@ -17,21 +17,21 @@ import 'scroll_controller.dart';
 ///  * the default constructor takes an explicit list; every child is laid out
 ///    each pass, and the ones outside the window have their nodes hidden
 ///    rather than removed;
-///  * [ListView3d.builder] builds items on demand and keeps only what is near
-///    the window, disposing the rest. With [itemExtent] the offsets are
+///  * [RenderListView3d.builder] builds items on demand and keeps only what is
+///    near the window, disposing the rest. With [itemExtent] the offsets are
 ///    arithmetic and nothing off-screen is ever built; without it, items are
 ///    measured forward from the first and the rest of the extent is estimated
 ///    from the average, the same approximation Flutter's `SliverList` makes.
-///    See [SliverList3d] for what that estimate costs — a scroll range that
-///    moves, and a deep jump that measures everything before it. A
+///    See [RenderSliverList3d] for what that estimate costs — a scroll range
+///    that moves, and a deep jump that measures everything before it. A
 ///    [prototypeItem] buys the arithmetic back when the items are uniform in
 ///    a size only the content knows; a [contentExtentEstimator] steadies the
 ///    range of a list whose items really do differ.
 ///
-/// A list is a viewport over one [SliverList3d], the way Flutter's `ListView`
-/// is a `ScrollView` over one `SliverList`: the items are placed by the
-/// sliver, and this class is the window and the scroll position around it.
-/// [children] still means the items; see [BoxScrollView3d] for what that
+/// A list is a viewport over one [RenderSliverList3d], the way Flutter's
+/// `ListView` is a `ScrollView` over one `SliverList`: the items are placed by
+/// the sliver, and this class is the window and the scroll position around it.
+/// [children] still means the items; see [RenderBoxScrollView3d] for what that
 /// forwarding covers.
 ///
 /// Unlike Flutter's `ListView`, children are not stretched across the cross
@@ -39,9 +39,9 @@ import 'scroll_controller.dart';
 /// instead, which is the more useful default when the items are objects
 /// rather than rows. Ask for [CrossAxisAlignment3d.stretch] to get the
 /// Flutter behaviour.
-class ListView3d extends BoxScrollView3d<SliverList3d> {
+class RenderListView3d extends RenderBoxScrollView3d<RenderSliverList3d> {
   /// Creates a list over an explicit set of children.
-  ListView3d({
+  RenderListView3d({
     Axis3d scrollDirection = Axis3d.vertical,
     Scroll3dController? controller,
     double spacing = 0.0,
@@ -54,7 +54,7 @@ class ListView3d extends BoxScrollView3d<SliverList3d> {
     List<RenderObject3d> children = const <RenderObject3d>[],
     String? name,
   }) : this._(
-         SliverList3d(
+         RenderSliverList3d(
            spacing: spacing,
            itemExtent: itemExtent,
            prototypeItem: prototypeItem,
@@ -70,7 +70,7 @@ class ListView3d extends BoxScrollView3d<SliverList3d> {
        );
 
   /// Creates a list that builds its items on demand.
-  ListView3d.builder({
+  RenderListView3d.builder({
     required int itemCount,
     required RenderObject3dItemBuilder itemBuilder,
     Axis3d scrollDirection = Axis3d.vertical,
@@ -84,7 +84,7 @@ class ListView3d extends BoxScrollView3d<SliverList3d> {
     double cacheExtent = 0.0,
     String? name,
   }) : this._(
-         SliverList3d.builder(
+         RenderSliverList3d.builder(
            itemCount: itemCount,
            itemBuilder: itemBuilder,
            spacing: spacing,
@@ -104,8 +104,8 @@ class ListView3d extends BoxScrollView3d<SliverList3d> {
   // super call rules out super parameters, so the two constructors above
   // redirect here rather than each repeating the wiring.
   // ignore: use_super_parameters
-  ListView3d._(
-    SliverList3d sliver, {
+  RenderListView3d._(
+    RenderSliverList3d sliver, {
     required Axis3d scrollDirection,
     required Scroll3dController? controller,
     required double cacheExtent,

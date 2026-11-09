@@ -13,8 +13,8 @@ import 'rendering/object.dart';
 /// what Flutter's `RenderObject` gets from `_doingThisLayoutWithCallback`.
 ///
 /// Kept apart from [RenderBuiltChildrenMixin3d] because the two needs do not
-/// travel together: `CustomScrollView3d` holds a scroll position without
-/// building children, and `Viewport3d` holds one with a single child.
+/// travel together: `RenderCustomScrollView3d` holds a scroll position without
+/// building children, and `RenderViewport3d` holds one with a single child.
 mixin RenderLayoutPassMixin3d on RenderObject3d {
   bool _layingOut = false;
 

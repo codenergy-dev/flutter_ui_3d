@@ -25,18 +25,18 @@ import 'package:flutter_ui_3d/widgets.dart'
 ///    slider's active track is, and is why filling a track costs no relayout
 ///    even though the filled part gets longer as the finger moves.
 ///
-/// The price, and it is the same one `Follower3d` pays: **`worldTransform`
-/// undoes both**, deliberately, so that hit testing keeps finding a box where
-/// layout put it. `screenCenter` and `screenPointOf` on a shifted box report
-/// the laid-out position rather than the drawn one, and a render probe of
-/// anything moved this way has to take its oracle from a box that did not
-/// move — a slider's *track*, not its thumb.
-class NodeShift3d extends RenderProxyBox3d {
+/// The price, and it is the same one `RenderFollower3d` pays:
+/// **`worldTransform` undoes both**, deliberately, so that hit testing keeps
+/// finding a box where layout put it. `screenCenter` and `screenPointOf` on a
+/// shifted box report the laid-out position rather than the drawn one, and a
+/// render probe of anything moved this way has to take its oracle from a box
+/// that did not move — a slider's *track*, not its thumb.
+class RenderNodeShift3d extends RenderProxyBox3d {
   /// Creates a shift, at rest.
-  NodeShift3d({
+  RenderNodeShift3d({
     Offset3d shift = Offset3d.zero,
     double scaleX = 1.0,
-    super.name = 'NodeShift3d',
+    super.name = 'RenderNodeShift3d',
   }) : _scaleX = scaleX {
     nodeOffset = shift;
     _applyScale();
@@ -71,14 +71,14 @@ class NodeShift3d extends RenderProxyBox3d {
   }
 }
 
-/// The declarative form of [NodeShift3d].
+/// The declarative form of [RenderNodeShift3d].
 ///
 /// Rebuilding this widget writes a matrix and marks **nothing** dirty for
 /// layout, which is the whole point: a switch that is toggled, or a slider
 /// dragged from a `setState`, rebuilds its own subtree and lays nothing out.
-class SceneNodeShift3d extends SingleChildRenderObjectWidget3d {
+class NodeShift3d extends SingleChildRenderObjectWidget3d {
   /// Creates a shifted subtree.
-  const SceneNodeShift3d({
+  const NodeShift3d({
     super.key,
     this.shift = Offset3d.zero,
     this.scaleX = 1.0,
@@ -98,11 +98,14 @@ class SceneNodeShift3d extends SingleChildRenderObjectWidget3d {
   final String? name;
 
   @override
-  NodeShift3d createLayout(BuildContext context) =>
-      NodeShift3d(shift: shift, scaleX: scaleX, name: name ?? 'NodeShift3d');
+  RenderNodeShift3d createLayout(BuildContext context) => RenderNodeShift3d(
+    shift: shift,
+    scaleX: scaleX,
+    name: name ?? 'RenderNodeShift3d',
+  );
 
   @override
-  void updateLayout(BuildContext context, NodeShift3d layout) {
+  void updateLayout(BuildContext context, RenderNodeShift3d layout) {
     layout
       ..shift = shift
       ..scaleX = scaleX;

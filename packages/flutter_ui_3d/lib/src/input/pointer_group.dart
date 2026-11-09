@@ -45,7 +45,7 @@ class _Member {
 /// exactly that: a menu that overhangs its panel, or a dialog facing the
 /// viewer while the panel behind it stays angled, is a second surface, and a
 /// press that lands on it must not also reach the panel behind. Absorption
-/// inside a surface is [AbsorbPointer3d]'s and [HitTestBehavior3d]'s job;
+/// inside a surface is [RenderAbsorbPointer3d]'s and [HitTestBehavior3d]'s job;
 /// absorption *between* surfaces is this one's.
 ///
 /// ```dart
@@ -68,10 +68,11 @@ class _Member {
 /// By [zOrder], highest first: an explicit statement of what is in front of
 /// what, which is what an overlay has and geometry does not. Ties go to the
 /// surface nearest the [camera], when there is one, and to the more recently
-/// added otherwise — the same "last one wins" an [Overlay3d]'s entries keep.
+/// added otherwise — the same "last one wins" a [RenderOverlay3d]'s entries
+/// keep.
 ///
 /// A surface *answers* when something on it took the hit, which is when its
-/// [Layout3dSurface.hitTestRay] comes back non-empty. An answering surface
+/// [RenderSurface3d.hitTestRay] comes back non-empty. An answering surface
 /// that [absorbs] (the default) ends the walk: the surfaces behind it are not
 /// tested, receive no events, and are told the pointer left them. A surface
 /// added with `absorbs: false` is dispatched to and the walk carries on,
@@ -88,9 +89,9 @@ class _Member {
 ///
 /// Capture is right for every gesture that is about the thing it started on,
 /// and wrong for the one gesture that is defined by leaving it. A
-/// [Draggable3d] picked up on a panel and carried onto a dialog in front has
-/// to find the drop target on the dialog — a surface the press never touched
-/// and which the capture set therefore excludes.
+/// [RenderDraggable3d] picked up on a panel and carried onto a dialog in front
+/// has to find the drop target on the dialog — a surface the press never
+/// touched and which the capture set therefore excludes.
 ///
 /// So while a [Drag3dSession] is in flight on a pointer, every [move] and the
 /// [up] that ends it add one pass: walk the members front to back with the
@@ -108,9 +109,9 @@ class _Member {
 ///
 /// Nothing here is laid out: a drag search is a hit test and a path diff.
 /// Feedback that has to hang over the edge of its panel is an
-/// [OverlayLayer3d.detached] entry, and a detached entry whose root is an
-/// [IgnorePointer3d] answers empty, so this walk goes straight past it and
-/// the feedback cannot steal its own drop.
+/// [OverlayLayer3d.detached] entry, and a detached entry whose root is a
+/// [RenderIgnorePointer3d] answers empty, so this walk goes straight past it
+/// and the feedback cannot steal its own drop.
 class Layout3dPointerGroup {
   /// Creates a group, optionally ordered by distance from [camera].
   Layout3dPointerGroup({this.camera});
@@ -121,7 +122,7 @@ class Layout3dPointerGroup {
 
   final List<_Member> _members = <_Member>[];
   final Map<int, List<_Member>> _captured = <int, List<_Member>>{};
-  final Map<Layout3dSurface, _Member> _bySurface = <Layout3dSurface, _Member>{};
+  final Map<RenderSurface3d, _Member> _bySurface = <RenderSurface3d, _Member>{};
 
   int _nextSequence = 0;
 
@@ -134,7 +135,7 @@ class Layout3dPointerGroup {
   ];
 
   /// The surfaces in this group, front to back.
-  List<Layout3dSurface> get surfaces => <Layout3dSurface>[
+  List<RenderSurface3d> get surfaces => <RenderSurface3d>[
     for (final member in _ordered()) member.pointer.surface,
   ];
 
@@ -151,7 +152,7 @@ class Layout3dPointerGroup {
   /// [zOrder] is what is in front of what, highest first; [absorbs] says
   /// whether a hit here ends the walk.
   Layout3dPointer addSurface(
-    Layout3dSurface surface, {
+    RenderSurface3d surface, {
     double zOrder = 0.0,
     bool absorbs = true,
   }) {
@@ -206,7 +207,7 @@ class Layout3dPointerGroup {
   /// Returns the pointer that was testing it, or null when it was not here.
   /// The pointer is not disposed: a caller that handed one in with [add]
   /// keeps it.
-  Layout3dPointer? removeSurface(Layout3dSurface surface) {
+  Layout3dPointer? removeSurface(RenderSurface3d surface) {
     final member = _bySurface.remove(surface);
     if (member == null) return null;
     _members.remove(member);
@@ -229,10 +230,10 @@ class Layout3dPointerGroup {
   }
 
   /// Whether [surface] is in this group.
-  bool holds(Layout3dSurface surface) => _bySurface.containsKey(surface);
+  bool holds(RenderSurface3d surface) => _bySurface.containsKey(surface);
 
   /// The pointer testing [surface], or null.
-  Layout3dPointer? pointerFor(Layout3dSurface surface) =>
+  Layout3dPointer? pointerFor(RenderSurface3d surface) =>
       _bySurface[surface]?.pointer;
 
   /// Puts [overlay]'s detached entries in the group, and takes out the ones
@@ -252,9 +253,9 @@ class Layout3dPointerGroup {
   /// in a scene of panels — and a sync of one must not take out the entries
   /// of another. A surface added by hand is nobody's responsibility here and
   /// stays whatever the overlays do.
-  void syncDetachedEntries(Overlay3d overlay, {double zOrder = 1.0}) {
+  void syncDetachedEntries(RenderOverlay3d overlay, {double zOrder = 1.0}) {
     final wanted = overlay.detachedSurfaces;
-    final held = _entrySurfaces[overlay] ??= <Layout3dSurface>{};
+    final held = _entrySurfaces[overlay] ??= <RenderSurface3d>{};
     for (final surface in held.toList()) {
       if (wanted.contains(surface)) continue;
       held.remove(surface);
@@ -272,7 +273,7 @@ class Layout3dPointerGroup {
   /// What an overlay going away owes the group, and the counterpart of
   /// [syncDetachedEntries]: without it a dismissed panel's dialogs would keep
   /// answering rays from a tree nothing is laying out any more.
-  void forgetDetachedEntries(Overlay3d overlay) {
+  void forgetDetachedEntries(RenderOverlay3d overlay) {
     final held = _entrySurfaces.remove(overlay);
     if (held == null) return;
     for (final surface in held) {
@@ -282,8 +283,8 @@ class Layout3dPointerGroup {
 
   /// The surfaces each overlay has put here, so that one overlay's sync
   /// leaves another's entries alone.
-  final Map<Overlay3d, Set<Layout3dSurface>> _entrySurfaces =
-      <Overlay3d, Set<Layout3dSurface>>{};
+  final Map<RenderOverlay3d, Set<RenderSurface3d>> _entrySurfaces =
+      <RenderOverlay3d, Set<RenderSurface3d>>{};
 
   /// What [worldRay] reaches on the front-most surface that answers, without
   /// touching any sequence state.
@@ -632,7 +633,7 @@ class Layout3dPointerGroup {
   }
 
   /// The surfaces a press is captured on, front to back.
-  List<Layout3dSurface> capturedBy(int pointer) => <Layout3dSurface>[
+  List<RenderSurface3d> capturedBy(int pointer) => <RenderSurface3d>[
     for (final member in _captured[pointer] ?? const <_Member>[])
       member.pointer.surface,
   ];

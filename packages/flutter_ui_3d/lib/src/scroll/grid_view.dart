@@ -9,7 +9,7 @@ import 'box_scroll_view.dart';
 import 'grid_delegate.dart';
 import 'scroll_controller.dart';
 
-/// Builds the layout for one cell of a [GridView3d.builder].
+/// Builds the layout for one cell of a [RenderGridView3d.builder].
 @Deprecated(
   'Use RenderObject3dItemBuilder, which every builder in the package shares. '
   'This alias will be removed in a future release.',
@@ -20,7 +20,7 @@ typedef Grid3dItemBuilder = RenderObject3dItemBuilder;
 ///
 /// [gridDelegate] turns the room available across the scroll axis into a cell
 /// grid, and the children are laid out into it tightly. Because every cell
-/// position is arithmetic, [GridView3d.builder] is exactly lazy: nothing
+/// position is arithmetic, [RenderGridView3d.builder] is exactly lazy: nothing
 /// outside the window (plus [cacheExtent]) is ever built, with no estimating
 /// and no measuring pass.
 ///
@@ -29,12 +29,13 @@ typedef Grid3dItemBuilder = RenderObject3dItemBuilder;
 /// a grid of models of different thicknesses lines up on whichever face you
 /// choose.
 ///
-/// A grid is a viewport over one [SliverGrid3d], the way Flutter's `GridView`
-/// is a `ScrollView` over one `SliverGrid`, and that sliver is where the
-/// cells are placed. [children] still means the cells; see [BoxScrollView3d].
-class GridView3d extends BoxScrollView3d<SliverGrid3d> {
+/// A grid is a viewport over one [RenderSliverGrid3d], the way Flutter's
+/// `GridView` is a `ScrollView` over one `SliverGrid`, and that sliver is where
+/// the cells are placed. [children] still means the cells; see
+/// [RenderBoxScrollView3d].
+class RenderGridView3d extends RenderBoxScrollView3d<RenderSliverGrid3d> {
   /// Creates a grid over an explicit set of children.
-  GridView3d({
+  RenderGridView3d({
     required Grid3dDelegate gridDelegate,
     Axis3d scrollDirection = Axis3d.vertical,
     Scroll3dController? controller,
@@ -43,7 +44,7 @@ class GridView3d extends BoxScrollView3d<SliverGrid3d> {
     List<RenderObject3d> children = const <RenderObject3d>[],
     String? name,
   }) : this._(
-         SliverGrid3d(
+         RenderSliverGrid3d(
            gridDelegate: gridDelegate,
            depthAxisAlignment: depthAxisAlignment,
            children: children,
@@ -55,7 +56,7 @@ class GridView3d extends BoxScrollView3d<SliverGrid3d> {
        );
 
   /// Creates a grid that builds its cells on demand.
-  GridView3d.builder({
+  RenderGridView3d.builder({
     required Grid3dDelegate gridDelegate,
     required int itemCount,
     required RenderObject3dItemBuilder itemBuilder,
@@ -65,7 +66,7 @@ class GridView3d extends BoxScrollView3d<SliverGrid3d> {
     double cacheExtent = 0.0,
     String? name,
   }) : this._(
-         SliverGrid3d.builder(
+         RenderSliverGrid3d.builder(
            gridDelegate: gridDelegate,
            itemCount: itemCount,
            itemBuilder: itemBuilder,
@@ -81,8 +82,8 @@ class GridView3d extends BoxScrollView3d<SliverGrid3d> {
   // super call rules out super parameters, so the two constructors above
   // redirect here rather than each repeating the wiring.
   // ignore: use_super_parameters
-  GridView3d._(
-    SliverGrid3d sliver, {
+  RenderGridView3d._(
+    RenderSliverGrid3d sliver, {
     required Axis3d scrollDirection,
     required Scroll3dController? controller,
     required double cacheExtent,

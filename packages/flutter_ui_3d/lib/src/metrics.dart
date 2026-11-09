@@ -124,7 +124,7 @@ class VisualDensity3d {
 ///
 /// ```dart
 /// // A Material touch target, on the plane, at whatever density is in force.
-/// SizedBox3d(
+/// RenderSizedBox3d(
 ///   width: metrics.dp(48),
 ///   height: metrics.dp(48),
 ///   child: content,
@@ -195,9 +195,9 @@ class Layout3dMetrics {
   /// single-style measurement cheap.
   ///
   /// **This is where the reader's setting lives, and it is not on
-  /// `MediaQuery3dData`.** The layout measures with it — a `Text3d` reads it
-  /// inside `performLayout`, with no `BuildContext` to look one up through —
-  /// so it belongs to the contract the owner carries. `SceneLayout3d` writes
+  /// `MediaQuery3dData`.** The layout measures with it — a `RenderText3d` reads
+  /// it inside `performLayout`, with no `BuildContext` to look one up through —
+  /// so it belongs to the contract the owner carries. `Surface3d` writes
   /// the ambient `MediaQuery.textScalerOf(context)` here for you.
   final TextScaler textScaler;
 
@@ -232,10 +232,11 @@ class Layout3dMetrics {
   /// size of zero, which has nothing to grow.
   ///
   /// This is what makes a single-style measurement stay cheap. Font metrics
-  /// are linear *in* the size, so a `Text3d` measures at the style's own size
-  /// and multiplies — its prepared handle survives a change of scale and the
-  /// font is never consulted again. A paragraph of mixed sizes has no such
-  /// number and hands the scaler to its painter instead; see `RichText3d`.
+  /// are linear *in* the size, so a `RenderText3d` measures at the style's own
+  /// size and multiplies — its prepared handle survives a change of scale and
+  /// the font is never consulted again. A paragraph of mixed sizes has no such
+  /// number and hands the scaler to its painter instead; see
+  /// `RenderRichText3d`.
   double textScaleFor(double fontSize) =>
       fontSize <= 0.0 ? 1.0 : textScaler.scale(fontSize) / fontSize;
 
@@ -257,7 +258,7 @@ class Layout3dMetrics {
   /// deals in.
   ///
   /// ```dart
-  /// ScenePadding3d(
+  /// Padding3d(
   ///   padding: metrics.dpInsets(const EdgeInsets3d.all(16)),
   ///   child: label,
   /// )

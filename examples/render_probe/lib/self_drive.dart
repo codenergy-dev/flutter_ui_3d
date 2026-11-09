@@ -35,7 +35,7 @@ import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_ui_3d/rendering.dart'
-    show GlyphAtlasCache3d, RenderObject3d, Semantics3d;
+    show GlyphAtlasCache3d, RenderObject3d, RenderSemantics3d;
 // ignore: implementation_imports
 import 'package:flutter_ui_3d/src/testing/scene.dart'
     show Reach3d, sceneSurfaces3d;
@@ -282,7 +282,7 @@ abstract final class SelfDrive {
   }
 
   static RenderObject3d? _search(RenderObject3d box, Pattern label) {
-    if (box is Semantics3d) {
+    if (box is RenderSemantics3d) {
       final own = box.properties.label;
       if (own != null && _matches(own, label)) return box;
     }

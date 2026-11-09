@@ -1,4 +1,5 @@
-// Padding3d, Align3d, SizedBox3d, Container3d, Stack3d, Transform3d.
+// RenderPadding3d, RenderAlign3d, RenderSizedBox3d, RenderContainer3d,
+// RenderStack3d, RenderTransform3d.
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart';
@@ -9,10 +10,10 @@ import 'support.dart';
 void main() {
   final tight10 = Constraints3d.tight(const Size3d(10, 10, 10));
 
-  group('Padding3d', () {
+  group('RenderPadding3d', () {
     test('grows by the insets and offsets the child', () {
-      final child = TestBox(const Size3d(2, 2, 2));
-      final padding = Padding3d(
+      final child = RenderTestBox(const Size3d(2, 2, 2));
+      final padding = RenderPadding3d(
         padding: const EdgeInsets3d.all(1),
         child: child,
       );
@@ -22,25 +23,25 @@ void main() {
     });
 
     test('deflates the constraints it passes down', () {
-      final child = TestBox(const Size3d(20, 20, 20));
+      final child = RenderTestBox(const Size3d(20, 20, 20));
       laidOut(
-        Padding3d(padding: const EdgeInsets3d.all(1), child: child),
+        RenderPadding3d(padding: const EdgeInsets3d.all(1), child: child),
         constraints: tight10,
       );
       expect(child.size, const Size3d(8, 8, 8));
     });
 
     test('collapses to its own thickness with no child', () {
-      final padding = Padding3d(padding: const EdgeInsets3d.all(2));
+      final padding = RenderPadding3d(padding: const EdgeInsets3d.all(2));
       laidOut(padding);
       expect(padding.size, const Size3d(4, 4, 4));
     });
   });
 
-  group('Align3d', () {
+  group('RenderAlign3d', () {
     test('fills the bounded space and positions the child', () {
-      final child = TestBox(const Size3d(2, 2, 2));
-      final align = Align3d(alignment: Alignment3d.topLeft, child: child);
+      final child = RenderTestBox(const Size3d(2, 2, 2));
+      final align = RenderAlign3d(alignment: Alignment3d.topLeft, child: child);
       laidOut(align, constraints: tight10);
       expect(align.size, const Size3d(10, 10, 10));
       // Centred in depth, because Alignment3d.topLeft leaves z at 0.
@@ -48,15 +49,19 @@ void main() {
     });
 
     test('shrink-wraps where it is unbounded', () {
-      final child = TestBox(const Size3d(2, 2, 2));
-      final align = Align3d(child: child);
+      final child = RenderTestBox(const Size3d(2, 2, 2));
+      final align = RenderAlign3d(child: child);
       laidOut(align);
       expect(align.size, const Size3d(2, 2, 2));
     });
 
     test('a size factor is a multiple of the child', () {
-      final child = TestBox(const Size3d(2, 2, 2));
-      final align = Align3d(widthFactor: 2, heightFactor: 3, child: child);
+      final child = RenderTestBox(const Size3d(2, 2, 2));
+      final align = RenderAlign3d(
+        widthFactor: 2,
+        heightFactor: 3,
+        child: child,
+      );
       // A size factor only has room to act where the constraints are loose;
       // tight ones win, exactly as they do for Flutter's Align.
       laidOut(
@@ -68,39 +73,39 @@ void main() {
       expect(child.offset.x, 1);
     });
 
-    test('Center3d centres', () {
-      final child = TestBox(const Size3d(2, 2, 2));
-      laidOut(Center3d(child: child), constraints: tight10);
+    test('RenderCenter3d centres', () {
+      final child = RenderTestBox(const Size3d(2, 2, 2));
+      laidOut(RenderCenter3d(child: child), constraints: tight10);
       expect(child.offset, const Offset3d(4, 4, 4));
     });
   });
 
-  group('SizedBox3d', () {
+  group('RenderSizedBox3d', () {
     test('fixes only the axes it is given', () {
-      final child = TestBox(const Size3d(9, 9, 9));
-      final box = SizedBox3d(width: 2, depth: 1, child: child);
+      final child = RenderTestBox(const Size3d(9, 9, 9));
+      final box = RenderSizedBox3d(width: 2, depth: 1, child: child);
       laidOut(box, constraints: Constraints3d.loose(const Size3d(10, 10, 10)));
       expect(child.size, const Size3d(2, 9, 1));
       expect(box.size, const Size3d(2, 9, 1));
     });
 
     test('takes its own size with no child', () {
-      final box = SizedBox3d(width: 2, height: 3, depth: 4);
+      final box = RenderSizedBox3d(width: 2, height: 3, depth: 4);
       laidOut(box);
       expect(box.size, const Size3d(2, 3, 4));
     });
 
     test('never escapes the constraints it was given', () {
-      final box = SizedBox3d.cube(20);
+      final box = RenderSizedBox3d.cube(20);
       laidOut(box, constraints: Constraints3d.loose(const Size3d(4, 4, 4)));
       expect(box.size, const Size3d(4, 4, 4));
     });
   });
 
-  group('Container3d', () {
+  group('RenderContainer3d', () {
     test('margin, padding, and alignment stack up', () {
-      final child = TestBox(const Size3d(1, 1, 1));
-      final container = Container3d(
+      final child = RenderTestBox(const Size3d(1, 1, 1));
+      final container = RenderContainer3d(
         margin: const EdgeInsets3d.all(1),
         padding: const EdgeInsets3d.all(0.5),
         alignment: Alignment3d.center,
@@ -112,8 +117,8 @@ void main() {
     });
 
     test('shrink-wraps without an alignment', () {
-      final child = TestBox(const Size3d(2, 2, 2));
-      final container = Container3d(
+      final child = RenderTestBox(const Size3d(2, 2, 2));
+      final container = RenderContainer3d(
         padding: const EdgeInsets3d.all(1),
         child: child,
       );
@@ -123,8 +128,8 @@ void main() {
     });
 
     test('width, height, and depth tighten the child', () {
-      final child = TestBox(const Size3d(9, 9, 9));
-      final container = Container3d(
+      final child = RenderTestBox(const Size3d(9, 9, 9));
+      final container = RenderContainer3d(
         width: 4,
         height: 3,
         depth: 2,
@@ -141,14 +146,14 @@ void main() {
     });
 
     test('fills what it is given with no child', () {
-      final container = Container3d();
+      final container = RenderContainer3d();
       laidOut(container, constraints: tight10);
       expect(container.size, const Size3d(10, 10, 10));
     });
 
     test('a transform moves the node without moving the layout', () {
-      final child = TestBox(const Size3d(2, 2, 2));
-      final container = Container3d(
+      final child = RenderTestBox(const Size3d(2, 2, 2));
+      final container = RenderContainer3d(
         alignment: Alignment3d.center,
         transform: Matrix4.translationValues(1, 0, 0),
         child: child,
@@ -160,10 +165,10 @@ void main() {
     });
   });
 
-  group('Transform3d', () {
+  group('RenderTransform3d', () {
     test('pivots around the alignment point', () {
-      final child = TestBox(const Size3d(4, 4, 4));
-      final transform = Transform3d(
+      final child = RenderTestBox(const Size3d(4, 4, 4));
+      final transform = RenderTransform3d(
         transform: Matrix4.diagonal3(Vector3(2, 2, 2)),
         child: child,
       );
@@ -177,11 +182,11 @@ void main() {
     });
   });
 
-  group('Stack3d', () {
+  group('RenderStack3d', () {
     test('sizes to its largest child and aligns the rest', () {
-      final big = TestBox(const Size3d(4, 4, 4));
-      final small = TestBox(const Size3d(2, 2, 2));
-      final stack = Stack3d(
+      final big = RenderTestBox(const Size3d(4, 4, 4));
+      final small = RenderTestBox(const Size3d(2, 2, 2));
+      final stack = RenderStack3d(
         alignment: Alignment3d.center,
         children: [big, small],
       );
@@ -192,17 +197,17 @@ void main() {
     });
 
     test('StackFit3d.expand forces children to fill', () {
-      final child = TestBox(const Size3d(2, 2, 2));
+      final child = RenderTestBox(const Size3d(2, 2, 2));
       laidOut(
-        Stack3d(fit: StackFit3d.expand, children: [child]),
+        RenderStack3d(fit: StackFit3d.expand, children: [child]),
         constraints: tight10,
       );
       expect(child.size, const Size3d(10, 10, 10));
     });
 
-    test('Positioned3d pins to the faces', () {
-      final child = TestBox(const Size3d(9, 9, 9));
-      final positioned = Positioned3d(
+    test('RenderPositioned3d pins to the faces', () {
+      final child = RenderTestBox(const Size3d(9, 9, 9));
+      final positioned = RenderPositioned3d(
         left: 1,
         top: 2,
         width: 3,
@@ -210,7 +215,9 @@ void main() {
         child: child,
       );
       laidOut(
-        Stack3d(children: [TestBox(const Size3d(10, 10, 10)), positioned]),
+        RenderStack3d(
+          children: [RenderTestBox(const Size3d(10, 10, 10)), positioned],
+        ),
         constraints: tight10,
       );
       expect(child.size.width, 3);
@@ -220,10 +227,10 @@ void main() {
     });
 
     test('opposite insets stretch the child', () {
-      final child = TestBox(const Size3d(9, 9, 9));
-      final positioned = Positioned3d(left: 1, right: 2, child: child);
+      final child = RenderTestBox(const Size3d(9, 9, 9));
+      final positioned = RenderPositioned3d(left: 1, right: 2, child: child);
       laidOut(
-        Stack3d(fit: StackFit3d.expand, children: [positioned]),
+        RenderStack3d(fit: StackFit3d.expand, children: [positioned]),
         constraints: tight10,
       );
       expect(child.size.width, 7);
@@ -235,12 +242,18 @@ void main() {
       // stand out of the plane by however deep its content happens to be,
       // which is a trap when the caller pins left/top/width/height out of
       // 2D habit and forgets depth entirely.
-      final child = TestBox(const Size3d(9, 9, 9));
+      final child = RenderTestBox(const Size3d(9, 9, 9));
       laidOut(
-        Stack3d(
+        RenderStack3d(
           fit: StackFit3d.expand,
           children: [
-            Positioned3d(left: 1, top: 1, width: 2, height: 2, child: child),
+            RenderPositioned3d(
+              left: 1,
+              top: 1,
+              width: 2,
+              height: 2,
+              child: child,
+            ),
           ],
         ),
         constraints: Constraints3d.tight(const Size3d(10, 10, 0.5)),
@@ -249,10 +262,10 @@ void main() {
     });
 
     test('depthStep pulls later children toward the viewer', () {
-      final first = TestBox(const Size3d(2, 2, 0));
-      final second = TestBox(const Size3d(2, 2, 0));
+      final first = RenderTestBox(const Size3d(2, 2, 0));
+      final second = RenderTestBox(const Size3d(2, 2, 0));
       laidOut(
-        Stack3d(depthStep: 0.01, children: [first, second]),
+        RenderStack3d(depthStep: 0.01, children: [first, second]),
         constraints: tight10,
       );
       // The step moves the geometry, so it shows up in the scene node...
@@ -264,16 +277,16 @@ void main() {
       expect(second.offset.z, 0);
     });
 
-    test('depthStep leaves a Positioned3d on the face it pinned', () {
-      final pinned = Positioned3d(
+    test('depthStep leaves a RenderPositioned3d on the face it pinned', () {
+      final pinned = RenderPositioned3d(
         back: 0,
         depth: 1,
-        child: TestBox(const Size3d(2, 2, 1)),
+        child: RenderTestBox(const Size3d(2, 2, 1)),
       );
       laidOut(
-        Stack3d(
+        RenderStack3d(
           depthStep: 0.01,
-          children: [TestBox(const Size3d(2, 2, 1)), pinned],
+          children: [RenderTestBox(const Size3d(2, 2, 1)), pinned],
         ),
         constraints: tight10,
       );
@@ -284,12 +297,12 @@ void main() {
     });
 
     test('depthStep does not change the stack size', () {
-      final stack = Stack3d(
+      final stack = RenderStack3d(
         depthStep: 0.5,
         children: [
-          TestBox(const Size3d(2, 2, 1)),
-          TestBox(const Size3d(2, 2, 1)),
-          TestBox(const Size3d(2, 2, 1)),
+          RenderTestBox(const Size3d(2, 2, 1)),
+          RenderTestBox(const Size3d(2, 2, 1)),
+          RenderTestBox(const Size3d(2, 2, 1)),
         ],
       );
       laidOut(stack);

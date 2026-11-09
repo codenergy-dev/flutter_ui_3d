@@ -42,7 +42,7 @@ import '../tokens/typography.dart';
 /// this catalogue is the first thing to actually pay: a modal here builds its
 /// own scrim, so a transition that moved the whole of a route's content would
 /// slide the dim in with the dialog it dims. So [transition] goes on the
-/// route and [motion] goes on a `SceneMotionTransition3d` around the content
+/// route and [motion] goes on a `MotionTransition3d` around the content
 /// *inside* the scrim.
 ///
 /// The two overlays that are not routes — a tooltip and a snack bar — use the
@@ -265,9 +265,10 @@ class DialogStyle3d {
 
   /// How deep the scrim's slab is: `thickness.thin`, 1dp.
   ///
-  /// **A scrim is a slab, not an alpha wash**, which is what `ModalBarrier3d`
-  /// says about itself. A zero-depth one would be coplanar with whatever it
-  /// is drawn over, which is the same z-fight `Divider3d` exists to avoid.
+  /// **A scrim is a slab, not an alpha wash**, which is what
+  /// `RenderModalBarrier3d` says about itself. A zero-depth one would be
+  /// coplanar with whatever it is drawn over, which is the same z-fight
+  /// `Divider3d` exists to avoid.
   final double scrimThickness;
 
   /// The type the dialog's content inherits.

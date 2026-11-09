@@ -853,7 +853,7 @@ void main() {
 
   group('the seam a late picture arrives through', () {
     test('a painter is handed a way to ask for another paint', () {
-      final box = DecoratedBox3d(decoration: const _SeamDecoration());
+      final box = RenderDecoratedBox3d(decoration: const _SeamDecoration());
       laidOut(box);
       final painter = SeamPainter.created.single;
       expect(painter.paints, hasLength(1));
@@ -871,7 +871,7 @@ void main() {
         devicePixelRatio: 3.0,
         textDirection: TextDirection.rtl,
       );
-      final box = DecoratedBox3d(
+      final box = RenderDecoratedBox3d(
         decoration: const _SeamDecoration(),
         configuration: configuration,
       );
@@ -881,8 +881,8 @@ void main() {
     });
 
     test('a new configuration repaints and lays nothing out', () {
-      final child = TestBox(const Size3d(1, 1, 0));
-      final box = DecoratedBox3d(
+      final child = RenderTestBox(const Size3d(1, 1, 0));
+      final box = RenderDecoratedBox3d(
         decoration: const _SeamDecoration(),
         child: child,
       );
@@ -897,14 +897,14 @@ void main() {
     });
   });
 
-  group('Image3d', () {
+  group('RenderImage3d', () {
     testWidgets('is as small as it may be until the picture arrives', (
       tester,
     ) async {
       await tester.runAsync(() async {
         final image = await solidImage(200, 100);
         final cache = ImageTexture3dCache(upload: (_) => FakeTexture());
-        final box = Image3d(image: TestPicture(image), pictures: cache);
+        final box = RenderImage3d(image: TestPicture(image), pictures: cache);
         final surface = laidOut(
           box,
           constraints: const Constraints3d(maxWidth: 4, maxHeight: 4),
@@ -928,7 +928,7 @@ void main() {
       await tester.runAsync(() async {
         final image = await solidImage(200, 100);
         final cache = ImageTexture3dCache(upload: (_) => FakeTexture());
-        final box = Image3d(image: TestPicture(image), pictures: cache);
+        final box = RenderImage3d(image: TestPicture(image), pictures: cache);
         final surface = laidOut(
           box,
           constraints: const Constraints3d(maxWidth: 1, maxHeight: 4),
@@ -950,7 +950,7 @@ void main() {
       await tester.runAsync(() async {
         final image = await solidImage(200, 100);
         final cache = ImageTexture3dCache(upload: (_) => FakeTexture());
-        final box = Image3d(image: TestPicture(image), pictures: cache);
+        final box = RenderImage3d(image: TestPicture(image), pictures: cache);
         final surface = laidOut(box, metrics: metrics);
         await pumpEventQueue();
         surface.flush();
@@ -972,22 +972,22 @@ void main() {
   });
 
   group('the widget forms', () {
-    testWidgets('SceneImage3d builds an Image3d and updates it', (
+    testWidgets('Image3d builds a RenderImage3d and updates it', (
       tester,
     ) async {
       final image = await tester.runAsync(() => solidImage(8, 8));
       final provider = TestPicture(image!);
       final controller = Layout3dController();
 
-      Widget screen(BoxFit fit) => SceneLayout3d(
+      Widget screen(BoxFit fit) => Surface3d(
         parent: Node(),
         size: const Size3d(4, 4, 0.1),
         controller: controller,
-        child: SceneImage3d(image: provider, fit: fit),
+        child: Image3d(image: provider, fit: fit),
       );
 
       await tester.pumpWidget(screen(BoxFit.contain));
-      final box = controller.surface!.child! as Image3d;
+      final box = controller.surface!.child! as RenderImage3d;
       expect(box.fit, BoxFit.contain);
       // The configuration comes from the tree, so an asset would pick the
       // variant the window's device pixel ratio asks for.
@@ -1019,7 +1019,7 @@ void main() {
           ),
         ),
       );
-      final configuration = SceneDecoratedBox3d.configurationFor(
+      final configuration = DecoratedBox3d.configurationFor(
         captured,
         decoration,
       );
@@ -1029,7 +1029,7 @@ void main() {
       // A panel with nothing but a colour on it asks for none of that, so it
       // does not depend on the media query to draw.
       expect(
-        SceneDecoratedBox3d.configurationFor(captured, const BoxDecoration3d()),
+        DecoratedBox3d.configurationFor(captured, const BoxDecoration3d()),
         ImageConfiguration.empty,
       );
     });
@@ -1037,13 +1037,13 @@ void main() {
 
   group('the slab a picture is drawn on', () {
     test('a box with no thickness is still drawn with a normal', () {
-      // A picture's box has no depth — `Image3d` takes what its constraints
-      // allow, and a loose surface allows none — and a slab scaled to exactly
-      // zero on an axis has a singular transform, which is a normal matrix of
-      // nothing. The panel shader is lit, so such a slab comes out **black**,
-      // which reads as a picture that failed to bind rather than as geometry
-      // with no normal. The render probe found it on the first frame it drew
-      // an `Image3d`.
+      // A picture's box has no depth — `RenderImage3d` takes what its
+      // constraints allow, and a loose surface allows none — and a slab scaled
+      // to exactly zero on an axis has a singular transform, which is a normal
+      // matrix of nothing. The panel shader is lit, so such a slab comes out
+      // **black**, which reads as a picture that failed to bind rather than as
+      // geometry with no normal. The render probe found it on the first frame
+      // it drew a `RenderImage3d`.
       final flat = BoxDecoration3dPainter.slabTransformFor(
         const Size3d(2, 1, 0),
       );

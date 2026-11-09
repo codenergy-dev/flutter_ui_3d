@@ -45,8 +45,8 @@ const String kGlyphMaterialSource = 'assets/text_glyph3d.fmat';
 /// await installGlyphMaterial3d();
 /// ```
 abstract class GlyphMaterial3d {
-  /// Makes the material every [AtlasText3dRenderer] and [RichText3d] draws
-  /// with.
+  /// Makes the material every [AtlasText3dRenderer] and [RenderRichText3d]
+  /// draws with.
   ///
   /// [UnlitGlyphMaterial3d.new] until [installGlyphMaterial3d] replaces it.
   /// Assign a factory of your own for a material with different rules — a

@@ -116,13 +116,13 @@ import 'framework.dart';
 import 'text_scaling.dart';
 
 /// Puts engine content into a declarative layout, the widget form of
-/// [NodeBox3d].
+/// [RenderNodeBox3d].
 ///
 /// The [content] node is app-owned: this widget positions and scales it, and
 /// detaches it when the widget goes away, but never disposes it.
-class SceneNodeBox3d extends MultiChildRenderObjectWidget3d {
+class NodeBox3d extends MultiChildRenderObjectWidget3d {
   /// Creates a box around [content].
-  const SceneNodeBox3d({
+  const NodeBox3d({
     super.key,
     required this.content,
     this.fit = BoxFit3d.none,
@@ -147,7 +147,7 @@ class SceneNodeBox3d extends MultiChildRenderObjectWidget3d {
   final Size3d fallbackSize;
 
   @override
-  NodeBox3d createLayout(BuildContext context) => NodeBox3d(
+  RenderNodeBox3d createLayout(BuildContext context) => RenderNodeBox3d(
     content: content,
     fit: fit,
     alignment: alignment,
@@ -157,7 +157,7 @@ class SceneNodeBox3d extends MultiChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, NodeBox3d layout) {
+  void updateLayout(BuildContext context, RenderNodeBox3d layout) {
     layout
       ..content = content
       ..fit = fit
@@ -168,36 +168,32 @@ class SceneNodeBox3d extends MultiChildRenderObjectWidget3d {
   }
 }
 
-/// Insets its child, the widget form of [Padding3d].
-class ScenePadding3d extends SingleChildRenderObjectWidget3d {
+/// Insets its child, the widget form of [RenderPadding3d].
+class Padding3d extends SingleChildRenderObjectWidget3d {
   /// Creates a padded box.
-  const ScenePadding3d({
-    super.key,
-    this.padding = EdgeInsets3d.zero,
-    super.child,
-  });
+  const Padding3d({super.key, this.padding = EdgeInsets3d.zero, super.child});
 
   /// The inset on each of the six faces.
   final EdgeInsetsGeometry3d padding;
 
   @override
-  Padding3d createLayout(BuildContext context) => Padding3d(
+  RenderPadding3d createLayout(BuildContext context) => RenderPadding3d(
     padding: padding,
     textDirection: Directionality.maybeOf(context),
   );
 
   @override
-  void updateLayout(BuildContext context, Padding3d layout) {
+  void updateLayout(BuildContext context, RenderPadding3d layout) {
     layout
       ..padding = padding
       ..textDirection = Directionality.maybeOf(context);
   }
 }
 
-/// Aligns its child, the widget form of [Align3d].
-class SceneAlign3d extends SingleChildRenderObjectWidget3d {
+/// Aligns its child, the widget form of [RenderAlign3d].
+class Align3d extends SingleChildRenderObjectWidget3d {
   /// Creates an aligning box.
-  const SceneAlign3d({
+  const Align3d({
     super.key,
     this.alignment = Alignment3d.center,
     this.widthFactor,
@@ -219,7 +215,7 @@ class SceneAlign3d extends SingleChildRenderObjectWidget3d {
   final double? depthFactor;
 
   @override
-  Align3d createLayout(BuildContext context) => Align3d(
+  RenderAlign3d createLayout(BuildContext context) => RenderAlign3d(
     alignment: alignment,
     widthFactor: widthFactor,
     heightFactor: heightFactor,
@@ -228,7 +224,7 @@ class SceneAlign3d extends SingleChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, Align3d layout) {
+  void updateLayout(BuildContext context, RenderAlign3d layout) {
     layout
       ..alignment = alignment
       ..widthFactor = widthFactor
@@ -238,10 +234,10 @@ class SceneAlign3d extends SingleChildRenderObjectWidget3d {
   }
 }
 
-/// Centres its child, the widget form of [Center3d].
-class SceneCenter3d extends SceneAlign3d {
+/// Centres its child, the widget form of [RenderCenter3d].
+class Center3d extends Align3d {
   /// Creates a centring box.
-  const SceneCenter3d({
+  const Center3d({
     super.key,
     super.widthFactor,
     super.heightFactor,
@@ -250,10 +246,10 @@ class SceneCenter3d extends SceneAlign3d {
   });
 }
 
-/// A box with a fixed size, the widget form of [SizedBox3d].
-class SceneSizedBox3d extends SingleChildRenderObjectWidget3d {
+/// A box with a fixed size, the widget form of [RenderSizedBox3d].
+class SizedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box fixed on the axes given.
-  const SceneSizedBox3d({
+  const SizedBox3d({
     super.key,
     this.width,
     this.height,
@@ -262,7 +258,7 @@ class SceneSizedBox3d extends SingleChildRenderObjectWidget3d {
   });
 
   /// A cube [extent] on a side.
-  const SceneSizedBox3d.cube(double extent, {super.key, super.child})
+  const SizedBox3d.cube(double extent, {super.key, super.child})
     : width = extent,
       height = extent,
       depth = extent;
@@ -277,11 +273,11 @@ class SceneSizedBox3d extends SingleChildRenderObjectWidget3d {
   final double? depth;
 
   @override
-  SizedBox3d createLayout(BuildContext context) =>
-      SizedBox3d(width: width, height: height, depth: depth);
+  RenderSizedBox3d createLayout(BuildContext context) =>
+      RenderSizedBox3d(width: width, height: height, depth: depth);
 
   @override
-  void updateLayout(BuildContext context, SizedBox3d layout) {
+  void updateLayout(BuildContext context, RenderSizedBox3d layout) {
     layout
       ..width = width
       ..height = height
@@ -289,100 +285,101 @@ class SceneSizedBox3d extends SingleChildRenderObjectWidget3d {
   }
 }
 
-/// Hides its subtree from hit testing, the widget form of [IgnorePointer3d].
-class SceneIgnorePointer3d extends SingleChildRenderObjectWidget3d {
+/// Hides its subtree from hit testing, the widget form of
+/// [RenderIgnorePointer3d].
+class IgnorePointer3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that hides [child] from hit tests while [ignoring].
-  const SceneIgnorePointer3d({super.key, this.ignoring = true, super.child});
+  const IgnorePointer3d({super.key, this.ignoring = true, super.child});
 
   /// Whether the subtree is out of reach.
   final bool ignoring;
 
   @override
-  IgnorePointer3d createLayout(BuildContext context) =>
-      IgnorePointer3d(ignoring: ignoring);
+  RenderIgnorePointer3d createLayout(BuildContext context) =>
+      RenderIgnorePointer3d(ignoring: ignoring);
 
   @override
-  void updateLayout(BuildContext context, IgnorePointer3d layout) {
+  void updateLayout(BuildContext context, RenderIgnorePointer3d layout) {
     layout.ignoring = ignoring;
   }
 }
 
 /// Takes the hits its subtree would have taken, the widget form of
-/// [AbsorbPointer3d].
-class SceneAbsorbPointer3d extends SingleChildRenderObjectWidget3d {
+/// [RenderAbsorbPointer3d].
+class AbsorbPointer3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that answers hits for [child] while [absorbing].
-  const SceneAbsorbPointer3d({super.key, this.absorbing = true, super.child});
+  const AbsorbPointer3d({super.key, this.absorbing = true, super.child});
 
   /// Whether this box swallows hits meant for its subtree.
   final bool absorbing;
 
   @override
-  AbsorbPointer3d createLayout(BuildContext context) =>
-      AbsorbPointer3d(absorbing: absorbing);
+  RenderAbsorbPointer3d createLayout(BuildContext context) =>
+      RenderAbsorbPointer3d(absorbing: absorbing);
 
   @override
-  void updateLayout(BuildContext context, AbsorbPointer3d layout) {
+  void updateLayout(BuildContext context, RenderAbsorbPointer3d layout) {
     layout.absorbing = absorbing;
   }
 }
 
 /// Hides its child without taking it out of the layout, the widget form of
-/// [Visibility3d].
+/// [RenderVisibility3d].
 ///
 /// The space stays reserved and nothing above moves; a hidden box is neither
-/// drawn nor reachable by a ray. Use [SceneOffstage3d] to take the space back
+/// drawn nor reachable by a ray. Use [Offstage3d] to take the space back
 /// as well.
-class SceneVisibility3d extends SingleChildRenderObjectWidget3d {
+class Visibility3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box showing or hiding [child].
-  const SceneVisibility3d({super.key, this.visible = true, super.child});
+  const Visibility3d({super.key, this.visible = true, super.child});
 
   /// Whether the child is drawn and reachable by a ray.
   final bool visible;
 
   @override
-  Visibility3d createLayout(BuildContext context) =>
-      Visibility3d(visible: visible);
+  RenderVisibility3d createLayout(BuildContext context) =>
+      RenderVisibility3d(visible: visible);
 
   @override
-  void updateLayout(BuildContext context, Visibility3d layout) {
+  void updateLayout(BuildContext context, RenderVisibility3d layout) {
     layout.visible = visible;
   }
 }
 
 /// Hides its child and gives back the space it took, the widget form of
-/// [Offstage3d].
+/// [RenderOffstage3d].
 ///
 /// The child is still laid out, so flipping [offstage] back shows something
 /// that is already measured rather than something that appears a frame later.
-class SceneOffstage3d extends SingleChildRenderObjectWidget3d {
+class Offstage3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that can take [child] out of the layout.
-  const SceneOffstage3d({super.key, this.offstage = true, super.child});
+  const Offstage3d({super.key, this.offstage = true, super.child});
 
   /// Whether the child is hidden and its space given back.
   final bool offstage;
 
   @override
-  Offstage3d createLayout(BuildContext context) =>
-      Offstage3d(offstage: offstage);
+  RenderOffstage3d createLayout(BuildContext context) =>
+      RenderOffstage3d(offstage: offstage);
 
   @override
-  void updateLayout(BuildContext context, Offstage3d layout) {
+  void updateLayout(BuildContext context, RenderOffstage3d layout) {
     layout.offstage = offstage;
   }
 }
 
 /// Asks a lazy view not to release this item when the window leaves it, the
-/// widget form of [KeepAlive3d].
+/// widget form of [RenderKeepAlive3d].
 ///
 /// The answer to an item that has something to lose — an expanded row, a
 /// half-filled form, a scroll position of its own. Without one, scrolling far
 /// enough disposes the item and its [State] goes with it.
 ///
 /// ```dart
-/// SceneListView3d.builder(
+/// ListView3d.builder(
 ///   itemCount: questions.length,
 ///   itemExtent: 0.4,
-///   itemBuilder: (context, index) => SceneKeepAlive3d(
+///   itemBuilder: (context, index) => KeepAlive3d(
 ///     child: AnswerRow(question: questions[index]),
 ///   ),
 /// )
@@ -393,9 +390,9 @@ class SceneOffstage3d extends SingleChildRenderObjectWidget3d {
 /// Flutter's `AutomaticKeepAlive` listening for a notification from deeper in.
 /// A kept item stays in memory for as long as the view does, so keep the ones
 /// with something to lose and let the rest go.
-class SceneKeepAlive3d extends SingleChildRenderObjectWidget3d {
+class KeepAlive3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box asking for [child] to be kept.
-  const SceneKeepAlive3d({super.key, this.keepAlive = true, super.child});
+  const KeepAlive3d({super.key, this.keepAlive = true, super.child});
 
   /// Whether the enclosing lazy view parks this item rather than releasing it.
   ///
@@ -404,35 +401,35 @@ class SceneKeepAlive3d extends SingleChildRenderObjectWidget3d {
   final bool keepAlive;
 
   @override
-  KeepAlive3d createLayout(BuildContext context) =>
-      KeepAlive3d(keepAlive: keepAlive);
+  RenderKeepAlive3d createLayout(BuildContext context) =>
+      RenderKeepAlive3d(keepAlive: keepAlive);
 
   @override
-  void updateLayout(BuildContext context, KeepAlive3d layout) {
+  void updateLayout(BuildContext context, RenderKeepAlive3d layout) {
     layout.keepAlive = keepAlive;
   }
 }
 
 /// Publishes its subtree to assistive technology, the widget form of
-/// [Semantics3d].
+/// [RenderSemantics3d].
 ///
 /// The same [SemanticsProperties] a 2D `Semantics` widget takes, so a control
 /// declares its accessibility once and in one vocabulary whether it is drawn
 /// with pixels or with geometry.
 ///
 /// ```dart
-/// SceneSemantics3d(
+/// Semantics3d(
 ///   properties: const SemanticsProperties(
 ///     label: 'Play',
 ///     button: true,
 ///     textDirection: TextDirection.ltr,
 ///   ),
-///   child: SceneGestureDetector3d(onTap: play, child: playButton),
+///   child: GestureDetector3d(onTap: play, child: playButton),
 /// )
 /// ```
-class SceneSemantics3d extends SingleChildRenderObjectWidget3d {
+class Semantics3d extends SingleChildRenderObjectWidget3d {
   /// Creates a semantics box over [child].
-  const SceneSemantics3d({
+  const Semantics3d({
     super.key,
     required this.properties,
     this.sortOrder,
@@ -450,14 +447,14 @@ class SceneSemantics3d extends SingleChildRenderObjectWidget3d {
   final bool enabled;
 
   @override
-  Semantics3d createLayout(BuildContext context) => Semantics3d(
+  RenderSemantics3d createLayout(BuildContext context) => RenderSemantics3d(
     properties: properties,
     sortOrder: sortOrder,
     enabled: enabled,
   );
 
   @override
-  void updateLayout(BuildContext context, Semantics3d layout) {
+  void updateLayout(BuildContext context, RenderSemantics3d layout) {
     layout
       ..properties = properties
       ..sortOrder = sortOrder
@@ -466,10 +463,10 @@ class SceneSemantics3d extends SingleChildRenderObjectWidget3d {
 }
 
 /// Claims a region of the plane for the pointer, the widget form of
-/// [HitTestArea3d].
-class SceneHitTestArea3d extends SingleChildRenderObjectWidget3d {
+/// [RenderHitTestArea3d].
+class HitTestArea3d extends SingleChildRenderObjectWidget3d {
   /// Creates a hit-test region, opaque by default.
-  const SceneHitTestArea3d({
+  const HitTestArea3d({
     super.key,
     this.behavior = HitTestBehavior3d.opaque,
     super.child,
@@ -479,39 +476,39 @@ class SceneHitTestArea3d extends SingleChildRenderObjectWidget3d {
   final HitTestBehavior3d behavior;
 
   @override
-  HitTestArea3d createLayout(BuildContext context) =>
-      HitTestArea3d(behavior: behavior);
+  RenderHitTestArea3d createLayout(BuildContext context) =>
+      RenderHitTestArea3d(behavior: behavior);
 
   @override
-  void updateLayout(BuildContext context, HitTestArea3d layout) {
+  void updateLayout(BuildContext context, RenderHitTestArea3d layout) {
     layout.behavior = behavior;
   }
 }
 
 /// Guarantees the pointer a minimum area to aim at, the widget form of
-/// [TapTarget3d].
-class SceneTapTarget3d extends SingleChildRenderObjectWidget3d {
+/// [RenderTapTarget3d].
+class TapTarget3d extends SingleChildRenderObjectWidget3d {
   /// Creates a target at least [minimumSize] across, or 48dp square by
   /// default.
-  const SceneTapTarget3d({super.key, this.minimumSize, super.child});
+  const TapTarget3d({super.key, this.minimumSize, super.child});
 
   /// The smallest area the pointer is given, in world units.
   final Size3d? minimumSize;
 
   @override
-  TapTarget3d createLayout(BuildContext context) =>
-      TapTarget3d(minimumSize: minimumSize);
+  RenderTapTarget3d createLayout(BuildContext context) =>
+      RenderTapTarget3d(minimumSize: minimumSize);
 
   @override
-  void updateLayout(BuildContext context, TapTarget3d layout) {
+  void updateLayout(BuildContext context, RenderTapTarget3d layout) {
     layout.minimumSize = minimumSize;
   }
 }
 
-/// Reports the pointer events inside it, the widget form of [Listener3d].
-class SceneListener3d extends SingleChildRenderObjectWidget3d {
+/// Reports the pointer events inside it, the widget form of [RenderListener3d].
+class Listener3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that reports the pointer events it is handed.
-  const SceneListener3d({
+  const Listener3d({
     super.key,
     this.onPointerDown,
     this.onPointerMove,
@@ -549,7 +546,7 @@ class SceneListener3d extends SingleChildRenderObjectWidget3d {
   final HitTestBehavior3d behavior;
 
   @override
-  Listener3d createLayout(BuildContext context) => Listener3d(
+  RenderListener3d createLayout(BuildContext context) => RenderListener3d(
     onPointerDown: onPointerDown,
     onPointerMove: onPointerMove,
     onPointerUp: onPointerUp,
@@ -561,7 +558,7 @@ class SceneListener3d extends SingleChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, Listener3d layout) {
+  void updateLayout(BuildContext context, RenderListener3d layout) {
     layout
       ..onPointerDown = onPointerDown
       ..onPointerMove = onPointerMove
@@ -574,10 +571,11 @@ class SceneListener3d extends SingleChildRenderObjectWidget3d {
   }
 }
 
-/// Recognizes gestures on the plane, the widget form of [GestureDetector3d].
-class SceneGestureDetector3d extends SingleChildRenderObjectWidget3d {
+/// Recognizes gestures on the plane, the widget form of
+/// [RenderGestureDetector3d].
+class GestureDetector3d extends SingleChildRenderObjectWidget3d {
   /// Creates a gesture detector.
-  const SceneGestureDetector3d({
+  const GestureDetector3d({
     super.key,
     this.onTapDown,
     this.onTapUp,
@@ -627,22 +625,23 @@ class SceneGestureDetector3d extends SingleChildRenderObjectWidget3d {
   final HitTestBehavior3d behavior;
 
   @override
-  GestureDetector3d createLayout(BuildContext context) => GestureDetector3d(
-    onTapDown: onTapDown,
-    onTapUp: onTapUp,
-    onTap: onTap,
-    onTapCancel: onTapCancel,
-    onDoubleTap: onDoubleTap,
-    onLongPress: onLongPress,
-    onPanStart: onPanStart,
-    onPanUpdate: onPanUpdate,
-    onPanEnd: onPanEnd,
-    onPanCancel: onPanCancel,
-    behavior: behavior,
-  );
+  RenderGestureDetector3d createLayout(BuildContext context) =>
+      RenderGestureDetector3d(
+        onTapDown: onTapDown,
+        onTapUp: onTapUp,
+        onTap: onTap,
+        onTapCancel: onTapCancel,
+        onDoubleTap: onDoubleTap,
+        onLongPress: onLongPress,
+        onPanStart: onPanStart,
+        onPanUpdate: onPanUpdate,
+        onPanEnd: onPanEnd,
+        onPanCancel: onPanCancel,
+        behavior: behavior,
+      );
 
   @override
-  void updateLayout(BuildContext context, GestureDetector3d layout) {
+  void updateLayout(BuildContext context, RenderGestureDetector3d layout) {
     layout
       ..onTapDown = onTapDown
       ..onTapUp = onTapUp
@@ -658,14 +657,14 @@ class SceneGestureDetector3d extends SingleChildRenderObjectWidget3d {
   }
 }
 
-/// Ties a [FocusNode] to a box, the widget form of [Focus3d].
+/// Ties a [FocusNode] to a box, the widget form of [RenderFocus3d].
 ///
 /// Pass a [focusNode] to drive it from a `Focus` widget above, or leave it
 /// null and let the box own one; dropping the node between rebuilds gives the
 /// box a fresh one rather than leaving it tied to the old.
-class SceneFocus3d extends SingleChildRenderObjectWidget3d {
+class Focus3d extends SingleChildRenderObjectWidget3d {
   /// Creates a focusable box.
-  const SceneFocus3d({
+  const Focus3d({
     super.key,
     this.focusNode,
     this.onFocusChange,
@@ -682,7 +681,7 @@ class SceneFocus3d extends SingleChildRenderObjectWidget3d {
 
   /// Called with each key that reaches this box — including, unlike on a
   /// bare `FocusNode`, the keys of the focusable boxes inside it. See
-  /// [Focus3d.onKeyEvent].
+  /// [RenderFocus3d.onKeyEvent].
   final FocusOnKeyEventCallback? onKeyEvent;
 
   /// Called when this box gains or loses focus.
@@ -698,8 +697,8 @@ class SceneFocus3d extends SingleChildRenderObjectWidget3d {
   final bool canRequestFocus;
 
   @override
-  Focus3d createLayout(BuildContext context) =>
-      Focus3d(
+  RenderFocus3d createLayout(BuildContext context) =>
+      RenderFocus3d(
           focusNode: focusNode,
           onFocusChange: onFocusChange,
           focusOnPointerDown: focusOnPointerDown,
@@ -713,7 +712,7 @@ class SceneFocus3d extends SingleChildRenderObjectWidget3d {
         ..canRequestFocus = canRequestFocus;
 
   @override
-  void updateLayout(BuildContext context, Focus3d layout) {
+  void updateLayout(BuildContext context, RenderFocus3d layout) {
     layout
       ..focusNode = focusNode
       ..onFocusChange = onFocusChange
@@ -725,17 +724,17 @@ class SceneFocus3d extends SingleChildRenderObjectWidget3d {
 }
 
 /// Maps key presses to intents for the boxes below it, the widget form of
-/// [Shortcuts3d].
+/// [RenderShortcuts3d].
 ///
 /// Flutter's own vocabulary, so a binding written for a 2D screen reads the
 /// same here:
 ///
 /// ```dart
-/// SceneShortcuts3d(
+/// Shortcuts3d(
 ///   shortcuts: const <ShortcutActivator, Intent>{
 ///     SingleActivator(LogicalKeyboardKey.delete): DeleteIntent(),
 ///   },
-///   child: SceneActions3d(
+///   child: Actions3d(
 ///     actions: <Type, Action<Intent>>{
 ///       DeleteIntent: CallbackAction<DeleteIntent>(onInvoke: (_) => delete()),
 ///     },
@@ -745,80 +744,77 @@ class SceneFocus3d extends SingleChildRenderObjectWidget3d {
 /// ```
 ///
 /// A Flutter `Shortcuts` widget above the `SceneView` does not reach a box on
-/// a plane — see [Shortcuts3d] for why — so the binding goes here, inside the
-/// surface.
-class SceneShortcuts3d extends SingleChildRenderObjectWidget3d {
+/// a plane — see [RenderShortcuts3d] for why — so the binding goes here, inside
+/// the surface.
+class Shortcuts3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that maps [shortcuts] for its subtree.
-  const SceneShortcuts3d({super.key, required this.shortcuts, super.child});
+  const Shortcuts3d({super.key, required this.shortcuts, super.child});
 
   /// The bindings this box adds.
   final Map<ShortcutActivator, Intent> shortcuts;
 
   @override
-  Shortcuts3d createLayout(BuildContext context) =>
-      Shortcuts3d(shortcuts: shortcuts);
+  RenderShortcuts3d createLayout(BuildContext context) =>
+      RenderShortcuts3d(shortcuts: shortcuts);
 
   @override
-  void updateLayout(BuildContext context, Shortcuts3d layout) {
+  void updateLayout(BuildContext context, RenderShortcuts3d layout) {
     layout.shortcuts = shortcuts;
   }
 }
 
 /// Binds intents to what they do for the boxes below it, the widget form of
-/// [Actions3d].
+/// [RenderActions3d].
 ///
 /// A focused control finds the nearest binding for an intent's type above
 /// it. A Flutter `Actions` widget above the `SceneView` is not consulted.
-class SceneActions3d extends SingleChildRenderObjectWidget3d {
+class Actions3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that binds [actions] for its subtree.
-  const SceneActions3d({super.key, required this.actions, super.child});
+  const Actions3d({super.key, required this.actions, super.child});
 
   /// The bindings this box adds, keyed by intent type.
   final Map<Type, Action<Intent>> actions;
 
   @override
-  Actions3d createLayout(BuildContext context) => Actions3d(actions: actions);
+  RenderActions3d createLayout(BuildContext context) =>
+      RenderActions3d(actions: actions);
 
   @override
-  void updateLayout(BuildContext context, Actions3d layout) {
+  void updateLayout(BuildContext context, RenderActions3d layout) {
     layout.actions = actions;
   }
 }
 
 /// Imposes extra constraints on its child, the widget form of
-/// [ConstrainedBox3d].
-class SceneConstrainedBox3d extends SingleChildRenderObjectWidget3d {
+/// [RenderConstrainedBox3d].
+class ConstrainedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a constraining box.
-  const SceneConstrainedBox3d({
-    super.key,
-    required this.constraints,
-    super.child,
-  });
+  const ConstrainedBox3d({super.key, required this.constraints, super.child});
 
   /// The constraints added to those the box receives.
   final Constraints3d constraints;
 
   @override
-  ConstrainedBox3d createLayout(BuildContext context) =>
-      ConstrainedBox3d(additionalConstraints: constraints);
+  RenderConstrainedBox3d createLayout(BuildContext context) =>
+      RenderConstrainedBox3d(additionalConstraints: constraints);
 
   @override
-  void updateLayout(BuildContext context, ConstrainedBox3d layout) {
+  void updateLayout(BuildContext context, RenderConstrainedBox3d layout) {
     layout.additionalConstraints = constraints;
   }
 }
 
 /// Sizes its child to the child's own preferred extent along one axis, the
-/// widget form of [IntrinsicExtent3d].
+/// widget form of [RenderIntrinsicExtent3d].
 ///
-/// [SceneIntrinsicWidth3d], [SceneIntrinsicHeight3d] and
-/// [SceneIntrinsicDepth3d] are the names to reach for; this one is for the
+/// [IntrinsicWidth3d], [IntrinsicHeight3d] and
+/// [IntrinsicDepth3d] are the names to reach for; this one is for the
 /// case where the axis is decided at runtime. It is expensive either way —
 /// answering the question walks the whole subtree, and then the subtree is
 /// laid out again for real.
-class SceneIntrinsicExtent3d extends SingleChildRenderObjectWidget3d {
+class IntrinsicExtent3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box sizing [child] to its intrinsic extent along [axis].
-  const SceneIntrinsicExtent3d({
+  const IntrinsicExtent3d({
     super.key,
     required this.axis,
     this.step,
@@ -832,11 +828,11 @@ class SceneIntrinsicExtent3d extends SingleChildRenderObjectWidget3d {
   final double? step;
 
   @override
-  IntrinsicExtent3d createLayout(BuildContext context) =>
-      IntrinsicExtent3d(axis: axis, step: step);
+  RenderIntrinsicExtent3d createLayout(BuildContext context) =>
+      RenderIntrinsicExtent3d(axis: axis, step: step);
 
   @override
-  void updateLayout(BuildContext context, IntrinsicExtent3d layout) {
+  void updateLayout(BuildContext context, RenderIntrinsicExtent3d layout) {
     layout
       ..axis = axis
       ..step = step;
@@ -844,67 +840,67 @@ class SceneIntrinsicExtent3d extends SingleChildRenderObjectWidget3d {
 }
 
 /// Sizes its child to the child's own preferred width, the widget form of
-/// [IntrinsicWidth3d].
-class SceneIntrinsicWidth3d extends SingleChildRenderObjectWidget3d {
+/// [RenderIntrinsicWidth3d].
+class IntrinsicWidth3d extends SingleChildRenderObjectWidget3d {
   /// Creates a width-shrinking box.
-  const SceneIntrinsicWidth3d({super.key, this.step, super.child});
+  const IntrinsicWidth3d({super.key, this.step, super.child});
 
   /// If non-null, the width is rounded up to a multiple of this.
   final double? step;
 
   @override
-  IntrinsicWidth3d createLayout(BuildContext context) =>
-      IntrinsicWidth3d(step: step);
+  RenderIntrinsicWidth3d createLayout(BuildContext context) =>
+      RenderIntrinsicWidth3d(step: step);
 
   @override
-  void updateLayout(BuildContext context, IntrinsicWidth3d layout) {
+  void updateLayout(BuildContext context, RenderIntrinsicWidth3d layout) {
     layout.step = step;
   }
 }
 
 /// Sizes its child to the child's own preferred height, the widget form of
-/// [IntrinsicHeight3d].
-class SceneIntrinsicHeight3d extends SingleChildRenderObjectWidget3d {
+/// [RenderIntrinsicHeight3d].
+class IntrinsicHeight3d extends SingleChildRenderObjectWidget3d {
   /// Creates a height-shrinking box.
-  const SceneIntrinsicHeight3d({super.key, this.step, super.child});
+  const IntrinsicHeight3d({super.key, this.step, super.child});
 
   /// If non-null, the height is rounded up to a multiple of this.
   final double? step;
 
   @override
-  IntrinsicHeight3d createLayout(BuildContext context) =>
-      IntrinsicHeight3d(step: step);
+  RenderIntrinsicHeight3d createLayout(BuildContext context) =>
+      RenderIntrinsicHeight3d(step: step);
 
   @override
-  void updateLayout(BuildContext context, IntrinsicHeight3d layout) {
+  void updateLayout(BuildContext context, RenderIntrinsicHeight3d layout) {
     layout.step = step;
   }
 }
 
 /// Sizes its child to the child's own preferred depth, the widget form of
-/// [IntrinsicDepth3d].
-class SceneIntrinsicDepth3d extends SingleChildRenderObjectWidget3d {
+/// [RenderIntrinsicDepth3d].
+class IntrinsicDepth3d extends SingleChildRenderObjectWidget3d {
   /// Creates a depth-shrinking box.
-  const SceneIntrinsicDepth3d({super.key, this.step, super.child});
+  const IntrinsicDepth3d({super.key, this.step, super.child});
 
   /// If non-null, the depth is rounded up to a multiple of this.
   final double? step;
 
   @override
-  IntrinsicDepth3d createLayout(BuildContext context) =>
-      IntrinsicDepth3d(step: step);
+  RenderIntrinsicDepth3d createLayout(BuildContext context) =>
+      RenderIntrinsicDepth3d(step: step);
 
   @override
-  void updateLayout(BuildContext context, IntrinsicDepth3d layout) {
+  void updateLayout(BuildContext context, RenderIntrinsicDepth3d layout) {
     layout.step = step;
   }
 }
 
 /// Puts its child's baseline at a fixed distance, the widget form of
-/// [Baseline3d].
-class SceneBaseline3d extends SingleChildRenderObjectWidget3d {
+/// [RenderBaseline3d].
+class Baseline3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that declares where its child's baseline sits.
-  const SceneBaseline3d({
+  const Baseline3d({
     super.key,
     required this.baseline,
     this.axis = Axis3d.vertical,
@@ -918,11 +914,11 @@ class SceneBaseline3d extends SingleChildRenderObjectWidget3d {
   final Axis3d axis;
 
   @override
-  Baseline3d createLayout(BuildContext context) =>
-      Baseline3d(baseline: baseline, axis: axis);
+  RenderBaseline3d createLayout(BuildContext context) =>
+      RenderBaseline3d(baseline: baseline, axis: axis);
 
   @override
-  void updateLayout(BuildContext context, Baseline3d layout) {
+  void updateLayout(BuildContext context, RenderBaseline3d layout) {
     layout
       ..baseline = baseline
       ..axis = axis;
@@ -930,10 +926,10 @@ class SceneBaseline3d extends SingleChildRenderObjectWidget3d {
 }
 
 /// Transforms its child without affecting layout, the widget form of
-/// [Transform3d].
-class SceneTransform3d extends SingleChildRenderObjectWidget3d {
+/// [RenderTransform3d].
+class Transform3d extends SingleChildRenderObjectWidget3d {
   /// Creates a transformed box.
-  const SceneTransform3d({
+  const Transform3d({
     super.key,
     required this.transform,
     this.alignment = Alignment3d.center,
@@ -947,14 +943,14 @@ class SceneTransform3d extends SingleChildRenderObjectWidget3d {
   final AlignmentGeometry3d alignment;
 
   @override
-  Transform3d createLayout(BuildContext context) => Transform3d(
+  RenderTransform3d createLayout(BuildContext context) => RenderTransform3d(
     transform: transform,
     alignment: alignment,
     textDirection: Directionality.maybeOf(context),
   );
 
   @override
-  void updateLayout(BuildContext context, Transform3d layout) {
+  void updateLayout(BuildContext context, RenderTransform3d layout) {
     layout
       ..transform = transform
       ..alignment = alignment
@@ -963,7 +959,7 @@ class SceneTransform3d extends SingleChildRenderObjectWidget3d {
 }
 
 /// Puts a value where every box on the surface can read it, the widget form
-/// of [SlotProvider3d].
+/// of [RenderSlotProvider3d].
 ///
 /// The declarative half of the owner's typed slots. Wrap the part of the tree
 /// the value belongs to — in practice the whole of it — and any box below
@@ -971,9 +967,9 @@ class SceneTransform3d extends SingleChildRenderObjectWidget3d {
 /// `BuildContext` and nothing threaded through constructors:
 ///
 /// ```dart
-/// SceneLayout3d(
+/// Surface3d(
 ///   size: const Size3d(4, 3, 0.2),
-///   child: SceneSlotProvider3d<Theme3dData>(
+///   child: SlotProvider3d<Theme3dData>(
 ///     slot: themeSlot,
 ///     value: Theme3dData.light(),
 ///     child: screen,
@@ -992,12 +988,11 @@ class SceneTransform3d extends SingleChildRenderObjectWidget3d {
 /// read during layout and never arrives as a constraint — so nothing on a
 /// per-frame path may write one.
 ///
-/// [SceneLayout3d.slots] is the same write, stated on the surface itself, for
+/// [Surface3d.slots] is the same write, stated on the surface itself, for
 /// an application that knows its slots at the root.
-class SceneSlotProvider3d<T extends Object>
-    extends SingleChildRenderObjectWidget3d {
+class SlotProvider3d<T extends Object> extends SingleChildRenderObjectWidget3d {
   /// Creates a provider writing [value] under [slot].
-  const SceneSlotProvider3d({
+  const SlotProvider3d({
     super.key,
     required this.slot,
     required this.value,
@@ -1011,21 +1006,21 @@ class SceneSlotProvider3d<T extends Object>
   final T? value;
 
   @override
-  SlotProvider3d<T> createLayout(BuildContext context) =>
-      SlotProvider3d<T>(slot: slot, value: value);
+  RenderSlotProvider3d<T> createLayout(BuildContext context) =>
+      RenderSlotProvider3d<T>(slot: slot, value: value);
 
   @override
-  void updateLayout(BuildContext context, SlotProvider3d<T> layout) {
+  void updateLayout(BuildContext context, RenderSlotProvider3d<T> layout) {
     assert(
       layout.slotKey == slot,
-      'A SceneSlotProvider3d cannot change which slot it writes. Give the '
+      'A SlotProvider3d cannot change which slot it writes. Give the '
       'widget a key, or use two providers.',
     );
     layout.value = value;
   }
 }
 
-/// A box that makes itself visible, the widget form of [DecoratedBox3d].
+/// A box that makes itself visible, the widget form of [RenderDecoratedBox3d].
 ///
 /// The declarative layer's one way of drawing something. Everything else here
 /// arranges; this widget hands its box's own size to a
@@ -1033,7 +1028,7 @@ class SceneSlotProvider3d<T extends Object>
 /// the right size.
 ///
 /// ```dart
-/// SceneDecoratedBox3d(
+/// DecoratedBox3d(
 ///   decoration: const BoxDecoration3d(
 ///     color: Color(0xFF1B6EF3),
 ///     borderRadius: BorderRadius3d.circular(12),
@@ -1042,9 +1037,9 @@ class SceneSlotProvider3d<T extends Object>
 ///   stateLayer: hovered
 ///       ? const StateLayer3d(color: Color(0xFFFFFFFF), opacity: 0.08)
 ///       : StateLayer3d.none,
-///   child: const ScenePadding3d(
+///   child: const Padding3d(
 ///     padding: EdgeInsets3d.all(0.12),
-///     child: SceneText3d('Continue'),
+///     child: Text3d('Continue'),
 ///   ),
 /// )
 /// ```
@@ -1065,9 +1060,9 @@ class SceneSlotProvider3d<T extends Object>
 /// [BoxDecoration3d.painterFactory] is null by default, because building
 /// geometry needs a GPU context that `flutter test` does not have. See the
 /// package README under *Making a box visible*.
-class SceneDecoratedBox3d extends SingleChildRenderObjectWidget3d {
+class DecoratedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a decorated box.
-  const SceneDecoratedBox3d({
+  const DecoratedBox3d({
     super.key,
     required this.decoration,
     this.stateLayer = StateLayer3d.none,
@@ -1101,14 +1096,15 @@ class SceneDecoratedBox3d extends SingleChildRenderObjectWidget3d {
   }
 
   @override
-  DecoratedBox3d createLayout(BuildContext context) => DecoratedBox3d(
-    decoration: decoration,
-    stateLayer: stateLayer,
-    configuration: configurationFor(context, decoration),
-  );
+  RenderDecoratedBox3d createLayout(BuildContext context) =>
+      RenderDecoratedBox3d(
+        decoration: decoration,
+        stateLayer: stateLayer,
+        configuration: configurationFor(context, decoration),
+      );
 
   @override
-  void updateLayout(BuildContext context, DecoratedBox3d layout) {
+  void updateLayout(BuildContext context, RenderDecoratedBox3d layout) {
     layout
       ..decoration = decoration
       ..stateLayer = stateLayer
@@ -1116,10 +1112,10 @@ class SceneDecoratedBox3d extends SingleChildRenderObjectWidget3d {
   }
 }
 
-/// A picture, the widget form of [Image3d].
+/// A picture, the widget form of [RenderImage3d].
 ///
 /// ```dart
-/// SceneImage3d.asset('assets/avatar.jpg', fit: BoxFit.cover,
+/// Image3d.asset('assets/avatar.jpg', fit: BoxFit.cover,
 ///     borderRadius: const BorderRadius3d.circular(999))
 /// ```
 ///
@@ -1130,11 +1126,11 @@ class SceneDecoratedBox3d extends SingleChildRenderObjectWidget3d {
 ///
 /// **It sizes itself to the picture, and the picture arrives late**, so a box
 /// with loose constraints is empty for a frame or two and then pushes its
-/// neighbours aside once. Wrap it in a [SceneSizedBox3d] when the layout must
+/// neighbours aside once. Wrap it in a [SizedBox3d] when the layout must
 /// not move.
-class SceneImage3d extends MultiChildRenderObjectWidget3d {
+class Image3d extends MultiChildRenderObjectWidget3d {
   /// Creates a box drawing [image].
-  const SceneImage3d({
+  const Image3d({
     super.key,
     required this.image,
     this.fit,
@@ -1148,7 +1144,7 @@ class SceneImage3d extends MultiChildRenderObjectWidget3d {
 
   /// Draws an image from the application's asset bundle, as `Image.asset`
   /// does.
-  SceneImage3d.asset(
+  Image3d.asset(
     String name, {
     super.key,
     AssetBundle? bundle,
@@ -1171,7 +1167,7 @@ class SceneImage3d extends MultiChildRenderObjectWidget3d {
              );
 
   /// Draws an image from the network, as `Image.network` does.
-  SceneImage3d.network(
+  Image3d.network(
     String src, {
     super.key,
     double scale = 1.0,
@@ -1186,7 +1182,7 @@ class SceneImage3d extends MultiChildRenderObjectWidget3d {
   }) : image = NetworkImage(src, scale: scale, headers: headers);
 
   /// Draws an image from bytes already in memory, as `Image.memory` does.
-  SceneImage3d.memory(
+  Image3d.memory(
     Uint8List bytes, {
     super.key,
     double scale = 1.0,
@@ -1224,7 +1220,7 @@ class SceneImage3d extends MultiChildRenderObjectWidget3d {
   final Border3d border;
 
   @override
-  Image3d createLayout(BuildContext context) => Image3d(
+  RenderImage3d createLayout(BuildContext context) => RenderImage3d(
     image: image,
     fit: fit,
     alignment: alignment,
@@ -1237,7 +1233,7 @@ class SceneImage3d extends MultiChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, Image3d layout) {
+  void updateLayout(BuildContext context, RenderImage3d layout) {
     layout
       ..image = image
       ..fit = fit
@@ -1251,11 +1247,11 @@ class SceneImage3d extends MultiChildRenderObjectWidget3d {
   }
 }
 
-/// Clips its child to its own extent, the widget form of [ClipBox3d].
+/// Clips its child to its own extent, the widget form of [RenderClipBox3d].
 ///
 /// ```dart
-/// SceneClipBox3d(
-///   child: SceneSizedBox3d(width: 2, height: 1, child: scrollingContent),
+/// ClipBox3d(
+///   child: SizedBox3d(width: 2, height: 1, child: scrollingContent),
 /// )
 /// ```
 ///
@@ -1268,7 +1264,7 @@ class SceneImage3d extends MultiChildRenderObjectWidget3d {
 /// of a ray.
 ///
 /// **Only a material that reads the plane block honours the first tier.**
-/// [BoxDecoration3d] does; a [SceneNodeBox3d] holding an application's own
+/// [BoxDecoration3d] does; a [NodeBox3d] holding an application's own
 /// mesh does not, and draws straight through the window's edge. That is the
 /// contract rather than a defect — see [Clip3dRegion].
 ///
@@ -1276,9 +1272,9 @@ class SceneImage3d extends MultiChildRenderObjectWidget3d {
 /// half-spaces, so it is convex, and a corner radius cannot be expressed as
 /// one. A child overflowing a rounded card is not clipped to the card's
 /// shape.
-class SceneClipBox3d extends SingleChildRenderObjectWidget3d {
+class ClipBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box clipping its child to its own extent.
-  const SceneClipBox3d({
+  const ClipBox3d({
     super.key,
     this.clipDepth = false,
     this.cullNodes = true,
@@ -1301,11 +1297,11 @@ class SceneClipBox3d extends SingleChildRenderObjectWidget3d {
   final bool cullNodes;
 
   @override
-  ClipBox3d createLayout(BuildContext context) =>
-      ClipBox3d(clipDepth: clipDepth, cullNodes: cullNodes);
+  RenderClipBox3d createLayout(BuildContext context) =>
+      RenderClipBox3d(clipDepth: clipDepth, cullNodes: cullNodes);
 
   @override
-  void updateLayout(BuildContext context, ClipBox3d layout) {
+  void updateLayout(BuildContext context, RenderClipBox3d layout) {
     layout
       ..clipDepth = clipDepth
       ..cullNodes = cullNodes;
@@ -1313,14 +1309,14 @@ class SceneClipBox3d extends SingleChildRenderObjectWidget3d {
 }
 
 /// Margin, constraints, padding, and alignment in one box, the widget form of
-/// [Container3d].
+/// [RenderContainer3d].
 ///
 /// Unlike Flutter's `Container` it has no `decoration`, for the reason
-/// [Container3d]'s own doc gives: wrap it in a [SceneDecoratedBox3d], which
+/// [RenderContainer3d]'s own doc gives: wrap it in a [DecoratedBox3d], which
 /// makes the order of margin and panel explicit instead of implied.
-class SceneContainer3d extends SingleChildRenderObjectWidget3d {
+class Container3d extends SingleChildRenderObjectWidget3d {
   /// Creates a container.
-  const SceneContainer3d({
+  const Container3d({
     super.key,
     this.alignment,
     this.padding = EdgeInsets3d.zero,
@@ -1362,7 +1358,7 @@ class SceneContainer3d extends SingleChildRenderObjectWidget3d {
   final AlignmentGeometry3d transformAlignment;
 
   @override
-  Container3d createLayout(BuildContext context) => Container3d(
+  RenderContainer3d createLayout(BuildContext context) => RenderContainer3d(
     alignment: alignment,
     padding: padding,
     margin: margin,
@@ -1376,12 +1372,12 @@ class SceneContainer3d extends SingleChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, Container3d layout) {
+  void updateLayout(BuildContext context, RenderContainer3d layout) {
     layout
       ..alignment = alignment
       ..padding = padding
       ..margin = margin
-      ..additionalConstraints = Container3d.resolveConstraints(
+      ..additionalConstraints = RenderContainer3d.resolveConstraints(
         constraints,
         width,
         height,
@@ -1393,10 +1389,10 @@ class SceneContainer3d extends SingleChildRenderObjectWidget3d {
   }
 }
 
-/// Lays children out in a line, the widget form of [Flex3d].
-abstract class SceneFlex3d extends MultiChildRenderObjectWidget3d {
+/// Lays children out in a line, the widget form of [RenderFlex3d].
+abstract class Flex3d extends MultiChildRenderObjectWidget3d {
   /// Creates a flex line.
-  const SceneFlex3d({
+  const Flex3d({
     super.key,
     this.mainAxisAlignment = MainAxisAlignment3d.start,
     this.mainAxisSize = MainAxisSize3d.max,
@@ -1422,15 +1418,15 @@ abstract class SceneFlex3d extends MultiChildRenderObjectWidget3d {
 
   /// How children are positioned on the second cross axis.
   ///
-  /// Null — the default — is [Flex3d.defaultDepthAxisAlignmentFor], which is
-  /// the front face on any line that does not itself run in depth.
+  /// Null — the default — is [RenderFlex3d.defaultDepthAxisAlignmentFor], which
+  /// is the front face on any line that does not itself run in depth.
   final CrossAxisAlignment3d? depthAxisAlignment;
 
   /// A fixed gap between adjacent children.
   final double spacing;
 
   /// Which end of the horizontal axis is the start: the main axis of a
-  /// [SceneRow3d], the cross axis of a [SceneColumn3d].
+  /// [Row3d], the cross axis of a [Column3d].
   ///
   /// Null — the default — reads the ambient `Directionality`, the way
   /// Flutter's `Flex` does, and left to right when there is none. So a row
@@ -1442,7 +1438,7 @@ abstract class SceneFlex3d extends MultiChildRenderObjectWidget3d {
   final VerticalDirection verticalDirection;
 
   @override
-  Flex3d createLayout(BuildContext context) => Flex3d(
+  RenderFlex3d createLayout(BuildContext context) => RenderFlex3d(
     direction: direction,
     mainAxisAlignment: mainAxisAlignment,
     mainAxisSize: mainAxisSize,
@@ -1454,7 +1450,7 @@ abstract class SceneFlex3d extends MultiChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, Flex3d layout) {
+  void updateLayout(BuildContext context, RenderFlex3d layout) {
     layout
       ..direction = direction
       ..mainAxisAlignment = mainAxisAlignment
@@ -1468,10 +1464,10 @@ abstract class SceneFlex3d extends MultiChildRenderObjectWidget3d {
 }
 
 /// A line of children running from the start of the reading direction, the
-/// widget form of [Row3d].
-class SceneRow3d extends SceneFlex3d {
+/// widget form of [RenderRow3d].
+class Row3d extends Flex3d {
   /// Creates a horizontal line.
-  const SceneRow3d({
+  const Row3d({
     super.key,
     super.mainAxisAlignment,
     super.mainAxisSize,
@@ -1487,10 +1483,11 @@ class SceneRow3d extends SceneFlex3d {
   Axis3d get direction => Axis3d.horizontal;
 }
 
-/// A line of children running top to bottom, the widget form of [Column3d].
-class SceneColumn3d extends SceneFlex3d {
+/// A line of children running top to bottom, the widget form of
+/// [RenderColumn3d].
+class Column3d extends Flex3d {
   /// Creates a vertical line.
-  const SceneColumn3d({
+  const Column3d({
     super.key,
     super.mainAxisAlignment,
     super.mainAxisSize,
@@ -1507,10 +1504,10 @@ class SceneColumn3d extends SceneFlex3d {
 }
 
 /// A line of children running away from the viewer, the widget form of
-/// [Depth3d].
-class SceneDepth3d extends SceneFlex3d {
+/// [RenderDepth3d].
+class Depth3d extends Flex3d {
   /// Creates a line receding from the viewer.
-  const SceneDepth3d({
+  const Depth3d({
     super.key,
     super.mainAxisAlignment,
     super.mainAxisSize,
@@ -1526,11 +1523,11 @@ class SceneDepth3d extends SceneFlex3d {
   Axis3d get direction => Axis3d.depth;
 }
 
-/// Gives a child of a [SceneFlex3d] a share of the leftover space, the widget
-/// form of [Flexible3d].
-class SceneFlexible3d extends SingleChildRenderObjectWidget3d {
+/// Gives a child of a [Flex3d] a share of the leftover space, the widget
+/// form of [RenderFlexible3d].
+class Flexible3d extends SingleChildRenderObjectWidget3d {
   /// Creates a flexible child.
-  const SceneFlexible3d({
+  const Flexible3d({
     super.key,
     this.flex = 1,
     this.fit = FlexFit3d.loose,
@@ -1544,45 +1541,47 @@ class SceneFlexible3d extends SingleChildRenderObjectWidget3d {
   final FlexFit3d fit;
 
   @override
-  Flexible3d createLayout(BuildContext context) =>
-      Flexible3d(flex: flex, fit: fit);
+  RenderFlexible3d createLayout(BuildContext context) =>
+      RenderFlexible3d(flex: flex, fit: fit);
 
   @override
-  void updateLayout(BuildContext context, Flexible3d layout) {
+  void updateLayout(BuildContext context, RenderFlexible3d layout) {
     layout
       ..flex = flex
       ..fit = fit;
   }
 }
 
-/// A flexible child that must fill its share, the widget form of [Expanded3d].
-class SceneExpanded3d extends SceneFlexible3d {
+/// A flexible child that must fill its share, the widget form of
+/// [RenderExpanded3d].
+class Expanded3d extends Flexible3d {
   /// Creates an expanding child.
-  const SceneExpanded3d({super.key, super.flex, super.child})
+  const Expanded3d({super.key, super.flex, super.child})
     : super(fit: FlexFit3d.tight);
 }
 
-/// Empty flexible space, the widget form of [Spacer3d].
-class SceneSpacer3d extends MultiChildRenderObjectWidget3d {
+/// Empty flexible space, the widget form of [RenderSpacer3d].
+class Spacer3d extends MultiChildRenderObjectWidget3d {
   /// Creates a flexible gap.
-  const SceneSpacer3d({super.key, this.flex = 1});
+  const Spacer3d({super.key, this.flex = 1});
 
   /// This gap's share, relative to its siblings.
   final int flex;
 
   @override
-  Spacer3d createLayout(BuildContext context) => Spacer3d(flex: flex);
+  RenderSpacer3d createLayout(BuildContext context) =>
+      RenderSpacer3d(flex: flex);
 
   @override
-  void updateLayout(BuildContext context, Spacer3d layout) {
+  void updateLayout(BuildContext context, RenderSpacer3d layout) {
     layout.flex = flex;
   }
 }
 
-/// Overlays its children, the widget form of [Stack3d].
-class SceneStack3d extends MultiChildRenderObjectWidget3d {
+/// Overlays its children, the widget form of [RenderStack3d].
+class Stack3d extends MultiChildRenderObjectWidget3d {
   /// Creates a stack.
-  const SceneStack3d({
+  const Stack3d({
     super.key,
     this.alignment = Alignment3d.topLeftFront,
     this.fit = StackFit3d.loose,
@@ -1607,7 +1606,7 @@ class SceneStack3d extends MultiChildRenderObjectWidget3d {
   final TextDirection? textDirection;
 
   @override
-  Stack3d createLayout(BuildContext context) => Stack3d(
+  RenderStack3d createLayout(BuildContext context) => RenderStack3d(
     alignment: alignment,
     fit: fit,
     depthStep: depthStep,
@@ -1615,7 +1614,7 @@ class SceneStack3d extends MultiChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, Stack3d layout) {
+  void updateLayout(BuildContext context, RenderStack3d layout) {
     layout
       ..alignment = alignment
       ..fit = fit
@@ -1624,11 +1623,11 @@ class SceneStack3d extends MultiChildRenderObjectWidget3d {
   }
 }
 
-/// Pins a child of a [SceneStack3d] to the stack's faces, the widget form of
-/// [Positioned3d].
-class ScenePositioned3d extends SingleChildRenderObjectWidget3d {
+/// Pins a child of a [Stack3d] to the stack's faces, the widget form of
+/// [RenderPositioned3d].
+class Positioned3d extends SingleChildRenderObjectWidget3d {
   /// Creates a positioned child.
-  const ScenePositioned3d({
+  const Positioned3d({
     super.key,
     this.left,
     this.top,
@@ -1670,7 +1669,7 @@ class ScenePositioned3d extends SingleChildRenderObjectWidget3d {
   final double? depth;
 
   @override
-  Positioned3d createLayout(BuildContext context) => Positioned3d(
+  RenderPositioned3d createLayout(BuildContext context) => RenderPositioned3d(
     left: left,
     top: top,
     right: right,
@@ -1683,7 +1682,7 @@ class ScenePositioned3d extends SingleChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, Positioned3d layout) {
+  void updateLayout(BuildContext context, RenderPositioned3d layout) {
     layout
       ..left = left
       ..top = top
@@ -1697,15 +1696,16 @@ class ScenePositioned3d extends SingleChildRenderObjectWidget3d {
   }
 }
 
-/// Pins a child of a [SceneStack3d] to the stack's faces, with its horizontal
+/// Pins a child of a [Stack3d] to the stack's faces, with its horizontal
 /// insets following the reading direction — the widget form of
-/// [Positioned3d.directional], and the 3D analogue of `PositionedDirectional`.
+/// [RenderPositioned3d.directional], and the 3D analogue of
+/// `PositionedDirectional`.
 ///
 /// [start] is the left in a left-to-right application and the right in a
 /// right-to-left one, read from the ambient `Directionality`.
-class ScenePositionedDirectional3d extends SingleChildRenderObjectWidget3d {
+class PositionedDirectional3d extends SingleChildRenderObjectWidget3d {
   /// Creates a positioned child.
-  const ScenePositionedDirectional3d({
+  const PositionedDirectional3d({
     super.key,
     this.start,
     this.top,
@@ -1750,21 +1750,22 @@ class ScenePositionedDirectional3d extends SingleChildRenderObjectWidget3d {
       Directionality.maybeOf(context) == TextDirection.rtl;
 
   @override
-  Positioned3d createLayout(BuildContext context) => Positioned3d.directional(
-    textDirection: Directionality.maybeOf(context) ?? TextDirection.ltr,
-    start: start,
-    top: top,
-    end: end,
-    bottom: bottom,
-    front: front,
-    back: back,
-    width: width,
-    height: height,
-    depth: depth,
-  );
+  RenderPositioned3d createLayout(BuildContext context) =>
+      RenderPositioned3d.directional(
+        textDirection: Directionality.maybeOf(context) ?? TextDirection.ltr,
+        start: start,
+        top: top,
+        end: end,
+        bottom: bottom,
+        front: front,
+        back: back,
+        width: width,
+        height: height,
+        depth: depth,
+      );
 
   @override
-  void updateLayout(BuildContext context, Positioned3d layout) {
+  void updateLayout(BuildContext context, RenderPositioned3d layout) {
     final rtl = _isRtl(context);
     layout
       ..left = rtl ? end : start
@@ -1779,10 +1780,11 @@ class ScenePositionedDirectional3d extends SingleChildRenderObjectWidget3d {
   }
 }
 
-/// A scrolling window onto a taller child, the widget form of [Viewport3d].
-class SceneViewport3d extends SingleChildRenderObjectWidget3d {
+/// A scrolling window onto a taller child, the widget form of
+/// [RenderViewport3d].
+class Viewport3d extends SingleChildRenderObjectWidget3d {
   /// Creates a scrolling window.
-  const SceneViewport3d({
+  const Viewport3d({
     super.key,
     this.axis = Axis3d.vertical,
     this.controller,
@@ -1796,17 +1798,17 @@ class SceneViewport3d extends SingleChildRenderObjectWidget3d {
   final Scroll3dController? controller;
 
   @override
-  Viewport3d createLayout(BuildContext context) =>
-      Viewport3d(axis: axis, controller: controller);
+  RenderViewport3d createLayout(BuildContext context) =>
+      RenderViewport3d(axis: axis, controller: controller);
 
   @override
-  void updateLayout(BuildContext context, Viewport3d layout) {
+  void updateLayout(BuildContext context, RenderViewport3d layout) {
     layout.axis = axis;
     layout.controller = controller;
   }
 }
 
-/// A scrollable line of children, the widget form of [ListView3d].
+/// A scrollable line of children, the widget form of [RenderListView3d].
 ///
 /// Two shapes, the same two Flutter's `ListView` has. Given [children], every
 /// one of them is built when the enclosing widget builds and laid out whether
@@ -1818,16 +1820,16 @@ class SceneViewport3d extends SingleChildRenderObjectWidget3d {
 /// A built item is a widget like any other: it reads inherited state, keeps
 /// its own [State], and rebuilds on its own. It is not kept alive by default —
 /// scrolling far enough disposes it, and its [State] goes with it — so wrap an
-/// item that has something to lose in a [SceneKeepAlive3d] and the list parks
+/// item that has something to lose in a [KeepAlive3d] and the list parks
 /// it instead of releasing it.
 ///
 /// ```dart
-/// SceneListView3d.builder(
+/// ListView3d.builder(
 ///   itemCount: rows.length,
 ///   itemExtent: 0.6,
-///   itemBuilder: (context, index) => SceneContainer3d(
+///   itemBuilder: (context, index) => Container3d(
 ///     padding: const EdgeInsets3d.all(0.05),
-///     child: SceneText3d(rows[index].label),
+///     child: Text3d(rows[index].label),
 ///   ),
 /// )
 /// ```
@@ -1835,13 +1837,13 @@ class SceneViewport3d extends SingleChildRenderObjectWidget3d {
 /// An [itemExtent] is worth giving when the items are uniform: the offsets
 /// become arithmetic, so nothing outside the window is ever built, where a
 /// list that has to measure builds forward from the first item to reach a
-/// deep scroll offset. The imperative [ListView3d.builder] takes a
+/// deep scroll offset. The imperative [RenderListView3d.builder] takes a
 /// `prototypeItem` for the same reason; there is no widget form of that,
 /// because a prototype is measured rather than mounted and a widget cannot be
 /// laid out without being in the tree.
-class SceneListView3d extends LazyRenderObjectWidget3d {
+class ListView3d extends LazyRenderObjectWidget3d {
   /// Creates a scrollable list over an explicit set of children.
-  const SceneListView3d({
+  const ListView3d({
     super.key,
     this.scrollDirection = Axis3d.vertical,
     this.controller,
@@ -1854,7 +1856,7 @@ class SceneListView3d extends LazyRenderObjectWidget3d {
   });
 
   /// Creates a scrollable list that builds its items as it reaches them.
-  const SceneListView3d.builder({
+  const ListView3d.builder({
     super.key,
     required int itemCount,
     required IndexedWidgetBuilder itemBuilder,
@@ -1889,7 +1891,7 @@ class SceneListView3d extends LazyRenderObjectWidget3d {
   final double cacheExtent;
 
   @override
-  ListView3d createLayout(BuildContext context) => ListView3d(
+  RenderListView3d createLayout(BuildContext context) => RenderListView3d(
     scrollDirection: scrollDirection,
     controller: controller,
     spacing: spacing,
@@ -1900,7 +1902,7 @@ class SceneListView3d extends LazyRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, ListView3d layout) {
+  void updateLayout(BuildContext context, RenderListView3d layout) {
     layout
       ..scrollDirection = scrollDirection
       ..spacing = spacing
@@ -1913,18 +1915,18 @@ class SceneListView3d extends LazyRenderObjectWidget3d {
 }
 
 /// A scrolling list whose items can be dragged into a different order, the
-/// widget form of [ReorderableList3d].
+/// widget form of [RenderReorderableList3d].
 ///
 /// Items are always built rather than listed, for the reason the imperative
 /// list gives: a reorder is a statement about the caller's own data, so the
 /// list has to be a function of that data to mean anything.
 ///
 /// ```dart
-/// SceneReorderableList3d(
+/// ReorderableList3d(
 ///   itemCount: tracks.length,
 ///   itemExtent: 0.4,
 ///   itemBuilder: (context, index) => TrackRow(track: tracks[index]),
-///   feedbackBuilder: (index) => Container3d(
+///   feedbackBuilder: (index) => RenderContainer3d(
 ///     size: const Size3d(2, 0.4, 0.02),
 ///     decoration: cardDecoration,
 ///   ),
@@ -1950,15 +1952,15 @@ class SceneListView3d extends LazyRenderObjectWidget3d {
 /// **[newIndex] where the item ends up** — one `insert` after one `removeAt`.
 /// Do it in a `setState`: the widget layer rebuilds every item standing when
 /// this widget rebuilds, which is what puts the reordered data on the plane.
-/// There is no [ReorderableList3d.refresh] to call, because a rebuild of the
-/// list is the refresh.
+/// There is no [RenderReorderableList3d.refresh] to call, because a rebuild of
+/// the list is the refresh.
 ///
 /// An item is picked up with a long press by default, so an ordinary drag is
 /// still free to scroll the list. Set [startMode] to
 /// [Drag3dStartMode.immediate] for a list of drag handles.
-class SceneReorderableList3d extends LazyRenderObjectWidget3d {
+class ReorderableList3d extends LazyRenderObjectWidget3d {
   /// Creates a reorderable list that builds its items as it reaches them.
-  const SceneReorderableList3d({
+  const ReorderableList3d({
     super.key,
     required int itemCount,
     required IndexedWidgetBuilder itemBuilder,
@@ -2022,8 +2024,8 @@ class SceneReorderableList3d extends LazyRenderObjectWidget3d {
   final double cacheExtent;
 
   @override
-  ReorderableList3d createLayout(BuildContext context) =>
-      ReorderableList3d.managed(
+  RenderReorderableList3d createLayout(BuildContext context) =>
+      RenderReorderableList3d.managed(
         onReorder: onReorder,
         feedbackBuilder: feedbackBuilder,
         startMode: startMode,
@@ -2041,7 +2043,7 @@ class SceneReorderableList3d extends LazyRenderObjectWidget3d {
       );
 
   @override
-  void updateLayout(BuildContext context, ReorderableList3d layout) {
+  void updateLayout(BuildContext context, RenderReorderableList3d layout) {
     layout
       ..onReorder = onReorder
       ..feedbackBuilder = feedbackBuilder
@@ -2060,10 +2062,10 @@ class SceneReorderableList3d extends LazyRenderObjectWidget3d {
   }
 }
 
-/// Lays children out in runs, the widget form of [Wrap3d].
-class SceneWrap3d extends MultiChildRenderObjectWidget3d {
+/// Lays children out in runs, the widget form of [RenderWrap3d].
+class Wrap3d extends MultiChildRenderObjectWidget3d {
   /// Creates a wrapping box.
-  const SceneWrap3d({
+  const Wrap3d({
     super.key,
     this.direction = Axis3d.horizontal,
     this.alignment = WrapAlignment3d.start,
@@ -2108,7 +2110,7 @@ class SceneWrap3d extends MultiChildRenderObjectWidget3d {
   final VerticalDirection verticalDirection;
 
   @override
-  Wrap3d createLayout(BuildContext context) => Wrap3d(
+  RenderWrap3d createLayout(BuildContext context) => RenderWrap3d(
     direction: direction,
     alignment: alignment,
     spacing: spacing,
@@ -2121,7 +2123,7 @@ class SceneWrap3d extends MultiChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, Wrap3d layout) {
+  void updateLayout(BuildContext context, RenderWrap3d layout) {
     layout
       ..direction = direction
       ..alignment = alignment
@@ -2135,15 +2137,15 @@ class SceneWrap3d extends MultiChildRenderObjectWidget3d {
   }
 }
 
-/// A scrollable grid of equal cells, the widget form of [GridView3d].
+/// A scrollable grid of equal cells, the widget form of [RenderGridView3d].
 ///
-/// The same two shapes [SceneListView3d] has: an explicit list of children,
+/// The same two shapes [ListView3d] has: an explicit list of children,
 /// or an [itemBuilder] and a count. A grid knows where every cell goes by
 /// arithmetic, so a built grid is exactly lazy — only the cells the window
 /// covers are ever built, however deep the scroll offset is.
-class SceneGridView3d extends LazyRenderObjectWidget3d {
+class GridView3d extends LazyRenderObjectWidget3d {
   /// Creates a grid over an explicit set of children.
-  const SceneGridView3d({
+  const GridView3d({
     super.key,
     required this.gridDelegate,
     this.scrollDirection = Axis3d.vertical,
@@ -2154,7 +2156,7 @@ class SceneGridView3d extends LazyRenderObjectWidget3d {
   });
 
   /// Creates a grid that builds its cells as it reaches them.
-  const SceneGridView3d.builder({
+  const GridView3d.builder({
     super.key,
     required this.gridDelegate,
     required int itemCount,
@@ -2181,7 +2183,7 @@ class SceneGridView3d extends LazyRenderObjectWidget3d {
   final double cacheExtent;
 
   @override
-  GridView3d createLayout(BuildContext context) => GridView3d(
+  RenderGridView3d createLayout(BuildContext context) => RenderGridView3d(
     gridDelegate: gridDelegate,
     scrollDirection: scrollDirection,
     controller: controller,
@@ -2190,7 +2192,7 @@ class SceneGridView3d extends LazyRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, GridView3d layout) {
+  void updateLayout(BuildContext context, RenderGridView3d layout) {
     layout
       ..gridDelegate = gridDelegate
       ..scrollDirection = scrollDirection
@@ -2201,13 +2203,13 @@ class SceneGridView3d extends LazyRenderObjectWidget3d {
 }
 
 /// A window over a sequence of slivers, the widget form of
-/// [CustomScrollView3d].
+/// [RenderCustomScrollView3d].
 ///
-/// The children must be slivers ([SceneSliverList3d], [SceneSliverGrid3d],
-/// [SceneSliverToBoxAdapter3d]); ordinary boxes go in an adapter.
-class SceneCustomScrollView3d extends MultiChildRenderObjectWidget3d {
+/// The children must be slivers ([SliverList3d], [SliverGrid3d],
+/// [SliverToBoxAdapter3d]); ordinary boxes go in an adapter.
+class CustomScrollView3d extends MultiChildRenderObjectWidget3d {
   /// Creates a viewport over slivers.
-  const SceneCustomScrollView3d({
+  const CustomScrollView3d({
     super.key,
     this.scrollDirection = Axis3d.vertical,
     this.controller,
@@ -2226,14 +2228,15 @@ class SceneCustomScrollView3d extends MultiChildRenderObjectWidget3d {
   final double cacheExtent;
 
   @override
-  CustomScrollView3d createLayout(BuildContext context) => CustomScrollView3d(
-    scrollDirection: scrollDirection,
-    controller: controller,
-    cacheExtent: cacheExtent,
-  );
+  RenderCustomScrollView3d createLayout(BuildContext context) =>
+      RenderCustomScrollView3d(
+        scrollDirection: scrollDirection,
+        controller: controller,
+        cacheExtent: cacheExtent,
+      );
 
   @override
-  void updateLayout(BuildContext context, CustomScrollView3d layout) {
+  void updateLayout(BuildContext context, RenderCustomScrollView3d layout) {
     layout
       ..scrollDirection = scrollDirection
       ..cacheExtent = cacheExtent;
@@ -2242,28 +2245,28 @@ class SceneCustomScrollView3d extends MultiChildRenderObjectWidget3d {
 }
 
 /// Puts one box in a sliver world, the widget form of
-/// [SliverToBoxAdapter3d].
-class SceneSliverToBoxAdapter3d extends SingleChildRenderObjectWidget3d {
+/// [RenderSliverToBoxAdapter3d].
+class SliverToBoxAdapter3d extends SingleChildRenderObjectWidget3d {
   /// Creates an adapter around [child].
-  const SceneSliverToBoxAdapter3d({super.key, super.child});
+  const SliverToBoxAdapter3d({super.key, super.child});
 
   @override
-  SliverToBoxAdapter3d createLayout(BuildContext context) =>
-      SliverToBoxAdapter3d();
+  RenderSliverToBoxAdapter3d createLayout(BuildContext context) =>
+      RenderSliverToBoxAdapter3d();
 
   @override
-  void updateLayout(BuildContext context, SliverToBoxAdapter3d layout) {}
+  void updateLayout(BuildContext context, RenderSliverToBoxAdapter3d layout) {}
 }
 
-/// A run of items in a sliver world, the widget form of [SliverList3d].
+/// A run of items in a sliver world, the widget form of [RenderSliverList3d].
 ///
-/// The same two shapes [SceneListView3d] has, and the same caveats: a built
+/// The same two shapes [ListView3d] has, and the same caveats: a built
 /// item is an ordinary widget, it is released once the window and its cache
-/// have left it unless a [SceneKeepAlive3d] asks otherwise, and an [itemExtent]
+/// have left it unless a [KeepAlive3d] asks otherwise, and an [itemExtent]
 /// is what stops a long list from measuring its way to a deep offset.
-class SceneSliverList3d extends LazyRenderObjectWidget3d {
+class SliverList3d extends LazyRenderObjectWidget3d {
   /// Creates a sliver list over an explicit set of children.
-  const SceneSliverList3d({
+  const SliverList3d({
     super.key,
     this.spacing = 0.0,
     this.itemExtent,
@@ -2273,7 +2276,7 @@ class SceneSliverList3d extends LazyRenderObjectWidget3d {
   });
 
   /// Creates a sliver list that builds its items as it reaches them.
-  const SceneSliverList3d.builder({
+  const SliverList3d.builder({
     super.key,
     required int itemCount,
     required IndexedWidgetBuilder itemBuilder,
@@ -2296,7 +2299,7 @@ class SceneSliverList3d extends LazyRenderObjectWidget3d {
   final CrossAxisAlignment3d depthAxisAlignment;
 
   @override
-  SliverList3d createLayout(BuildContext context) => SliverList3d(
+  RenderSliverList3d createLayout(BuildContext context) => RenderSliverList3d(
     spacing: spacing,
     itemExtent: itemExtent,
     crossAxisAlignment: crossAxisAlignment,
@@ -2304,7 +2307,7 @@ class SceneSliverList3d extends LazyRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, SliverList3d layout) {
+  void updateLayout(BuildContext context, RenderSliverList3d layout) {
     layout
       ..spacing = spacing
       ..itemExtent = itemExtent
@@ -2314,11 +2317,11 @@ class SceneSliverList3d extends LazyRenderObjectWidget3d {
 }
 
 /// A run of items that can be dragged into a different order, the widget form
-/// of [SliverReorderableList3d].
+/// of [RenderSliverReorderableList3d].
 ///
-/// [SceneReorderableList3d] is this sliver in a window of its own; reach for
+/// [ReorderableList3d] is this sliver in a window of its own; reach for
 /// this one when a reorderable run has to sit between other slivers in a
-/// `SceneCustomScrollView3d`.
+/// `CustomScrollView3d`.
 ///
 /// ## What a drag carries
 ///
@@ -2336,11 +2339,11 @@ class SceneSliverList3d extends LazyRenderObjectWidget3d {
 /// **[newIndex] where the item ends up** — one `insert` after one `removeAt`.
 /// Do it in a `setState`: the widget layer rebuilds every item standing when
 /// this widget rebuilds, which is what puts the reordered data on the plane.
-/// There is no [ReorderableList3d.refresh] to call, because a rebuild of the
-/// list is the refresh.
-class SceneSliverReorderableList3d extends LazyRenderObjectWidget3d {
+/// There is no [RenderReorderableList3d.refresh] to call, because a rebuild of
+/// the list is the refresh.
+class SliverReorderableList3d extends LazyRenderObjectWidget3d {
   /// Creates a reorderable sliver that builds its items as it reaches them.
-  const SceneSliverReorderableList3d({
+  const SliverReorderableList3d({
     super.key,
     required int itemCount,
     required IndexedWidgetBuilder itemBuilder,
@@ -2392,8 +2395,8 @@ class SceneSliverReorderableList3d extends LazyRenderObjectWidget3d {
   final CrossAxisAlignment3d depthAxisAlignment;
 
   @override
-  SliverReorderableList3d createLayout(BuildContext context) =>
-      SliverReorderableList3d.managed(
+  RenderSliverReorderableList3d createLayout(BuildContext context) =>
+      RenderSliverReorderableList3d.managed(
         onReorder: onReorder,
         feedbackBuilder: feedbackBuilder,
         startMode: startMode,
@@ -2408,7 +2411,10 @@ class SceneSliverReorderableList3d extends LazyRenderObjectWidget3d {
       );
 
   @override
-  void updateLayout(BuildContext context, SliverReorderableList3d layout) {
+  void updateLayout(
+    BuildContext context,
+    RenderSliverReorderableList3d layout,
+  ) {
     layout
       ..onReorder = onReorder
       ..feedbackBuilder = feedbackBuilder
@@ -2424,13 +2430,13 @@ class SceneSliverReorderableList3d extends LazyRenderObjectWidget3d {
   }
 }
 
-/// A grid of cells in a sliver world, the widget form of [SliverGrid3d].
+/// A grid of cells in a sliver world, the widget form of [RenderSliverGrid3d].
 ///
-/// The same two shapes [SceneGridView3d] has, and lazy in the same exact way:
+/// The same two shapes [GridView3d] has, and lazy in the same exact way:
 /// cell offsets are arithmetic, so only what the window covers is built.
-class SceneSliverGrid3d extends LazyRenderObjectWidget3d {
+class SliverGrid3d extends LazyRenderObjectWidget3d {
   /// Creates a sliver grid over an explicit set of children.
-  const SceneSliverGrid3d({
+  const SliverGrid3d({
     super.key,
     required this.gridDelegate,
     this.depthAxisAlignment = CrossAxisAlignment3d.center,
@@ -2438,7 +2444,7 @@ class SceneSliverGrid3d extends LazyRenderObjectWidget3d {
   });
 
   /// Creates a sliver grid that builds its cells as it reaches them.
-  const SceneSliverGrid3d.builder({
+  const SliverGrid3d.builder({
     super.key,
     required this.gridDelegate,
     required int itemCount,
@@ -2453,30 +2459,30 @@ class SceneSliverGrid3d extends LazyRenderObjectWidget3d {
   final CrossAxisAlignment3d depthAxisAlignment;
 
   @override
-  SliverGrid3d createLayout(BuildContext context) => SliverGrid3d(
+  RenderSliverGrid3d createLayout(BuildContext context) => RenderSliverGrid3d(
     gridDelegate: gridDelegate,
     depthAxisAlignment: depthAxisAlignment,
   );
 
   @override
-  void updateLayout(BuildContext context, SliverGrid3d layout) {
+  void updateLayout(BuildContext context, RenderSliverGrid3d layout) {
     layout
       ..gridDelegate = gridDelegate
       ..depthAxisAlignment = depthAxisAlignment;
   }
 }
 
-/// A string laid out as a box, the widget form of [Text3d].
+/// A string laid out as a box, the widget form of [RenderText3d].
 ///
 /// Unlike the imperative box, this one has a `BuildContext` to ask, so it
 /// picks up the ambient [DefaultTextStyle] and [Directionality] the way a
 /// Flutter [Text] does — with the caveat that both come from the *widget*
 /// tree the scene is hosted in, not from anything in the scene. A style
-/// passed here is merged onto the inherited one, so a `SceneText3d` under a
+/// passed here is merged onto the inherited one, so a `Text3d` under a
 /// `DefaultTextStyle` only has to say what differs.
-class SceneText3d extends MultiChildRenderObjectWidget3d {
+class Text3d extends MultiChildRenderObjectWidget3d {
   /// Creates a text box over [data].
-  const SceneText3d(
+  const Text3d(
     this.data, {
     super.key,
     this.style,
@@ -2531,7 +2537,7 @@ class SceneText3d extends MultiChildRenderObjectWidget3d {
   final Text3dRenderer? renderer;
 
   /// How far this label grows with the reader's font setting, or null for
-  /// the ambient [SceneTextScaling3d], and failing that the surface's own.
+  /// the ambient [TextScaling3d], and failing that the surface's own.
   ///
   /// Flutter's `Text.textScaler`. An icon states `TextScaler.noScaling`.
   final TextScaler? textScaler;
@@ -2541,8 +2547,8 @@ class SceneText3d extends MultiChildRenderObjectWidget3d {
   /// An explicit renderer wins. Otherwise the inherited factory is written,
   /// including when it is null — which is what makes a label stop drawing
   /// when its default is taken away. Writing the same factory again is a
-  /// no-op inside [Text3d], so a rebuild does not churn renderers.
-  void _applyRenderer(BuildContext context, Text3d layout) {
+  /// no-op inside [RenderText3d], so a rebuild does not churn renderers.
+  void _applyRenderer(BuildContext context, RenderText3d layout) {
     final renderer = this.renderer;
     if (renderer != null) {
       layout.renderer = renderer;
@@ -2556,7 +2562,7 @@ class SceneText3d extends MultiChildRenderObjectWidget3d {
     final style = this.style;
     if (style == null) {
       return inherited.fontSize == null
-          ? inherited.merge(Text3d.defaultStyle)
+          ? inherited.merge(RenderText3d.defaultStyle)
           : inherited;
     }
     return style.inherit ? inherited.merge(style) : style;
@@ -2566,7 +2572,7 @@ class SceneText3d extends MultiChildRenderObjectWidget3d {
       textDirection ?? Directionality.maybeOf(context) ?? TextDirection.ltr;
 
   @override
-  Text3d createLayout(BuildContext context) => Text3d(
+  RenderText3d createLayout(BuildContext context) => RenderText3d(
     data,
     style: _resolveStyle(context),
     textAlign: textAlign,
@@ -2581,11 +2587,11 @@ class SceneText3d extends MultiChildRenderObjectWidget3d {
     rendererFactory: renderer == null
         ? DefaultTextRenderer3d.maybeOf(context)
         : null,
-    textScaler: textScaler ?? SceneTextScaling3d.maybeOf(context),
+    textScaler: textScaler ?? TextScaling3d.maybeOf(context),
   );
 
   @override
-  void updateLayout(BuildContext context, Text3d layout) {
+  void updateLayout(BuildContext context, RenderText3d layout) {
     layout
       ..data = data
       ..style = _resolveStyle(context)
@@ -2597,21 +2603,21 @@ class SceneText3d extends MultiChildRenderObjectWidget3d {
       ..depth = depth
       ..rules = rules
       ..measurement = measurement ?? SegmentedTextMeasurement3d.shared
-      ..textScaler = textScaler ?? SceneTextScaling3d.maybeOf(context);
+      ..textScaler = textScaler ?? TextScaling3d.maybeOf(context);
     _applyRenderer(context, layout);
   }
 }
 
-/// A styled paragraph laid out as a box, the widget form of [RichText3d].
+/// A styled paragraph laid out as a box, the widget form of [RenderRichText3d].
 ///
-/// [SceneText3d] is one string in one style, assembled out of a shared glyph
+/// [Text3d] is one string in one style, assembled out of a shared glyph
 /// atlas. This is everything that is not that: several spans with styles of
 /// their own, a `WidgetSpan`, a decoration, a shadow, a font feature — the
 /// paragraph is handed back to Flutter to paint into a texture, and the
 /// texture is drawn on the plane.
 ///
 /// ```dart
-/// SceneRichText3d(
+/// RichText3d(
 ///   text: TextSpan(
 ///     style: DefaultTextStyle.of(context).style,
 ///     children: [
@@ -2622,15 +2628,15 @@ class SceneText3d extends MultiChildRenderObjectWidget3d {
 /// )
 /// ```
 ///
-/// Two things to know, and both are in [RichText3d]'s own dartdoc at length.
-/// The spans carry their own styles, so nothing here is merged onto the
-/// ambient [DefaultTextStyle] the way [SceneText3d] merges — a span with no
+/// Two things to know, and both are in [RenderRichText3d]'s own dartdoc at
+/// length. The spans carry their own styles, so nothing here is merged onto the
+/// ambient [DefaultTextStyle] the way [Text3d] merges — a span with no
 /// style is drawn in Flutter's default, not in yours. And [glyphDepth], not
 /// [depth], is what gives the letters a side to them: `depth` reserves room in
 /// the layout and draws nothing.
-class SceneRichText3d extends MultiChildRenderObjectWidget3d {
+class RichText3d extends MultiChildRenderObjectWidget3d {
   /// Creates a paragraph box over [text].
-  const SceneRichText3d({
+  const RichText3d({
     super.key,
     required this.text,
     this.textAlign = TextAlign.start,
@@ -2641,7 +2647,7 @@ class SceneRichText3d extends MultiChildRenderObjectWidget3d {
     this.depth = 0.0,
     this.glyphDepth,
     this.glyphDepthFactor = 0.10,
-    this.maxWallSegments = RichText3d.defaultMaxWallSegments,
+    this.maxWallSegments = RenderRichText3d.defaultMaxWallSegments,
     this.strutStyle,
     this.textWidthBasis = TextWidthBasis.parent,
     this.textScaler,
@@ -2689,7 +2695,7 @@ class SceneRichText3d extends MultiChildRenderObjectWidget3d {
   final TextWidthBasis textWidthBasis;
 
   /// How far this paragraph grows with the reader's font setting, or null for
-  /// the ambient [SceneTextScaling3d], and failing that the surface's own.
+  /// the ambient [TextScaling3d], and failing that the surface's own.
   final TextScaler? textScaler;
 
   /// How many texture pixels are captured per logical pixel.
@@ -2706,7 +2712,7 @@ class SceneRichText3d extends MultiChildRenderObjectWidget3d {
       textDirection ?? Directionality.maybeOf(context) ?? TextDirection.ltr;
 
   @override
-  RichText3d createLayout(BuildContext context) => RichText3d(
+  RenderRichText3d createLayout(BuildContext context) => RenderRichText3d(
     text,
     textAlign: textAlign,
     textDirection: _resolveDirection(context),
@@ -2719,14 +2725,14 @@ class SceneRichText3d extends MultiChildRenderObjectWidget3d {
     maxWallSegments: maxWallSegments,
     strutStyle: strutStyle,
     textWidthBasis: textWidthBasis,
-    textScaler: textScaler ?? SceneTextScaling3d.maybeOf(context),
+    textScaler: textScaler ?? TextScaling3d.maybeOf(context),
     resolution: resolution,
     depthOffset: depthOffset,
     update: update,
   );
 
   @override
-  void updateLayout(BuildContext context, RichText3d layout) {
+  void updateLayout(BuildContext context, RenderRichText3d layout) {
     layout
       ..text = text
       ..textAlign = textAlign
@@ -2740,17 +2746,17 @@ class SceneRichText3d extends MultiChildRenderObjectWidget3d {
       ..maxWallSegments = maxWallSegments
       ..strutStyle = strutStyle
       ..textWidthBasis = textWidthBasis
-      ..textScaler = textScaler ?? SceneTextScaling3d.maybeOf(context)
+      ..textScaler = textScaler ?? TextScaling3d.maybeOf(context)
       ..resolution = resolution
       ..depthOffset = depthOffset
       ..update = update;
   }
 }
 
-/// Caps an unbounded axis, the widget form of [LimitedBox3d].
-class SceneLimitedBox3d extends SingleChildRenderObjectWidget3d {
+/// Caps an unbounded axis, the widget form of [RenderLimitedBox3d].
+class LimitedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that limits its child's unbounded axes.
-  const SceneLimitedBox3d({
+  const LimitedBox3d({
     super.key,
     this.maxWidth = double.infinity,
     this.maxHeight = double.infinity,
@@ -2768,14 +2774,14 @@ class SceneLimitedBox3d extends SingleChildRenderObjectWidget3d {
   final double maxDepth;
 
   @override
-  LimitedBox3d createLayout(BuildContext context) => LimitedBox3d(
+  RenderLimitedBox3d createLayout(BuildContext context) => RenderLimitedBox3d(
     maxWidth: maxWidth,
     maxHeight: maxHeight,
     maxDepth: maxDepth,
   );
 
   @override
-  void updateLayout(BuildContext context, LimitedBox3d layout) {
+  void updateLayout(BuildContext context, RenderLimitedBox3d layout) {
     layout
       ..maxWidth = maxWidth
       ..maxHeight = maxHeight
@@ -2783,10 +2789,11 @@ class SceneLimitedBox3d extends SingleChildRenderObjectWidget3d {
   }
 }
 
-/// Frees its child's constraints, the widget form of [UnconstrainedBox3d].
-class SceneUnconstrainedBox3d extends SingleChildRenderObjectWidget3d {
+/// Frees its child's constraints, the widget form of
+/// [RenderUnconstrainedBox3d].
+class UnconstrainedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that hands its child unbounded room.
-  const SceneUnconstrainedBox3d({
+  const UnconstrainedBox3d({
     super.key,
     this.alignment = Alignment3d.center,
     this.constrainedAxes = const <Axis3d>{},
@@ -2800,14 +2807,15 @@ class SceneUnconstrainedBox3d extends SingleChildRenderObjectWidget3d {
   final Set<Axis3d> constrainedAxes;
 
   @override
-  UnconstrainedBox3d createLayout(BuildContext context) => UnconstrainedBox3d(
-    alignment: alignment,
-    constrainedAxes: constrainedAxes,
-    textDirection: Directionality.maybeOf(context),
-  );
+  RenderUnconstrainedBox3d createLayout(BuildContext context) =>
+      RenderUnconstrainedBox3d(
+        alignment: alignment,
+        constrainedAxes: constrainedAxes,
+        textDirection: Directionality.maybeOf(context),
+      );
 
   @override
-  void updateLayout(BuildContext context, UnconstrainedBox3d layout) {
+  void updateLayout(BuildContext context, RenderUnconstrainedBox3d layout) {
     layout
       ..alignment = alignment
       ..constrainedAxes = constrainedAxes
@@ -2816,10 +2824,10 @@ class SceneUnconstrainedBox3d extends SingleChildRenderObjectWidget3d {
 }
 
 /// Lets its child spill out of the size it reports, the widget form of
-/// [OverflowBox3d].
-class SceneOverflowBox3d extends SingleChildRenderObjectWidget3d {
+/// [RenderOverflowBox3d].
+class OverflowBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that overrides the bounds given, per axis.
-  const SceneOverflowBox3d({
+  const OverflowBox3d({
     super.key,
     this.minWidth,
     this.maxWidth,
@@ -2853,7 +2861,7 @@ class SceneOverflowBox3d extends SingleChildRenderObjectWidget3d {
   final AlignmentGeometry3d alignment;
 
   @override
-  OverflowBox3d createLayout(BuildContext context) => OverflowBox3d(
+  RenderOverflowBox3d createLayout(BuildContext context) => RenderOverflowBox3d(
     minWidth: minWidth,
     maxWidth: maxWidth,
     minHeight: minHeight,
@@ -2865,7 +2873,7 @@ class SceneOverflowBox3d extends SingleChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, OverflowBox3d layout) {
+  void updateLayout(BuildContext context, RenderOverflowBox3d layout) {
     layout
       ..minWidth = minWidth
       ..maxWidth = maxWidth
@@ -2879,10 +2887,10 @@ class SceneOverflowBox3d extends SingleChildRenderObjectWidget3d {
 }
 
 /// Sizes its child to a fraction of the room available, the widget form of
-/// [FractionallySizedBox3d].
-class SceneFractionallySizedBox3d extends SingleChildRenderObjectWidget3d {
+/// [RenderFractionallySizedBox3d].
+class FractionallySizedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box sizing its child to a fraction of its own room.
-  const SceneFractionallySizedBox3d({
+  const FractionallySizedBox3d({
     super.key,
     this.widthFactor,
     this.heightFactor,
@@ -2904,8 +2912,8 @@ class SceneFractionallySizedBox3d extends SingleChildRenderObjectWidget3d {
   final AlignmentGeometry3d alignment;
 
   @override
-  FractionallySizedBox3d createLayout(BuildContext context) =>
-      FractionallySizedBox3d(
+  RenderFractionallySizedBox3d createLayout(BuildContext context) =>
+      RenderFractionallySizedBox3d(
         widthFactor: widthFactor,
         heightFactor: heightFactor,
         depthFactor: depthFactor,
@@ -2914,7 +2922,7 @@ class SceneFractionallySizedBox3d extends SingleChildRenderObjectWidget3d {
       );
 
   @override
-  void updateLayout(BuildContext context, FractionallySizedBox3d layout) {
+  void updateLayout(BuildContext context, RenderFractionallySizedBox3d layout) {
     layout
       ..widthFactor = widthFactor
       ..heightFactor = heightFactor
@@ -2924,13 +2932,13 @@ class SceneFractionallySizedBox3d extends SingleChildRenderObjectWidget3d {
   }
 }
 
-/// Shows one of its children, the widget form of [IndexedStack3d].
+/// Shows one of its children, the widget form of [RenderIndexedStack3d].
 ///
 /// Every child keeps its state and its place while it is hidden, so this is
 /// how a tab body or a wizard step is built.
-class SceneIndexedStack3d extends MultiChildRenderObjectWidget3d {
+class IndexedStack3d extends MultiChildRenderObjectWidget3d {
   /// Creates a stack showing the child at [index].
-  const SceneIndexedStack3d({
+  const IndexedStack3d({
     super.key,
     this.index = 0,
     this.alignment = Alignment3d.topLeftFront,
@@ -2959,16 +2967,17 @@ class SceneIndexedStack3d extends MultiChildRenderObjectWidget3d {
   final TextDirection? textDirection;
 
   @override
-  IndexedStack3d createLayout(BuildContext context) => IndexedStack3d(
-    index: index,
-    alignment: alignment,
-    fit: fit,
-    depthStep: depthStep,
-    textDirection: textDirection ?? Directionality.maybeOf(context),
-  );
+  RenderIndexedStack3d createLayout(BuildContext context) =>
+      RenderIndexedStack3d(
+        index: index,
+        alignment: alignment,
+        fit: fit,
+        depthStep: depthStep,
+        textDirection: textDirection ?? Directionality.maybeOf(context),
+      );
 
   @override
-  void updateLayout(BuildContext context, IndexedStack3d layout) {
+  void updateLayout(BuildContext context, RenderIndexedStack3d layout) {
     layout
       ..alignment = alignment
       ..fit = fit
@@ -2978,10 +2987,11 @@ class SceneIndexedStack3d extends MultiChildRenderObjectWidget3d {
   }
 }
 
-/// Holds two of its axes in a fixed ratio, the widget form of [AspectRatio3d].
-class SceneAspectRatio3d extends SingleChildRenderObjectWidget3d {
+/// Holds two of its axes in a fixed ratio, the widget form of
+/// [RenderAspectRatio3d].
+class AspectRatio3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box with a fixed ratio between [axis] and [relativeTo].
-  const SceneAspectRatio3d({
+  const AspectRatio3d({
     super.key,
     required this.aspectRatio,
     this.axis = Axis3d.horizontal,
@@ -2999,14 +3009,14 @@ class SceneAspectRatio3d extends SingleChildRenderObjectWidget3d {
   final Axis3d relativeTo;
 
   @override
-  AspectRatio3d createLayout(BuildContext context) => AspectRatio3d(
+  RenderAspectRatio3d createLayout(BuildContext context) => RenderAspectRatio3d(
     aspectRatio: aspectRatio,
     axis: axis,
     relativeTo: relativeTo,
   );
 
   @override
-  void updateLayout(BuildContext context, AspectRatio3d layout) {
+  void updateLayout(BuildContext context, RenderAspectRatio3d layout) {
     layout
       ..aspectRatio = aspectRatio
       ..axis = axis
@@ -3015,10 +3025,10 @@ class SceneAspectRatio3d extends SingleChildRenderObjectWidget3d {
 }
 
 /// Scales its child into the room available, the widget form of
-/// [FittedBox3d].
-class SceneFittedBox3d extends SingleChildRenderObjectWidget3d {
+/// [RenderFittedBox3d].
+class FittedBox3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that scales its child.
-  const SceneFittedBox3d({
+  const FittedBox3d({
     super.key,
     this.fit = BoxFit3d.contain,
     this.alignment = Alignment3d.center,
@@ -3032,14 +3042,14 @@ class SceneFittedBox3d extends SingleChildRenderObjectWidget3d {
   final AlignmentGeometry3d alignment;
 
   @override
-  FittedBox3d createLayout(BuildContext context) => FittedBox3d(
+  RenderFittedBox3d createLayout(BuildContext context) => RenderFittedBox3d(
     fit: fit,
     alignment: alignment,
     textDirection: Directionality.maybeOf(context),
   );
 
   @override
-  void updateLayout(BuildContext context, FittedBox3d layout) {
+  void updateLayout(BuildContext context, RenderFittedBox3d layout) {
     layout
       ..fit = fit
       ..alignment = alignment
@@ -3048,10 +3058,10 @@ class SceneFittedBox3d extends SingleChildRenderObjectWidget3d {
 }
 
 /// A grid of cells whose columns are negotiated across every row, the widget
-/// form of [Table3d].
-class SceneTable3d extends MultiChildRenderObjectWidget3d {
+/// form of [RenderTable3d].
+class Table3d extends MultiChildRenderObjectWidget3d {
   /// Creates a table of [columnCount] columns from cells in row-major order.
-  const SceneTable3d({
+  const Table3d({
     super.key,
     required this.columnCount,
     this.columnWidths = const <int, TableColumnWidth3d>{},
@@ -3092,7 +3102,7 @@ class SceneTable3d extends MultiChildRenderObjectWidget3d {
   final TextDirection? textDirection;
 
   @override
-  Table3d createLayout(BuildContext context) => Table3d(
+  RenderTable3d createLayout(BuildContext context) => RenderTable3d(
     columnCount: columnCount,
     columnWidths: columnWidths,
     defaultColumnWidth: defaultColumnWidth,
@@ -3104,7 +3114,7 @@ class SceneTable3d extends MultiChildRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, Table3d layout) {
+  void updateLayout(BuildContext context, RenderTable3d layout) {
     layout
       ..columnCount = columnCount
       ..columnWidths = columnWidths
@@ -3117,31 +3127,32 @@ class SceneTable3d extends MultiChildRenderObjectWidget3d {
   }
 }
 
-/// Tags a child of a [SceneCustomMultiChildLayout3d], the widget form of
-/// [LayoutId3d].
-class SceneLayoutId3d extends SingleChildRenderObjectWidget3d {
+/// Tags a child of a [CustomMultiChildLayout3d], the widget form of
+/// [RenderLayoutId3d].
+class LayoutId3d extends SingleChildRenderObjectWidget3d {
   /// Tags [child] with [id].
-  const SceneLayoutId3d({super.key, required this.id, super.child});
+  const LayoutId3d({super.key, required this.id, super.child});
 
   /// The name the delegate knows this child by.
   final Object id;
 
   @override
-  LayoutId3d createLayout(BuildContext context) => LayoutId3d(id: id);
+  RenderLayoutId3d createLayout(BuildContext context) =>
+      RenderLayoutId3d(id: id);
 
   @override
-  void updateLayout(BuildContext context, LayoutId3d layout) {
+  void updateLayout(BuildContext context, RenderLayoutId3d layout) {
     layout.id = id;
   }
 }
 
 /// Arranges children a delegate knows by name, the widget form of
-/// [CustomMultiChildLayout3d].
+/// [RenderCustomMultiChildLayout3d].
 ///
-/// Every child is a [SceneLayoutId3d].
-class SceneCustomMultiChildLayout3d extends MultiChildRenderObjectWidget3d {
+/// Every child is a [LayoutId3d].
+class CustomMultiChildLayout3d extends MultiChildRenderObjectWidget3d {
   /// Creates a box arranged by [delegate].
-  const SceneCustomMultiChildLayout3d({
+  const CustomMultiChildLayout3d({
     super.key,
     required this.delegate,
     super.children,
@@ -3151,47 +3162,51 @@ class SceneCustomMultiChildLayout3d extends MultiChildRenderObjectWidget3d {
   final MultiChildLayout3dDelegate delegate;
 
   @override
-  CustomMultiChildLayout3d createLayout(BuildContext context) =>
-      CustomMultiChildLayout3d(delegate: delegate);
+  RenderCustomMultiChildLayout3d createLayout(BuildContext context) =>
+      RenderCustomMultiChildLayout3d(delegate: delegate);
 
   @override
-  void updateLayout(BuildContext context, CustomMultiChildLayout3d layout) {
+  void updateLayout(
+    BuildContext context,
+    RenderCustomMultiChildLayout3d layout,
+  ) {
     layout.delegate = delegate;
   }
 }
 
 /// Arranges its children by moving their geometry, the widget form of
-/// [Flow3d].
-class SceneFlow3d extends MultiChildRenderObjectWidget3d {
+/// [RenderFlow3d].
+class Flow3d extends MultiChildRenderObjectWidget3d {
   /// Creates a flow arranged by [delegate].
-  const SceneFlow3d({super.key, required this.delegate, super.children});
+  const Flow3d({super.key, required this.delegate, super.children});
 
   /// The delegate deciding where the children go.
   final Flow3dDelegate delegate;
 
   @override
-  Flow3d createLayout(BuildContext context) => Flow3d(delegate: delegate);
+  RenderFlow3d createLayout(BuildContext context) =>
+      RenderFlow3d(delegate: delegate);
 
   @override
-  void updateLayout(BuildContext context, Flow3d layout) {
+  void updateLayout(BuildContext context, RenderFlow3d layout) {
     layout.delegate = delegate;
   }
 }
 
 /// A sliver whose child stays at the leading edge, the widget form of
-/// [SliverPersistentHeader3d].
+/// [RenderSliverPersistentHeader3d].
 ///
 /// ```dart
-/// SceneCustomScrollView3d(
+/// CustomScrollView3d(
 ///   slivers: <Widget>[
-///     SceneSliverPersistentHeader3d(
+///     SliverPersistentHeader3d(
 ///       minExtent: metrics.dp(64),
 ///       maxExtent: metrics.dp(160),
 ///       pinned: true,
 ///       lift: metrics.dp(12),
 ///       child: bar,
 ///     ),
-///     SceneSliverList3d.builder(itemCount: rows.length, itemBuilder: row),
+///     SliverList3d.builder(itemCount: rows.length, itemBuilder: row),
 ///   ],
 /// )
 /// ```
@@ -3219,13 +3234,13 @@ class SceneFlow3d extends MultiChildRenderObjectWidget3d {
 /// in this layer, while a Material figure is in logical pixels. Convert:
 /// `Layout3dMetricsScope.of(context).dp(64)`.
 ///
-/// See [SliverPersistentHeader3d.lift] for what [lift] is for, and know that
-/// its default of one logical pixel is a depth-buffer separation rather than
-/// a distance: a bar covering slabs with real thickness wants a step from the
-/// same scale the slabs came from.
-class SceneSliverPersistentHeader3d extends SingleChildRenderObjectWidget3d {
+/// See [RenderSliverPersistentHeader3d.lift] for what [lift] is for, and know
+/// that its default of one logical pixel is a depth-buffer separation rather
+/// than a distance: a bar covering slabs with real thickness wants a step from
+/// the same scale the slabs came from.
+class SliverPersistentHeader3d extends SingleChildRenderObjectWidget3d {
   /// Creates a header that holds the leading edge.
-  const SceneSliverPersistentHeader3d({
+  const SliverPersistentHeader3d({
     super.key,
     required this.minExtent,
     required this.maxExtent,
@@ -3255,12 +3270,12 @@ class SceneSliverPersistentHeader3d extends SingleChildRenderObjectWidget3d {
   final double? lift;
 
   @override
-  SliverPersistentHeader3d createLayout(BuildContext context) {
+  RenderSliverPersistentHeader3d createLayout(BuildContext context) {
     final delegate = HeldSliverPersistentHeader3dDelegate(
       minExtent: minExtent,
       maxExtent: maxExtent,
     );
-    final header = SliverPersistentHeader3d(
+    final header = RenderSliverPersistentHeader3d(
       delegate: delegate,
       pinned: pinned,
       floating: floating,
@@ -3271,7 +3286,10 @@ class SceneSliverPersistentHeader3d extends SingleChildRenderObjectWidget3d {
   }
 
   @override
-  void updateLayout(BuildContext context, SliverPersistentHeader3d layout) {
+  void updateLayout(
+    BuildContext context,
+    RenderSliverPersistentHeader3d layout,
+  ) {
     (layout.delegate as HeldSliverPersistentHeader3dDelegate)
       ..minExtent = minExtent
       ..maxExtent = maxExtent;
@@ -3283,10 +3301,10 @@ class SceneSliverPersistentHeader3d extends SingleChildRenderObjectWidget3d {
   }
 }
 
-/// Insets a sliver, the widget form of [SliverPadding3d].
-class SceneSliverPadding3d extends SingleChildRenderObjectWidget3d {
+/// Insets a sliver, the widget form of [RenderSliverPadding3d].
+class SliverPadding3d extends SingleChildRenderObjectWidget3d {
   /// Creates a sliver that insets [sliver].
-  const SceneSliverPadding3d({
+  const SliverPadding3d({
     super.key,
     this.padding = EdgeInsets3d.zero,
     Widget? sliver,
@@ -3296,35 +3314,36 @@ class SceneSliverPadding3d extends SingleChildRenderObjectWidget3d {
   final EdgeInsetsGeometry3d padding;
 
   @override
-  SliverPadding3d createLayout(BuildContext context) => SliverPadding3d(
-    padding: padding,
-    textDirection: Directionality.maybeOf(context),
-  );
+  RenderSliverPadding3d createLayout(BuildContext context) =>
+      RenderSliverPadding3d(
+        padding: padding,
+        textDirection: Directionality.maybeOf(context),
+      );
 
   @override
-  void updateLayout(BuildContext context, SliverPadding3d layout) {
+  void updateLayout(BuildContext context, RenderSliverPadding3d layout) {
     layout
       ..padding = padding
       ..textDirection = Directionality.maybeOf(context);
   }
 }
 
-/// Builds a subtree from the constraints a [SceneLayoutBuilder3d] was given,
+/// Builds a subtree from the constraints a [LayoutBuilder3d] was given,
 /// the 3D analogue of [LayoutWidgetBuilder].
 typedef Layout3dWidgetBuilder =
     Widget Function(BuildContext context, Constraints3d constraints);
 
 /// Builds its child from the constraints it is given, the widget form of
-/// [LayoutBuilder3d].
+/// [RenderLayoutBuilder3d].
 ///
 /// The one widget here that runs its builder during layout, which is what
 /// lets a component change *shape* with the room it is given:
 ///
 /// ```dart
-/// SceneLayoutBuilder3d(
+/// LayoutBuilder3d(
 ///   builder: (context, constraints) => constraints.maxWidth > 6
-///       ? SceneRow3d(children: [rail, body])
-///       : SceneColumn3d(children: [body, bar]),
+///       ? Row3d(children: [rail, body])
+///       : Column3d(children: [body, bar]),
 /// )
 /// ```
 ///
@@ -3332,10 +3351,11 @@ typedef Layout3dWidgetBuilder =
 /// constraints change; a rebuild reconciles onto the element already there,
 /// so state below survives a resize. It must not have side effects on the
 /// tree above it — no `setState` on an ancestor from inside it — because the
-/// pass it runs in has already been past that point. See [LayoutBuilder3d].
-class SceneLayoutBuilder3d extends LazyRenderObjectWidget3d {
+/// pass it runs in has already been past that point. See
+/// [RenderLayoutBuilder3d].
+class LayoutBuilder3d extends LazyRenderObjectWidget3d {
   /// Creates a box that builds its child from its constraints.
-  const SceneLayoutBuilder3d({super.key, required this.builder})
+  const LayoutBuilder3d({super.key, required this.builder})
     : super(itemCount: 1);
 
   /// Builds the child from the constraints this box was given.
@@ -3352,14 +3372,18 @@ class SceneLayoutBuilder3d extends LazyRenderObjectWidget3d {
   bool get rebuildsItemsOnBuild => false;
 
   @override
-  Widget? buildChild(BuildContext context, int index, LayoutBuilder3d layout) =>
-      index == 0 ? builder(context, layout.constraints) : null;
+  Widget? buildChild(
+    BuildContext context,
+    int index,
+    RenderLayoutBuilder3d layout,
+  ) => index == 0 ? builder(context, layout.constraints) : null;
 
   @override
-  LayoutBuilder3d createLayout(BuildContext context) => LayoutBuilder3d();
+  RenderLayoutBuilder3d createLayout(BuildContext context) =>
+      RenderLayoutBuilder3d();
 
   @override
-  void updateLayout(BuildContext context, LayoutBuilder3d layout) {
+  void updateLayout(BuildContext context, RenderLayoutBuilder3d layout) {
     // A new closure may build anything, so the child is rebuilt — in the next
     // pass, where the constraints it is built from are the ones in force.
     layout.markNeedsBuild();
@@ -3367,14 +3391,14 @@ class SceneLayoutBuilder3d extends LazyRenderObjectWidget3d {
 }
 
 /// A scrolling view whose children are each as big as the window, the widget
-/// form of [PageView3d].
+/// form of [RenderPageView3d].
 ///
-/// The same two shapes [SceneListView3d] has. The position snaps to a page
+/// The same two shapes [ListView3d] has. The position snaps to a page
 /// boundary unless a [controller] of your own says otherwise; see
 /// [PageScroll3dPhysics].
-class ScenePageView3d extends LazyRenderObjectWidget3d {
+class PageView3d extends LazyRenderObjectWidget3d {
   /// Creates a page view over an explicit set of pages.
-  const ScenePageView3d({
+  const PageView3d({
     super.key,
     this.scrollDirection = Axis3d.horizontal,
     this.controller,
@@ -3384,7 +3408,7 @@ class ScenePageView3d extends LazyRenderObjectWidget3d {
   });
 
   /// Creates a page view that builds its pages as it reaches them.
-  const ScenePageView3d.builder({
+  const PageView3d.builder({
     super.key,
     required int itemCount,
     required IndexedWidgetBuilder itemBuilder,
@@ -3408,7 +3432,7 @@ class ScenePageView3d extends LazyRenderObjectWidget3d {
   final CrossAxisAlignment3d depthAxisAlignment;
 
   @override
-  PageView3d createLayout(BuildContext context) => PageView3d(
+  RenderPageView3d createLayout(BuildContext context) => RenderPageView3d(
     scrollDirection: scrollDirection,
     controller: controller,
     crossAxisAlignment: crossAxisAlignment,
@@ -3416,7 +3440,7 @@ class ScenePageView3d extends LazyRenderObjectWidget3d {
   );
 
   @override
-  void updateLayout(BuildContext context, PageView3d layout) {
+  void updateLayout(BuildContext context, RenderPageView3d layout) {
     layout
       ..scrollDirection = scrollDirection
       ..crossAxisAlignment = crossAxisAlignment

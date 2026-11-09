@@ -16,14 +16,15 @@ import '../rendering/object.dart';
 /// means.
 ///
 /// The child is still laid out and still reports its size, so the space stays
-/// reserved and nothing above moves. Use [Offstage3d] to take the space back.
+/// reserved and nothing above moves. Use [RenderOffstage3d] to take the space
+/// back.
 ///
 /// ```dart
-/// Visibility3d(visible: index == selected, child: checkmark)
+/// RenderVisibility3d(visible: index == selected, child: checkmark)
 /// ```
-class Visibility3d extends RenderProxyBox3d {
+class RenderVisibility3d extends RenderProxyBox3d {
   /// Creates a box showing or hiding [child].
-  Visibility3d({bool visible = true, super.child, super.name})
+  RenderVisibility3d({bool visible = true, super.child, super.name})
     : _visible = visible {
     node.visible = visible;
   }
@@ -63,8 +64,8 @@ class Visibility3d extends RenderProxyBox3d {
 ///
 /// The 3D analogue of `Offstage`. It reports the smallest size its
 /// constraints allow, hides its node, and answers every intrinsic query with
-/// zero, so a `Row3d` full of offstage children is an empty row rather than a
-/// row of gaps.
+/// zero, so a `RenderRow3d` full of offstage children is an empty row rather
+/// than a row of gaps.
 ///
 /// The child is still laid out, against the same constraints, which is what
 /// Flutter's `RenderOffstage` does and for the same reason: a subtree that
@@ -72,11 +73,12 @@ class Visibility3d extends RenderProxyBox3d {
 /// [offstage] back on wants the thing to appear, not to appear a frame later.
 ///
 /// ```dart
-/// Offstage3d(offstage: !expanded, child: details)
+/// RenderOffstage3d(offstage: !expanded, child: details)
 /// ```
-class Offstage3d extends RenderSingleChild3d with RenderChildIntrinsicsMixin3d {
+class RenderOffstage3d extends RenderSingleChild3d
+    with RenderChildIntrinsicsMixin3d {
   /// Creates a box that can take its child out of the layout.
-  Offstage3d({bool offstage = true, super.child, super.name})
+  RenderOffstage3d({bool offstage = true, super.child, super.name})
     : _offstage = offstage {
     node.visible = !offstage;
   }
@@ -85,8 +87,8 @@ class Offstage3d extends RenderSingleChild3d with RenderChildIntrinsicsMixin3d {
 
   /// Whether the child is hidden and its space given back.
   ///
-  /// Setting it relayouts, unlike [Visibility3d.visible], because the size
-  /// this box reports depends on it.
+  /// Setting it relayouts, unlike [RenderVisibility3d.visible], because the
+  /// size this box reports depends on it.
   bool get offstage => _offstage;
 
   set offstage(bool value) {
@@ -106,8 +108,8 @@ class Offstage3d extends RenderSingleChild3d with RenderChildIntrinsicsMixin3d {
 
   /// An offstage box has no baseline to offer, whatever its child would say.
   ///
-  /// A `Row3d` aligning on a baseline must not be pulled around by a child
-  /// nobody can see.
+  /// A `RenderRow3d` aligning on a baseline must not be pulled around by a
+  /// child nobody can see.
   @override
   double? computeDistanceToActualBaseline(Axis3d axis) =>
       _offstage ? null : super.computeDistanceToActualBaseline(axis);
@@ -150,9 +152,9 @@ class Offstage3d extends RenderSingleChild3d with RenderChildIntrinsicsMixin3d {
 /// untouched when the window comes round again.
 ///
 /// ```dart
-/// SceneListView3d.builder(
+/// ListView3d.builder(
 ///   itemCount: questions.length,
-///   itemBuilder: (context, index) => SceneKeepAlive3d(
+///   itemBuilder: (context, index) => KeepAlive3d(
 ///     child: AnswerRow(question: questions[index]),
 ///   ),
 /// )
@@ -173,9 +175,9 @@ class Offstage3d extends RenderSingleChild3d with RenderChildIntrinsicsMixin3d {
 ///
 /// Setting [keepAlive] back to false does not release the child there and
 /// then; the next pass that finds the index outside its window does.
-class KeepAlive3d extends RenderProxyBox3d {
+class RenderKeepAlive3d extends RenderProxyBox3d {
   /// Creates a box asking for [child] to be kept.
-  KeepAlive3d({this.keepAlive = true, super.child, super.name});
+  RenderKeepAlive3d({this.keepAlive = true, super.child, super.name});
 
   /// Whether the enclosing lazy view should park this item rather than
   /// release it.

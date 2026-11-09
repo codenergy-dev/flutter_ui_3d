@@ -7,11 +7,16 @@ import 'package:vector_math/vector_math.dart' show Ray, Vector3;
 
 /// A leaf that asks for [preferred] and settles for what the constraints
 /// allow, standing in for real content.
-class TestBox extends RenderObject3d {
-  TestBox(this._preferred, {this.pointable = false, this.minimum, super.name});
+class RenderTestBox extends RenderObject3d {
+  RenderTestBox(
+    this._preferred, {
+    this.pointable = false,
+    this.minimum,
+    super.name,
+  });
 
   /// Whether this box answers hit tests on its own account, the way a
-  /// [NodeBox3d] holding real content does.
+  /// [RenderNodeBox3d] holding real content does.
   final bool pointable;
 
   /// What this box reports as its minimum intrinsic extent, when that should
@@ -106,14 +111,14 @@ Offset3d translationOf(RenderObject3d layout) {
 Vector3 scenePositionOf(Node node) => node.globalTransform.getTranslation();
 
 /// A surface holding [child], already laid out.
-Layout3dSurface laidOut(
+RenderSurface3d laidOut(
   RenderObject3d child, {
   Constraints3d constraints = const Constraints3d(),
   LayoutBasis3d? basis,
   Layout3dMetrics metrics = Layout3dMetrics.standard,
   Alignment3d origin = Alignment3d.center,
 }) {
-  final surface = Layout3dSurface(
+  final surface = RenderSurface3d(
     constraints: constraints,
     basis: basis,
     metrics: metrics,
@@ -129,7 +134,7 @@ Layout3dSurface laidOut(
 /// The camera-free way to point at a layout: it starts well in front of the
 /// plane and runs along the depth axis, so where it lands is exactly the
 /// layout-space point named, whatever basis or origin the surface has.
-Ray rayAt(Layout3dSurface surface, Offset3d point) {
+Ray rayAt(RenderSurface3d surface, Offset3d point) {
   final toWorld = surface.node.globalTransform;
   final origin = toWorld.transformed3(
     Vector3(point.x, point.y, point.z - 10.0),

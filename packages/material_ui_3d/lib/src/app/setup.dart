@@ -54,7 +54,7 @@ typedef PanelMaterialFactory = PreprocessedMaterial Function();
 /// point the theme goes in:
 ///
 /// ```dart
-/// SceneTheme3d(
+/// Theme3d(
 ///   data: Theme3dData.light,
 ///   textRendererFactory: AtlasText3dRenderer.new,   // the other half
 ///   child: screen,

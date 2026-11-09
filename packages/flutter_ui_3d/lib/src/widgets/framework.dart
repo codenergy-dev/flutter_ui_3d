@@ -208,13 +208,13 @@ class RenderObject3dHost extends RenderBox
 }
 
 /// Throws when an ordinary Flutter render object has been put between two
-/// `Scene*3d` widgets, hiding the layout subtree below it.
+/// layout widgets, hiding the layout subtree below it.
 ///
 /// The trap this exists for is the most expensive one in the declarative
 /// layer, and it is silent. [RenderObject3dHost.layoutChildBoxes] mirrors the
 /// render tree onto the layout tree by collecting its render children that
 /// are [RenderObject3dHost]es; anything else is not one, so its whole subtree
-/// — every `Scene*3d` widget below it — is simply not collected. Nothing
+/// — every layout widget below it — is simply not collected. Nothing
 /// throws, nothing is laid out, and nothing appears in the scene.
 ///
 /// What makes it easy to hit is that most Flutter widgets *are* transparent
@@ -247,8 +247,8 @@ bool debugCheckNoInterposedRenderObject(RenderObject interposed) {
       'Only widgets that create no render object may sit between two 3D '
       'layout widgets: StatelessWidget, StatefulWidget, InheritedWidget, '
       'Builder, and anything else that only builds. For layout, use the 3D '
-      'widget with the same name — ScenePadding3d for Padding, '
-      'SceneSizedBox3d for SizedBox, SceneAlign3d for Align.',
+      'widget with the same name — Padding3d for Padding, '
+      'SizedBox3d for SizedBox, Align3d for Align.',
     ),
     interposed.toDiagnosticsNode(
       name: 'The interposed render object was',
@@ -285,16 +285,16 @@ String _describeCreator(RenderObject object) {
 /// Parent data for the zero-sized hosting boxes.
 class RenderObject3dHostParentData extends ContainerBoxParentData<RenderBox> {}
 
-/// The hosting box of a [Layout3dSurface], which lays the surface out once
+/// The hosting box of a [RenderSurface3d], which lays the surface out once
 /// the tree below it has been reconciled.
 class RenderObject3dRootHost extends RenderObject3dHost {
   /// Creates the root host for [surface].
-  RenderObject3dRootHost(Layout3dSurface surface) : super(surface) {
+  RenderObject3dRootHost(RenderSurface3d surface) : super(surface) {
     surface.onNeedVisualUpdate = _handleNeedVisualUpdate;
   }
 
   /// The surface this box lays out.
-  Layout3dSurface get surface => layout3d as Layout3dSurface;
+  RenderSurface3d get surface => layout3d as RenderSurface3d;
 
   int _passDepth = 0;
   bool _flushing = false;
@@ -426,7 +426,7 @@ abstract class MultiChildRenderObjectWidget3d
 /// nought or one instead.
 ///
 /// [children] is derived rather than built in the constructor, which is what
-/// lets these widgets be `const`: `const ScenePadding3d(...)` in a `build`
+/// lets these widgets be `const`: `const Padding3d(...)` in a `build`
 /// method is a widget Flutter can skip rebuilding, the same as `const
 /// Padding(...)`.
 abstract class SingleChildRenderObjectWidget3d
@@ -486,8 +486,8 @@ class RenderObject3dLazyHost extends RenderObject3dHost {
 
 /// A layout widget that may build its children on demand.
 ///
-/// The declarative half of `ListView3d.builder` and its siblings. Both shapes
-/// are one widget class with two constructors, the way Flutter's own
+/// The declarative half of `RenderListView3d.builder` and its siblings. Both
+/// shapes are one widget class with two constructors, the way Flutter's own
 /// `ListView` is, and which shape a widget is in decides what it does with
 /// its children: an explicit list is reconciled up front and mirrored onto
 /// the layout, while a builder inflates items as the view reaches them.
@@ -496,7 +496,7 @@ class RenderObject3dLazyHost extends RenderObject3dHost {
 /// whole point of this class existing: it can read an [InheritedWidget], keep
 /// [State], and rebuild on its own. What it must not do is resolve to something
 /// that is not a layout — the top-most render object of an item has to be a
-/// [RenderObject3dHost] — so `SceneContainer3d`, `SceneText3d` and the rest
+/// [RenderObject3dHost] — so `Container3d`, `Text3d` and the rest
 /// are fine, under any number of builders, providers and stateful widgets,
 /// while a Flutter `Text` is not.
 ///
@@ -532,7 +532,7 @@ abstract class LazyRenderObjectWidget3d extends RenderObjectWidget {
   /// Whether this widget builds its children on demand.
   ///
   /// Overridden by a widget whose children are built from something other
-  /// than an [itemBuilder] — a `SceneLayoutBuilder3d` builds its one child
+  /// than an [itemBuilder] — a `LayoutBuilder3d` builds its one child
   /// from the constraints — which must then override [buildChild] as well.
   bool get isLazy => itemBuilder != null;
 
@@ -545,7 +545,7 @@ abstract class LazyRenderObjectWidget3d extends RenderObjectWidget {
   /// always returning true.
   ///
   /// False for a widget whose children are a function of the layout's own
-  /// state. A `SceneLayoutBuilder3d` rebuilt in the build phase would be
+  /// state. A `LayoutBuilder3d` rebuilt in the build phase would be
   /// built from the constraints of the *last* pass, and then built again in
   /// the pass that follows; instead it marks its layout as needing to build
   /// and lets that pass do it once, with the constraints that are true.
@@ -563,7 +563,7 @@ abstract class LazyRenderObjectWidget3d extends RenderObjectWidget {
   /// is every view built from a list. A widget that decides otherwise
   /// overrides this: [layout] is the layout object that asked, handed over
   /// because the interesting case is a widget built from the layout's own
-  /// state — the constraints a `LayoutBuilder3d` was given — and a layout
+  /// state — the constraints a `RenderLayoutBuilder3d` was given — and a layout
   /// mid-pass is not something the element tree can be asked for.
   ///
   /// Called inside the layout pass, in the build scope the element opens.
@@ -800,7 +800,7 @@ class LazyRenderObjectElement3d extends RenderObjectElement
       ErrorDescription(
         'Item $index resolved to a ${render.runtimeType}. The items of a '
         'layout view are laid out on the plane, so each of them has to be a '
-        'layout widget — SceneContainer3d, SceneNodeBox3d, SceneText3d, one '
+        'layout widget — Container3d, NodeBox3d, Text3d, one '
         'of your own — under as many builders, inherited widgets and '
         'stateful widgets as you like.',
       ),
@@ -863,7 +863,7 @@ class LazyRenderObjectElement3d extends RenderObjectElement
     });
     // The element is inactive now rather than gone: a GlobalKey can still
     // claim it before the frame ends. Everything the layout holds — its node,
-    // the painter a decoration took, the focus node a Focus3d owns — is
+    // the painter a decoration took, the focus node a RenderFocus3d owns — is
     // released when Flutter gives up on it and unmounts it, which disposes
     // the render object that owns the layout.
   }

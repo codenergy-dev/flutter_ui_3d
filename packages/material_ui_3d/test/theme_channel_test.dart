@@ -51,7 +51,7 @@ void main() {
 
     test('sees the theme the surface holds, inside performLayout', () {
       final box = ThemedBox();
-      final surface = Layout3dSurface(
+      final surface = RenderSurface3d(
         constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
         child: box,
       )..setSlot(Theme3dData.slot, deep);
@@ -67,7 +67,7 @@ void main() {
       // The one-way arrow: the theme says 8dp, the metrics says what a dp is
       // worth here. Doubling the rate doubles the slab and changes no token.
       final box = ThemedBox();
-      final surface = Layout3dSurface(
+      final surface = RenderSurface3d(
         constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
         metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.02),
         child: box,
@@ -124,7 +124,7 @@ void main() {
 
     test('an imperative provider publishes it for a subtree', () {
       final box = ThemedBox();
-      final provider = SlotProvider3d<Theme3dData>(
+      final provider = RenderSlotProvider3d<Theme3dData>(
         slot: Theme3dData.slot,
         value: deep,
         child: box,
@@ -140,23 +140,23 @@ void main() {
     });
   });
 
-  group('SceneTheme3d', () {
+  group('Theme3d', () {
     testWidgets('writes both halves at once', (tester) async {
       late ThemedBox box;
       late Theme3dData seenByWidget;
       final controller = Layout3dController();
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
           controller: controller,
-          child: SceneTheme3d(
+          child: Theme3d(
             data: deep,
             child: Builder(
               builder: (context) {
                 seenByWidget = Theme3d.of(context);
-                return _SceneThemedBox((made) => box = made);
+                return _ThemedBox((made) => box = made);
               },
             ),
           ),
@@ -173,14 +173,11 @@ void main() {
       late ThemedBox box;
       final controller = Layout3dController();
 
-      Widget frame(Theme3dData data) => SceneLayout3d(
+      Widget frame(Theme3dData data) => Surface3d(
         parent: Node(),
         constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
         controller: controller,
-        child: SceneTheme3d(
-          data: data,
-          child: _SceneThemedBox((made) => box = made),
-        ),
+        child: Theme3d(data: data, child: _ThemedBox((made) => box = made)),
       );
 
       await tester.pumpWidget(frame(Theme3dData.light));
@@ -200,13 +197,13 @@ void main() {
     testWidgets('taken out of the tree, it clears the slot', (tester) async {
       final controller = Layout3dController();
 
-      Widget frame({required bool themed}) => SceneLayout3d(
+      Widget frame({required bool themed}) => Surface3d(
         parent: Node(),
         constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
         controller: controller,
         child: themed
-            ? const SceneTheme3d(data: deep, child: SceneSizedBox3d.cube(1))
-            : const SceneSizedBox3d.cube(1),
+            ? const Theme3d(data: deep, child: SizedBox3d.cube(1))
+            : const SizedBox3d.cube(1),
       );
 
       await tester.pumpWidget(frame(themed: true));
@@ -220,17 +217,17 @@ void main() {
       final controller = Layout3dController();
       Text3dRendererFactory? seen;
 
-      Widget frame({Text3dRendererFactory? factory}) => SceneLayout3d(
+      Widget frame({Text3dRendererFactory? factory}) => Surface3d(
         parent: Node(),
         constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
         controller: controller,
-        child: SceneTheme3d(
+        child: Theme3d(
           data: Theme3dData.light,
           textRendererFactory: factory,
           child: Builder(
             builder: (context) {
               seen = DefaultTextRenderer3d.maybeOf(context);
-              return const SceneSizedBox3d.cube(1);
+              return const SizedBox3d.cube(1);
             },
           ),
         ),
@@ -249,7 +246,7 @@ void main() {
     });
   });
 
-  group('Theme3d in the widget layer', () {
+  group('InheritedTheme3d in the widget layer', () {
     testWidgets('falls back to the light baseline with no theme above', (
       tester,
     ) async {
@@ -273,7 +270,7 @@ void main() {
     testWidgets('can theme a subtree with no layout in it', (tester) async {
       late Theme3dData seen;
       await tester.pumpWidget(
-        Theme3d(
+        InheritedTheme3d(
           data: deep,
           child: Builder(
             builder: (context) {
@@ -296,7 +293,7 @@ void main() {
       _ThemeProbeState.saw = null;
 
       Widget frame(Theme3dData data) =>
-          Theme3d(data: data, child: const _ThemeProbe());
+          InheritedTheme3d(data: data, child: const _ThemeProbe());
 
       await tester.pumpWidget(frame(Theme3dData.light));
       expect(_ThemeProbeState.notifications, 1);
@@ -320,7 +317,7 @@ void main() {
     });
   });
 
-  group('SceneLayout3d.slots', () {
+  group('Surface3d.slots', () {
     testWidgets('writes the slot and not the inherited widget', (tester) async {
       // The imperative-only spelling, for a surface whose components are
       // built by hand. Theme3d.of finds nothing below it, and that is stated
@@ -330,7 +327,7 @@ void main() {
       final controller = Layout3dController();
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
           controller: controller,
@@ -341,7 +338,7 @@ void main() {
           child: Builder(
             builder: (context) {
               seenByWidget = Theme3d.maybeOf(context);
-              return _SceneThemedBox((made) => box = made);
+              return _ThemedBox((made) => box = made);
             },
           ),
         ),
@@ -354,8 +351,8 @@ void main() {
 }
 
 /// Hosts a [ThemedBox] in the widget tree.
-class _SceneThemedBox extends MultiChildRenderObjectWidget3d {
-  const _SceneThemedBox(this.sink);
+class _ThemedBox extends MultiChildRenderObjectWidget3d {
+  const _ThemedBox(this.sink);
 
   final void Function(ThemedBox) sink;
 

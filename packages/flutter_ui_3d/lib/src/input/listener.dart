@@ -92,20 +92,20 @@ abstract class RenderProxyBoxWithHitTestBehavior3d extends RenderProxyBox3d {
 /// about layout — its size is its child's — only what a ray finds.
 ///
 /// ```dart
-/// HitTestArea3d(
-///   child: Padding3d(
+/// RenderHitTestArea3d(
+///   child: RenderPadding3d(
 ///     padding: EdgeInsets3d.symmetric(horizontal: metrics.dp(24)),
-///     child: IgnorePointer3d(child: Text3d('Continue')),
+///     child: RenderIgnorePointer3d(child: RenderText3d('Continue')),
 ///   ),
 /// )
 /// ```
 ///
-/// The [IgnorePointer3d] around the label is the usual companion: a [Text3d]
-/// answers hit tests on its own account, and a component that wants to be one
-/// target rather than two takes its label out of the way.
-class HitTestArea3d extends RenderProxyBoxWithHitTestBehavior3d {
+/// The [RenderIgnorePointer3d] around the label is the usual companion: a
+/// [RenderText3d] answers hit tests on its own account, and a component that
+/// wants to be one target rather than two takes its label out of the way.
+class RenderHitTestArea3d extends RenderProxyBoxWithHitTestBehavior3d {
   /// Creates a hit-test region, opaque by default.
-  HitTestArea3d({
+  RenderHitTestArea3d({
     super.behavior = HitTestBehavior3d.opaque,
     super.child,
     super.name,
@@ -115,10 +115,10 @@ class HitTestArea3d extends RenderProxyBoxWithHitTestBehavior3d {
 /// Calls back when a pointer does something inside it, the 3D analogue of
 /// [Listener] — with the enter and exit of `MouseRegion` folded in.
 ///
-/// The raw-event box, one step below [GestureDetector3d]: no recognition, no
-/// arena, no disambiguation, just the events as they arrive. Reach for it
+/// The raw-event box, one step below [RenderGestureDetector3d]: no recognition,
+/// no arena, no disambiguation, just the events as they arrive. Reach for it
 /// when the event *is* the behaviour — a knob that follows the pointer, a
-/// panel that lights up under it — and for [GestureDetector3d] when the
+/// panel that lights up under it — and for [RenderGestureDetector3d] when the
 /// question is "was that a tap".
 ///
 /// Enter and exit are here rather than in a box of their own because there is
@@ -130,8 +130,8 @@ class HitTestArea3d extends RenderProxyBoxWithHitTestBehavior3d {
 /// Driving a state layer from it is two lines, and costs no layout:
 ///
 /// ```dart
-/// final panel = DecoratedBox3d(decoration: decoration, child: label);
-/// Listener3d(
+/// final panel = RenderDecoratedBox3d(decoration: decoration, child: label);
+/// RenderListener3d(
 ///   behavior: HitTestBehavior3d.opaque,
 ///   onPointerEnter: (_) => panel.stateLayer = hover,
 ///   onPointerExit: (_) => panel.stateLayer = StateLayer3d.none,
@@ -140,10 +140,10 @@ class HitTestArea3d extends RenderProxyBoxWithHitTestBehavior3d {
 ///   child: panel,
 /// );
 /// ```
-class Listener3d extends RenderProxyBoxWithHitTestBehavior3d
+class RenderListener3d extends RenderProxyBoxWithHitTestBehavior3d
     implements HitTestTarget3d {
   /// Creates a box that reports the pointer events it is handed.
-  Listener3d({
+  RenderListener3d({
     this.onPointerDown,
     this.onPointerMove,
     this.onPointerUp,

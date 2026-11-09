@@ -22,8 +22,8 @@ import '../rendering/object.dart';
 /// in one place, and the nearest target wins by being tested first.
 ///
 /// ```dart
-/// TapTarget3d(                       // 48dp of reach in every direction
-///   child: GestureDetector3d(
+/// RenderTapTarget3d(                       // 48dp of reach in every direction
+///   child: RenderGestureDetector3d(
 ///     onTap: _mute,
 ///     child: Icon3d(size: metrics.dp(24)),
 ///   ),
@@ -60,8 +60,8 @@ import '../rendering/object.dart';
 /// ## Put it outside every box whose extent you are growing
 ///
 /// This is the rule that makes the reach work, and the one that is easy to get
-/// wrong. **A `TapTarget3d` reaches beyond its own extent and its parent does
-/// not.** Every box gates its children on its own size, so a target nested
+/// wrong. **A `RenderTapTarget3d` reaches beyond its own extent and its parent
+/// does not.** Every box gates its children on its own size, so a target nested
 /// inside something no bigger — a Material panel, say — is rejected a level
 /// above and never sees the ray at all. Nothing inside this class can reach
 /// past its own parent.
@@ -70,23 +70,23 @@ import '../rendering/object.dart';
 /// should a component here:
 ///
 /// ```dart
-/// SceneSemantics3d(
+/// Semantics3d(
 ///   properties: const SemanticsProperties(button: true, label: 'Save'),
-///   child: SceneTapTarget3d(          // outside the panel, not inside it
+///   child: TapTarget3d(          // outside the panel, not inside it
 ///     child: Material3d(
 ///       child: InkWell3d(minimumSize: Size3d.zero, onTap: save),
 ///     ),
 ///   ),
 /// )
 /// ```
-class TapTarget3d extends RenderProxyBox3d {
+class RenderTapTarget3d extends RenderProxyBox3d {
   /// Creates a target at least [minimumSize] across.
   ///
   /// A null [minimumSize] means the Material minimum, 48dp square, resolved
   /// through the tree's [RenderObject3d.metrics] at the time of the hit test
   /// — so a surface bound to a camera keeps its targets 48dp as the view
   /// changes.
-  TapTarget3d({Size3d? minimumSize, super.child, super.name})
+  RenderTapTarget3d({Size3d? minimumSize, super.child, super.name})
     : _minimumSize = minimumSize;
 
   /// The Material minimum touch target, in logical pixels.

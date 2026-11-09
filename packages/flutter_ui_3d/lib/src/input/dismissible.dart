@@ -29,10 +29,10 @@ import '../rendering/object.dart';
 import 'events.dart';
 import 'velocity.dart';
 
-/// Which way a [Dismissible3d] may be swiped.
+/// Which way a [RenderDismissible3d] may be swiped.
 ///
-/// Named by the sign of the travel along [Dismissible3d.axis] rather than by
-/// a reading direction, because there is no text direction in a layout plane
+/// Named by the sign of the travel along [RenderDismissible3d.axis] rather than
+/// by a reading direction, because there is no text direction in a layout plane
 /// and "start" would be a guess. On the default horizontal axis [forward] is
 /// to the right; on a vertical one it is toward increasing y, which is
 /// downward in layout space.
@@ -67,8 +67,8 @@ typedef Dismiss3dConfirmCallback =
 /// only a threshold and what happens when the finger crosses it.
 ///
 /// ```dart
-/// Dismissible3d(
-///   background: DecoratedBox3d(decoration: deleteRed),
+/// RenderDismissible3d(
+///   background: RenderDecoratedBox3d(decoration: deleteRed),
 ///   onDismissed: (_) => setState(() => items.remove(item)),
 ///   child: row,
 /// )
@@ -81,7 +81,7 @@ typedef Dismiss3dConfirmCallback =
 ///
 ///  * **Following the finger, and settling back or flying out** is
 ///    [RenderObject3d.nodeOffset] on the child. One matrix write a frame, no
-///    relayout, exactly as a [Draggable3d]'s feedback tracks the pointer.
+///    relayout, exactly as a [RenderDraggable3d]'s feedback tracks the pointer.
 ///  * **The resize that follows a confirmed dismiss** is a real layout
 ///    animation, and deliberately so: the row is *gone*, the rows below it
 ///    have to close the gap, and no matrix write can express that. It is the
@@ -102,8 +102,8 @@ typedef Dismiss3dConfirmCallback =
 /// and [secondaryBackground] while it runs [Dismiss3dDirection.reverse],
 /// falling back to [background] when there is no secondary one. Both are laid
 /// out at the box's full size and are hidden at rest through
-/// `node.visible`, which costs no layout — the same trick [IndexedStack3d]
-/// and the scrolling views use.
+/// `node.visible`, which costs no layout — the same trick
+/// [RenderIndexedStack3d] and the scrolling views use.
 ///
 /// The three slots are one ordered child list underneath — the child, then
 /// the background, then the secondary background — because an ordered list is
@@ -114,24 +114,24 @@ typedef Dismiss3dConfirmCallback =
 /// They are coplanar with the child, so unless the child is opaque geometry
 /// standing in front of them they will fight for the depth buffer where they
 /// overlap. [backgroundDepthStep] pushes them away from the viewer, and is
-/// the same remedy [Stack3d.depthStep] is, with the same default of zero: a
-/// figure only the scene knows is right.
+/// the same remedy [RenderStack3d.depthStep] is, with the same default of zero:
+/// a figure only the scene knows is right.
 ///
 /// ## How it competes for the pointer
 ///
 /// Through [PointerSequence3d.addArenaMember], as its own
-/// [GestureArenaMember] — the same seam a [Draggable3d] uses, and the same
-/// two-part rule: winning the arena is not recognizing the gesture, because a
-/// member alone in the arena wins by default a microtask after the press.
-/// Recognition is travel past the touch slop, along [axis], in a direction
-/// [direction] allows. Travel past the slop the *other* way rejects this
-/// member, which is what lets a horizontally dismissible row live inside a
+/// [GestureArenaMember] — the same seam a [RenderDraggable3d] uses, and the
+/// same two-part rule: winning the arena is not recognizing the gesture,
+/// because a member alone in the arena wins by default a microtask after the
+/// press. Recognition is travel past the touch slop, along [axis], in a
+/// direction [direction] allows. Travel past the slop the *other* way rejects
+/// this member, which is what lets a horizontally dismissible row live inside a
 /// vertically scrolling list: each claims on its own axis, and the finger
 /// decides.
-class Dismissible3d extends RenderMultiChild3d<ParentData3d>
+class RenderDismissible3d extends RenderMultiChild3d<ParentData3d>
     implements HitTestTarget3d {
   /// Creates a box that can be swiped away.
-  Dismissible3d({
+  RenderDismissible3d({
     RenderObject3d? child,
     RenderObject3d? background,
     RenderObject3d? secondaryBackground,
@@ -162,11 +162,11 @@ class Dismissible3d extends RenderMultiChild3d<ParentData3d>
   ) {
     assert(
       child != null || (background == null && secondaryBackground == null),
-      'Dismissible3d has nothing to swipe: a background needs a child.',
+      'RenderDismissible3d has nothing to swipe: a background needs a child.',
     );
     assert(
       background != null || secondaryBackground == null,
-      'Dismissible3d.secondaryBackground needs a background beside it, the '
+      'RenderDismissible3d.secondaryBackground needs a background beside it, the '
       'same rule Flutter\'s Dismissible has.',
     );
     return <RenderObject3d>[
@@ -247,8 +247,9 @@ class Dismissible3d extends RenderMultiChild3d<ParentData3d>
 
   /// How far behind the child the backgrounds are pushed, in world units.
   ///
-  /// Zero by default, like [Stack3d.depthStep] and for the same reason: what
-  /// separates two coplanar slabs without looking wrong depends on the scene.
+  /// Zero by default, like [RenderStack3d.depthStep] and for the same reason:
+  /// what separates two coplanar slabs without looking wrong depends on the
+  /// scene.
   double backgroundDepthStep;
 
   /// How this box takes part in a hit test.
@@ -477,7 +478,7 @@ class Dismissible3d extends RenderMultiChild3d<ParentData3d>
       return;
     }
     _stopResize();
-    _resizeTicker = _makeTicker('Dismissible3d resize', (elapsed) {
+    _resizeTicker = _makeTicker('RenderDismissible3d resize', (elapsed) {
       final t = (elapsed.inMicroseconds / duration.inMicroseconds).clamp(
         0.0,
         1.0,
@@ -518,7 +519,7 @@ class Dismissible3d extends RenderMultiChild3d<ParentData3d>
     _moveTo = target;
     _onMoveComplete = then;
     final duration = movementDuration;
-    _moveTicker = _makeTicker('Dismissible3d movement', (elapsed) {
+    _moveTicker = _makeTicker('RenderDismissible3d movement', (elapsed) {
       final t = (elapsed.inMicroseconds / duration.inMicroseconds).clamp(
         0.0,
         1.0,
@@ -668,7 +669,7 @@ class Dismissible3d extends RenderMultiChild3d<ParentData3d>
   }
 }
 
-/// One press on a [Dismissible3d], competing for the pointer.
+/// One press on a [RenderDismissible3d], competing for the pointer.
 ///
 /// The same shape as `_Drag3dGesture` in `draggable.dart` and `_Sequence` in
 /// `pointer.dart`, which are the package's other two hand-rolled drag
@@ -685,7 +686,7 @@ class _Dismiss3dGesture implements GestureArenaMember {
     required this.metricsScale,
   });
 
-  final Dismissible3d owner;
+  final RenderDismissible3d owner;
 
   /// Where the press landed along the axis, in the box's own frame.
   final double press;

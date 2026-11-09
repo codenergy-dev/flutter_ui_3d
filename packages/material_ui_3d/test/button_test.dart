@@ -19,7 +19,7 @@ import 'package:material_ui_3d/material_ui_3d.dart';
 import 'support.dart';
 
 /// The one box of type [T] in [surface].
-T only<T extends RenderObject3d>(Layout3dSurface surface) {
+T only<T extends RenderObject3d>(RenderSurface3d surface) {
   final found = <T>[];
   void walk(RenderObject3d box) {
     if (box is T) found.add(box);
@@ -34,7 +34,7 @@ T only<T extends RenderObject3d>(Layout3dSurface surface) {
 }
 
 /// The outermost of the boxes of type [T] in [surface].
-T outermost<T extends RenderObject3d>(Layout3dSurface surface) {
+T outermost<T extends RenderObject3d>(RenderSurface3d surface) {
   T? found;
   void walk(RenderObject3d box) {
     if (found != null) return;
@@ -102,17 +102,17 @@ class Pumped {
 
   /// The box standing in for the button's content, when one was asked for.
   ///
-  /// A `TestBox` counts its own layouts, which is how the interaction tests
-  /// measure what a hover costs rather than trusting the code path — the same
-  /// method `test/ink_well_test.dart` uses.
-  final TestBox? child;
+  /// A `RenderTestBox` counts its own layouts, which is how the interaction
+  /// tests measure what a hover costs rather than trusting the code path — the
+  /// same method `test/ink_well_test.dart` uses.
+  final RenderTestBox? child;
 
-  Layout3dSurface get surface => controller.surface!;
-  DecoratedBox3d get panel => decoratedBoxIn(surface);
+  RenderSurface3d get surface => controller.surface!;
+  RenderDecoratedBox3d get panel => decoratedBoxIn(surface);
   BoxDecoration3d get decoration => panel.decoration as BoxDecoration3d;
   StateLayer3d get layer => panel.stateLayer;
-  Semantics3d get semantics => only<Semantics3d>(surface);
-  TapTarget3d get target => outermost<TapTarget3d>(surface);
+  RenderSemantics3d get semantics => only<RenderSemantics3d>(surface);
+  RenderTapTarget3d get target => outermost<RenderTapTarget3d>(surface);
 
   Layout3dPointer? _pointer;
 
@@ -136,15 +136,15 @@ Future<Pumped> pump(
 }) async {
   final controller = Layout3dController();
   final builds = <int>[0];
-  TestBox? child;
+  RenderTestBox? child;
   await tester.pumpWidget(
-    SceneLayout3d(
+    Surface3d(
       parent: Node(),
       size: const Size3d(4, 3, 0.5),
       controller: controller,
-      child: SceneTheme3d(
+      child: Theme3d(
         data: theme,
-        child: SceneCenter3d(
+        child: Center3d(
           child: Builder(
             builder: (BuildContext context) {
               builds[0]++;
@@ -153,11 +153,8 @@ Future<Pumped> pump(
                 onPressed: onPressed,
                 semanticLabel: semanticLabel,
                 child: countLayouts
-                    ? SceneTestBox(
-                        const Size3d(0.5, 0.2, 0),
-                        (box) => child = box,
-                      )
-                    : const SceneText3d('Save'),
+                    ? TestBox(const Size3d(0.5, 0.2, 0), (box) => child = box)
+                    : const Text3d('Save'),
               );
             },
           ),
@@ -219,9 +216,9 @@ void main() {
     testWidgets('it shrink-wraps its label rather than filling the surface', (
       tester,
     ) async {
-      // `SceneCenter3d` hands down loose but *bounded* constraints, so a
+      // `Center3d` hands down loose but *bounded* constraints, so a
       // button that simply aligned its child would come out four units wide.
-      // The `SceneAlign3d(widthFactor: 1)` inside is what stops that, the way
+      // The `Align3d(widthFactor: 1)` inside is what stops that, the way
       // Flutter's own button does it.
       final it = await pump(tester, ButtonVariant3d.text, onPressed: () {});
       expect(it.panel.size.width, lessThan(2.0));
@@ -486,16 +483,16 @@ void main() {
     testWidgets('the semantics box is inside the target, not around it', (
       tester,
     ) async {
-      // Not a style question. `TapTarget3d` reaches past its own extent and
-      // every ancestor gates a ray on its own extent, so a semantics box
+      // Not a style question. `RenderTapTarget3d` reaches past its own extent
+      // and every ancestor gates a ray on its own extent, so a semantics box
       // wrapped around the target — Flutter's order — would reject a press in
       // the margin before the target ever saw it.
       final it = await pump(tester, ButtonVariant3d.filled, onPressed: () {});
       var sawTarget = false;
       var semanticsIsInside = false;
       void walk(RenderObject3d box) {
-        if (box is TapTarget3d) sawTarget = true;
-        if (box is Semantics3d && sawTarget) semanticsIsInside = true;
+        if (box is RenderTapTarget3d) sawTarget = true;
+        if (box is RenderSemantics3d && sawTarget) semanticsIsInside = true;
         box.visitChildren(walk);
       }
 
@@ -510,20 +507,20 @@ void main() {
       // cannot be restyled is a demonstration.
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0.5),
           controller: controller,
-          child: SceneTheme3d(
+          child: Theme3d(
             data: theme,
-            child: SceneCenter3d(
+            child: Center3d(
               child: FilledButton3d(
                 style: ButtonStyle3d.of(theme, ButtonVariant3d.filled).copyWith(
                   shape: theme.shape.small,
                   thickness: theme.thickness.structural,
                 ),
                 onPressed: () {},
-                child: const SceneText3d('Save'),
+                child: const Text3d('Save'),
               ),
             ),
           ),

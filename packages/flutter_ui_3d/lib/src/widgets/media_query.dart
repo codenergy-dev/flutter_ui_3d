@@ -27,14 +27,14 @@ import 'surface.dart';
 /// final media = MediaQuery3d.of(context);
 /// final metrics = Layout3dMetricsScope.of(context);
 /// if (media.size.width >= 600) {
-///   return SceneRow3d(children: [rail, SceneExpanded3d(child: body)]);
+///   return Row3d(children: [rail, Expanded3d(child: body)]);
 /// }
-/// return SceneColumn3d(children: [SceneExpanded3d(child: body), bar]);
+/// return Column3d(children: [Expanded3d(child: body), bar]);
 /// ```
 ///
 /// **The reader's font setting is not here.** It is
 /// [Layout3dMetrics.textScaler], because the *layout* measures with it — a
-/// `Text3d` reads it inside `performLayout`, where there is no
+/// `RenderText3d` reads it inside `performLayout`, where there is no
 /// `BuildContext` — and one number with two homes is one number that will
 /// eventually disagree with itself. This is the first place a reader coming
 /// from Flutter looks; it is one line away, on `Layout3dMetricsScope.of`.
@@ -60,10 +60,10 @@ class MediaQuery3dData {
   /// two equal.
   ///
   /// For every other surface it is what the surface was given — a
-  /// `SceneLayout3d`'s `size` or `constraints`, divided by the unit rate. An
+  /// `Surface3d`'s `size` or `constraints`, divided by the unit rate. An
   /// axis the surface was given no bound on reports **infinity**, which is
   /// honest rather than unhelpful: a plane that shrink-wraps its content has
-  /// no screen size until the content decides, and `SceneLayoutBuilder3d` is
+  /// no screen size until the content decides, and `LayoutBuilder3d` is
   /// what answers a question about the room a box actually got.
   final Size3d size;
 
@@ -79,7 +79,7 @@ class MediaQuery3dData {
   /// the type is the package's own so that it converts and composes like
   /// every other inset.
   ///
-  /// Consume it with [SceneSafeArea3d] rather than by hand, so that whatever
+  /// Consume it with [SafeArea3d] rather than by hand, so that whatever
   /// is below stops being told about an inset that has already been spent.
   final EdgeInsets3d padding;
 
@@ -97,7 +97,7 @@ class MediaQuery3dData {
   /// A copy with the named sides of [padding] set to zero.
   ///
   /// What a widget that has *consumed* an inset hands down, so that a second
-  /// one below it does not pad for the same notch twice. [SceneSafeArea3d]
+  /// one below it does not pad for the same notch twice. [SafeArea3d]
   /// does this for you.
   MediaQuery3dData removePadding({
     bool removeLeft = false,
@@ -133,7 +133,7 @@ class MediaQuery3dData {
 
 /// Publishes a [MediaQuery3dData] to the widgets below it.
 ///
-/// `SceneLayout3d` puts one at the root of every surface, so a screen built on
+/// `Surface3d` puts one at the root of every surface, so a screen built on
 /// this package can ask how big it is without being told. Insert one yourself
 /// to say something the package cannot derive — a panel set into a physical
 /// frame, a test that wants a phone-sized screen — or to take an inset away
@@ -177,7 +177,7 @@ class MediaQuery3d extends InheritedWidget {
     assert(
       data != null,
       'MediaQuery3d.of() found no surface above this context. A screen\'s own '
-      'measurements are published by SceneLayout3d, so a widget that reads '
+      'measurements are published by Surface3d, so a widget that reads '
       'them has to be built inside one; use maybeOf() if being outside is a '
       'legitimate state.',
     );
@@ -219,12 +219,12 @@ class MediaQuery3d extends InheritedWidget {
 ///
 /// Flutter's `SafeArea`, on a plane: it reads [MediaQuery3d]'s padding,
 /// converts it through the surface's unit contract, pads with it, and
-/// republishes the data with what it consumed removed, so a `SceneSafeArea3d`
+/// republishes the data with what it consumed removed, so a `SafeArea3d`
 /// inside another one pads nothing.
 ///
 /// ```dart
-/// SceneSafeArea3d(
-///   child: SceneColumn3d(children: [appBar, body]),
+/// SafeArea3d(
+///   child: Column3d(children: [appBar, body]),
 /// )
 /// ```
 ///
@@ -234,9 +234,9 @@ class MediaQuery3d extends InheritedWidget {
 /// [minimum] and nothing more. Writing it anyway is right: the same screen
 /// ported onto a camera-bound surface needs it, and it costs one box that
 /// insets by zero.
-class SceneSafeArea3d extends StatelessWidget {
+class SafeArea3d extends StatelessWidget {
   /// Creates a box that avoids the surface's spent edges.
-  const SceneSafeArea3d({
+  const SafeArea3d({
     super.key,
     this.left = true,
     this.top = true,
@@ -284,7 +284,7 @@ class SceneSafeArea3d extends StatelessWidget {
       removeTop: top,
       removeRight: right,
       removeBottom: bottom,
-      child: ScenePadding3d(padding: metrics.dpInsets(insets), child: child),
+      child: Padding3d(padding: metrics.dpInsets(insets), child: child),
     );
   }
 

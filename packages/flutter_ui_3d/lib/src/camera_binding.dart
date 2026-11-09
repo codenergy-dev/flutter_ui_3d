@@ -9,7 +9,7 @@ import 'metrics.dart';
 import 'surface.dart';
 import 'view.dart';
 
-/// Ties a [Layout3dSurface] to a camera, and with it the unit contract.
+/// Ties a [RenderSurface3d] to a camera, and with it the unit contract.
 ///
 /// A surface is unbounded on all three axes until something bounds it, and
 /// nothing in a scene naturally does: a scene is not a window. Flutter never
@@ -54,7 +54,7 @@ import 'view.dart';
 /// }
 /// ```
 ///
-/// Declaratively, hand it to `SceneLayout3d` along with the camera and it
+/// Declaratively, hand it to `Surface3d` along with the camera and it
 /// runs itself.
 ///
 /// A binding is an immutable description, not a live object, so the same
@@ -112,7 +112,7 @@ abstract class Layout3dCameraBinding {
   /// every other, which is what a HUD wants.
   ///
   /// Pair it with [Layout3dCameraBinding.fixedDensity], or an authored
-  /// [Layout3dSurface.metrics], to give the panel a scale.
+  /// [RenderSurface3d.metrics], to give the panel a scale.
   const factory Layout3dCameraBinding.billboard() = _BillboardBinding;
 
   /// An authored scale: [unitsPerLogicalPixel] world units to the logical
@@ -197,14 +197,14 @@ abstract class Layout3dCameraBinding {
   /// nowhere to scope one to a subtree.
   bool get standsInForTheView => false;
 
-  /// Whether this binding writes the surface's [Layout3dSurface.configuration].
+  /// Whether this binding writes the surface's [RenderSurface3d.configuration].
   ///
   /// True only for [Layout3dCameraBinding.screenFilling]. A surface bound
   /// that way must not also be given a size of its own, because the two would
   /// fight every frame.
   bool get derivesConstraints => false;
 
-  /// Whether this binding writes the surface's [Layout3dSurface.metrics].
+  /// Whether this binding writes the surface's [RenderSurface3d.metrics].
   bool get derivesMetrics => true;
 
   /// Applies this binding to [surface].
@@ -218,11 +218,11 @@ abstract class Layout3dCameraBinding {
   /// happen transiently while a view is being sized.
   ///
   /// Cheap when nothing moved. The plane's transform is compared before it is
-  /// written, and [Layout3dSurface.configuration] and
-  /// [Layout3dSurface.metrics] both early-out on an equal value, so a still
+  /// written, and [RenderSurface3d.configuration] and
+  /// [RenderSurface3d.metrics] both early-out on an equal value, so a still
   /// camera dirties nothing at all and a turning one dirties only a node
   /// transform.
-  void update(Layout3dSurface surface, {Camera? camera, Layout3dView? view});
+  void update(RenderSurface3d surface, {Camera? camera, Layout3dView? view});
 
   /// The scale to write: this binding's own, else the view's, else none.
   @protected
@@ -251,8 +251,8 @@ double _settle(double value, double standing, double epsilon) =>
 /// builds its view basis with `right = up x forward`, and the default basis
 /// maps layout space through a full negation, so the plane's local `+x` has
 /// to be the camera's *left* and its local `+z` the direction *back toward*
-/// the eye for a `Row3d` to run left to right on screen and for layout depth
-/// to run away from the viewer.
+/// the eye for a `RenderRow3d` to run left to right on screen and for layout
+/// depth to run away from the viewer.
 ///
 /// Returns null when the view matrix is singular.
 Matrix4? _planeTransform(Camera camera, double distance) {
@@ -288,7 +288,7 @@ Matrix4? _planeTransform(Camera camera, double distance) {
 /// Assigning a node transform invalidates the cached world transforms of the
 /// whole subtree below it, so a binding that runs every frame on a camera
 /// that did not move should not assign.
-void _setPlaneTransform(Layout3dSurface surface, Matrix4? transform) {
+void _setPlaneTransform(RenderSurface3d surface, Matrix4? transform) {
   if (transform == null) return;
   if (surface.plane.localTransform == transform) return;
   surface.plane.localTransform = transform;
@@ -340,7 +340,7 @@ class _ScreenFillingBinding extends Layout3dCameraBinding {
   bool get standsInForTheView => true;
 
   @override
-  void update(Layout3dSurface surface, {Camera? camera, Layout3dView? view}) {
+  void update(RenderSurface3d surface, {Camera? camera, Layout3dView? view}) {
     assert(
       camera != null && view != null,
       'Layout3dCameraBinding.screenFilling derives the surface from the view, '
@@ -395,7 +395,7 @@ class _BillboardBinding extends Layout3dCameraBinding {
   bool get derivesMetrics => false;
 
   @override
-  void update(Layout3dSurface surface, {Camera? camera, Layout3dView? view}) {
+  void update(RenderSurface3d surface, {Camera? camera, Layout3dView? view}) {
     assert(
       camera != null,
       'Layout3dCameraBinding.billboard takes its facing from the camera, so '
@@ -427,7 +427,7 @@ class _FixedDensityBinding extends Layout3dCameraBinding {
   bool get needsCamera => false;
 
   @override
-  void update(Layout3dSurface surface, {Camera? camera, Layout3dView? view}) {
+  void update(RenderSurface3d surface, {Camera? camera, Layout3dView? view}) {
     surface.metrics = Layout3dMetrics(
       unitsPerLogicalPixel: unitsPerLogicalPixel,
       textScaler: resolveTextScaler(view),

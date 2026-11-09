@@ -52,20 +52,20 @@ typedef Layout3dTweenVisitor<T extends Object> =
 /// most expensive animation in the package, because a relayout re-measures
 /// the subtree and a re-measured subtree may reach text shaping or geometry
 /// building. Two pieces of this package exist to keep that affordable:
-/// [Text3d] prepares a string once and refits it without consulting the font
-/// again, and [BoxDecoration3d] is a shader parameterized by size rather than
-/// a mesh rebuilt at each one. Neither can help if you put a new
-/// [Text3d.text] or a new [NodeBox3d.content] on the same path.
+/// [RenderText3d] prepares a string once and refits it without consulting the
+/// font again, and [BoxDecoration3d] is a shader parameterized by size rather
+/// than a mesh rebuilt at each one. Neither can help if you put a new
+/// [RenderText3d.text] or a new [RenderNodeBox3d.content] on the same path.
 ///
 /// So before reaching for this, ask what is actually changing:
 ///
 ///  * **A colour, a corner radius, an elevation, a state layer** —
-///    [DecoratedBox3d.decoration] and [DecoratedBox3d.stateLayer] are setters
-///    that repaint and never lay out. Drive them from an
+///    [RenderDecoratedBox3d.decoration] and [RenderDecoratedBox3d.stateLayer]
+///    are setters that repaint and never lay out. Drive them from an
 ///    [AnimationController] listener with a [BoxDecoration3dTween]. No box is
 ///    ever marked dirty.
 ///  * **A position, a lift, a depression, a turn** — the node-only path:
-///    [NodeTransform3d], [RenderObject3d.nodeOffset],
+///    [RenderNodeTransform3d], [RenderObject3d.nodeOffset],
 ///    [RenderObject3d.nodeTransform]. One matrix per frame, no layout at all.
 ///  * **A size, a padding, an alignment, a constraint** — this class. There
 ///    is nothing cheaper, because the layout genuinely changed.
@@ -233,7 +233,7 @@ abstract class AnimatedLayout3dWidgetBaseState<
   }
 }
 
-/// A [SceneContainer3d] that animates between the values it is given.
+/// A [Container3d] that animates between the values it is given.
 ///
 /// The workhorse, and the widget most Material components will reach for: a
 /// card that grows when it is selected, a sheet whose padding opens up, a
@@ -241,7 +241,7 @@ abstract class AnimatedLayout3dWidgetBaseState<
 /// change are animated.
 ///
 /// ```dart
-/// SceneAnimatedContainer3d(
+/// AnimatedContainer3d(
 ///   duration: const Duration(milliseconds: 200),
 ///   curve: Curves.easeOut,
 ///   width: selected ? 2.0 : 1.0,
@@ -249,9 +249,9 @@ abstract class AnimatedLayout3dWidgetBaseState<
 ///   child: label,
 /// )
 /// ```
-class SceneAnimatedContainer3d extends ImplicitlyAnimatedLayout3dWidget {
+class AnimatedContainer3d extends ImplicitlyAnimatedLayout3dWidget {
   /// Creates a container that animates its properties.
-  const SceneAnimatedContainer3d({
+  const AnimatedContainer3d({
     super.key,
     super.curve,
     required super.duration,
@@ -296,7 +296,7 @@ class SceneAnimatedContainer3d extends ImplicitlyAnimatedLayout3dWidget {
   /// A transform applied to the contents, in layout space.
   ///
   /// Not animated: a matrix has no single sensible interpolation, and a
-  /// transform that should animate is either a [SceneAnimatedSlide3d] (if it
+  /// transform that should animate is either an [AnimatedSlide3d] (if it
   /// is a move) or an explicit `Matrix4Tween` of the caller's own.
   final Matrix4? transform;
 
@@ -307,12 +307,12 @@ class SceneAnimatedContainer3d extends ImplicitlyAnimatedLayout3dWidget {
   final Widget? child;
 
   @override
-  ImplicitlyAnimatedLayout3dWidgetState<SceneAnimatedContainer3d>
-  createState() => _SceneAnimatedContainer3dState();
+  ImplicitlyAnimatedLayout3dWidgetState<AnimatedContainer3d> createState() =>
+      _AnimatedContainer3dState();
 }
 
-class _SceneAnimatedContainer3dState
-    extends AnimatedLayout3dWidgetBaseState<SceneAnimatedContainer3d> {
+class _AnimatedContainer3dState
+    extends AnimatedLayout3dWidgetBaseState<AnimatedContainer3d> {
   AlignmentGeometry3dTween? _alignment;
   EdgeInsetsGeometry3dTween? _padding;
   EdgeInsetsGeometry3dTween? _margin;
@@ -380,7 +380,7 @@ class _SceneAnimatedContainer3dState
   }
 
   @override
-  Widget build(BuildContext context) => SceneContainer3d(
+  Widget build(BuildContext context) => Container3d(
     alignment: _alignment?.evaluate(animation),
     padding: _padding?.evaluate(animation) ?? EdgeInsets3d.zero,
     margin: _margin?.evaluate(animation) ?? EdgeInsets3d.zero,
@@ -394,10 +394,10 @@ class _SceneAnimatedContainer3dState
   );
 }
 
-/// A [SceneAlign3d] that animates between alignments.
-class SceneAnimatedAlign3d extends ImplicitlyAnimatedLayout3dWidget {
+/// An [Align3d] that animates between alignments.
+class AnimatedAlign3d extends ImplicitlyAnimatedLayout3dWidget {
   /// Creates an aligning box that animates where its child sits.
-  const SceneAnimatedAlign3d({
+  const AnimatedAlign3d({
     super.key,
     super.curve,
     required super.duration,
@@ -425,12 +425,12 @@ class SceneAnimatedAlign3d extends ImplicitlyAnimatedLayout3dWidget {
   final Widget? child;
 
   @override
-  ImplicitlyAnimatedLayout3dWidgetState<SceneAnimatedAlign3d> createState() =>
-      _SceneAnimatedAlign3dState();
+  ImplicitlyAnimatedLayout3dWidgetState<AnimatedAlign3d> createState() =>
+      _AnimatedAlign3dState();
 }
 
-class _SceneAnimatedAlign3dState
-    extends AnimatedLayout3dWidgetBaseState<SceneAnimatedAlign3d> {
+class _AnimatedAlign3dState
+    extends AnimatedLayout3dWidgetBaseState<AnimatedAlign3d> {
   AlignmentGeometry3dTween? _alignment;
   Tween<double>? _widthFactor;
   Tween<double>? _heightFactor;
@@ -470,7 +470,7 @@ class _SceneAnimatedAlign3dState
   }
 
   @override
-  Widget build(BuildContext context) => SceneAlign3d(
+  Widget build(BuildContext context) => Align3d(
     alignment: _alignment!.evaluate(animation),
     widthFactor: _widthFactor?.evaluate(animation),
     heightFactor: _heightFactor?.evaluate(animation),
@@ -479,16 +479,16 @@ class _SceneAnimatedAlign3dState
   );
 }
 
-/// A [ScenePositioned3d] that animates between positions inside a
-/// [SceneStack3d].
+/// A [Positioned3d] that animates between positions inside a
+/// [Stack3d].
 ///
 /// Only the faces that are pinned in both the old and the new widget animate;
 /// a face that goes from pinned to unpinned snaps, exactly as Flutter's
 /// `AnimatedPositioned` does, because there is no number to interpolate
 /// toward.
-class SceneAnimatedPositioned3d extends ImplicitlyAnimatedLayout3dWidget {
+class AnimatedPositioned3d extends ImplicitlyAnimatedLayout3dWidget {
   /// Creates a positioned child that animates its insets.
-  const SceneAnimatedPositioned3d({
+  const AnimatedPositioned3d({
     super.key,
     super.curve,
     required super.duration,
@@ -536,12 +536,12 @@ class SceneAnimatedPositioned3d extends ImplicitlyAnimatedLayout3dWidget {
   final Widget? child;
 
   @override
-  ImplicitlyAnimatedLayout3dWidgetState<SceneAnimatedPositioned3d>
-  createState() => _SceneAnimatedPositioned3dState();
+  ImplicitlyAnimatedLayout3dWidgetState<AnimatedPositioned3d> createState() =>
+      _AnimatedPositioned3dState();
 }
 
-class _SceneAnimatedPositioned3dState
-    extends AnimatedLayout3dWidgetBaseState<SceneAnimatedPositioned3d> {
+class _AnimatedPositioned3dState
+    extends AnimatedLayout3dWidgetBaseState<AnimatedPositioned3d> {
   final Map<String, Tween<double>?> _faces = <String, Tween<double>?>{};
 
   double? _target(String name) => switch (name) {
@@ -584,7 +584,7 @@ class _SceneAnimatedPositioned3dState
   double? _value(String name) => _faces[name]?.evaluate(animation);
 
   @override
-  Widget build(BuildContext context) => ScenePositioned3d(
+  Widget build(BuildContext context) => Positioned3d(
     left: _value('left'),
     top: _value('top'),
     right: _value('right'),
@@ -598,10 +598,10 @@ class _SceneAnimatedPositioned3dState
   );
 }
 
-/// A [SceneSizedBox3d] that animates between sizes.
-class SceneAnimatedSizedBox3d extends ImplicitlyAnimatedLayout3dWidget {
+/// A [SizedBox3d] that animates between sizes.
+class AnimatedSizedBox3d extends ImplicitlyAnimatedLayout3dWidget {
   /// Creates a box that animates its extents.
-  const SceneAnimatedSizedBox3d({
+  const AnimatedSizedBox3d({
     super.key,
     super.curve,
     required super.duration,
@@ -625,12 +625,12 @@ class SceneAnimatedSizedBox3d extends ImplicitlyAnimatedLayout3dWidget {
   final Widget? child;
 
   @override
-  ImplicitlyAnimatedLayout3dWidgetState<SceneAnimatedSizedBox3d>
-  createState() => _SceneAnimatedSizedBox3dState();
+  ImplicitlyAnimatedLayout3dWidgetState<AnimatedSizedBox3d> createState() =>
+      _AnimatedSizedBox3dState();
 }
 
-class _SceneAnimatedSizedBox3dState
-    extends AnimatedLayout3dWidgetBaseState<SceneAnimatedSizedBox3d> {
+class _AnimatedSizedBox3dState
+    extends AnimatedLayout3dWidgetBaseState<AnimatedSizedBox3d> {
   Tween<double>? _width;
   Tween<double>? _height;
   Tween<double>? _depth;
@@ -661,7 +661,7 @@ class _SceneAnimatedSizedBox3dState
   }
 
   @override
-  Widget build(BuildContext context) => SceneSizedBox3d(
+  Widget build(BuildContext context) => SizedBox3d(
     width: _width?.evaluate(animation),
     height: _height?.evaluate(animation),
     depth: _depth?.evaluate(animation),

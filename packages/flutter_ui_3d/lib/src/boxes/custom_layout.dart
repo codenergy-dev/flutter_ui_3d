@@ -6,18 +6,18 @@ import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
 import '../rendering/object.dart';
 
-/// Tags a child of a [CustomMultiChildLayout3d] so a delegate can name it,
-/// the 3D analogue of [LayoutId].
+/// Tags a child of a [RenderCustomMultiChildLayout3d] so a delegate can name
+/// it, the 3D analogue of [LayoutId].
 ///
 /// Flutter's `LayoutId` is a `ParentDataWidget`, which writes an id into the
 /// child's parent data. There is no parent-data widget here, and none is
 /// wanted: a [RenderObject3d] is cheap — a scene node and a size — so the
-/// id is carried by a box that wraps the child, exactly as [Positioned3d]
-/// carries a [Stack3d]'s pins. The box passes constraints and size straight
-/// through, so it changes nothing about the layout it takes part in.
-class LayoutId3d extends RenderProxyBox3d {
+/// id is carried by a box that wraps the child, exactly as [RenderPositioned3d]
+/// carries a [RenderStack3d]'s pins. The box passes constraints and size
+/// straight through, so it changes nothing about the layout it takes part in.
+class RenderLayoutId3d extends RenderProxyBox3d {
   /// Tags [child] with [id].
-  LayoutId3d({required Object id, super.child, super.name}) : _id = id;
+  RenderLayoutId3d({required Object id, super.child, super.name}) : _id = id;
 
   Object _id;
 
@@ -43,7 +43,7 @@ class LayoutId3d extends RenderProxyBox3d {
   }
 }
 
-/// Decides how a [CustomMultiChildLayout3d] arranges children it knows by
+/// Decides how a [RenderCustomMultiChildLayout3d] arranges children it knows by
 /// name, the 3D analogue of [MultiChildLayoutDelegate].
 ///
 /// The escape hatch from the algebra of rows, columns and stacks: when the
@@ -65,7 +65,7 @@ class LayoutId3d extends RenderProxyBox3d {
 ///    of what comes in, or it will not converge.
 ///
 /// [performLayout] is called with the size [getSize] chose, and the id of
-/// every child is whatever the [LayoutId3d] around it carries.
+/// every child is whatever the [RenderLayoutId3d] around it carries.
 ///
 /// ```dart
 /// enum _Panel { bar, body }
@@ -111,13 +111,13 @@ abstract class MultiChildLayout3dDelegate {
     final child = state.children[childId];
     assert(
       child != null,
-      'The delegate of a CustomMultiChildLayout3d tried to lay out a child '
+      'The delegate of a RenderCustomMultiChildLayout3d tried to lay out a child '
       'called $childId, and no child has that id. Wrap the child in a '
-      'LayoutId3d(id: $childId, ...), or ask hasChild($childId) first.',
+      'RenderLayoutId3d(id: $childId, ...), or ask hasChild($childId) first.',
     );
     assert(
       state.pending.remove(childId),
-      'The delegate of a CustomMultiChildLayout3d laid out the child called '
+      'The delegate of a RenderCustomMultiChildLayout3d laid out the child called '
       '$childId more than once. A second layout with different constraints '
       'would throw the first answer away, and one with the same constraints '
       'is work already done.',
@@ -133,12 +133,12 @@ abstract class MultiChildLayout3dDelegate {
     final child = state.children[childId];
     assert(
       child != null,
-      'The delegate of a CustomMultiChildLayout3d tried to position a child '
+      'The delegate of a RenderCustomMultiChildLayout3d tried to position a child '
       'called $childId, and no child has that id.',
     );
     assert(
       !state.pending.contains(childId),
-      'The delegate of a CustomMultiChildLayout3d positioned the child called '
+      'The delegate of a RenderCustomMultiChildLayout3d positioned the child called '
       '$childId before laying it out. Where a child goes usually depends on '
       'how big it is, so lay it out first.',
     );
@@ -180,7 +180,7 @@ abstract class MultiChildLayout3dDelegate {
       performLayout(size);
       assert(
         _state!.pending.isEmpty,
-        'The delegate of a CustomMultiChildLayout3d did not lay out '
+        'The delegate of a RenderCustomMultiChildLayout3d did not lay out '
         '${_state!.pending.join(', ')}. Every child handed to it has to be '
         'laid out, or it has no size and the first read of one trips an '
         'assertion somewhere else entirely.',
@@ -206,7 +206,7 @@ class _DelegateState {
 /// Arranges children a delegate knows by name, the 3D analogue of
 /// [CustomMultiChildLayout].
 ///
-/// Each child is wrapped in a [LayoutId3d]; the work is in the
+/// Each child is wrapped in a [RenderLayoutId3d]; the work is in the
 /// [MultiChildLayout3dDelegate], which is where the documentation of this
 /// pair lives.
 ///
@@ -215,9 +215,9 @@ class _DelegateState {
 /// the bar left only after the bar has been measured. What child order still
 /// decides is hit testing, which runs back to front as everywhere else, so a
 /// child later in the list wins a ray both boxes are in.
-class CustomMultiChildLayout3d extends RenderMultiChild3d<ParentData3d> {
+class RenderCustomMultiChildLayout3d extends RenderMultiChild3d<ParentData3d> {
   /// Creates a box arranged by [delegate].
-  CustomMultiChildLayout3d({
+  RenderCustomMultiChildLayout3d({
     required MultiChildLayout3dDelegate delegate,
     super.children,
     super.name,
@@ -241,21 +241,21 @@ class CustomMultiChildLayout3d extends RenderMultiChild3d<ParentData3d> {
     }
   }
 
-  /// The children by the id their [LayoutId3d] carries.
+  /// The children by the id their [RenderLayoutId3d] carries.
   @protected
   Map<Object, RenderObject3d> childrenById() {
     final result = <Object, RenderObject3d>{};
     for (final child in heldChildren) {
       assert(
-        child is LayoutId3d,
-        'Every child of a CustomMultiChildLayout3d needs an id its delegate '
+        child is RenderLayoutId3d,
+        'Every child of a RenderCustomMultiChildLayout3d needs an id its delegate '
         'can name it by, and a ${child.runtimeType} has none. Wrap it in a '
-        'LayoutId3d.',
+        'RenderLayoutId3d.',
       );
-      if (child is! LayoutId3d) continue;
+      if (child is! RenderLayoutId3d) continue;
       assert(
         !result.containsKey(child.id),
-        'Two children of a CustomMultiChildLayout3d share the id '
+        'Two children of a RenderCustomMultiChildLayout3d share the id '
         '${child.id}. The delegate can only reach one of them.',
       );
       result[child.id] = child;

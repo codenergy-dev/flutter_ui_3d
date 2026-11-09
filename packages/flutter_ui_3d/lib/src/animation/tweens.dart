@@ -32,8 +32,8 @@ class Size3dTween extends Tween<Size3d> {
 
 /// Interpolates between two [Offset3d]s.
 ///
-/// The tween behind [SceneAnimatedPositioned3d] and, on the node-only path,
-/// [SceneAnimatedSlide3d].
+/// The tween behind [AnimatedPositioned3d] and, on the node-only path,
+/// [AnimatedSlide3d].
 class Offset3dTween extends Tween<Offset3d> {
   /// Creates a tween between two offsets.
   Offset3dTween({super.begin, super.end});
@@ -112,11 +112,11 @@ class BorderRadius3dTween extends Tween<BorderRadius3d> {
 /// Interpolates between two [BoxDecoration3d]s.
 ///
 /// The cheapest animation in the package and the one Material asks for most:
-/// [DecoratedBox3d.decoration] is a setter that repaints and never relayouts,
-/// so a colour, a corner or an elevation animating through this tween writes
-/// shader uniforms per frame and touches the layout pipeline not at all. Give
-/// its value to the setter from an [AnimationController] listener rather than
-/// from `setState`, and no box is ever marked dirty.
+/// [RenderDecoratedBox3d.decoration] is a setter that repaints and never
+/// relayouts, so a colour, a corner or an elevation animating through this
+/// tween writes shader uniforms per frame and touches the layout pipeline not
+/// at all. Give its value to the setter from an [AnimationController] listener
+/// rather than from `setState`, and no box is ever marked dirty.
 class BoxDecoration3dTween extends Tween<BoxDecoration3d> {
   /// Creates a tween between two decorations.
   BoxDecoration3dTween({super.begin, super.end});

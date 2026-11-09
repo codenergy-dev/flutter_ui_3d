@@ -14,15 +14,15 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneAlign3d,
-        SceneColumn3d,
-        SceneConstrainedBox3d,
-        SceneExpanded3d,
-        ScenePadding3d,
-        SceneRow3d,
-        SceneSemantics3d,
-        SceneText3d,
-        SceneTextScaling3d;
+        Align3d,
+        Column3d,
+        ConstrainedBox3d,
+        Expanded3d,
+        Padding3d,
+        Row3d,
+        Semantics3d,
+        Text3d,
+        TextScaling3d;
 
 import '../theme/theme.dart';
 import 'banner_style.dart';
@@ -34,7 +34,7 @@ import 'text_style.dart';
 /// A message that stays at the top of a screen until someone acts on it.
 ///
 /// ```dart
-/// SceneColumn3d(
+/// Column3d(
 ///   crossAxisAlignment: CrossAxisAlignment3d.stretch,
 ///   children: <Widget>[
 ///     if (offline)
@@ -42,10 +42,10 @@ import 'text_style.dart';
 ///         content: 'You are offline. Changes will sync when you reconnect.',
 ///         leading: const Icon3d(Icons.cloud_off),
 ///         actions: <Widget>[
-///           TextButton3d(onPressed: retry, child: const SceneText3d('Retry')),
+///           TextButton3d(onPressed: retry, child: const Text3d('Retry')),
 ///         ],
 ///       ),
-///     SceneExpanded3d(child: list),
+///     Expanded3d(child: list),
 ///   ],
 /// )
 /// ```
@@ -79,7 +79,7 @@ import 'text_style.dart';
 ///
 /// [MaterialBanner3d.text] takes the content as a string and announces it.
 /// The widget-taking constructor announces only its [semanticLabel], because
-/// a `Semantics3d` gathers nothing from the labels below it. The actions
+/// a `RenderSemantics3d` gathers nothing from the labels below it. The actions
 /// announce themselves, as buttons do.
 class MaterialBanner3d extends StatelessWidget {
   /// Creates a banner out of widgets, announcing [semanticLabel].
@@ -119,7 +119,7 @@ class MaterialBanner3d extends StatelessWidget {
     this.style,
     String? semanticLabel,
     this.textDirection,
-  }) : content = SceneText3d(content),
+  }) : content = Text3d(content),
        semanticLabel = semanticLabel ?? content;
 
   /// Why a banner with no actions is refused, in `build`.
@@ -190,24 +190,24 @@ class MaterialBanner3d extends StatelessWidget {
 
     // Grows with type, and then stops: Flutter clamps both the content and
     // the actions to keep the banner's hierarchy at a large setting.
-    Widget clamped(Widget child) => SceneTextScaling3d.clamped(
+    Widget clamped(Widget child) => TextScaling3d.clamped(
       maxScaleFactor: resolved.maxTextScaleFactor,
       child: child,
     );
 
-    final actionsBar = SceneConstrainedBox3d(
+    final actionsBar = ConstrainedBox3d(
       constraints: Constraints3d(
         minHeight: metrics.dp(
           minActionBarHeight ?? resolved.actionsBarMinHeight,
         ),
       ),
-      child: ScenePadding3d(
+      child: Padding3d(
         padding: metrics.dpInsets(resolved.actionsBarPadding),
-        child: SceneAlign3d(
+        child: Align3d(
           // At the trailing edge, on the banner's face: an alignment that
           // centred in depth would sink the buttons into the slab.
           alignment: const AlignmentDirectional3d(1.0, 0.0, -1.0),
-          child: SceneRow3d(
+          child: Row3d(
             mainAxisSize: MainAxisSize3d.min,
             depthAxisAlignment: CrossAxisAlignment3d.start,
             spacing: metrics.dp(resolved.actionsSpacing),
@@ -217,20 +217,20 @@ class MaterialBanner3d extends StatelessWidget {
       ),
     );
 
-    final row = SceneRow3d(
+    final row = Row3d(
       crossAxisAlignment: CrossAxisAlignment3d.center,
       depthAxisAlignment: CrossAxisAlignment3d.start,
       children: <Widget>[
         if (leading != null)
-          ScenePadding3d(
+          Padding3d(
             padding: metrics.dpInsets(
               leadingPadding ?? resolved.leadingPadding,
             ),
             child: leading,
           ),
-        SceneExpanded3d(
+        Expanded3d(
           child: clamped(
-            SceneTextStyle3d(
+            TextStyle3d(
               style: resolved.textStyle,
               color: resolved.contentColor,
               child: content,
@@ -251,13 +251,13 @@ class MaterialBanner3d extends StatelessWidget {
       // card's and a dialog's do.
       surfaceTint: const Color(0x00000000),
       alignment: null,
-      child: SceneColumn3d(
+      child: Column3d(
         mainAxisSize: MainAxisSize3d.min,
         crossAxisAlignment: CrossAxisAlignment3d.stretch,
         // On the banner's face, for the reason every column on a surface is.
         depthAxisAlignment: CrossAxisAlignment3d.start,
         children: <Widget>[
-          ScenePadding3d(
+          Padding3d(
             padding: metrics.dpInsets(
               padding ??
                   (singleRow ? resolved.singleRowPadding : resolved.padding),
@@ -274,7 +274,7 @@ class MaterialBanner3d extends StatelessWidget {
       ),
     );
 
-    final spaced = ScenePadding3d(
+    final spaced = Padding3d(
       padding: metrics.dpInsets(
         margin ??
             EdgeInsets3d.only(
@@ -286,7 +286,7 @@ class MaterialBanner3d extends StatelessWidget {
 
     final label = semanticLabel;
     if (label == null) return spaced;
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: SemanticsProperties(
         label: label,
         textDirection: readingDirection3d(context, textDirection),

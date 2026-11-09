@@ -24,21 +24,21 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneAlign3d,
-        SceneConstrainedBox3d,
-        SceneExpanded3d,
-        SceneFlexible3d,
-        SceneIgnorePointer3d,
-        SceneIntrinsicWidth3d,
-        ScenePadding3d,
-        ScenePositioned3d,
-        SceneRow3d,
-        SceneSemantics3d,
-        SceneSizedBox3d,
-        SceneSpacer3d,
-        SceneStack3d,
-        SceneTapTarget3d,
-        SceneText3d;
+        Align3d,
+        ConstrainedBox3d,
+        Expanded3d,
+        Flexible3d,
+        IgnorePointer3d,
+        IntrinsicWidth3d,
+        Padding3d,
+        Positioned3d,
+        Row3d,
+        Semantics3d,
+        SizedBox3d,
+        Spacer3d,
+        Stack3d,
+        TapTarget3d,
+        Text3d;
 
 import '../theme/theme.dart';
 import 'divider.dart';
@@ -65,9 +65,9 @@ const Color _none = Color(0x00000000);
 ///
 /// Flutter's `ButtonSegment`, with two of its widgets turned into what they
 /// stand for. **The label is a `String`**, for `NavigationDestination3d`'s
-/// reason: a `Semantics3d` gathers nothing from below, so a segment that took
-/// a widget would have to be told its own name twice, and this one builds the
-/// visible label and the announcement out of one string. **The icon is an
+/// reason: a `RenderSemantics3d` gathers nothing from below, so a segment that
+/// took a widget would have to be told its own name twice, and this one builds
+/// the visible label and the announcement out of one string. **The icon is an
 /// [IconData]**, for `IconButton3d`'s: its size is the button's token, 18dp,
 /// and there is no `IconTheme` here to carry that down to a widget someone
 /// else built.
@@ -305,11 +305,11 @@ class SegmentedButton3d<T> extends StatelessWidget {
     final rightToLeft = Directionality.maybeOf(context) == TextDirection.rtl;
     final inset = (resolved.tapTargetHeight - resolved.height) / 2.0;
 
-    final row = SceneRow3d(
+    final row = Row3d(
       crossAxisAlignment: CrossAxisAlignment3d.stretch,
       children: <Widget>[
         for (var i = 0; i < segments.length; i++)
-          SceneExpanded3d(
+          Expanded3d(
             child: _segment(
               context,
               resolved,
@@ -326,7 +326,7 @@ class SegmentedButton3d<T> extends StatelessWidget {
     // out of the way of every ray. The rules are each at the start of the
     // segment after them, in a row built the same way as the segments' so
     // that the two agree on where every boundary falls.
-    final outline = SceneIgnorePointer3d(
+    final outline = IgnorePointer3d(
       child: Material3d(
         color: _none,
         shape: resolved.shape,
@@ -338,14 +338,14 @@ class SegmentedButton3d<T> extends StatelessWidget {
         ),
         surfaceTint: _none,
         alignment: null,
-        child: SceneRow3d(
+        child: Row3d(
           crossAxisAlignment: CrossAxisAlignment3d.stretch,
           children: <Widget>[
             for (var i = 0; i < segments.length; i++)
-              SceneExpanded3d(
+              Expanded3d(
                 child: i == 0
-                    ? const SceneSizedBox3d()
-                    : SceneRow3d(
+                    ? const SizedBox3d()
+                    : Row3d(
                         crossAxisAlignment: CrossAxisAlignment3d.stretch,
                         children: <Widget>[
                           VerticalDivider3d(
@@ -356,7 +356,7 @@ class SegmentedButton3d<T> extends StatelessWidget {
                                 ? resolved.outline
                                 : resolved.disabledOutline,
                           ),
-                          const SceneSpacer3d(),
+                          const Spacer3d(),
                         ],
                       ),
               ),
@@ -365,14 +365,14 @@ class SegmentedButton3d<T> extends StatelessWidget {
       ),
     );
 
-    Widget button = SceneSizedBox3d(
+    Widget button = SizedBox3d(
       height: metrics.dp(resolved.tapTargetHeight),
-      child: SceneStack3d(
+      child: Stack3d(
         alignment: Alignment3d.frontCenter,
         depthStep: metrics.dp(resolved.outlineDepthStep),
         children: <Widget>[
           row,
-          ScenePositioned3d(
+          Positioned3d(
             left: 0.0,
             right: 0.0,
             top: metrics.dp(inset),
@@ -384,8 +384,8 @@ class SegmentedButton3d<T> extends StatelessWidget {
     );
     final expanded = expandedInsets;
     button = expanded == null
-        ? SceneIntrinsicWidth3d(child: button)
-        : ScenePadding3d(padding: metrics.dpInsets(expanded), child: button);
+        ? IntrinsicWidth3d(child: button)
+        : Padding3d(padding: metrics.dpInsets(expanded), child: button);
     return button;
   }
 
@@ -428,16 +428,16 @@ class SegmentedButton3d<T> extends StatelessWidget {
         ? (selectedIcon ?? defaultSelectedIcon)
         : (segment.label != null ? segment.icon : null);
     final Widget label = segment.label != null
-        ? SceneText3d(segment.label!)
+        ? Text3d(segment.label!)
         : Icon3d(segment.icon!, size: resolved.iconSize);
     final Widget drawn = glyph == null
         ? label
-        : SceneRow3d(
+        : Row3d(
             mainAxisSize: MainAxisSize3d.min,
             spacing: metrics.dp(resolved.iconGap),
             children: <Widget>[
               Icon3d(glyph, size: resolved.iconSize),
-              SceneFlexible3d(child: label),
+              Flexible3d(child: label),
             ],
           );
 
@@ -466,23 +466,23 @@ class SegmentedButton3d<T> extends StatelessWidget {
         onTap: tap,
         // Inside the well, so a press on the padding is a press on the
         // segment; see `docs/traps.md`, *Pointers*.
-        child: ScenePadding3d(
+        child: Padding3d(
           padding: metrics.dpInsets(
             glyph == null ? resolved.padding : resolved.iconPadding,
           ),
-          child: SceneAlign3d(
+          child: Align3d(
             alignment: Alignment3d.frontCenter,
-            child: SceneTextStyle3d(
+            child: TextStyle3d(
               style: resolved.labelStyle,
               color: content,
-              child: SceneIgnorePointer3d(child: drawn),
+              child: IgnorePointer3d(child: drawn),
             ),
           ),
         ),
       ),
     );
 
-    final announced = SceneSemantics3d(
+    final announced = Semantics3d(
       properties: SemanticsProperties(
         button: true,
         enabled: active,
@@ -492,7 +492,7 @@ class SegmentedButton3d<T> extends StatelessWidget {
         textDirection: readingDirection3d(context, textDirection),
         onTap: tap,
       ),
-      child: SceneConstrainedBox3d(
+      child: ConstrainedBox3d(
         constraints: Constraints3d(
           minWidth: metrics.dp(resolved.minimumSegmentWidth),
         ),
@@ -503,9 +503,9 @@ class SegmentedButton3d<T> extends StatelessWidget {
     // The slot is the full 48dp and the segment the middle 40: the target is
     // inside a box as tall as its reach, so nothing above it cuts the reach
     // off, and a press in the margin is re-aimed at *this* segment's centre.
-    Widget slot = ScenePadding3d(
+    Widget slot = Padding3d(
       padding: metrics.dpInsets(EdgeInsets3d.symmetric(vertical: inset)),
-      child: SceneTapTarget3d(child: announced),
+      child: TapTarget3d(child: announced),
     );
     final tooltip = segment.tooltip;
     if (tooltip != null) slot = Tooltip3d(message: tooltip, child: slot);

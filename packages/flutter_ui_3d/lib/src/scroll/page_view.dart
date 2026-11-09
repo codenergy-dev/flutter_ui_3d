@@ -14,8 +14,8 @@ import 'scroll_physics.dart';
 /// A scrolling view whose children are each as big as the window, the 3D
 /// analogue of [PageView].
 ///
-/// A page view is a [ListView3d] with two things decided for it: every item
-/// is exactly the extent of the window along the scroll axis, and the
+/// A page view is a [RenderListView3d] with two things decided for it: every
+/// item is exactly the extent of the window along the scroll axis, and the
 /// position comes to rest on an item boundary rather than wherever friction
 /// left it. Both are stated here rather than left to the caller, because a
 /// page view where either is not true is a list.
@@ -26,7 +26,7 @@ import 'scroll_physics.dart';
 /// the ends, or a stride that is not a whole page.
 ///
 /// ```dart
-/// PageView3d(
+/// RenderPageView3d(
 ///   children: [intro, permissions, done],
 /// )
 /// ```
@@ -37,13 +37,13 @@ import 'scroll_physics.dart';
 /// page of an unbounded window, and it says so.
 ///
 /// Flutter's `viewportFraction` — pages narrower than the window, so the
-/// neighbours peek in — is deliberately not here. It is a `ListView3d` with
-/// an `itemExtent` and a `PageScroll3dPhysics(pageExtent: ...)`, which is the
-/// same arrangement without a second meaning for the word page, and it leaves
-/// this class with exactly one.
-class PageView3d extends BoxScrollView3d<SliverList3d> {
+/// neighbours peek in — is deliberately not here. It is a `RenderListView3d`
+/// with an `itemExtent` and a `PageScroll3dPhysics(pageExtent: ...)`, which is
+/// the same arrangement without a second meaning for the word page, and it
+/// leaves this class with exactly one.
+class RenderPageView3d extends RenderBoxScrollView3d<RenderSliverList3d> {
   /// Creates a page view over an explicit set of pages.
-  PageView3d({
+  RenderPageView3d({
     Axis3d scrollDirection = Axis3d.horizontal,
     Scroll3dController? controller,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.stretch,
@@ -51,7 +51,7 @@ class PageView3d extends BoxScrollView3d<SliverList3d> {
     List<RenderObject3d> children = const <RenderObject3d>[],
     String? name,
   }) : this._(
-         SliverList3d(
+         RenderSliverList3d(
            crossAxisAlignment: crossAxisAlignment,
            depthAxisAlignment: depthAxisAlignment,
            children: children,
@@ -66,7 +66,7 @@ class PageView3d extends BoxScrollView3d<SliverList3d> {
   /// The usual shape: a page view holds few pages at a time, and each of them
   /// is a whole screen of content, so building them on demand matters more
   /// here than in a list of rows.
-  PageView3d.builder({
+  RenderPageView3d.builder({
     required int itemCount,
     required RenderObject3dItemBuilder itemBuilder,
     Axis3d scrollDirection = Axis3d.horizontal,
@@ -75,7 +75,7 @@ class PageView3d extends BoxScrollView3d<SliverList3d> {
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
     String? name,
   }) : this._(
-         SliverList3d.builder(
+         RenderSliverList3d.builder(
            itemCount: itemCount,
            itemBuilder: itemBuilder,
            crossAxisAlignment: crossAxisAlignment,
@@ -87,8 +87,8 @@ class PageView3d extends BoxScrollView3d<SliverList3d> {
        );
 
   // ignore: use_super_parameters
-  PageView3d._(
-    SliverList3d sliver, {
+  RenderPageView3d._(
+    RenderSliverList3d sliver, {
     required Axis3d scrollDirection,
     required Scroll3dController? controller,
     required String? name,
@@ -103,8 +103,8 @@ class PageView3d extends BoxScrollView3d<SliverList3d> {
 
   /// How pages are positioned on the first cross axis.
   ///
-  /// Stretched by default, unlike a [ListView3d]: a page is a screenful, and
-  /// a screenful that does not fill the window is a gap.
+  /// Stretched by default, unlike a [RenderListView3d]: a page is a screenful,
+  /// and a screenful that does not fill the window is a gap.
   CrossAxisAlignment3d get crossAxisAlignment => sliver.crossAxisAlignment;
 
   set crossAxisAlignment(CrossAxisAlignment3d value) =>
@@ -167,9 +167,9 @@ class PageView3d extends BoxScrollView3d<SliverList3d> {
     final axis = scrollDirection;
     assert(
       constraints.hasBoundedAlong(axis),
-      'A PageView3d needs a bounded extent along $axis: a page is as long as '
+      'A RenderPageView3d needs a bounded extent along $axis: a page is as long as '
       'the window, and an unbounded window has no length. Give it a size, or '
-      'use a ListView3d if the content should simply be as long as it is.',
+      'use a RenderListView3d if the content should simply be as long as it is.',
     );
     if (constraints.hasBoundedAlong(axis)) {
       // Written every pass, so a surface that resizes re-pages rather than

@@ -66,7 +66,7 @@ void main() {
         tester,
         () => Slider3d(value: 0.5, onChanged: (_) {}),
       );
-      final steps = oneOf<Stack3d>(
+      final steps = oneOf<RenderStack3d>(
         it.surface,
       ).children.map((child) => child.sceneOffset.z).toList();
       expect(steps, hasLength(4));
@@ -282,7 +282,7 @@ void main() {
         tester,
         () => Slider3d(value: 0.0, onChanged: reported.add),
       );
-      final gesture = oneOf<SliderGesture3d>(it.surface);
+      final gesture = oneOf<RenderSliderGesture3d>(it.surface);
       final left =
           gesture.drawnOffsetInSurface +
           Offset3d(gesture.padding, gesture.size.height / 2.0, 0.0);
@@ -319,7 +319,7 @@ void main() {
           onChangeEnd: () => ends++,
         ),
       );
-      final gesture = oneOf<SliderGesture3d>(it.surface);
+      final gesture = oneOf<RenderSliderGesture3d>(it.surface);
       final at = centreOf(gesture);
       it.pointer.down(rayAt(it.surface, at));
       it.pointer.move(rayAt(it.surface, at + const Offset3d(0.3, 0, 0)));
@@ -344,7 +344,7 @@ void main() {
           ),
         ),
       );
-      final gesture = oneOf<SliderGesture3d>(it.surface);
+      final gesture = oneOf<RenderSliderGesture3d>(it.surface);
       final left =
           gesture.drawnOffsetInSurface +
           Offset3d(gesture.padding, gesture.size.height / 2.0, 0.0);
@@ -392,7 +392,7 @@ void main() {
         tester,
         () => Slider3d(value: 0.0, onChanged: reported.add),
       );
-      final gesture = oneOf<SliderGesture3d>(it.surface);
+      final gesture = oneOf<RenderSliderGesture3d>(it.surface);
       it.pointer.down(rayAt(it.surface, centreOf(gesture)));
       expect(reported, isEmpty);
       it.pointer.up();
@@ -407,7 +407,7 @@ void main() {
 
     testWidgets('a disabled slider answers nothing at all', (tester) async {
       final it = await pumpComponent(tester, () => const Slider3d(value: 0.5));
-      final gesture = oneOf<SliderGesture3d>(it.surface);
+      final gesture = oneOf<RenderSliderGesture3d>(it.surface);
       expect(gesture.enabled, isFalse);
       it.pointer.down(rayAt(it.surface, centreOf(gesture)));
       it.pointer.move(
@@ -441,7 +441,7 @@ void main() {
       final reported = <double>[];
       final it = await _pumpInList(tester, (value) => reported.add(value));
 
-      final gesture = oneOf<SliderGesture3d>(it.surface);
+      final gesture = oneOf<RenderSliderGesture3d>(it.surface);
       final at = centreOf(gesture);
       it.pointer.down(rayAt(it.surface, at));
       it.pointer.move(rayAt(it.surface, at + const Offset3d(0.4, 0, 0)));
@@ -463,7 +463,7 @@ void main() {
       final reported = <double>[];
       final it = await _pumpInList(tester, (value) => reported.add(value));
 
-      final gesture = oneOf<SliderGesture3d>(it.surface);
+      final gesture = oneOf<RenderSliderGesture3d>(it.surface);
       final at = centreOf(gesture);
       it.pointer.down(rayAt(it.surface, at));
       it.pointer.move(rayAt(it.surface, at + const Offset3d(0, -0.4, 0)));
@@ -482,7 +482,7 @@ void main() {
             'and the slider was rejected without changing anything — which '
             'is what being a well-behaved arena member means',
       );
-      expect(oneOf<SliderGesture3d>(it.surface).isDragging, isFalse);
+      expect(oneOf<RenderSliderGesture3d>(it.surface).isDragging, isFalse);
     });
 
     testWidgets('a tap on a slider in a list still lands on the slider', (
@@ -494,7 +494,7 @@ void main() {
       final reported = <double>[];
       final it = await _pumpInList(tester, (value) => reported.add(value));
 
-      final gesture = oneOf<SliderGesture3d>(it.surface);
+      final gesture = oneOf<RenderSliderGesture3d>(it.surface);
       it.pointer.down(rayAt(it.surface, centreOf(gesture)));
       it.pointer.up();
 
@@ -552,11 +552,11 @@ void main() {
       expect(it.target.size.height, closeTo(dp(48), 1e-9));
       expect(
         it.target.effectiveMinimumSize.height,
-        closeTo(dp(TapTarget3d.materialMinimum), 1e-9),
+        closeTo(dp(RenderTapTarget3d.materialMinimum), 1e-9),
       );
       expect(
         SliderStyle3d.defaultStateLayerSize,
-        TapTarget3d.materialMinimum,
+        RenderTapTarget3d.materialMinimum,
         reason:
             'a coincidence rather than a construction, and the one control '
             'here whose wash and whose reach agree',
@@ -584,7 +584,7 @@ void main() {
 class _InList {
   _InList(this.surface, this.scroll);
 
-  final Layout3dSurface surface;
+  final RenderSurface3d surface;
   final Scroll3dController scroll;
 
   Layout3dPointer? _pointer;
@@ -599,22 +599,22 @@ Future<_InList> _pumpInList(
   final controller = Layout3dController();
   final scroll = Scroll3dController();
   await tester.pumpWidget(
-    SceneLayout3d(
+    Surface3d(
       parent: Node(),
       size: const Size3d(4, 3, 0.5),
       controller: controller,
-      child: SceneTheme3d(
+      child: Theme3d(
         data: Theme3dData.light,
-        child: SceneListView3d(
+        child: ListView3d(
           controller: scroll,
           children: <Widget>[
             for (var index = 0; index < 6; index++)
-              SceneSizedBox3d(
+              SizedBox3d(
                 height: 0.6,
-                child: SceneCenter3d(
+                child: Center3d(
                   child: index == 0
                       ? Slider3d(value: 0.5, onChanged: onChanged)
-                      : const SceneSizedBox3d(width: 1.0, height: 0.4),
+                      : const SizedBox3d(width: 1.0, height: 0.4),
                 ),
               ),
           ],

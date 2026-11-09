@@ -3,7 +3,7 @@
 // scrolling view.
 //
 // This is the component that meets the scrolling machinery, so the last group
-// puts tiles in a `SceneListView3d` and measures them there rather than in a
+// puts tiles in a `ListView3d` and measures them there rather than in a
 // centred box — because that is where a real screen pays for them.
 
 import 'package:flutter/material.dart' as material;
@@ -203,7 +203,7 @@ void main() {
         tester,
         () => ListTile3d.text(title: 'Inbox', subtitle: '12 unread'),
       );
-      final labels = boxesOf<Text3d>(it.surface);
+      final labels = boxesOf<RenderText3d>(it.surface);
       expect(labels.length, 2);
       expect(labels[0].data, 'Inbox');
       expect(labels[0].style.color, theme.colorScheme.onSurface);
@@ -217,7 +217,7 @@ void main() {
         tester,
         () => ListTile3d.text(title: 'Inbox', subtitle: '12 unread'),
       );
-      final labels = boxesOf<Text3d>(it.surface);
+      final labels = boxesOf<RenderText3d>(it.surface);
       expect(labels[1].data, '12 unread');
       expect(labels[1].style.color, theme.colorScheme.onSurfaceVariant);
       expect(labels[1].style.fontSize, theme.typography.bodyMedium.fontSize);
@@ -230,12 +230,12 @@ void main() {
         tester,
         () => ListTile3d.text(
           title: 'Inbox',
-          leading: const SceneText3d('L'),
-          trailing: const SceneText3d('T'),
+          leading: const Text3d('L'),
+          trailing: const Text3d('T'),
         ),
       );
       // The outermost flex is the row; the inner one is the text column.
-      final row = outermostOf<Flex3d>(it.surface);
+      final row = outermostOf<RenderFlex3d>(it.surface);
       expect(
         row.spacing,
         closeTo(ListTile3d.horizontalTitleGap / 100.0, 1e-9),
@@ -250,7 +250,7 @@ void main() {
     ) async {
       final it = await pumpComponent(tester, () => ListTile3d.text(title: 'x'));
       // Inside the ink well, so the margins are part of what a press reaches.
-      final box = oneOf<Padding3d>(it.surface);
+      final box = oneOf<RenderPadding3d>(it.surface);
       final padding = box.padding.resolve(box.textDirection);
       expect(padding.left, closeTo(0.16, 1e-9));
       expect(padding.right, closeTo(0.24, 1e-9));
@@ -273,7 +273,7 @@ void main() {
         () => ListTile3d.text(title: 'Inbox', selected: true, onTap: () {}),
       );
       expect(
-        boxesOf<Text3d>(it.surface).single.style.color,
+        boxesOf<RenderText3d>(it.surface).single.style.color,
         theme.colorScheme.primary,
       );
       expect(it.semantics.properties.selected, isTrue);
@@ -285,7 +285,7 @@ void main() {
         () => ListTile3d.text(title: 'Inbox', enabled: false, onTap: () {}),
       );
       expect(
-        boxesOf<Text3d>(it.surface).single.style.color,
+        boxesOf<RenderText3d>(it.surface).single.style.color,
         theme.colorScheme.disabledContent,
         reason: 'there is no opacity in this stack to fade a subtree with',
       );
@@ -297,8 +297,8 @@ void main() {
     testWidgets('a tile built from strings announces both of them', (
       tester,
     ) async {
-      // The phase's own hard question. `Semantics3d` gathers nothing, so a
-      // tile with a title *and* a subtitle would announce neither unless it
+      // The phase's own hard question. `RenderSemantics3d` gathers nothing, so
+      // a tile with a title *and* a subtitle would announce neither unless it
       // stated one — and `ListTile3d.text` is what makes stating it free.
       final it = await pumpComponent(
         tester,
@@ -343,7 +343,7 @@ void main() {
       // way with no label announces a row with no name.
       final it = await pumpComponent(
         tester,
-        () => const ListTile3d(title: SceneText3d('Inbox')),
+        () => const ListTile3d(title: Text3d('Inbox')),
       );
       expect(it.semantics.properties.label, isNull);
     });
@@ -400,8 +400,8 @@ void main() {
       var sawTarget = false;
       var semanticsIsInside = false;
       void walk(RenderObject3d box) {
-        if (box is TapTarget3d) sawTarget = true;
-        if (box is Semantics3d && sawTarget) semanticsIsInside = true;
+        if (box is RenderTapTarget3d) sawTarget = true;
+        if (box is RenderSemantics3d && sawTarget) semanticsIsInside = true;
         box.visitChildren(walk);
       }
 
@@ -417,10 +417,10 @@ void main() {
       final controller = Scroll3dController();
       final it = await pumpComponent(
         tester,
-        () => SceneSizedBox3d(
+        () => SizedBox3d(
           width: 2.0,
           height: 2.0,
-          child: SceneListView3d(
+          child: ListView3d(
             controller: controller,
             children: <Widget>[
               for (var i = 0; i < 8; i++)
@@ -451,15 +451,15 @@ void main() {
       final controller = Scroll3dController();
       final it = await pumpComponent(
         tester,
-        () => SceneSizedBox3d(
+        () => SizedBox3d(
           width: 2.0,
           height: 2.0,
           // `.builder` rather than an explicit list, and the difference is
-          // the point: a `SceneListView3d` given `children` has forty widgets
+          // the point: a `ListView3d` given `children` has forty widgets
           // in the tree and forty layouts under it whatever the window shows,
           // because the widgets were already built by the caller. Only the
           // builder form reaches an item as the viewport gets to it.
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             controller: controller,
             itemCount: 40,
             itemBuilder: (context, i) =>
@@ -490,10 +490,10 @@ void main() {
       // per tile and no layout at all.
       final it = await pumpComponent(
         tester,
-        () => SceneSizedBox3d(
+        () => SizedBox3d(
           width: 2.0,
           height: 2.0,
-          child: SceneListView3d(
+          child: ListView3d(
             children: <Widget>[
               for (var i = 0; i < 8; i++)
                 ListTile3d.text(title: 'Row $i', onTap: () {}),

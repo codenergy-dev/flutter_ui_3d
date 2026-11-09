@@ -14,10 +14,10 @@ import '../rendering/object.dart';
 ///
 /// The extra constraints are combined with the incoming ones through
 /// [Constraints3d.enforce], so a parent's limits always win.
-class ConstrainedBox3d extends RenderSingleChild3d
+class RenderConstrainedBox3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d {
   /// Creates a box that constrains its child.
-  ConstrainedBox3d({
+  RenderConstrainedBox3d({
     Constraints3d additionalConstraints = const Constraints3d(),
     super.child,
     super.name,
@@ -39,9 +39,9 @@ class ConstrainedBox3d extends RenderSingleChild3d
   /// The child's intrinsic extent, held to the extra constraints.
   ///
   /// An axis this box fixes outright answers with that fixed extent and never
-  /// asks the child, which is what makes a [SizedBox3d] the cheap way to stop
-  /// an intrinsic query from walking a subtree. An axis it *expands* on has
-  /// no finite answer to give, so it passes the child's through rather than
+  /// asks the child, which is what makes a [RenderSizedBox3d] the cheap way to
+  /// stop an intrinsic query from walking a subtree. An axis it *expands* on
+  /// has no finite answer to give, so it passes the child's through rather than
   /// reporting an infinite intrinsic.
   double _constrainedIntrinsic(
     Axis3d axis,
@@ -102,9 +102,9 @@ class ConstrainedBox3d extends RenderSingleChild3d
 /// Every axis is independent: give only [depth] and the box takes its width
 /// and height from its child (or from the constraints, with no child), which
 /// is the usual way to give a flat panel some thickness.
-class SizedBox3d extends ConstrainedBox3d {
+class RenderSizedBox3d extends RenderConstrainedBox3d {
   /// Creates a box fixed on the axes given.
-  SizedBox3d({
+  RenderSizedBox3d({
     double? width,
     double? height,
     double? depth,
@@ -119,19 +119,19 @@ class SizedBox3d extends ConstrainedBox3d {
        );
 
   /// A box fixed to [size] on all three axes.
-  SizedBox3d.fromSize(Size3d size, {super.child, super.name})
+  RenderSizedBox3d.fromSize(Size3d size, {super.child, super.name})
     : super(additionalConstraints: Constraints3d.tight(size));
 
   /// A cube [extent] on a side.
-  SizedBox3d.cube(double extent, {super.child, super.name})
+  RenderSizedBox3d.cube(double extent, {super.child, super.name})
     : super(additionalConstraints: Constraints3d.tight(Size3d.cube(extent)));
 
   /// A box that takes all the room it is offered.
-  SizedBox3d.expand({super.child, super.name})
+  RenderSizedBox3d.expand({super.child, super.name})
     : super(additionalConstraints: const Constraints3d.expand());
 
   /// A box that takes as little room as possible.
-  SizedBox3d.shrink({super.child, super.name})
+  RenderSizedBox3d.shrink({super.child, super.name})
     : super(
         additionalConstraints: const Constraints3d.tightFor(
           width: 0,
@@ -182,13 +182,13 @@ class SizedBox3d extends ConstrainedBox3d {
 ///
 /// The matrix is applied in **layout space** (`x` right, `y` down, `z` away
 /// from the viewer), around the point [alignment] picks out in this box, so
-/// `Transform3d.rotate(axis: Vector3(0, 0, 1), angle: 0.2)` turns the child
-/// clockwise on the plane, exactly as `Transform.rotate` does in Flutter. The
-/// child is laid out and sized as if the transform were not there.
-class Transform3d extends RenderSingleChild3d
+/// `RenderTransform3d.rotate(axis: Vector3(0, 0, 1), angle: 0.2)` turns the
+/// child clockwise on the plane, exactly as `Transform.rotate` does in Flutter.
+/// The child is laid out and sized as if the transform were not there.
+class RenderTransform3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d {
   /// Creates a transformed box.
-  Transform3d({
+  RenderTransform3d({
     required Matrix4 transform,
     AlignmentGeometry3d alignment = Alignment3d.center,
     TextDirection? textDirection,
@@ -199,7 +199,7 @@ class Transform3d extends RenderSingleChild3d
        _textDirection = textDirection;
 
   /// A box that rotates its child [angle] radians about [axis].
-  Transform3d.rotate({
+  RenderTransform3d.rotate({
     required Vector3 axis,
     required double angle,
     AlignmentGeometry3d alignment = Alignment3d.center,
@@ -219,7 +219,7 @@ class Transform3d extends RenderSingleChild3d
        );
 
   /// A box that scales its child.
-  Transform3d.scale({
+  RenderTransform3d.scale({
     required Vector3 scale,
     AlignmentGeometry3d alignment = Alignment3d.center,
     TextDirection? textDirection,
@@ -234,7 +234,7 @@ class Transform3d extends RenderSingleChild3d
        );
 
   /// A box that translates its child, in layout space.
-  Transform3d.translate({
+  RenderTransform3d.translate({
     required Offset3d offset,
     RenderObject3d? child,
     String? name,

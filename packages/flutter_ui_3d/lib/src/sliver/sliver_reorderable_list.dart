@@ -34,14 +34,14 @@ typedef Reorder3dCallback = void Function(int oldIndex, int newIndex);
 
 /// A run of items that can be dragged into a different order.
 ///
-/// The sliver behind [ReorderableList3d], and a [SliverList3d] in every other
-/// respect: the placement, the measuring, the lazy window and the extent
-/// estimate are all the list's, unchanged. What this adds is one item lifted
-/// out under the pointer, a gap where it would land, and one call to
+/// The sliver behind [RenderReorderableList3d], and a [RenderSliverList3d] in
+/// every other respect: the placement, the measuring, the lazy window and the
+/// extent estimate are all the list's, unchanged. What this adds is one item
+/// lifted out under the pointer, a gap where it would land, and one call to
 /// [onReorder] at the drop.
 ///
 /// ```dart
-/// SliverReorderableList3d(
+/// RenderSliverReorderableList3d(
 ///   itemCount: tracks.length,
 ///   itemBuilder: (index) => trackRow(tracks[index]),
 ///   onReorder: (oldIndex, newIndex) {
@@ -55,8 +55,8 @@ typedef Reorder3dCallback = void Function(int oldIndex, int newIndex);
 ///
 /// This is the whole design, and both of the hard requirements fall out of it.
 /// During a drag the dragged item **stays exactly where it is in the list**,
-/// hidden with `node.visible = false` — the trick [IndexedStack3d] and the
-/// scrolling views already use, which costs no layout — so its extent stays
+/// hidden with `node.visible = false` — the trick [RenderIndexedStack3d] and
+/// the scrolling views already use, which costs no layout — so its extent stays
 /// in the flow and *is* the gap. Every other item near it is pushed forward or
 /// back by that extent with [RenderObject3d.nodeOffset], the node tier, which
 /// writes one matrix and never calls `markNeedsLayout`.
@@ -79,10 +79,10 @@ typedef Reorder3dCallback = void Function(int oldIndex, int newIndex);
 ///
 /// ## The items are built, not listed
 ///
-/// Unlike [SliverList3d] there is no constructor over an explicit child list.
-/// A reorder is a statement about the caller's data — [onReorder] hands back
-/// a pair of indices into it and expects the next build to reflect them — so
-/// the list has to be a function of that data to be coherent at all. Give it
+/// Unlike [RenderSliverList3d] there is no constructor over an explicit child
+/// list. A reorder is a statement about the caller's data — [onReorder] hands
+/// back a pair of indices into it and expects the next build to reflect them —
+/// so the list has to be a function of that data to be coherent at all. Give it
 /// an [itemCount] and an [itemBuilder]; call [refresh] when the data changes.
 ///
 /// ## Where the gap goes when items differ in extent
@@ -93,14 +93,15 @@ typedef Reorder3dCallback = void Function(int oldIndex, int newIndex);
 /// position in scroll space against the *leading edges* of the items the view
 /// currently holds — see [insertIndexAt] — so the item under the finger is
 /// the one whose place is taken.
-class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
+class RenderSliverReorderableList3d extends RenderSliverList3d
+    implements Drag3dTarget {
   /// Creates a reorderable list that builds its items on demand.
   ///
   /// The sliver has to be handed a builder that wraps the caller's own, and
   /// an explicit super call rules out super parameters, so the list's
   /// ordinary knobs are spelled out here rather than forwarded.
   // ignore: use_super_parameters
-  SliverReorderableList3d({
+  RenderSliverReorderableList3d({
     required int itemCount,
     required RenderObject3dItemBuilder itemBuilder,
     required this.onReorder,
@@ -133,9 +134,9 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
 
   /// Creates a reorderable list whose items come from a child manager.
   ///
-  /// The shape the declarative layer creates: `SceneSliverReorderableList3d`
+  /// The shape the declarative layer creates: `SliverReorderableList3d`
   /// builds a list of this kind and then hands it its element as the manager,
-  /// exactly as `SceneSliverList3d` does with a plain [SliverList3d]. The
+  /// exactly as `SliverList3d` does with a plain [RenderSliverList3d]. The
   /// count arrives from the widget too, so neither is asked for here.
   ///
   /// [feedbackBuilder] is required rather than optional in this shape, and
@@ -146,7 +147,7 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
   /// else, while a drag begins during a pointer event. So the caller states
   /// what is carried, as geometry.
   // ignore: use_super_parameters
-  SliverReorderableList3d.managed({
+  RenderSliverReorderableList3d.managed({
     required this.onReorder,
     required RenderObject3dItemBuilder this.feedbackBuilder,
     Drag3dStartMode startMode = const Drag3dStartMode.longPress(),
@@ -189,14 +190,14 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
   /// map would hand back the item that is already in the list.
   final RenderObject3dItemBuilder? _rawBuilder;
 
-  /// Puts every item inside a [Draggable3d] carrying a token only this list
-  /// accepts, which is how a press on an item becomes a reorder without the
-  /// caller having to build a drag handle.
+  /// Puts every item inside a [RenderDraggable3d] carrying a token only this
+  /// list accepts, which is how a press on an item becomes a reorder without
+  /// the caller having to build a drag handle.
   ///
   /// The wrapping is here rather than around [itemBuilder] so that it happens
   /// on both paths. A widget item is built by a [RenderObject3dChildManager]
   /// that never consults `itemBuilder` at all, and a list that wrapped there
-  /// could not be reached from a `build` method; `SceneSliverReorderableList3d`
+  /// could not be reached from a `build` method; `SliverReorderableList3d`
   /// is what this makes possible.
   @override
   RenderObject3d wrapBuiltChild(int index, RenderObject3d built) =>
@@ -253,8 +254,8 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
   /// How an item carried to the edge of the window moves the list, or null
   /// to leave the list still.
   ///
-  /// On by default, unlike [Draggable3d.autoscroll]: a reorderable list is
-  /// the case where a drag has to be able to reach a slot that is not on
+  /// On by default, unlike [RenderDraggable3d.autoscroll]: a reorderable list
+  /// is the case where a drag has to be able to reach a slot that is not on
   /// screen, and Flutter's `ReorderableListView` scrolls itself for the same
   /// reason. The band is stated in dp and taken through this list's own
   /// metrics — see [Drag3dAutoscroll].
@@ -492,7 +493,7 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
     _stopSlide();
     final provider = vsync;
     final ticker = _slideTicker = provider == null
-        ? Ticker(_tickSlide, debugLabel: 'SliverReorderableList3d gap')
+        ? Ticker(_tickSlide, debugLabel: 'RenderSliverReorderableList3d gap')
         : provider.createTicker(_tickSlide);
     ticker.start();
   }
@@ -542,8 +543,8 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
 
   /// Keeps the dragged item alive even when the window has left it behind.
   ///
-  /// Disposing it would dispose the [Draggable3d] wrapped around it, which
-  /// cancels the session it owns, which ends the drag — from the viewer's
+  /// Disposing it would dispose the [RenderDraggable3d] wrapped around it,
+  /// which cancels the session it owns, which ends the drag — from the viewer's
   /// point of view the card would vanish mid-flight. So the released range is
   /// widened to reach the dragged index. The run in between is kept as well,
   /// which is the price of the mixin releasing a contiguous range; it only
@@ -584,29 +585,31 @@ class SliverReorderableList3d extends SliverList3d implements Drag3dTarget {
   }
 }
 
-/// What an item of a [SliverReorderableList3d] carries while it is in flight.
+/// What an item of a [RenderSliverReorderableList3d] carries while it is in
+/// flight.
 ///
 /// Private on purpose. It identifies the list rather than the item, so that a
 /// session outlives the box it was picked up from — the list holds the index
-/// itself — and so that no [DragTarget3d] of the caller's can be handed a
+/// itself — and so that no [RenderDragTarget3d] of the caller's can be handed a
 /// reorder it has no way to interpret. The one exception is
-/// `DragTarget3d<Object>`, which accepts everything and always did.
+/// `RenderDragTarget3d<Object>`, which accepts everything and always did.
 class _Reorder3dPayload {
   const _Reorder3dPayload(this.list);
 
-  final SliverReorderableList3d list;
+  final RenderSliverReorderableList3d list;
 
   @override
   String toString() => 'reorder(${list.node.name})';
 }
 
-/// One item of a [SliverReorderableList3d], wrapped so it can be picked up.
+/// One item of a [RenderSliverReorderableList3d], wrapped so it can be picked
+/// up.
 ///
-/// A plain [Draggable3d] with the list's own token as its payload: the drag
-/// recognizer, the arena competition, the overlay-hosted feedback, the single
-/// disposal path and the node-tier tracking are all inherited rather than
-/// written a second time.
-class _Reorder3dHandle extends Draggable3d<Object> {
+/// A plain [RenderDraggable3d] with the list's own token as its payload: the
+/// drag recognizer, the arena competition, the overlay-hosted feedback, the
+/// single disposal path and the node-tier tracking are all inherited rather
+/// than written a second time.
+class _Reorder3dHandle extends RenderDraggable3d<Object> {
   // The payload has to be built from `list`, and an explicit super call rules
   // out super parameters.
   // ignore: use_super_parameters
@@ -628,7 +631,7 @@ class _Reorder3dHandle extends Draggable3d<Object> {
     onDragStarted = () => list._startReorder(this);
   }
 
-  final SliverReorderableList3d list;
+  final RenderSliverReorderableList3d list;
 
   // The list's own settings rather than a copy taken when the item was built:
   // an item built before the caller changed either would otherwise drag under
@@ -648,7 +651,7 @@ class _Reorder3dHandle extends Draggable3d<Object> {
   /// The index this item was built for.
   ///
   /// A fallback for the moment the drag begins, when the item is certainly
-  /// still in the list; [SliverReorderableList3d._indexOf] is the truth.
+  /// still in the list; [RenderSliverReorderableList3d._indexOf] is the truth.
   final int buildIndex;
 
   RenderObject3d _buildFeedback(Drag3dSession session) {

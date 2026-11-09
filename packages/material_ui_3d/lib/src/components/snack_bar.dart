@@ -26,25 +26,25 @@ import 'package:flutter_ui_3d/rendering.dart'
         Layout3dMetrics,
         MainAxisAlignment3d,
         MainAxisSize3d,
-        Overlay3d,
+        RenderOverlay3d,
         Size3d;
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
         MediaQuery3d,
-        SceneAlign3d,
-        SceneColumn3d,
-        SceneConstrainedBox3d,
-        SceneExpanded3d,
-        SceneFlexible3d,
-        SceneIgnorePointer3d,
-        SceneMotionTransition3d,
-        SceneOverlay3d,
-        ScenePadding3d,
-        SceneRow3d,
-        SceneSemantics3d,
-        SceneSizedBox3d,
-        SceneText3d,
+        Align3d,
+        Column3d,
+        ConstrainedBox3d,
+        Expanded3d,
+        Flexible3d,
+        IgnorePointer3d,
+        MotionTransition3d,
+        Overlay3d,
+        Padding3d,
+        Row3d,
+        Semantics3d,
+        SizedBox3d,
+        Text3d,
         WidgetOverlay3dEntry;
 
 import '../theme/theme.dart';
@@ -106,13 +106,13 @@ class SnackBar3dController {
 
 /// The queue of snack bars, one at a time.
 ///
-/// Flutter's `ScaffoldMessenger`, in the shape a catalogue over `Overlay3d`
-/// can have it. Put one around whatever shows messages — inside the
-/// `SceneOverlay3d` and outside the `Scaffold3d`, which is the order Flutter's
-/// own `MaterialApp` uses:
+/// Flutter's `ScaffoldMessenger`, in the shape a catalogue over
+/// `RenderOverlay3d` can have it. Put one around whatever shows messages —
+/// inside the `Overlay3d` and outside the `Scaffold3d`, which is the order
+/// Flutter's own `MaterialApp` uses:
 ///
 /// ```dart
-/// SceneOverlay3d(
+/// Overlay3d(
 ///   child: ScaffoldMessenger3d(
 ///     child: Scaffold3d(body: page),
 ///   ),
@@ -166,7 +166,7 @@ class ScaffoldMessenger3d extends StatefulWidget {
       state != null,
       'ScaffoldMessenger3d.of found no ScaffoldMessenger3d above this '
       'context. Wrap the part of the tree that shows messages in one, inside '
-      'the SceneOverlay3d that will hold them.',
+      'the Overlay3d that will hold them.',
     );
     return state!;
   }
@@ -185,7 +185,7 @@ class ScaffoldMessenger3dState extends State<ScaffoldMessenger3d>
     with SingleTickerProviderStateMixin {
   final Queue<SnackBar3dController> _queue = Queue<SnackBar3dController>();
 
-  Overlay3d? _overlay;
+  RenderOverlay3d? _overlay;
   WidgetOverlay3dEntry? _entry;
   Timer? _timer;
   late final AnimationController _arrival = AnimationController(vsync: this)
@@ -203,7 +203,7 @@ class ScaffoldMessenger3dState extends State<ScaffoldMessenger3d>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _overlay = SceneOverlay3d.maybeOf(context);
+    _overlay = Overlay3d.maybeOf(context);
   }
 
   @override
@@ -310,12 +310,12 @@ class ScaffoldMessenger3dState extends State<ScaffoldMessenger3d>
         Layout3dMetricsScope.of(context),
       ),
       debugLabel: 'SnackBar3d',
-      contentBuilder: (context, _) => SceneAlign3d(
+      contentBuilder: (context, _) => Align3d(
         // Bottom, and on the **front** face: `Alignment3d.bottomCenter`
         // centres in depth as well, which would put the bar inside the lift
         // that was meant to carry it in front of the screen.
         alignment: const Alignment3d(0, 1, -1),
-        child: SceneMotionTransition3d(
+        child: MotionTransition3d(
           animation: _arrival,
           // One whole height, so a two-line bar starts as far off the edge as
           // a one-line one does.
@@ -368,8 +368,8 @@ class _ScaffoldMessenger3dScope extends InheritedWidget {
 /// layout directly — which is what the tests and the render probe do.
 ///
 /// The message is a **string** rather than a widget, for the reason
-/// `ListTile3d`'s title is: a `Semantics3d` gathers nothing from the labels
-/// below it, and a message nobody can hear is not a message.
+/// `ListTile3d`'s title is: a `RenderSemantics3d` gathers nothing from the
+/// labels below it, and a message nobody can hear is not a message.
 ///
 /// ## A second line, and where the action goes
 ///
@@ -495,8 +495,8 @@ class _SnackBar3dFrame extends StatelessWidget {
 
     // The message is flexible, so a long one wraps rather than running off
     // the end of the bar.
-    final message = SceneIgnorePointer3d(
-      child: SceneText3d(
+    final message = IgnorePointer3d(
+      child: Text3d(
         bar.message,
         style: theme.textStyle(
           resolved.textStyle,
@@ -519,11 +519,11 @@ class _SnackBar3dFrame extends StatelessWidget {
             thickness: theme.thickness.thin,
             surfaceTint: const Color(0x00000000),
             alignment: null,
-            child: SceneAlign3d(
+            child: Align3d(
               alignment: Alignment3d.frontCenter,
               widthFactor: 1.0,
               heightFactor: 1.0,
-              child: SceneSemantics3d(
+              child: Semantics3d(
                 properties: SemanticsProperties(
                   button: true,
                   enabled: true,
@@ -534,10 +534,10 @@ class _SnackBar3dFrame extends StatelessWidget {
                 child: InkWell3d(
                   minimumSize: Size3d.zero,
                   onTap: onAction,
-                  child: ScenePadding3d(
+                  child: Padding3d(
                     padding: metrics.dpInsets(resolved.actionPadding),
-                    child: SceneIgnorePointer3d(
-                      child: SceneText3d(bar.actionLabel!, style: actionStyle),
+                    child: IgnorePointer3d(
+                      child: Text3d(bar.actionLabel!, style: actionStyle),
                     ),
                   ),
                 ),
@@ -551,22 +551,22 @@ class _SnackBar3dFrame extends StatelessWidget {
       // Flutter's two rows: the message, wrapping in what is left beside a
       // spacer 40% of the bar wide, and the action under it at the trailing
       // edge. The bar is as wide as it may be, as Flutter's is.
-      content = SceneColumn3d(
+      content = Column3d(
         mainAxisSize: MainAxisSize3d.min,
         crossAxisAlignment: CrossAxisAlignment3d.stretch,
         depthAxisAlignment: CrossAxisAlignment3d.start,
         children: <Widget>[
-          SceneRow3d(
+          Row3d(
             crossAxisAlignment: CrossAxisAlignment3d.center,
             depthAxisAlignment: CrossAxisAlignment3d.start,
             children: <Widget>[
-              SceneExpanded3d(child: message),
-              SceneSizedBox3d(width: metrics.dp(barWidth * 0.4)),
+              Expanded3d(child: message),
+              SizedBox3d(width: metrics.dp(barWidth * 0.4)),
             ],
           ),
           // The gap Flutter gets from the message's own vertical padding.
-          SceneSizedBox3d(height: metrics.dp(resolved.padding.top)),
-          SceneRow3d(
+          SizedBox3d(height: metrics.dp(resolved.padding.top)),
+          Row3d(
             mainAxisAlignment: MainAxisAlignment3d.end,
             depthAxisAlignment: CrossAxisAlignment3d.start,
             children: <Widget>[action!],
@@ -574,27 +574,27 @@ class _SnackBar3dFrame extends StatelessWidget {
         ],
       );
     } else {
-      content = SceneRow3d(
+      content = Row3d(
         mainAxisSize: MainAxisSize3d.min,
         crossAxisAlignment: CrossAxisAlignment3d.center,
         depthAxisAlignment: CrossAxisAlignment3d.start,
         spacing: metrics.dp(16),
         children: <Widget>[
-          SceneFlexible3d(child: message),
+          Flexible3d(child: message),
           ?action,
         ],
       );
     }
 
-    return SceneSemantics3d(
+    return Semantics3d(
       properties: SemanticsProperties(
         liveRegion: true,
         label: bar.semanticLabel ?? bar.message,
         textDirection: readingDirection3d(context, bar.textDirection),
       ),
-      child: ScenePadding3d(
+      child: Padding3d(
         padding: metrics.dpInsets(resolved.margin),
-        child: SceneConstrainedBox3d(
+        child: ConstrainedBox3d(
           constraints: Constraints3d(
             minHeight: metrics.dp(resolved.minHeight),
             maxWidth: metrics.dp(resolved.maxWidth),
@@ -608,7 +608,7 @@ class _SnackBar3dFrame extends StatelessWidget {
             surfaceTint: const Color(0x00000000),
             padding: resolved.padding,
             alignment: null,
-            child: SceneAlign3d(
+            child: Align3d(
               alignment: Alignment3d.frontCenter,
               widthFactor: 1.0,
               heightFactor: 1.0,

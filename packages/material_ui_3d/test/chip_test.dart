@@ -25,20 +25,20 @@ Widget chipFor(
   String? semanticLabel,
 }) => switch (variant) {
   ChipVariant3d.assist => AssistChip3d(
-    label: const SceneText3d('Track'),
+    label: const Text3d('Track'),
     enabled: enabled,
     onPressed: onPressed,
     semanticLabel: semanticLabel,
   ),
   ChipVariant3d.filter => FilterChip3d(
-    label: const SceneText3d('Unread'),
+    label: const Text3d('Unread'),
     selected: selected,
     enabled: enabled,
     onSelected: onSelected,
     semanticLabel: semanticLabel,
   ),
   ChipVariant3d.input => InputChip3d(
-    label: const SceneText3d('lucas'),
+    label: const Text3d('lucas'),
     selected: selected,
     enabled: enabled,
     onPressed: onPressed,
@@ -47,7 +47,7 @@ Widget chipFor(
     semanticLabel: semanticLabel,
   ),
   ChipVariant3d.suggestion => SuggestionChip3d(
-    label: const SceneText3d('Sounds good'),
+    label: const Text3d('Sounds good'),
     selected: selected,
     enabled: enabled,
     onPressed: onPressed,
@@ -115,7 +115,7 @@ void main() {
         );
         expect(it.decoration.border.color, theme.colorScheme.disabledContainer);
         expect(
-          boxesOf<Text3d>(it.surface).single.style.color,
+          boxesOf<RenderText3d>(it.surface).single.style.color,
           theme.colorScheme.disabledContent,
           reason: 'there is no opacity in this stack; disabled is a colour',
         );
@@ -142,7 +142,7 @@ void main() {
               'a second, competing one',
         );
         expect(
-          boxesOf<Text3d>(it.surface).single.style.color,
+          boxesOf<RenderText3d>(it.surface).single.style.color,
           theme.colorScheme.onSecondaryContainer,
         );
       }
@@ -165,7 +165,7 @@ void main() {
         tester,
         () => Chip3d(
           variant: ChipVariant3d.assist,
-          label: const SceneText3d('Track'),
+          label: const Text3d('Track'),
           selected: true,
           onPressed: () {},
         ),
@@ -218,7 +218,7 @@ void main() {
             theme,
             ChipVariant3d.filter,
           ).copyWith(shape: theme.shape.full),
-          label: const SceneText3d('Unread'),
+          label: const Text3d('Unread'),
           onPressed: () {},
         ),
       );
@@ -235,7 +235,7 @@ void main() {
       final it = await pumpComponent(
         tester,
         () => AssistChip3d(
-          label: const SceneText3d('Track'),
+          label: const Text3d('Track'),
           onPressed: () => taps++,
           semanticLabel: 'Track',
         ),
@@ -261,7 +261,7 @@ void main() {
     ) async {
       final it = await pumpComponent(
         tester,
-        () => AssistChip3d(label: const SceneText3d('Track'), onPressed: () {}),
+        () => AssistChip3d(label: const Text3d('Track'), onPressed: () {}),
       );
       expect(it.target.size.height, closeTo(0.32, 1e-9));
       expect(
@@ -279,7 +279,7 @@ void main() {
       final it = await pumpComponent(
         tester,
         () => FilterChip3d(
-          label: const SceneText3d('Unread'),
+          label: const Text3d('Unread'),
           onSelected: reported.add,
           semanticLabel: 'Unread only',
         ),
@@ -297,7 +297,7 @@ void main() {
       // a filled button does not.
       final it = await pumpComponent(
         tester,
-        () => AssistChip3d(label: const SceneText3d('Track'), onPressed: () {}),
+        () => AssistChip3d(label: const Text3d('Track'), onPressed: () {}),
       );
       final built = it.builds[0];
 
@@ -335,7 +335,7 @@ void main() {
     }
 
     double liftOf(PumpedSurface it) =>
-        oneOf<NodeTransform3d>(it.surface).nodeOffset.z;
+        oneOf<RenderNodeTransform3d>(it.surface).nodeOffset.z;
 
     for (final variant in ChipVariant3d.values) {
       testWidgets('$variant by its press elevation, and settles back', (
@@ -474,7 +474,7 @@ void main() {
       final it = await pumpComponent(
         tester,
         () => InputChip3d(
-          label: const SceneText3d('lucas'),
+          label: const Text3d('lucas'),
           onPressed: () => pressed++,
           onDeleted: () => deleted++,
           semanticLabel: 'lucas',
@@ -483,7 +483,7 @@ void main() {
 
       // The delete glyph is the last box in the chip's row. Ask the tree
       // where it is rather than guessing a coordinate.
-      final glyphs = boxesOf<Text3d>(it.surface);
+      final glyphs = boxesOf<RenderText3d>(it.surface);
       expect(glyphs.length, 2, reason: 'the label and the delete glyph');
       final at = glyphs.last.drawnOffsetInSurface + glyphs.last.size.center;
       it.pointer.down(rayAt(it.surface, at));
@@ -504,12 +504,12 @@ void main() {
       final it = await pumpComponent(
         tester,
         () => InputChip3d(
-          label: const SceneText3d('lucas'),
+          label: const Text3d('lucas'),
           onDeleted: () {},
           semanticLabel: 'lucas',
         ),
       );
-      final announced = boxesOf<Semantics3d>(it.surface);
+      final announced = boxesOf<RenderSemantics3d>(it.surface);
       expect(announced.length, 2, reason: 'the chip, and the delete inside it');
       expect(announced.first.properties.label, 'lucas');
       expect(announced.last.properties.label, 'Delete');
@@ -520,13 +520,13 @@ void main() {
     testWidgets('has no target of its own, and the class doc says why', (
       tester,
     ) async {
-      // A second `TapTarget3d` inside the chip's panel would be gated by the
-      // panel — a target reaches past its own extent and its ancestors do not
-      // — so its reach would be silently inert. The delete affordance adds
+      // A second `RenderTapTarget3d` inside the chip's panel would be gated by
+      // the panel — a target reaches past its own extent and its ancestors do
+      // not — so its reach would be silently inert. The delete affordance adds
       // none, and exactly one box in the whole chip reaches past itself.
       //
-      // There are still *two* `TapTarget3d`s either way: the chip's, and the
-      // one an `InkWell3d` always installs, which `Chip3d` asks for at
+      // There are still *two* `RenderTapTarget3d`s either way: the chip's, and
+      // the one an `InkWell3d` always installs, which `Chip3d` asks for at
       // `Size3d.zero` so it is a box and not a reach. That is the same
       // arrangement `Button3d` uses, and counting the reaching ones is what
       // makes the claim mean something.
@@ -535,12 +535,12 @@ void main() {
       final with_ = await pumpComponent(
         tester,
         () => InputChip3d(
-          label: const SceneText3d('lucas'),
+          label: const Text3d('lucas'),
           onDeleted: () {},
           onPressed: () {},
         ),
       );
-      final targets = boxesOf<TapTarget3d>(with_.surface);
+      final targets = boxesOf<RenderTapTarget3d>(with_.surface);
       final reaching = targets
           .where((t) => t.effectiveMinimumSize.height > t.size.height)
           .toList();
@@ -549,11 +549,11 @@ void main() {
 
       final without = await pumpComponent(
         tester,
-        () => InputChip3d(label: const SceneText3d('lucas'), onPressed: () {}),
+        () => InputChip3d(label: const Text3d('lucas'), onPressed: () {}),
       );
       expect(
         targets.length,
-        boxesOf<TapTarget3d>(without.surface).length,
+        boxesOf<RenderTapTarget3d>(without.surface).length,
         reason: 'the delete affordance added no target at all',
       );
     });
@@ -583,7 +583,7 @@ void main() {
       final on = await pumpComponent(
         tester,
         () => FilterChip3d(
-          label: const SceneText3d('Unread'),
+          label: const Text3d('Unread'),
           selected: true,
           onSelected: (_) {},
           semanticLabel: 'Unread only',
@@ -594,7 +594,7 @@ void main() {
       final off = await pumpComponent(
         tester,
         () => FilterChip3d(
-          label: const SceneText3d('Unread'),
+          label: const Text3d('Unread'),
           onSelected: (_) {},
           semanticLabel: 'Unread only',
         ),

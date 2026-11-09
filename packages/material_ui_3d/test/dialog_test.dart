@@ -52,10 +52,13 @@ void main() {
     });
 
     test('is far more than the layout package\'s default lift', () {
-      // `Overlay3d.defaultLift` is a depth-buffer separation between two
+      // `RenderOverlay3d.defaultLift` is a depth-buffer separation between two
       // things with no thickness. A Material screen has spent four steps
       // before a dialog is asked for.
-      expect(Scaffold3d.overlayLift(12.0), greaterThan(Overlay3d.defaultLift));
+      expect(
+        Scaffold3d.overlayLift(12.0),
+        greaterThan(RenderOverlay3d.defaultLift),
+      );
       expect(Scaffold3d.overlayLift(12.0), 60.0);
     });
 
@@ -83,7 +86,7 @@ void main() {
         context: pumped.context,
         builder: (context) => const Dialog3d(
           semanticLabel: 'Delete this file?',
-          child: SceneSizedBox3d(width: 1, height: 0.4, depth: 0.02),
+          child: SizedBox3d(width: 1, height: 0.4, depth: 0.02),
         ),
       );
 
@@ -92,15 +95,15 @@ void main() {
       // frame. Flutter's own `showDialog` behaves the same way: inserting an
       // overlay entry marks the overlay for a rebuild.
       expect(pumped.overlay.entries, hasLength(1));
-      expect(boxesOf<ModalBarrier3d>(pumped.surface), isEmpty);
+      expect(boxesOf<RenderModalBarrier3d>(pumped.surface), isEmpty);
 
       await tester.pump();
-      expect(boxesOf<ModalBarrier3d>(pumped.surface), hasLength(1));
+      expect(boxesOf<RenderModalBarrier3d>(pumped.surface), hasLength(1));
 
       // Two panels: the scrim and the dialog.
       expect(pumped.panels.length, greaterThanOrEqualTo(2));
       expect(
-        boxesOf<Semantics3d>(
+        boxesOf<RenderSemantics3d>(
           pumped.surface,
         ).any((box) => box.properties.label == 'Delete this file?'),
         isTrue,
@@ -117,13 +120,13 @@ void main() {
       final pumped = await pumpOverlay(tester);
       showDialog3d<void>(
         context: pumped.context,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pumpAndSettle();
 
-      final barrier = oneOf<ModalBarrier3d>(pumped.surface);
+      final barrier = oneOf<RenderModalBarrier3d>(pumped.surface);
       final scrim = scrimOf(pumped.surface)!;
-      final dialog = boxesOf<DecoratedBox3d>(
+      final dialog = boxesOf<RenderDecoratedBox3d>(
         pumped.surface,
       ).firstWhere((box) => !identical(box, scrim));
 
@@ -152,7 +155,7 @@ void main() {
       final pumped = await pumpOverlay(tester);
       final dismissed = showDialog3d<String>(
         context: pumped.context,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pumpAndSettle();
 
@@ -167,7 +170,7 @@ void main() {
       final held = showDialog3d<String>(
         context: pumped.context,
         barrierDismissible: false,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pumpAndSettle();
       final second = Layout3dPointer(pumped.surface);
@@ -187,9 +190,9 @@ void main() {
       var taps = 0;
       final pumped = await pumpOverlay(
         tester,
-        child: SceneGestureDetector3d(
+        child: GestureDetector3d(
           onTap: () => taps++,
-          child: const SceneSizedBox3d(width: 8, height: 6, depth: 0.1),
+          child: const SizedBox3d(width: 8, height: 6, depth: 0.1),
         ),
       );
 
@@ -206,7 +209,7 @@ void main() {
       showDialog3d<void>(
         context: pumped.context,
         barrierDismissible: false,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pumpAndSettle();
 
@@ -221,7 +224,7 @@ void main() {
       final pumped = await pumpOverlay(tester);
       final dismissed = showDialog3d<String>(
         context: pumped.context,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pumpAndSettle();
 
@@ -235,7 +238,7 @@ void main() {
       final held = showDialog3d<String>(
         context: pumped.context,
         barrierDismissible: false,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pumpAndSettle();
 
@@ -252,7 +255,7 @@ void main() {
       final pumped = await pumpOverlay(tester);
       showDialog3d<void>(
         context: pumped.context,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pumpAndSettle();
 
@@ -269,13 +272,13 @@ void main() {
       showDialog3d<void>(
         context: pumped.context,
         builder: (context) => const Dialog3d(
-          child: SceneSizedBox3d(width: 0.5, height: 0.3, depth: 0.02),
+          child: SizedBox3d(width: 0.5, height: 0.3, depth: 0.02),
         ),
       );
       await tester.pumpAndSettle();
 
       final scrim = scrimOf(pumped.surface)!;
-      final dialog = boxesOf<DecoratedBox3d>(
+      final dialog = boxesOf<RenderDecoratedBox3d>(
         pumped.surface,
       ).firstWhere((box) => !identical(box, scrim));
       // 280dp minimum at a hundred logical pixels to the unit.
@@ -290,11 +293,11 @@ void main() {
       final pumped = await pumpOverlay(tester);
       showDialog3d<void>(
         context: pumped.context,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       showDialog3d<void>(
         context: pumped.context,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pumpAndSettle();
 
@@ -311,7 +314,7 @@ void main() {
     testWidgets('is a surface with the dialog tokens on it', (tester) async {
       final pumped = await pumpOverlay(
         tester,
-        child: const Dialog3d(child: SceneSizedBox3d.cube(0.2)),
+        child: const Dialog3d(child: SizedBox3d.cube(0.2)),
       );
       final style = DialogStyle3d.of(Theme3dData.light);
       final panel = pumped.panels.single;
@@ -330,10 +333,10 @@ void main() {
         tester,
         child: const Dialog3d(
           semanticLabel: 'Sign in',
-          child: SceneSizedBox3d.cube(0.2),
+          child: SizedBox3d.cube(0.2),
         ),
       );
-      final semantics = oneOf<Semantics3d>(pumped.surface);
+      final semantics = oneOf<RenderSemantics3d>(pumped.surface);
       expect(semantics.properties.label, 'Sign in');
       expect(semantics.properties.scopesRoute, isTrue);
       expect(semantics.properties.namesRoute, isTrue);
@@ -342,9 +345,9 @@ void main() {
     testWidgets('an unnamed dialog names no route', (tester) async {
       final pumped = await pumpOverlay(
         tester,
-        child: const Dialog3d(child: SceneSizedBox3d.cube(0.2)),
+        child: const Dialog3d(child: SizedBox3d.cube(0.2)),
       );
-      final semantics = oneOf<Semantics3d>(pumped.surface);
+      final semantics = oneOf<RenderSemantics3d>(pumped.surface);
       expect(semantics.properties.label, isNull);
       expect(semantics.properties.namesRoute, isFalse);
     });
@@ -364,7 +367,7 @@ void main() {
       final pumped = await pumpOverlay(tester);
       showDialog3d<void>(
         context: pumped.context,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pumpAndSettle();
 
@@ -393,7 +396,7 @@ void main() {
       final pumped = await pumpOverlay(tester);
       showDialog3d<void>(
         context: pumped.context,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 75));
@@ -421,7 +424,7 @@ void main() {
     double frontmostPanel(RenderObject3d screen) {
       var front = double.infinity;
       void walk(RenderObject3d box) {
-        if (box is DecoratedBox3d) {
+        if (box is RenderDecoratedBox3d) {
           final decoration = box.decoration;
           if (decoration is BoxDecoration3d && decoration.color.a == 1.0) {
             final z = box.drawnOffsetInSurface.z;
@@ -442,7 +445,7 @@ void main() {
         tester,
         child: Scaffold3d(
           appBar: AppBar3d.text(title: 'Inbox'),
-          body: const SceneSizedBox3d(width: 4, height: 3, depth: 0.05),
+          body: const SizedBox3d(width: 4, height: 3, depth: 0.05),
           bottomNavigationBar: NavigationBar3d(
             selectedIndex: 0,
             onDestinationSelected: (_) {},
@@ -460,7 +463,7 @@ void main() {
       );
       showDialog3d<void>(
         context: pumped.context,
-        builder: (context) => const Dialog3d(child: SceneSizedBox3d.cube(0.4)),
+        builder: (context) => const Dialog3d(child: SizedBox3d.cube(0.4)),
       );
       await tester.pumpAndSettle();
 

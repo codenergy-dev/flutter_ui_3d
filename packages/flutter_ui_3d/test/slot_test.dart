@@ -102,7 +102,7 @@ void main() {
       final box = PaddedBySlot();
       expect(box.slot(paletteSlot), isNull);
 
-      final surface = Layout3dSurface(child: box)
+      final surface = RenderSurface3d(child: box)
         ..setSlot(paletteSlot, const Palette(3))
         ..flush();
       expect(box.sawPadding, 3);
@@ -146,10 +146,10 @@ void main() {
     });
   });
 
-  group('SlotProvider3d', () {
+  group('RenderSlotProvider3d', () {
     test('writes while attached and clears when it detaches', () {
       final box = PaddedBySlot();
-      final provider = SlotProvider3d<Palette>(
+      final provider = RenderSlotProvider3d<Palette>(
         slot: paletteSlot,
         value: const Palette(4),
         child: box,
@@ -167,16 +167,16 @@ void main() {
   });
 
   group('the widget layer', () {
-    testWidgets('SceneLayout3d.slots writes and clears', (tester) async {
+    testWidgets('Surface3d.slots writes and clears', (tester) async {
       late PaddedBySlot box;
       final controller = Layout3dController();
 
-      Widget frame(Map<Layout3dSlot<Object>, Object> slots) => SceneLayout3d(
+      Widget frame(Map<Layout3dSlot<Object>, Object> slots) => Surface3d(
         parent: Node(),
         constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
         controller: controller,
         slots: slots,
-        child: _SceneSlotReader((made) => box = made),
+        child: _SlotReader((made) => box = made),
       );
 
       await tester.pumpWidget(frame({paletteSlot: const Palette(6)}));
@@ -191,20 +191,18 @@ void main() {
       expect(box.sawPadding, isNull);
     });
 
-    testWidgets('SceneSlotProvider3d writes from inside the tree', (
-      tester,
-    ) async {
+    testWidgets('SlotProvider3d writes from inside the tree', (tester) async {
       late PaddedBySlot box;
       final controller = Layout3dController();
 
-      Widget frame(double padding) => SceneLayout3d(
+      Widget frame(double padding) => Surface3d(
         parent: Node(),
         constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
         controller: controller,
-        child: SceneSlotProvider3d<Palette>(
+        child: SlotProvider3d<Palette>(
           slot: paletteSlot,
           value: Palette(padding),
-          child: _SceneSlotReader((made) => box = made),
+          child: _SlotReader((made) => box = made),
         ),
       );
 
@@ -220,17 +218,17 @@ void main() {
     ) async {
       final controller = Layout3dController();
 
-      Widget frame({required bool themed}) => SceneLayout3d(
+      Widget frame({required bool themed}) => Surface3d(
         parent: Node(),
         constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
         controller: controller,
         child: themed
-            ? const SceneSlotProvider3d<Palette>(
+            ? const SlotProvider3d<Palette>(
                 slot: paletteSlot,
                 value: Palette(7),
-                child: SceneSizedBox3d.cube(1),
+                child: SizedBox3d.cube(1),
               )
-            : const SceneSizedBox3d.cube(1),
+            : const SizedBox3d.cube(1),
       );
 
       await tester.pumpWidget(frame(themed: true));
@@ -243,8 +241,8 @@ void main() {
 }
 
 /// Hosts a [PaddedBySlot] in the widget tree.
-class _SceneSlotReader extends MultiChildRenderObjectWidget3d {
-  const _SceneSlotReader(this.sink);
+class _SlotReader extends MultiChildRenderObjectWidget3d {
+  const _SlotReader(this.sink);
 
   final void Function(PaddedBySlot) sink;
 

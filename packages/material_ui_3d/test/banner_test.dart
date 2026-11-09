@@ -15,11 +15,11 @@ const double _dp = 0.01;
 
 /// A banner at the top of a screen-shaped column, which is where a static
 /// banner goes, and where its height is its own rather than the surface's.
-Widget _atTop(Widget banner) => SceneColumn3d(
+Widget _atTop(Widget banner) => Column3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
     banner,
-    const SceneExpanded3d(child: SceneSizedBox3d()),
+    const Expanded3d(child: SizedBox3d()),
   ],
 );
 
@@ -34,22 +34,19 @@ Offset3d _origin(RenderObject3d box) {
   return at;
 }
 
-Text3d _label(Layout3dSurface surface, String text) =>
-    boxesOf<Text3d>(surface).singleWhere((box) => box.data == text);
+RenderText3d _label(RenderSurface3d surface, String text) =>
+    boxesOf<RenderText3d>(surface).singleWhere((box) => box.data == text);
 
 /// The banner's own panel: the one in its container colour.
-DecoratedBox3d _strip(Layout3dSurface surface) =>
-    boxesOf<DecoratedBox3d>(surface).firstWhere(
+RenderDecoratedBox3d _strip(RenderSurface3d surface) =>
+    boxesOf<RenderDecoratedBox3d>(surface).firstWhere(
       (box) =>
           (box.decoration as BoxDecoration3d).color ==
           _theme.colorScheme.surfaceContainerLow,
     );
 
-TextButton3d _button(String label) => TextButton3d(
-  semanticLabel: label,
-  onPressed: () {},
-  child: SceneText3d(label),
-);
+TextButton3d _button(String label) =>
+    TextButton3d(semanticLabel: label, onPressed: () {}, child: Text3d(label));
 
 const String _message = 'Offline';
 
@@ -190,7 +187,7 @@ void main() {
       );
       final strip = _strip(pumped.surface);
       expect((strip.decoration as BoxDecoration3d).elevation, 1.0);
-      final rules = boxesOf<DecoratedBox3d>(pumped.surface).where(
+      final rules = boxesOf<RenderDecoratedBox3d>(pumped.surface).where(
         (box) =>
             (box.decoration as BoxDecoration3d).color ==
             _theme.colorScheme.outlineVariant,
@@ -198,7 +195,7 @@ void main() {
       expect(rules, isEmpty);
       // The margin is under the strip: the first box below the column is
       // ten logical pixels taller than the strip.
-      final column = outermostOf<Flex3d>(pumped.surface);
+      final column = outermostOf<RenderFlex3d>(pumped.surface);
       final banner = boxesOf<RenderObject3d>(
         pumped.surface,
       ).firstWhere((box) => identical(box.parent, column));
@@ -217,13 +214,13 @@ void main() {
         ),
         centred: false,
       );
-      final rules = boxesOf<DecoratedBox3d>(pumped.surface).where(
+      final rules = boxesOf<RenderDecoratedBox3d>(pumped.surface).where(
         (box) =>
             (box.decoration as BoxDecoration3d).color ==
             _theme.colorScheme.outlineVariant,
       );
       expect(rules, hasLength(1));
-      final column = outermostOf<Flex3d>(pumped.surface);
+      final column = outermostOf<RenderFlex3d>(pumped.surface);
       final banner = boxesOf<RenderObject3d>(
         pumped.surface,
       ).firstWhere((box) => identical(box.parent, column));
@@ -246,7 +243,7 @@ void main() {
         ),
         centred: false,
       );
-      final labels = boxesOf<Semantics3d>(
+      final labels = boxesOf<RenderSemantics3d>(
         pumped.surface,
       ).map((box) => box.properties.label);
       expect(labels, contains(_message));

@@ -10,8 +10,8 @@ import '../scroll/scroll_controller.dart';
 import 'sliver.dart';
 import 'sliver_constraints.dart';
 
-/// What a [SliverPersistentHeader3d] shows, and how far it may shrink, the 3D
-/// analogue of [SliverPersistentHeaderDelegate].
+/// What a [RenderSliverPersistentHeader3d] shows, and how far it may shrink,
+/// the 3D analogue of [SliverPersistentHeaderDelegate].
 ///
 /// Two numbers and a build. [maxExtent] is the header at rest, [minExtent] is
 /// the header collapsed, and [build] is asked for the content at a given
@@ -33,8 +33,8 @@ import 'sliver_constraints.dart';
 /// class _Bar extends SliverPersistentHeader3dDelegate {
 ///   _Bar(this._panel, this._label);
 ///
-///   final DecoratedBox3d _panel;
-///   final Text3d _label;
+///   final RenderDecoratedBox3d _panel;
+///   final RenderText3d _label;
 ///
 ///   @override
 ///   double get minExtent => 0.5;
@@ -68,8 +68,8 @@ abstract class SliverPersistentHeader3dDelegate {
   /// Must be at least [minExtent]. Both are along the viewport's scroll axis
   /// and in layout units, so a delegate stating a size in logical pixels
   /// converts through [RenderObject3d.metrics] — a header knows its own
-  /// metrics before it builds, and [SliverPersistentHeader3d.metrics] is the
-  /// same object.
+  /// metrics before it builds, and [RenderSliverPersistentHeader3d.metrics] is
+  /// the same object.
   double get maxExtent;
 
   /// The header's content, squeezed by [shrinkOffset].
@@ -119,9 +119,9 @@ abstract class SliverPersistentHeader3dDelegate {
 ///    scene, it costs nothing, and for an opaque bar spanning the cross axis
 ///    it gives exactly the 2D picture. It is written to
 ///    [ParentData3d.sceneOffset], so the header's box does not move: layout
-///    and hit testing are untouched, the same trade `Stack3d.depthStep`
+///    and hit testing are untouched, the same trade `RenderStack3d.depthStep`
 ///    makes.
-///  * `CustomScrollView3d` publishes a clip plane at the trailing edge of
+///  * `RenderCustomScrollView3d` publishes a clip plane at the trailing edge of
 ///    whatever this header is obstructing, which is what cuts a row *in half*
 ///    at the bar's edge. That reaches the content through
 ///    [RenderObject3d.clipRegion], and a material that reads clip planes (a
@@ -131,10 +131,10 @@ abstract class SliverPersistentHeader3dDelegate {
 /// Neither is free of the other: the lift alone leaves a row visible past the
 /// bar's silhouette, and the clip alone leaves a shader that ignores planes
 /// interpenetrating the bar.
-class SliverPersistentHeader3d extends Sliver3d
+class RenderSliverPersistentHeader3d extends RenderSliver3d
     with RenderObjectWithChildMixin3d, RenderLayoutPassMixin3d {
   /// Creates a header showing what [delegate] builds.
-  SliverPersistentHeader3d({
+  RenderSliverPersistentHeader3d({
     required SliverPersistentHeader3dDelegate delegate,
     bool pinned = false,
     bool floating = false,
@@ -472,7 +472,7 @@ class SliverPersistentHeader3d extends Sliver3d
     final data = parentData;
     if (data == null) return;
     // Toward the viewer is negative depth, the same direction
-    // `Stack3d.depthStep` separates its children in.
+    // `RenderStack3d.depthStep` separates its children in.
     final wanted = distance == 0.0 ? Offset3d.zero : Offset3d(0, 0, -distance);
     if (data.sceneOffset == wanted) return;
     data.sceneOffset = wanted;
@@ -509,9 +509,9 @@ class SliverPersistentHeader3d extends Sliver3d
 /// subtree is inflated by the element tree, in Flutter's build phase, and the
 /// only machinery here that inflates one inside a layout pass is the lazily
 /// built children lane, which a header is not. So the widget layer keeps one
-/// subtree, attaches it as [SliverPersistentHeader3d.child] the ordinary way,
-/// and this delegate hands that same instance back every time — which is the
-/// shape [SliverPersistentHeader3dDelegate] already asks for, stated as a
+/// subtree, attaches it as [RenderSliverPersistentHeader3d.child] the ordinary
+/// way, and this delegate hands that same instance back every time — which is
+/// the shape [SliverPersistentHeader3dDelegate] already asks for, stated as a
 /// class rather than as advice.
 ///
 /// The header therefore never drops or disposes the content: `build` returns
@@ -537,7 +537,7 @@ class HeldSliverPersistentHeader3dDelegate
   /// Late rather than a constructor argument because the two refer to each
   /// other: the header takes the delegate, and the delegate reads the
   /// header's child.
-  late SliverPersistentHeader3d header;
+  late RenderSliverPersistentHeader3d header;
 
   double _minExtent;
 
@@ -576,7 +576,7 @@ class HeldSliverPersistentHeader3dDelegate
     assert(
       held != null,
       'A $runtimeType has no content. The subtree is attached as the '
-      "header's child by whoever owns it — a SceneSliverPersistentHeader3d "
+      "header's child by whoever owns it — a SliverPersistentHeader3d "
       'attaches the widget it was given — so a null one means the header was '
       'laid out before anything was put in it.',
     );

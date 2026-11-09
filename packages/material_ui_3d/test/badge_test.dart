@@ -23,7 +23,7 @@ const Theme3dData _theme = Theme3dData.light;
 const double _dp = 0.01;
 
 /// A 40dp square to decorate, so every position below is arithmetic.
-Widget _square() => SceneSizedBox3d(width: 40 * _dp, height: 40 * _dp);
+Widget _square() => SizedBox3d(width: 40 * _dp, height: 40 * _dp);
 
 /// Where [box]'s origin is, in the frame of [ancestor].
 Offset3d _originIn(RenderObject3d box, RenderObject3d ancestor) {
@@ -37,14 +37,15 @@ Offset3d _originIn(RenderObject3d box, RenderObject3d ancestor) {
 }
 
 /// The badge's own panel: the one in the error colour.
-DecoratedBox3d _badgePanel(Layout3dSurface surface) =>
-    boxesOf<DecoratedBox3d>(surface).singleWhere(
+RenderDecoratedBox3d _badgePanel(RenderSurface3d surface) =>
+    boxesOf<RenderDecoratedBox3d>(surface).singleWhere(
       (box) =>
           (box.decoration as BoxDecoration3d).color == _theme.colorScheme.error,
     );
 
 /// The stack the badge and its child share.
-Stack3d _stack(Layout3dSurface surface) => outermostOf<Stack3d>(surface);
+RenderStack3d _stack(RenderSurface3d surface) =>
+    outermostOf<RenderStack3d>(surface);
 
 void main() {
   group('the tokens', () {
@@ -75,7 +76,7 @@ void main() {
     });
 
     test('count writes the number, and caps it', () {
-      String labelOf(Badge3d badge) => (badge.label! as SceneText3d).data;
+      String labelOf(Badge3d badge) => (badge.label! as Text3d).data;
       expect(labelOf(Badge3d.count(count: 3)), '3');
       expect(labelOf(Badge3d.count(count: 999)), '999');
       expect(labelOf(Badge3d.count(count: 1000)), '999+');
@@ -103,7 +104,7 @@ void main() {
     ) async {
       final pumped = await pumpComponent(
         tester,
-        () => Badge3d(label: const SceneText3d('3'), child: _square()),
+        () => Badge3d(label: const Text3d('3'), child: _square()),
       );
       final panel = _badgePanel(pumped.surface);
       expect(panel.size.height, closeTo(16 * _dp, 1e-9));
@@ -117,7 +118,7 @@ void main() {
     testWidgets('and mirrors in right to left', (tester) async {
       final pumped = await pumpComponent(
         tester,
-        () => Badge3d(label: const SceneText3d('3'), child: _square()),
+        () => Badge3d(label: const Text3d('3'), child: _square()),
         textDirection: TextDirection.rtl,
       );
       final at = _originIn(_badgePanel(pumped.surface), _stack(pumped.surface));
@@ -143,9 +144,9 @@ void main() {
     testWidgets('a badge with no child is just the badge', (tester) async {
       final pumped = await pumpComponent(
         tester,
-        () => const Badge3d(label: SceneText3d('New')),
+        () => const Badge3d(label: Text3d('New')),
       );
-      expect(boxesOf<Stack3d>(pumped.surface), isEmpty);
+      expect(boxesOf<RenderStack3d>(pumped.surface), isEmpty);
       expect(_badgePanel(pumped.surface).size.height, closeTo(0.16, 1e-9));
     });
 
@@ -154,8 +155,8 @@ void main() {
         tester,
         () => Badge3d(isLabelVisible: false, child: _square()),
       );
-      expect(boxesOf<DecoratedBox3d>(pumped.surface), isEmpty);
-      expect(boxesOf<Stack3d>(pumped.surface), isEmpty);
+      expect(boxesOf<RenderDecoratedBox3d>(pumped.surface), isEmpty);
+      expect(boxesOf<RenderStack3d>(pumped.surface), isEmpty);
     });
   });
 
@@ -171,15 +172,13 @@ void main() {
           data: const MediaQueryData(textScaler: TextScaler.linear(2.0)),
           child: Directionality(
             textDirection: TextDirection.ltr,
-            child: SceneLayout3d(
+            child: Surface3d(
               parent: Node(),
               size: const Size3d(4, 3, 0.5),
               controller: controller,
-              child: SceneTheme3d(
+              child: Theme3d(
                 data: _theme,
-                child: SceneCenter3d(
-                  child: Badge3d(label: const SceneText3d('3')),
-                ),
+                child: Center3d(child: Badge3d(label: const Text3d('3'))),
               ),
             ),
           ),
@@ -199,7 +198,7 @@ void main() {
         tester,
         () => Badge3d(child: const Icon3d(Icons.inbox)),
       );
-      final placement = boxesOf<Positioned3d>(pumped.surface).single;
+      final placement = boxesOf<RenderPositioned3d>(pumped.surface).single;
       expect(
         placement.sceneOffset.z,
         closeTo(-BadgeStyle3d.of(_theme).depthStep * _dp, 1e-9),
@@ -248,7 +247,7 @@ void main() {
         tester,
         () => Badge3d.count(count: 3, child: _square()),
       );
-      expect(boxesOf<Semantics3d>(pumped.surface), isEmpty);
+      expect(boxesOf<RenderSemantics3d>(pumped.surface), isEmpty);
     });
 
     testWidgets('what it is told', (tester) async {
@@ -260,7 +259,10 @@ void main() {
           child: _square(),
         ),
       );
-      expect(oneOf<Semantics3d>(pumped.surface).properties.label, '3 unread');
+      expect(
+        oneOf<RenderSemantics3d>(pumped.surface).properties.label,
+        '3 unread',
+      );
     });
   });
 }

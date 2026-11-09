@@ -1,4 +1,4 @@
-// GestureDetector3d: Flutter's own recognizers, driven from a plane.
+// RenderGestureDetector3d: Flutter's own recognizers, driven from a plane.
 //
 // These need Flutter's gesture binding, because a GestureRecognizer reaches
 // for `GestureBinding.instance` itself — the arena and the pointer router are
@@ -20,13 +20,13 @@ void main() {
     test('fires, and reports where it landed in the box own frame', () {
       var taps = 0;
       TapDownDetails? down;
-      final button = GestureDetector3d(
+      final button = RenderGestureDetector3d(
         onTap: () => taps++,
         onTapDown: (details) => down = details,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(
-        Center3d(child: button),
+        RenderCenter3d(child: button),
         constraints: Constraints3d.tight(const Size3d(3, 3, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -44,11 +44,13 @@ void main() {
 
     test('the padding around the label is part of the target', () {
       var taps = 0;
-      final button = GestureDetector3d(
+      final button = RenderGestureDetector3d(
         onTap: () => taps++,
-        child: Padding3d(
+        child: RenderPadding3d(
           padding: const EdgeInsets3d.all(0.5),
-          child: IgnorePointer3d(child: TestBox(const Size3d(1, 1, 0))),
+          child: RenderIgnorePointer3d(
+            child: RenderTestBox(const Size3d(1, 1, 0)),
+          ),
         ),
       );
       final surface = laidOut(
@@ -67,13 +69,13 @@ void main() {
     test('a press that wanders off the panel does not tap', () async {
       var taps = 0;
       var cancels = 0;
-      final button = GestureDetector3d(
+      final button = RenderGestureDetector3d(
         onTap: () => taps++,
         onTapCancel: () => cancels++,
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(
-        Center3d(child: button),
+        RenderCenter3d(child: button),
         constraints: Constraints3d.tight(const Size3d(4, 4, 0)),
       );
       final pointer = Layout3dPointer(surface);
@@ -92,7 +94,9 @@ void main() {
     });
 
     test('a detector with no callbacks owns no recognizers', () {
-      final detector = GestureDetector3d(child: TestBox(const Size3d(1, 1, 0)));
+      final detector = RenderGestureDetector3d(
+        child: RenderTestBox(const Size3d(1, 1, 0)),
+      );
       final surface = laidOut(
         detector,
         constraints: Constraints3d.tight(const Size3d(1, 1, 0)),
@@ -107,8 +111,8 @@ void main() {
       'a callback set after the fact arms a recognizer at the next press',
       () {
         var taps = 0;
-        final detector = GestureDetector3d(
-          child: TestBox(const Size3d(1, 1, 0)),
+        final detector = RenderGestureDetector3d(
+          child: RenderTestBox(const Size3d(1, 1, 0)),
         );
         final surface = laidOut(
           detector,
@@ -128,20 +132,20 @@ void main() {
 
   group('a tap against a drag', () {
     ({
-      Layout3dSurface surface,
-      ListView3d list,
+      RenderSurface3d surface,
+      RenderListView3d list,
       Layout3dPointer pointer,
       List<String> log,
     })
     listOfButtons() {
       final log = <String>[];
-      final list = ListView3d(
+      final list = RenderListView3d(
         children: List.generate(
           8,
-          (index) => GestureDetector3d(
+          (index) => RenderGestureDetector3d(
             onTap: () => log.add('tap $index'),
             onTapCancel: () => log.add('cancel $index'),
-            child: TestBox(const Size3d(1, 1, 0)),
+            child: RenderTestBox(const Size3d(1, 1, 0)),
           ),
         ),
       );
@@ -212,10 +216,10 @@ void main() {
     test('a list with nothing competing scrolls from the first move', () {
       // The other half of the bargain: without a recognizer in the path
       // there is no arena, no binding and no waiting.
-      final list = ListView3d(
+      final list = RenderListView3d(
         children: List.generate(
           8,
-          (index) => TestBox(const Size3d(1, 1, 0), pointable: true),
+          (index) => RenderTestBox(const Size3d(1, 1, 0), pointable: true),
         ),
       );
       final surface = laidOut(
@@ -241,11 +245,11 @@ void main() {
       // breakage `LongPressGestureRecognizer` shows below.
       DragStartDetails? start;
       final surface = laidOut(
-        GestureDetector3d(
+        RenderGestureDetector3d(
           onPanStart: (details) => start = details,
           onPanUpdate: (_) {},
           onPanEnd: (_) {},
-          child: TestBox(const Size3d(2, 2, 0)),
+          child: RenderTestBox(const Size3d(2, 2, 0)),
         ),
         constraints: Constraints3d.tight(const Size3d(2, 2, 0)),
       );
@@ -270,9 +274,9 @@ void main() {
       // anywhere near it. What this package owes the recognizer is the down
       // event, which it gets — the same one a `RenderPointerListener` would
       // hand it.
-      final detector = GestureDetector3d(
+      final detector = RenderGestureDetector3d(
         onLongPress: () {},
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       final surface = laidOut(
         detector,
@@ -290,13 +294,17 @@ void main() {
   });
 
   group('driving a state layer', () {
-    ({Layout3dSurface surface, DecoratedBox3d panel, Layout3dPointer pointer})
+    ({
+      RenderSurface3d surface,
+      RenderDecoratedBox3d panel,
+      Layout3dPointer pointer,
+    })
     button() {
-      final panel = DecoratedBox3d(
+      final panel = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(color: Color(0xFF202124)),
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
-      final detector = GestureDetector3d(child: panel);
+      final detector = RenderGestureDetector3d(child: panel);
       const pressed = StateLayer3d(color: Color(0xFFFFFFFF), opacity: 0.12);
       detector.onTapDown = (_) {
         panel.stateLayer = pressed;
@@ -343,14 +351,14 @@ void main() {
     );
 
     test('a hover lights the panel and leaving it puts it out', () {
-      final panel = DecoratedBox3d(
+      final panel = RenderDecoratedBox3d(
         decoration: const BoxDecoration3d(color: Color(0xFF202124)),
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       );
       const hovered = StateLayer3d(color: Color(0xFFFFFFFF), opacity: 0.08);
       final surface = laidOut(
-        Center3d(
-          child: Listener3d(
+        RenderCenter3d(
+          child: RenderListener3d(
             behavior: HitTestBehavior3d.opaque,
             onPointerEnter: (_) {
               panel.stateLayer = hovered;

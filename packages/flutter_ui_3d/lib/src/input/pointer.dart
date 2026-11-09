@@ -94,7 +94,7 @@ import 'events.dart';
 /// Recognition uses Flutter's own [GestureBinding]: its arena and its pointer
 /// router, because [GestureRecognizer] reaches for `GestureBinding.instance`
 /// directly and cannot be pointed at a private one. So a tree with a
-/// [GestureDetector3d] in it needs the binding initialized —
+/// [RenderGestureDetector3d] in it needs the binding initialized —
 /// `WidgetsFlutterBinding.ensureInitialized()`, which `runApp` has already
 /// done, or `TestWidgetsFlutterBinding.ensureInitialized()` in a test.
 /// Hit testing, dispatch, hover and the plain scroll drag need nothing.
@@ -103,7 +103,7 @@ class Layout3dPointer {
   Layout3dPointer(this.surface);
 
   /// The surface this pointer tests against.
-  final Layout3dSurface surface;
+  final RenderSurface3d surface;
 
   final Map<int, _Sequence> _sequences = <int, _Sequence>{};
   final Map<int, _Hover> _hovers = <int, _Hover>{};
@@ -194,9 +194,9 @@ class Layout3dPointer {
   /// sequence drops it. Starting a second session on one pointer cancels the
   /// first, because a finger carries one thing.
   ///
-  /// A [Draggable3d] reaches this through [PointerSequence3d.startDrag], from
-  /// inside the down it is handling; calling it directly is how a test, or a
-  /// host with a drag source of its own, drives a session by hand.
+  /// A [RenderDraggable3d] reaches this through [PointerSequence3d.startDrag],
+  /// from inside the down it is handling; calling it directly is how a test, or
+  /// a host with a drag source of its own, drives a session by hand.
   ///
   /// The session takes itself out of the registry when it ends, whatever
   /// ended it, so there is nothing to unregister.
@@ -561,7 +561,7 @@ class Layout3dPointer {
   /// that every later event it is routed reports positions in this target's
   /// frame. It is the translation between the two frames at the moment of the
   /// event, which is exact for a box parallel to the surface — every box is,
-  /// unless a `Transform3d` turned one — and drifts for a box seen at an
+  /// unless a `RenderTransform3d` turned one — and drifts for a box seen at an
   /// angle. A control that needs the exact point in its own frame at any
   /// angle reads [PointerEvent3d.localPosition], which is computed from the
   /// ray every time.
@@ -780,7 +780,7 @@ class _Sequence implements PointerSequence3d, GestureArenaMember {
     for (final entry in hit.path) {
       _depths[entry.layout] = entry.localPosition.z;
     }
-    final surfaceEntry = hit.entryOf<Layout3dSurface>();
+    final surfaceEntry = hit.entryOf<RenderSurface3d>();
     _surfaceDepth = surfaceEntry?.localPosition.z ?? 0.0;
     _global = _globalFor(worldRay) ?? Offset.zero;
     if (!dispatches) {
@@ -934,7 +934,7 @@ class _Sequence implements PointerSequence3d, GestureArenaMember {
   ///
   /// When nothing else wants the pointer the drag starts at once, which is
   /// what a list under a finger has always done here. When something does —
-  /// a `GestureDetector3d` armed a recognizer while the down was being
+  /// a `RenderGestureDetector3d` armed a recognizer while the down was being
   /// dispatched — the view instead enters the arena and waits for the touch
   /// slop before claiming the pointer, so a tap on a list item is a tap.
   void _armDrag(Ray worldRay, Duration timeStamp) {

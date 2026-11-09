@@ -26,7 +26,7 @@
 
 import 'package:flutter/material.dart' as material;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_ui_3d/rendering.dart' show TapTarget3d;
+import 'package:flutter_ui_3d/rendering.dart' show RenderTapTarget3d;
 import 'package:material_ui_3d/material_ui_3d.dart';
 
 void main() {
@@ -55,10 +55,13 @@ void main() {
     });
 
     test('the target is the minimum interactive dimension', () {
-      expect(TapTarget3d.materialMinimum, material.kMinInteractiveDimension);
+      expect(
+        RenderTapTarget3d.materialMinimum,
+        material.kMinInteractiveDimension,
+      );
       expect(
         checkbox.stateLayerSize,
-        lessThan(TapTarget3d.materialMinimum),
+        lessThan(RenderTapTarget3d.materialMinimum),
         reason: 'which is why the reach is load-bearing on a checkbox',
       );
     });
@@ -77,7 +80,7 @@ void main() {
       );
       expect(
         slider.stateLayerSize,
-        TapTarget3d.materialMinimum,
+        RenderTapTarget3d.materialMinimum,
         reason:
             'a coincidence rather than a construction: the only control here '
             'whose wash and whose reach are the same figure',
@@ -104,7 +107,7 @@ void main() {
       expect(size.width - 8.0, toggle.trackWidth);
       expect(
         size.height,
-        TapTarget3d.materialMinimum,
+        RenderTapTarget3d.materialMinimum,
         reason: "a real switch lays out at its target, not at its track's 32dp",
       );
     });
@@ -159,15 +162,15 @@ void main() {
       );
       // Flutter's control *is* its target, because a 2D framework can grow a
       // box without moving its neighbours apart in three dimensions. Here the
-      // reach is invisible to layout instead, which is `TapTarget3d`'s whole
-      // design — so the extent is 40dp and the target is 48.
+      // reach is invisible to layout instead, which is `RenderTapTarget3d`'s
+      // whole design — so the extent is 40dp and the target is 48.
       expect(
         tester.getSize(find.byType(material.Checkbox)).width,
-        TapTarget3d.materialMinimum,
+        RenderTapTarget3d.materialMinimum,
       );
       expect(
         tester.getSize(find.byType(material.Radio<int>)).width,
-        TapTarget3d.materialMinimum,
+        RenderTapTarget3d.materialMinimum,
       );
     });
   });

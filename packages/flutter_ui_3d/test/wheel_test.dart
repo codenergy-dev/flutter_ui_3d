@@ -4,7 +4,7 @@
 // Three layers, bottom up. The controller's `pointerScroll` is arithmetic.
 // `PointerScroll3d` and the pan-zoom sequence are the rules — which view takes
 // a wheel, and what a pan presses (nothing) — driven with hand-made rays. And
-// `SceneInput3d` is the platform's events arriving, including the one thing
+// `Input3d` is the platform's events arriving, including the one thing
 // only a widget test can check: that the scene claims a wheel through
 // Flutter's resolver, and leaves it for the widget tree around it when it has
 // nothing to move.
@@ -25,26 +25,26 @@ import 'package:vector_math/vector_math.dart' show Vector3;
 import 'support.dart';
 
 /// A leaf that answers hit tests, which is what real content does.
-TestBox solid(Size3d size) => TestBox(size, pointable: true);
+RenderTestBox solid(Size3d size) => RenderTestBox(size, pointable: true);
 
 /// A vertical list two units tall over eight one-unit rows, so there are six
 /// units to scroll. Fifty logical pixels is half a unit, through the standard
 /// hundred to the unit.
 ({
-  Layout3dSurface surface,
-  ListView3d list,
+  RenderSurface3d surface,
+  RenderListView3d list,
   Layout3dPointer pointer,
   List<String> log,
 })
 tallList({Scroll3dPhysics? physics}) {
   final log = <String>[];
-  final list = ListView3d(
+  final list = RenderListView3d(
     controller: physics == null ? null : Scroll3dController(physics: physics),
     children: List.generate(
       8,
-      (index) => GestureDetector3d(
+      (index) => RenderGestureDetector3d(
         onTap: () => log.add('tap $index'),
-        child: TestBox(const Size3d(1, 1, 0)),
+        child: RenderTestBox(const Size3d(1, 1, 0)),
       ),
     ),
   );
@@ -179,13 +179,13 @@ void main() {
     });
 
     test('a wheel scrolls through a sideways view to the list around it', () {
-      final carousel = ListView3d(
+      final carousel = RenderListView3d(
         scrollDirection: Axis3d.horizontal,
         children: List.generate(6, (_) => solid(const Size3d(1, 1, 0))),
       );
-      final outer = ListView3d(
+      final outer = RenderListView3d(
         children: <RenderObject3d>[
-          SizedBox3d(width: 2, height: 1, child: carousel),
+          RenderSizedBox3d(width: 2, height: 1, child: carousel),
           ...List.generate(6, (_) => solid(const Size3d(2, 1, 0))),
         ],
       );
@@ -214,12 +214,12 @@ void main() {
     });
 
     test('a wheel at the end of an inner list goes on to the outer one', () {
-      final inner = ListView3d(
+      final inner = RenderListView3d(
         children: List.generate(4, (_) => solid(const Size3d(2, 1, 0))),
       );
-      final outer = ListView3d(
+      final outer = RenderListView3d(
         children: <RenderObject3d>[
-          SizedBox3d(width: 2, height: 1, child: inner),
+          RenderSizedBox3d(width: 2, height: 1, child: inner),
           ...List.generate(6, (_) => solid(const Size3d(2, 1, 0))),
         ],
       );
@@ -246,7 +246,7 @@ void main() {
     });
 
     test('the delta is taken through the surface\'s metrics', () {
-      final list = ListView3d(
+      final list = RenderListView3d(
         children: List.generate(8, (_) => solid(const Size3d(1, 1, 0))),
       );
       final surface = laidOut(
@@ -278,7 +278,7 @@ void main() {
       final ray = rayAt(panel.surface, middle);
 
       expect(group.resolveScroll(ray, const Offset(0, 50)), isNull);
-      expect(group.lastHit.firstOf<TestBox>(), isNotNull);
+      expect(group.lastHit.firstOf<RenderTestBox>(), isNotNull);
 
       group.addSurface(dialog, zOrder: 1, absorbs: false);
       expect(
@@ -390,7 +390,7 @@ void main() {
     });
   });
 
-  group('through SceneInput3d', () {
+  group('through Input3d', () {
     PerspectiveCamera camera() => PerspectiveCamera(
       fovRadiansY: math.pi / 4,
       position: Vector3(0, 0, 5),
@@ -404,24 +404,24 @@ void main() {
       Axis3d axis = Axis3d.vertical,
       List<String>? log,
       Input3dHitCallback? onHit,
-    }) => SceneInput3d(
+    }) => Input3d(
       camera: camera(),
       onHit: onHit,
       child: SizedBox.expand(
         child: Stack(
           alignment: Alignment.topLeft,
           children: <Widget>[
-            SceneLayout3d(
+            Surface3d(
               parent: Node(),
               size: const Size3d(4, 4, 0.2),
-              child: SceneListView3d(
+              child: ListView3d(
                 controller: controller,
                 scrollDirection: axis,
                 children: List.generate(
                   12,
-                  (index) => SceneGestureDetector3d(
+                  (index) => GestureDetector3d(
                     onTap: () => log?.add('tap $index'),
-                    child: const SceneSizedBox3d.cube(1),
+                    child: const SizedBox3d.cube(1),
                   ),
                 ),
               ),

@@ -9,11 +9,11 @@ import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
         MediaQuery3d,
-        SceneClipBox3d,
-        SceneCustomMultiChildLayout3d,
-        SceneLayoutId3d,
-        ScenePositioned3d,
-        SceneStack3d,
+        ClipBox3d,
+        CustomMultiChildLayout3d,
+        LayoutId3d,
+        Positioned3d,
+        Stack3d,
         StackFit3d;
 
 import '../theme/theme.dart';
@@ -49,7 +49,7 @@ enum Scaffold3dSlot {
 /// ```dart
 /// Scaffold3d(
 ///   appBar: AppBar3d.text(title: 'Inbox'),
-///   body: SceneListView3d(children: rows),
+///   body: ListView3d(children: rows),
 ///   bottomNavigationBar: NavigationBar3d(
 ///     selectedIndex: index,
 ///     destinations: destinations,
@@ -67,9 +67,10 @@ enum Scaffold3dSlot {
 ///
 /// It owns three things and nothing else: the **backing** every screen has
 /// (a `Material3d` at `colorScheme.surface`), the **arrangement** — a
-/// `CustomMultiChildLayout3d`, exactly as Flutter's `Scaffold` is one, with
-/// the body given whatever the bars left over — and the **depths**. Everything
-/// in the slots is a widget the caller built and the scaffold does not touch.
+/// `RenderCustomMultiChildLayout3d`, exactly as Flutter's `Scaffold` is one,
+/// with the body given whatever the bars left over — and the **depths**.
+/// Everything in the slots is a widget the caller built and the scaffold does
+/// not touch.
 ///
 /// **It does not bind a surface, and that is a decision.** A
 /// `Layout3dCameraBinding` makes a surface cover the view, which is what turns
@@ -80,10 +81,10 @@ enum Scaffold3dSlot {
 /// once, where it mounts the surface:
 ///
 /// ```dart
-/// SceneLayout3d(
+/// Surface3d(
 ///   camera: camera,
 ///   binding: const Layout3dCameraBinding.screenFilling(distance: 2),
-///   child: SceneTheme3d(
+///   child: Theme3d(
 ///     data: Theme3dData.light,
 ///     textRendererFactory: AtlasText3dRenderer.new,
 ///     child: Scaffold3d(appBar: bar, body: body),
@@ -121,14 +122,14 @@ enum Scaffold3dSlot {
 /// **A `SliverAppBar3d` inside the body is a separate guarantee**, because it
 /// is not in the [appBar] slot at all — it is a sliver in the body's own
 /// scroll view, and what keeps content out of it is
-/// `SliverPersistentHeader3d.lift`. `SliverAppBar3d` defaults that to the
+/// `RenderSliverPersistentHeader3d.lift`. `SliverAppBar3d` defaults that to the
 /// same `thickness.depthStep`, for the same arithmetic.
 ///
 /// ## The body is clipped, and it has to be
 ///
 /// The body's slot is a window: a list in it is taller than the room it was
 /// given, and without a clip its rows draw over the bars rather than ending
-/// at them. `SceneClipBox3d` is that window. It clips the **face and not the
+/// at them. `ClipBox3d` is that window. It clips the **face and not the
 /// depth**, so a raised card in the body still stands proud of the screen —
 /// and it cuts a row that is *half* out, which whole-node culling cannot do.
 /// A row's `Material3d` honours the plane block; a leaf holding an
@@ -152,7 +153,7 @@ enum Scaffold3dSlot {
 /// sides always, because no bar in this arrangement stands at a side — so a
 /// screen with both bars has a body told only about the notch at its sides,
 /// and a screen with neither has a body told about all of it, which puts
-/// `SceneSafeArea3d` wherever it wants the room.
+/// `SafeArea3d` wherever it wants the room.
 ///
 /// The [floatingActionButton] stays [floatingActionButtonMargin] clear of
 /// the bottom inset when nothing else is, and clear of the trailing one,
@@ -167,11 +168,11 @@ enum Scaffold3dSlot {
 /// ## What phase 6 puts on top of this
 ///
 /// Dialogs, sheets, snack bars and menus are **not** scaffold slots. They go
-/// through `Overlay3d`, which is a property of the surface rather than of the
-/// screen, so that a route can outlive the screen that opened it and a modal
-/// barrier can cover the whole view. What this class owes them is the depth
-/// vocabulary above and nothing else: an overlay layer states its own lift,
-/// in the same logical pixels, against the frontmost slot here —
+/// through `RenderOverlay3d`, which is a property of the surface rather than of
+/// the screen, so that a route can outlive the screen that opened it and a
+/// modal barrier can cover the whole view. What this class owes them is the
+/// depth vocabulary above and nothing else: an overlay layer states its own
+/// lift, in the same logical pixels, against the frontmost slot here —
 /// `Scaffold3d.liftFor(Scaffold3dSlot.floatingActionButton, depthStep)`.
 class Scaffold3d extends StatelessWidget {
   /// Creates a screen.
@@ -210,7 +211,7 @@ class Scaffold3d extends StatelessWidget {
   /// only the body, and it clears it *by construction*: adding a slot to
   /// [Scaffold3dSlot] moves this number with it.
   ///
-  /// This is what an `Overlay3d` entry's lift is set from. It is not a
+  /// This is what a `RenderOverlay3d` entry's lift is set from. It is not a
   /// scaffold slot and it is deliberately not one: an overlay belongs to the
   /// surface rather than to the screen, so that a route can outlive the
   /// screen that opened it and a barrier can cover the whole view. What the
@@ -223,7 +224,7 @@ class Scaffold3d extends StatelessWidget {
   /// )
   /// ```
   ///
-  /// `Overlay3d.defaultLift` is eight logical pixels, which is a
+  /// `RenderOverlay3d.defaultLift` is eight logical pixels, which is a
   /// depth-buffer separation rather than a distance and is nowhere near
   /// enough here: a screen has already spent four steps of its own, and the
   /// floating action button in front of them is a slab. See *Depth ordering*
@@ -234,7 +235,7 @@ class Scaffold3d extends StatelessWidget {
   /// The bar across the top, usually an [AppBar3d].
   ///
   /// A `SliverAppBar3d` does **not** go here: it is a sliver, and it belongs
-  /// in the body's own `SceneCustomScrollView3d`, which is the whole point of
+  /// in the body's own `CustomScrollView3d`, which is the whole point of
   /// it — content scrolls under a sliver bar and cannot scroll under this
   /// slot, because this slot is not in the scroll view.
   final Widget? appBar;
@@ -321,10 +322,10 @@ class Scaffold3d extends StatelessWidget {
           )
         : child;
 
-    return SceneStack3d(
+    return Stack3d(
       fit: StackFit3d.expand,
       children: <Widget>[
-        ScenePositioned3d(
+        Positioned3d(
           left: 0,
           top: 0,
           right: 0,
@@ -339,7 +340,7 @@ class Scaffold3d extends StatelessWidget {
             surfaceTint: const Color(0x00000000),
           ),
         ),
-        SceneCustomMultiChildLayout3d(
+        CustomMultiChildLayout3d(
           delegate: _Scaffold3dLayout(
             fabMargin: metrics.dp(floatingActionButtonMargin),
             bottomInset: metrics.dp(inset.bottom),
@@ -355,7 +356,7 @@ class Scaffold3d extends StatelessWidget {
                 metrics.dp(step),
                 // The window. Without it a list taller than its slot draws
                 // over the bars instead of ending at them.
-                SceneClipBox3d(
+                ClipBox3d(
                   child: told(
                     body!,
                     removeTop: appBar != null,
@@ -390,7 +391,7 @@ class Scaffold3d extends StatelessWidget {
   /// One slot: the box the delegate arranges, with its subtree's **geometry**
   /// moved [Scaffold3d.liftFor] toward the viewer.
   ///
-  /// The lift is a [SceneNodeShift3d] rather than a z in the position the
+  /// The lift is a [NodeShift3d] rather than a z in the position the
   /// delegate gives the slot, and the difference is the whole reason this
   /// helper exists. Toward the viewer is *negative* z, so a slot positioned
   /// there sits outside its parent's own extent — and a ray is clamped to the
@@ -400,16 +401,16 @@ class Scaffold3d extends StatelessWidget {
   /// backing answers every hit and no bar, tile or button below it is ever
   /// reached.
   ///
-  /// So the depth ordering goes on the node tier, where `Stack3d.depthStep` has
-  /// always put it: the geometry moves, the box stays where layout put it, and
-  /// [RenderObject3d.worldTransform] undoes the shift so a ray still finds it.
-  /// Drawing is unaffected — the slabs are the same distance apart in the
-  /// scene — and the guarantee is the same one, stated in the tier that can
-  /// keep it.
+  /// So the depth ordering goes on the node tier, where
+  /// `RenderStack3d.depthStep` has always put it: the geometry moves, the box
+  /// stays where layout put it, and [RenderObject3d.worldTransform] undoes the
+  /// shift so a ray still finds it. Drawing is unaffected — the slabs are the
+  /// same distance apart in the scene — and the guarantee is the same one,
+  /// stated in the tier that can keep it.
   static Widget _lifted(Scaffold3dSlot slot, double step, Widget child) =>
-      SceneLayoutId3d(
+      LayoutId3d(
         id: slot,
-        child: SceneNodeShift3d(
+        child: NodeShift3d(
           shift: Offset3d(0, 0, -liftFor(slot, step)),
           child: child,
         ),
@@ -420,7 +421,7 @@ class Scaffold3d extends StatelessWidget {
 ///
 /// It arranges in **two dimensions only**: every `positionChild` here carries
 /// z zero. The depth ordering is real and is applied one level down, by the
-/// [SceneNodeShift3d] `Scaffold3d._lifted` wraps each slot in — see there for
+/// [NodeShift3d] `Scaffold3d._lifted` wraps each slot in — see there for
 /// why a lift written into the position instead makes a whole screen
 /// unpressable.
 class _Scaffold3dLayout extends MultiChildLayout3dDelegate {

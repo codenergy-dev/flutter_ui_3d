@@ -13,7 +13,7 @@ import 'package:flutter/widgets.dart'
 import 'package:flutter_scene/scene.dart' show Node;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart'
-    show Actions3d, DecoratedBox3d, Ripple3d;
+    show RenderActions3d, RenderDecoratedBox3d, Ripple3d;
 import 'package:flutter_ui_3d/widgets.dart';
 import 'package:material_ui_3d/material_ui_3d.dart';
 
@@ -24,11 +24,11 @@ class Control {
   Control(this.controller, this.child, this.builds);
 
   final Layout3dController controller;
-  final TestBox child;
+  final RenderTestBox child;
   final List<int> builds;
 
-  Layout3dSurface get surface => controller.surface!;
-  DecoratedBox3d get panel => decoratedBoxIn(surface);
+  RenderSurface3d get surface => controller.surface!;
+  RenderDecoratedBox3d get panel => decoratedBoxIn(surface);
   StateLayer3d get layer => panel.stateLayer;
   Layout3dPointer get pointer => Layout3dPointer(surface);
 }
@@ -44,15 +44,15 @@ Future<Control> pumpControl(
   void Function()? onTap,
 }) async {
   final controller = Layout3dController();
-  late TestBox child;
+  late RenderTestBox child;
   final builds = <int>[0];
 
   await tester.pumpWidget(
-    SceneLayout3d(
+    Surface3d(
       parent: Node(),
       size: const Size3d(2, 2, 0.1),
       controller: controller,
-      child: SceneTheme3d(
+      child: Theme3d(
         data: Theme3dData.light,
         child: Material3d(
           child: Builder(
@@ -67,7 +67,7 @@ Future<Control> pumpControl(
                 // and states that behaviour on purpose.
                 focusOnPointerDown: focusOnPointerDown,
                 onTap: onTap,
-                child: SceneTestBox(const Size3d(2, 2, 0), (b) => child = b),
+                child: TestBox(const Size3d(2, 2, 0), (b) => child = b),
               );
             },
           ),
@@ -290,17 +290,17 @@ void main() {
       // pointer is over a button when the button goes disabled, and there is
       // no exit event coming.
       final controller = Layout3dController();
-      Widget frame({required bool enabled}) => SceneLayout3d(
+      Widget frame({required bool enabled}) => Surface3d(
         parent: Node(),
         size: const Size3d(2, 2, 0.1),
         controller: controller,
-        child: SceneTheme3d(
+        child: Theme3d(
           data: Theme3dData.light,
           child: Material3d(
             child: InkWell3d(
               enabled: enabled,
               onTap: () {},
-              child: const SceneSizedBox3d(width: 2, height: 2, depth: 0),
+              child: const SizedBox3d(width: 2, height: 2, depth: 0),
             ),
           ),
         ),
@@ -326,41 +326,38 @@ void main() {
       // Two claims, and the second one is the rule a component author has to
       // know rather than a defect.
       //
-      // The first is the protocol's design: `TapTarget3d` grows the ray
+      // The first is the protocol's design: `RenderTapTarget3d` grows the ray
       // region and not the extent, so the control keeps the size layout
       // measured and its neighbours do not move apart to make room for it.
       //
-      // The second is where a target has to sit. `TapTarget3d` now delivers a
-      // press in its margin — it re-tests its children at the centre of the
-      // control, the way Flutter's `_InputPadding` does — but it cannot reach
-      // past its own *parent*, because every box gates its children on its
-      // own extent. An `InkWell3d` puts its target inside the `Material3d`
+      // The second is where a target has to sit. `RenderTapTarget3d` now
+      // delivers a press in its margin — it re-tests its children at the centre
+      // of the control, the way Flutter's `_InputPadding` does — but it cannot
+      // reach past its own *parent*, because every box gates its children on
+      // its own extent. An `InkWell3d` puts its target inside the `Material3d`
       // that draws the panel, and the panel is the smaller box, so the ray is
       // rejected a level above and the reach buys nothing here. That is why
-      // `Button3d` wraps its whole surface in a `SceneTapTarget3d` and asks
+      // `Button3d` wraps its whole surface in a `TapTarget3d` and asks
       // the ink well inside for `minimumSize: Size3d.zero`; the last
       // expectation below is the same press landing when the target is in the
       // right place.
       final controller = Layout3dController();
-      late TestBox child;
+      late RenderTestBox child;
       var taps = 0;
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(2, 2, 0.5),
           controller: controller,
-          child: SceneTheme3d(
+          child: Theme3d(
             data: Theme3dData.light,
-            child: SceneCenter3d(
+            child: Center3d(
               child: Material3d(
                 alignment: null,
                 child: InkWell3d(
                   onTap: () => taps++,
                   // 20dp across: well under Material's 48dp minimum.
-                  child: SceneTestBox(
-                    const Size3d(0.2, 0.2, 0),
-                    (b) => child = b,
-                  ),
+                  child: TestBox(const Size3d(0.2, 0.2, 0), (b) => child = b),
                 ),
               ),
             ),
@@ -396,24 +393,20 @@ void main() {
       final controller = Layout3dController();
       var taps = 0;
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(2, 2, 0.5),
           controller: controller,
-          child: SceneTheme3d(
+          child: Theme3d(
             data: Theme3dData.light,
-            child: SceneCenter3d(
-              child: SceneTapTarget3d(
+            child: Center3d(
+              child: TapTarget3d(
                 child: Material3d(
                   alignment: null,
                   child: InkWell3d(
                     minimumSize: Size3d.zero,
                     onTap: () => taps++,
-                    child: const SceneSizedBox3d(
-                      width: 0.2,
-                      height: 0.2,
-                      depth: 0,
-                    ),
+                    child: const SizedBox3d(width: 0.2, height: 0.2, depth: 0),
                   ),
                 ),
               ),
@@ -489,7 +482,7 @@ void main() {
       // Not focusable from the first frame: the node is the control's own,
       // and a disabled control says so before it is ever rebuilt.
       expect(focus.canRequestFocus, isFalse);
-      Actions3d.maybeInvoke(focus, const ActivateIntent());
+      RenderActions3d.maybeInvoke(focus, const ActivateIntent());
       expect(taps, 0);
     });
   });

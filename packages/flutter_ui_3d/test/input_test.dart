@@ -41,7 +41,7 @@ Widget hosted(
   Camera? camera,
   Input3dController? controller,
   Input3dHitCallback? onHit,
-}) => SceneInput3d(
+}) => Input3d(
   camera: camera ?? frontCamera(),
   controller: controller,
   onHit: onHit,
@@ -61,7 +61,7 @@ Widget panel(
   double z = 0.0,
   Layout3dController? controller,
   Widget? child,
-}) => SceneLayout3d(
+}) => Surface3d(
   parent: Node(),
   controller: controller,
   size: const Size3d(4, 4, 0.2),
@@ -70,14 +70,14 @@ Widget panel(
   absorbsPointer: absorbs,
   child:
       child ??
-      SceneListener3d(
+      Listener3d(
         behavior: HitTestBehavior3d.opaque,
         onPointerDown: (_) => log.add('$label down'),
         onPointerUp: (_) => log.add('$label up'),
         onPointerHover: (_) => log.add('$label hover'),
         onPointerEnter: (_) => log.add('$label enter'),
         onPointerExit: (_) => log.add('$label exit'),
-        child: const SceneSizedBox3d.cube(1),
+        child: const SizedBox3d.cube(1),
       ),
 );
 
@@ -127,13 +127,13 @@ void main() {
       late Input3dHost found;
       await tester.pumpWidget(
         hosted(<Widget>[
-          SceneLayout3d(
+          Surface3d(
             parent: Node(),
             size: const Size3d(4, 4, 0.2),
-            child: SceneLayoutBuilder3d(
+            child: LayoutBuilder3d(
               builder: (context, constraints) {
-                found = SceneInput3d.of(context);
-                return const SceneSizedBox3d.cube(1);
+                found = Input3d.of(context);
+                return const SizedBox3d.cube(1);
               },
             ),
           ),
@@ -225,12 +225,12 @@ void main() {
           panel(
             'panel',
             log,
-            child: SceneOverlay3d(
+            child: Overlay3d(
               controller: overlay,
-              child: SceneListener3d(
+              child: Listener3d(
                 behavior: HitTestBehavior3d.opaque,
                 onPointerDown: (_) => log.add('panel down'),
-                child: const SceneSizedBox3d.cube(1),
+                child: const SizedBox3d.cube(1),
               ),
             ),
           ),
@@ -242,10 +242,10 @@ void main() {
       overlay.overlay!.insertEntry(
         Overlay3dEntry(
           layer: const OverlayLayer3d.detached(),
-          builder: (_) => Listener3d(
+          builder: (_) => RenderListener3d(
             behavior: HitTestBehavior3d.opaque,
             onPointerDown: (_) => log.add('dialog down'),
-            child: TestBox(const Size3d(2, 2, 0)),
+            child: RenderTestBox(const Size3d(2, 2, 0)),
           ),
         ),
       );
@@ -269,11 +269,8 @@ void main() {
           'panel',
           log,
           child: withOverlay
-              ? SceneOverlay3d(
-                  controller: overlay,
-                  child: const SceneSizedBox3d.cube(1),
-                )
-              : const SceneSizedBox3d.cube(1),
+              ? Overlay3d(controller: overlay, child: const SizedBox3d.cube(1))
+              : const SizedBox3d.cube(1),
         ),
       ], controller: controller);
 
@@ -281,7 +278,7 @@ void main() {
       overlay.overlay!.insertEntry(
         Overlay3dEntry(
           layer: const OverlayLayer3d.detached(),
-          builder: (_) => TestBox(const Size3d(2, 2, 0), pointable: true),
+          builder: (_) => RenderTestBox(const Size3d(2, 2, 0), pointable: true),
         ),
       );
       await tester.pump();
@@ -351,7 +348,7 @@ void main() {
       final controller = Layout3dController();
       await tester.pumpWidget(
         hosted(<Widget>[
-          SceneLayout3d(
+          Surface3d(
             parent: Node(),
             controller: controller,
             viewSize: const Size(800, 600),
@@ -359,7 +356,7 @@ void main() {
               distance: 2,
               depth: 0.5,
             ),
-            child: const SceneSizedBox3d.cube(0.2),
+            child: const SizedBox3d.cube(0.2),
           ),
         ], camera: frontCamera()),
       );
@@ -379,9 +376,9 @@ void main() {
       // The defect this plan's wiring would have hit on the first application
       // with two panels: the bookkeeping was one flat set, so each sync took
       // out what the other had put in.
-      ({Layout3dSurface surface, Overlay3d overlay}) makePanel() {
-        final overlay = Overlay3d(
-          children: <RenderObject3d>[TestBox(const Size3d(4, 3, 0))],
+      ({RenderSurface3d surface, RenderOverlay3d overlay}) makePanel() {
+        final overlay = RenderOverlay3d(
+          children: <RenderObject3d>[RenderTestBox(const Size3d(4, 3, 0))],
         );
         final surface = laidOut(
           overlay,
@@ -393,14 +390,16 @@ void main() {
 
       final left = makePanel();
       final right = makePanel();
-      for (final panel in <({Layout3dSurface surface, Overlay3d overlay})>[
-        left,
-        right,
-      ]) {
+      for (final panel
+          in <({RenderSurface3d surface, RenderOverlay3d overlay})>[
+            left,
+            right,
+          ]) {
         panel.overlay.insertEntry(
           Overlay3dEntry(
             layer: const OverlayLayer3d.detached(),
-            builder: (_) => TestBox(const Size3d(1, 1, 0), pointable: true),
+            builder: (_) =>
+                RenderTestBox(const Size3d(1, 1, 0), pointable: true),
           ),
         );
         panel.surface.flush();
@@ -425,8 +424,8 @@ void main() {
     });
 
     test('forgetting an overlay takes only its own entries out', () {
-      final overlay = Overlay3d(
-        children: <RenderObject3d>[TestBox(const Size3d(4, 3, 0))],
+      final overlay = RenderOverlay3d(
+        children: <RenderObject3d>[RenderTestBox(const Size3d(4, 3, 0))],
       );
       final surface = laidOut(
         overlay,
@@ -436,7 +435,7 @@ void main() {
       overlay.insertEntry(
         Overlay3dEntry(
           layer: const OverlayLayer3d.detached(),
-          builder: (_) => TestBox(const Size3d(1, 1, 0), pointable: true),
+          builder: (_) => RenderTestBox(const Size3d(1, 1, 0), pointable: true),
         ),
       );
       surface.flush();
@@ -448,7 +447,7 @@ void main() {
 
       group.forgetDetachedEntries(overlay);
 
-      expect(group.surfaces, <Layout3dSurface>[surface]);
+      expect(group.surfaces, <RenderSurface3d>[surface]);
     });
   });
 }

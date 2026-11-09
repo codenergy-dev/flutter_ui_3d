@@ -15,15 +15,15 @@ import '../geometry/size3d.dart';
 import '../rendering/object.dart';
 import 'flex.dart' show CrossAxisAlignment3d;
 
-/// How wide one column of a [Table3d] is, the 3D analogue of
+/// How wide one column of a [RenderTable3d] is, the 3D analogue of
 /// [TableColumnWidth].
 ///
 /// A column width is a negotiation, not a number: the table asks each policy
 /// what the column would like at minimum and at maximum, adds those up, and
 /// then hands out whatever room is left over — or takes back whatever is
 /// missing — according to [flex]. That is the whole reason a table is not
-/// simply a `Column3d` of `Row3d`s: the columns of different rows have to
-/// agree, and only something that sees the whole column can make them.
+/// simply a `RenderColumn3d` of `RenderRow3d`s: the columns of different rows
+/// have to agree, and only something that sees the whole column can make them.
 abstract class TableColumnWidth3d {
   /// Creates a column width policy.
   const TableColumnWidth3d();
@@ -97,10 +97,10 @@ class FractionColumnWidth3d extends TableColumnWidth3d {
 /// A column taking a share of whatever room is left over, the 3D analogue of
 /// [FlexColumnWidth].
 ///
-/// The default, and the one that behaves like a `Row3d` of [Expanded3d]
-/// cells. With nothing to share out — an unbounded table — a flex column
-/// falls back to what its cells want, which is what keeps a table usable on a
-/// surface that was never given a size.
+/// The default, and the one that behaves like a `RenderRow3d` of
+/// [RenderExpanded3d] cells. With nothing to share out — an unbounded table — a
+/// flex column falls back to what its cells want, which is what keeps a table
+/// usable on a surface that was never given a size.
 class FlexColumnWidth3d extends TableColumnWidth3d {
   /// Creates a column taking [value] shares of the room left over.
   const FlexColumnWidth3d([this.value = 1.0]) : assert(value > 0.0);
@@ -213,7 +213,7 @@ enum TableCellAlignment3d {
 /// ## Why it is a plane
 ///
 /// A table here arranges its cells on the surface plane — rows down, columns
-/// across — and treats depth as an alignment axis, the choice [Wrap3d]
+/// across — and treats depth as an alignment axis, the choice [RenderWrap3d]
 /// already made and for the same reason. A third axis of *cells* would be a
 /// different structure with a different name (a volume, indexed three ways),
 /// and nothing a component catalogue asks for wants one: a data table, a
@@ -230,7 +230,7 @@ enum TableCellAlignment3d {
 /// have been in are negotiated from the cells that are there.
 ///
 /// ```dart
-/// Table3d(
+/// RenderTable3d(
 ///   columnCount: 3,
 ///   columnWidths: const {0: IntrinsicColumnWidth3d()},
 ///   defaultVerticalAlignment: TableCellAlignment3d.baseline,
@@ -245,9 +245,9 @@ enum TableCellAlignment3d {
 /// compute. The height needs the columns resolved first, so an intrinsic
 /// height query resolves them against the limit it was given and then asks
 /// each row's cells — the same work a layout does, minus the placing.
-class Table3d extends RenderMultiChild3d<ParentData3d> {
+class RenderTable3d extends RenderMultiChild3d<ParentData3d> {
   /// Creates a table of [columnCount] columns.
-  Table3d({
+  RenderTable3d({
     required int columnCount,
     Map<int, TableColumnWidth3d> columnWidths = const {},
     TableColumnWidth3d defaultColumnWidth = const FlexColumnWidth3d(),
@@ -266,7 +266,7 @@ class Table3d extends RenderMultiChild3d<ParentData3d> {
        _depthAxisAlignment = depthAxisAlignment,
        _columnSpacing = columnSpacing,
        _rowSpacing = rowSpacing,
-       assert(columnCount > 0, 'A Table3d needs at least one column.'),
+       assert(columnCount > 0, 'A RenderTable3d needs at least one column.'),
        assert(columnSpacing >= 0.0),
        assert(rowSpacing >= 0.0);
 
@@ -543,9 +543,9 @@ class Table3d extends RenderMultiChild3d<ParentData3d> {
     final stretchDepth = _depthAxisAlignment == CrossAxisAlignment3d.stretch;
     assert(
       !stretchDepth || constraints.hasBoundedDepth,
-      'Table3d.depthAxisAlignment is stretch, which fills the table\'s depth, '
+      'RenderTable3d.depthAxisAlignment is stretch, which fills the table\'s depth, '
       'and the table was given no depth to fill. Give it one with a '
-      'SizedBox3d, or align the cells in depth instead.',
+      'RenderSizedBox3d, or align the cells in depth instead.',
     );
 
     final rowHeights = List<double>.filled(rows, 0.0);

@@ -29,9 +29,9 @@ class FakeRenderer extends Text3dRenderer {
   void dispose() => disposed = true;
 }
 
-/// The layout under a `SceneText3d`, found by walking the tree.
-Text3d textIn(RenderObject3d root) {
-  if (root is Text3d) return root;
+/// The layout under a `Text3d`, found by walking the tree.
+RenderText3d textIn(RenderObject3d root) {
+  if (root is RenderText3d) return root;
   if (root is ContainerRenderObjectMixin3d) {
     for (final child in (root as RenderMultiChild3d).children) {
       final found = _maybeTextIn(child);
@@ -40,11 +40,11 @@ Text3d textIn(RenderObject3d root) {
   }
   final found = _maybeTextIn(root);
   if (found != null) return found;
-  throw StateError('no Text3d under $root');
+  throw StateError('no RenderText3d under $root');
 }
 
-Text3d? _maybeTextIn(RenderObject3d layout) {
-  if (layout is Text3d) return layout;
+RenderText3d? _maybeTextIn(RenderObject3d layout) {
+  if (layout is RenderText3d) return layout;
   if (layout is RenderObjectWithChildMixin3d) {
     final child = (layout as RenderSingleChild3d).child;
     return child == null ? null : _maybeTextIn(child);
@@ -77,11 +77,11 @@ void main() {
     await tester.pumpWidget(
       DefaultTextRenderer3d(
         factory: FakeRenderer.new,
-        child: SceneLayout3d(
+        child: Surface3d(
           parent: Node(),
           size: const Size3d(10, 10, 1),
           controller: controller,
-          child: const SceneText3d('Save'),
+          child: const Text3d('Save'),
         ),
       ),
     );
@@ -97,11 +97,11 @@ void main() {
   ) async {
     final controller = Layout3dController();
     await tester.pumpWidget(
-      SceneLayout3d(
+      Surface3d(
         parent: Node(),
         size: const Size3d(10, 10, 1),
         controller: controller,
-        child: const SceneText3d('Save'),
+        child: const Text3d('Save'),
       ),
     );
 
@@ -117,11 +117,11 @@ void main() {
     await tester.pumpWidget(
       DefaultTextRenderer3d(
         factory: FakeRenderer.new,
-        child: SceneLayout3d(
+        child: Surface3d(
           parent: Node(),
           size: const Size3d(10, 10, 1),
           controller: controller,
-          child: SceneText3d('Save', renderer: mine),
+          child: Text3d('Save', renderer: mine),
         ),
       ),
     );
@@ -140,11 +140,11 @@ void main() {
 
     Widget frame(String text) => DefaultTextRenderer3d(
       factory: FakeRenderer.new,
-      child: SceneLayout3d(
+      child: Surface3d(
         parent: Node(),
         size: const Size3d(10, 10, 1),
         controller: controller,
-        child: SceneText3d(text),
+        child: Text3d(text),
       ),
     );
 
@@ -165,11 +165,11 @@ void main() {
 
     Widget frame(Text3dRendererFactory factory) => DefaultTextRenderer3d(
       factory: factory,
-      child: SceneLayout3d(
+      child: Surface3d(
         parent: Node(),
         size: const Size3d(10, 10, 1),
         controller: controller,
-        child: const SceneText3d('Save'),
+        child: const Text3d('Save'),
       ),
     );
 
@@ -188,20 +188,20 @@ void main() {
   testWidgets('two labels under one default get a renderer each', (
     tester,
   ) async {
-    // The claim the factory shape exists for. A renderer handed to a Text3d
-    // is owned by it, so an inherited *instance* shared by these two would be
-    // disposed by whichever label went first and the other would draw
-    // nothing. Each gets its own; what is shared is the atlas underneath.
+    // The claim the factory shape exists for. A renderer handed to a
+    // RenderText3d is owned by it, so an inherited *instance* shared by these
+    // two would be disposed by whichever label went first and the other would
+    // draw nothing. Each gets its own; what is shared is the atlas underneath.
     final controller = Layout3dController();
     await tester.pumpWidget(
       DefaultTextRenderer3d(
         factory: FakeRenderer.new,
-        child: SceneLayout3d(
+        child: Surface3d(
           parent: Node(),
           size: const Size3d(10, 10, 1),
           controller: controller,
-          child: const SceneColumn3d(
-            children: <Widget>[SceneText3d('one'), SceneText3d('two')],
+          child: const Column3d(
+            children: <Widget>[Text3d('one'), Text3d('two')],
           ),
         ),
       ),
@@ -216,17 +216,17 @@ void main() {
     // The same claim, stated where disposal actually happens. Two boxes
     // making renderers from one factory; disposing either takes only its own
     // renderer with it.
-    final kept = Text3d('kept', rendererFactory: FakeRenderer.new);
-    final removed = Text3d('removed', rendererFactory: FakeRenderer.new);
-    final surface = Layout3dSurface(
+    final kept = RenderText3d('kept', rendererFactory: FakeRenderer.new);
+    final removed = RenderText3d('removed', rendererFactory: FakeRenderer.new);
+    final surface = RenderSurface3d(
       constraints: Constraints3d.loose(const Size3d(10, 10, 1)),
-      child: Column3d(children: <RenderObject3d>[kept, removed]),
+      child: RenderColumn3d(children: <RenderObject3d>[kept, removed]),
     )..flush();
     expect(FakeRenderer.made, hasLength(2));
     final keptRenderer = kept.renderer! as FakeRenderer;
     final removedRenderer = removed.renderer! as FakeRenderer;
 
-    (surface.child! as Column3d).remove(removed);
+    (surface.child! as RenderColumn3d).remove(removed);
     removed.dispose();
 
     expect(removedRenderer.disposed, isTrue);
@@ -252,14 +252,14 @@ void main() {
 
     Widget frame({required bool bothLabels}) => DefaultTextRenderer3d(
       factory: FakeRenderer.new,
-      child: SceneLayout3d(
+      child: Surface3d(
         parent: Node(),
         size: const Size3d(10, 10, 1),
         controller: controller,
-        child: SceneColumn3d(
+        child: Column3d(
           children: <Widget>[
-            const SceneText3d('kept'),
-            if (bothLabels) const SceneText3d('removed'),
+            const Text3d('kept'),
+            if (bothLabels) const Text3d('removed'),
           ],
         ),
       ),
@@ -278,9 +278,9 @@ void main() {
     expect(FakeRenderer.made.first.disposed, isTrue);
   });
 
-  test('a Text3d takes a renderer or a factory, not both', () {
+  test('a RenderText3d takes a renderer or a factory, not both', () {
     expect(
-      () => Text3d(
+      () => RenderText3d(
         'Save',
         renderer: FakeRenderer(),
         rendererFactory: FakeRenderer.new,
@@ -290,7 +290,7 @@ void main() {
   });
 
   test('setting a renderer takes the box off its factory', () {
-    final box = Text3d('Save', rendererFactory: FakeRenderer.new);
+    final box = RenderText3d('Save', rendererFactory: FakeRenderer.new);
     final fromFactory = FakeRenderer.made.single;
     final mine = FakeRenderer();
 
@@ -307,7 +307,7 @@ void main() {
   });
 
   test('writing the same factory again changes nothing', () {
-    final box = Text3d('Save', rendererFactory: FakeRenderer.new);
+    final box = RenderText3d('Save', rendererFactory: FakeRenderer.new);
     final renderer = FakeRenderer.made.single;
     box.rendererFactory = FakeRenderer.new;
     expect(FakeRenderer.made, hasLength(1));
@@ -315,7 +315,7 @@ void main() {
   });
 
   test('disposing the box disposes what the factory made', () {
-    final box = Text3d('Save', rendererFactory: FakeRenderer.new);
+    final box = RenderText3d('Save', rendererFactory: FakeRenderer.new);
     final renderer = FakeRenderer.made.single;
     box.dispose();
     expect(renderer.disposed, isTrue);

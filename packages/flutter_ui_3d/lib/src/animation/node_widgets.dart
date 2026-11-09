@@ -15,7 +15,7 @@ import 'motion.dart';
 import 'node_transform.dart';
 import 'tweens.dart';
 
-/// The declarative form of [NodeTransform3d]: a subtree whose geometry is
+/// The declarative form of [RenderNodeTransform3d]: a subtree whose geometry is
 /// moved by an animation the layout never hears about.
 ///
 /// Give it animations rather than values. The box subscribes to them and
@@ -24,19 +24,14 @@ import 'tweens.dart';
 /// runs.
 ///
 /// ```dart
-/// SceneNodeTransform3d(
+/// NodeTransform3d(
 ///   offset: _lift,   // an Animation<Offset3d> the State owns
-///   child: const SceneContainer3d(width: 1, height: 1),
+///   child: const Container3d(width: 1, height: 1),
 /// )
 /// ```
-class SceneNodeTransform3d extends SingleChildRenderObjectWidget3d {
+class NodeTransform3d extends SingleChildRenderObjectWidget3d {
   /// Creates a node-only animation box.
-  const SceneNodeTransform3d({
-    super.key,
-    this.offset,
-    this.transform,
-    super.child,
-  });
+  const NodeTransform3d({super.key, this.offset, this.transform, super.child});
 
   /// The animation driving the node's offset, in layout units.
   final Animation<Offset3d>? offset;
@@ -45,11 +40,14 @@ class SceneNodeTransform3d extends SingleChildRenderObjectWidget3d {
   final Animation<Matrix4>? transform;
 
   @override
-  NodeTransform3d createLayout(BuildContext context) =>
-      NodeTransform3d(offsetAnimation: offset, transformAnimation: transform);
+  RenderNodeTransform3d createLayout(BuildContext context) =>
+      RenderNodeTransform3d(
+        offsetAnimation: offset,
+        transformAnimation: transform,
+      );
 
   @override
-  void updateLayout(BuildContext context, NodeTransform3d layout) {
+  void updateLayout(BuildContext context, RenderNodeTransform3d layout) {
     layout
       ..offsetAnimation = offset
       ..transformAnimation = transform;
@@ -69,14 +67,14 @@ class SceneNodeTransform3d extends SingleChildRenderObjectWidget3d {
 /// layout put it. That is what you want of a hover lift or a press
 /// depression, and what you do not want if the slide is meant to carry the
 /// control's touch target with it — for that, animate a real
-/// [ScenePositioned3d] inset with [SceneAnimatedPositioned3d] and pay for the
+/// [Positioned3d] inset with [AnimatedPositioned3d] and pay for the
 /// relayout.
 ///
 /// [offset] is in layout units, not fractions of the child: a scene has a
 /// unit contract ([Layout3dMetrics]) and a lift is naturally stated in it.
 ///
 /// ```dart
-/// SceneAnimatedSlide3d(
+/// AnimatedSlide3d(
 ///   duration: const Duration(milliseconds: 120),
 ///   curve: Curves.easeOut,
 ///   // Toward the viewer is negative depth.
@@ -84,9 +82,9 @@ class SceneNodeTransform3d extends SingleChildRenderObjectWidget3d {
 ///   child: button,
 /// )
 /// ```
-class SceneAnimatedSlide3d extends StatefulWidget {
+class AnimatedSlide3d extends StatefulWidget {
   /// Creates a node-only slide.
-  const SceneAnimatedSlide3d({
+  const AnimatedSlide3d({
     super.key,
     required this.offset,
     required this.duration,
@@ -107,10 +105,10 @@ class SceneAnimatedSlide3d extends StatefulWidget {
   final Widget? child;
 
   @override
-  State<SceneAnimatedSlide3d> createState() => _SceneAnimatedSlide3dState();
+  State<AnimatedSlide3d> createState() => _AnimatedSlide3dState();
 }
 
-class _SceneAnimatedSlide3dState extends State<SceneAnimatedSlide3d>
+class _AnimatedSlide3dState extends State<AnimatedSlide3d>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     duration: widget.duration,
@@ -128,7 +126,7 @@ class _SceneAnimatedSlide3dState extends State<SceneAnimatedSlide3d>
   late Animation<Offset3d> _animation = _tween.animate(_curved);
 
   @override
-  void didUpdateWidget(SceneAnimatedSlide3d oldWidget) {
+  void didUpdateWidget(AnimatedSlide3d oldWidget) {
     super.didUpdateWidget(oldWidget);
     _controller.duration = widget.duration;
     if (widget.curve != oldWidget.curve) {
@@ -158,17 +156,17 @@ class _SceneAnimatedSlide3dState extends State<SceneAnimatedSlide3d>
 
   @override
   Widget build(BuildContext context) =>
-      SceneNodeTransform3d(offset: _animation, child: widget.child);
+      NodeTransform3d(offset: _animation, child: widget.child);
 }
 
-/// The declarative form of [MotionTransition3d]: a subtree that arrives.
+/// The declarative form of [RenderMotionTransition3d]: a subtree that arrives.
 ///
 /// Give it the animation a route carries and a [Motion3d] saying where the
 /// content starts, and the subtree moves from there to rest without anything
 /// being laid out again:
 ///
 /// ```dart
-/// SceneMotionTransition3d(
+/// MotionTransition3d(
 ///   animation: route.animation,
 ///   motion: const Motion3d.grow(),
 ///   child: Dialog3d(child: choices),
@@ -179,9 +177,9 @@ class _SceneAnimatedSlide3dState extends State<SceneAnimatedSlide3d>
 /// one of these, so this is for the content that wants the box somewhere
 /// other than around the whole page — inside a scrim rather than around it,
 /// which is exactly where a catalogue's own modal frame puts it.
-class SceneMotionTransition3d extends SingleChildRenderObjectWidget3d {
+class MotionTransition3d extends SingleChildRenderObjectWidget3d {
   /// Creates a box that moves [child] from [motion] to rest.
-  const SceneMotionTransition3d({
+  const MotionTransition3d({
     super.key,
     this.animation,
     this.motion = Motion3d.none,
@@ -195,11 +193,11 @@ class SceneMotionTransition3d extends SingleChildRenderObjectWidget3d {
   final Motion3d motion;
 
   @override
-  MotionTransition3d createLayout(BuildContext context) =>
-      MotionTransition3d(animation: animation, motion: motion);
+  RenderMotionTransition3d createLayout(BuildContext context) =>
+      RenderMotionTransition3d(animation: animation, motion: motion);
 
   @override
-  void updateLayout(BuildContext context, MotionTransition3d layout) {
+  void updateLayout(BuildContext context, RenderMotionTransition3d layout) {
     layout
       ..animation = animation
       ..motion = motion;

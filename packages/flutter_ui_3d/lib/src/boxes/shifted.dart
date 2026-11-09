@@ -16,7 +16,7 @@ import '../rendering/object.dart';
 
 /// A layout that sizes and positions a single child somewhere inside itself.
 ///
-/// The shared base of [Padding3d] and [Align3d], mirroring
+/// The shared base of [RenderPadding3d] and [RenderAlign3d], mirroring
 /// `RenderShiftedBox`.
 abstract class RenderShiftedBox3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d {
@@ -27,9 +27,9 @@ abstract class RenderShiftedBox3d extends RenderSingleChild3d
 /// Insets its child by [padding], the 3D analogue of [Padding].
 ///
 /// With no child, the padding collapses to a box of its own thickness.
-class Padding3d extends RenderShiftedBox3d {
+class RenderPadding3d extends RenderShiftedBox3d {
   /// Creates a padded box.
-  Padding3d({
+  RenderPadding3d({
     EdgeInsetsGeometry3d padding = EdgeInsets3d.zero,
     TextDirection? textDirection,
     super.child,
@@ -46,7 +46,10 @@ class Padding3d extends RenderShiftedBox3d {
 
   set padding(EdgeInsetsGeometry3d value) {
     if (_padding == value) return;
-    assert(value.isNonNegative, 'Padding3d.padding must be non-negative.');
+    assert(
+      value.isNonNegative,
+      'RenderPadding3d.padding must be non-negative.',
+    );
     _padding = value;
     markNeedsLayout();
   }
@@ -125,13 +128,13 @@ class Padding3d extends RenderShiftedBox3d {
 /// Aligns its child within itself and optionally sizes itself to a multiple
 /// of the child's size, the 3D analogue of [Align].
 ///
-/// Unconstrained on an axis, an [Align3d] shrink-wraps the child on that
+/// Unconstrained on an axis, a [RenderAlign3d] shrink-wraps the child on that
 /// axis; bounded, it expands to fill, which is what makes
-/// `Align3d(alignment: Alignment3d.topLeft)` push a child to a corner of the
-/// space it was given.
-class Align3d extends RenderShiftedBox3d {
+/// `RenderAlign3d(alignment: Alignment3d.topLeft)` push a child to a corner of
+/// the space it was given.
+class RenderAlign3d extends RenderShiftedBox3d {
   /// Creates an aligning box.
-  Align3d({
+  RenderAlign3d({
     AlignmentGeometry3d alignment = Alignment3d.center,
     TextDirection? textDirection,
     double? widthFactor,
@@ -274,9 +277,9 @@ class Align3d extends RenderShiftedBox3d {
 }
 
 /// Centers its child, the 3D analogue of [Center].
-class Center3d extends Align3d {
+class RenderCenter3d extends RenderAlign3d {
   /// Creates a centering box.
-  Center3d({
+  RenderCenter3d({
     super.widthFactor,
     super.heightFactor,
     super.depthFactor,

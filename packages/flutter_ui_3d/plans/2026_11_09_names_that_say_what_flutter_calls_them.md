@@ -1,8 +1,7 @@
 ---
-status: in progress
-reason: phases 1 and 2 have landed; phase 3 (the widgets get the plain names) remains
+status: completed
 created_at: 2026-11-09T12:00:00Z
-updated_at: 2026-11-09T16:57:18Z
+updated_at: 2026-11-09T17:11:37Z
 commit: 3aca98ace5b5ac3e4738018b6541532beeedc27f
 ---
 
@@ -115,8 +114,8 @@ Flutter's name: `Layout3dMetrics`, `Layout3dMetricsScope`,
 `Layout3dOverflow`, `Layout3dAnchoring`, `Layout3dContentExtentEstimator`,
 `Layout3dTween*`, `Layout3dTheme3d`, `Layout3dWidgetTester`,
 `Layout3dTestGeometry`, `Layout3dScreenProjection`, `TextLayout3d`,
-`CustomMultiChildLayout3d`, `MultiChildLayout3dDelegate`,
-`ImplicitlyAnimatedLayout3dWidget` and its state classes, the other
+`MultiChildLayout3dDelegate`, `ImplicitlyAnimatedLayout3dWidget` and its state
+classes, the other
 `debugPaintLayout3d*` flags. Each of those is a sensible follow-up on its own,
 and none of them is what the word "layout" was misnaming.
 
@@ -194,6 +193,72 @@ of 112.
   Markdown were rewrapped; a before-and-after comparison ignoring whitespace
   and comment markers found no other difference.
 
+**Phase 3 is done.** All three suites held their counts (1318, 852, 13),
+`dart analyze` is clean, the render probe passed 112 of 112, and the gallery
+was photographed and looked at. The map is the plan's two rules, applied by
+one substitution of 7,890 identifiers: every class in the render closure of
+either package's `lib/` took `Render`, and every declared `Scene*` class,
+private and test classes included, lost the prefix, including the 10 private
+pairs below.
+
+- **`Theme3d` was the one collision that was not a render object.** Two widgets
+  were spelled `Theme3d` and `SceneTheme3d`: an inherited widget publishing
+  the data, and the `StatelessWidget` a screen actually writes, installing
+  both halves. By the same rule the installer takes the name, so the inherited
+  half had to choose. Flutter's `Theme` builds a private inherited widget for
+  this and exposes a public abstract `InheritedTheme`, so it became
+  `InheritedTheme3d`. `Theme3d.of` and `Theme3d.maybeOf` moved with the name,
+  onto the installer, because `Theme.of` is where every Flutter reader looks
+  for them, and they had been on the half nobody installs; they are the
+  only two members that moved, and the 88 places reading them did not change.
+- **`ContainerRenderObjectMixin3d` keeps its name.** It is in the closure, but
+  it is Flutter's name for that mixin plus the suffix, as the phase 2 table
+  says, and a prefix would invent a name nothing uses.
+- **Three render classes kept their word order when they took the prefix**:
+  `Hero3dFlightBox`, `Scroll3dHolderMixin` and `Overlay3dContentSlot3d`
+  became `RenderHero3dFlightBox`, `RenderScroll3dHolderMixin` and
+  `RenderOverlay3dContentSlot3d`. Tidying them is a separate decision, and
+  a rename is the wrong place for a judgment about where `3d` belongs in a
+  name no one writes.
+- **`Anchor3d` and `Follower3d` got the prefix and left their widgets alone.**
+  `Anchor3dWidget` and `Follower3dWidget` are declared by that name and took
+  no `Scene`, so they stay; plain `Anchor3d` is free and renaming the widgets
+  into it is a follow-up, not this pass.
+- **The private render classes that collided were renamed in pairs, the same
+  rule:** `_BadgePlacement3d`, `_BadgeStadium3d`, `_ProgressSpan3d`,
+  `_Reveal3d`, `_RingFrame3d`, `_RingPanel3d`, `_SwitchThumb3d`,
+  `_TabBarLayout3d`, `_TabMeasure3d` and `_Turn3d` took `_Render`; their
+  `_Scene*` widgets took the plain names. Private render classes with no
+  twin (`_Overlay3dEntryHost`, `_Reorder3dHandle`, `_Overlay3dContentAnchor`,
+  `_EmptyBox3d`) stayed as they were.
+- **Test fixtures followed the same two rules, once.** The imperative
+  `TestBox` in both packages' `test/support.dart` is `RenderTestBox`, so
+  `SceneTestBox` could be `TestBox`. A fixture that had a plain widget of
+  its own, `_SceneTickingWidth` beside `_TickingWidth`, is `_TickingWidthBox`.
+  Test-only render classes with no widget twin (`ProbeSliver3d`,
+  `RecordingSliver3d`, `CorrectingSliver3d`) kept their names, since the closure
+  is a statement about `lib/`.
+- **`CustomMultiChildLayout3d` is off the keep-list above.** The list described
+  phase 2; phase 3 renamed the render object to
+  `RenderCustomMultiChildLayout3d` and gave the widget its plain name.
+- **Assertions on class names in strings moved with the substitution, and none
+  moved otherwise.** Diagnostic text quotes `runtimeType` or a default `name`,
+  so a test matching `'Row3d'` or `A SizedBox3d overflowed` now matches the
+  renamed text in the library the same pass changed. Beyond the map, 87 `a`s
+  and `an`s were corrected where a new name changed the sound of the word after
+  them, and one assertion quotes such a sentence: `testing_test.dart` expects
+  `not under an Input3d`, as the error now says. The one test edit by hand is a
+  brace around an `if` that the longer type name pushed onto two lines, which
+  `curly_braces_in_flow_control_structures` then flagged. Every Dart file was
+  compared with its old self under the map, ignoring whitespace, commas and
+  comment lines: the articles, that brace and `Theme3d`'s two moved members are
+  the only differences.
+- **Prose that explained `Scene` as a convention was rewritten, not renamed.**
+  The README section on the two affixes argued from `SceneNode` and
+  `SceneMesh` for a prefix this package no longer uses; it now says what the
+  prefix is and why the widget gets the plain name. `Scene*3d`, a phrase six
+  places used, became "layout widgets", which is what it meant.
+
 ## What verification means here
 
 Every phase: `flutter test` in the three suites with the counts unchanged
@@ -202,6 +267,7 @@ each changed package, the pages that name these things updated.
 
 Phase 1 additionally runs the render probe, because of the asset keys.
 Phase 3 additionally photographs the gallery, because it touches the name of
-every widget on the screen.
+every widget on the screen. It also ran the render probe, because that is the
+only lane that builds the gallery's real render objects under their new names.
 
 Each phase is one commit.

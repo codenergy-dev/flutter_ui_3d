@@ -38,16 +38,16 @@ import 'focus.dart';
 ///
 /// The vocabulary is Flutter's own, unchanged: a [ShortcutActivator] — most
 /// often a [SingleActivator] — names the keys, and an [Intent] names what they
-/// mean. What an intent *does* is an [Actions3d]'s business, looked up from
-/// the box that holds the focus, so the same Enter can submit a form in one
-/// place and open a menu in another.
+/// mean. What an intent *does* is a [RenderActions3d]'s business, looked up
+/// from the box that holds the focus, so the same Enter can submit a form in
+/// one place and open a menu in another.
 ///
 /// ```dart
-/// Shortcuts3d(
+/// RenderShortcuts3d(
 ///   shortcuts: const <ShortcutActivator, Intent>{
 ///     SingleActivator(LogicalKeyboardKey.keyS, meta: true): SaveIntent(),
 ///   },
-///   child: Actions3d(
+///   child: RenderActions3d(
 ///     actions: <Type, Action<Intent>>{
 ///       SaveIntent: CallbackAction<SaveIntent>(onInvoke: (_) => save()),
 ///     },
@@ -59,12 +59,12 @@ import 'focus.dart';
 /// ## Why this is not Flutter's widget
 ///
 /// Two structural reasons, and neither is a missing feature. Flutter looks the
-/// action up from `primaryFocus.context`, and a [Focus3d]'s node has no
-/// context. And a key walks the *focus* tree, where a [Focus3d]'s ancestors are
-/// its scope and the surface's scope rather than the boxes around it — so a
-/// `Shortcuts` widget anywhere in the application never sees a key meant for a
-/// box on a plane. The walk is re-expressed over the layout tree instead; see
-/// [Actions3d.handleKeyEvent].
+/// action up from `primaryFocus.context`, and a [RenderFocus3d]'s node has no
+/// context. And a key walks the *focus* tree, where a [RenderFocus3d]'s
+/// ancestors are its scope and the surface's scope rather than the boxes around
+/// it — so a `Shortcuts` widget anywhere in the application never sees a key
+/// meant for a box on a plane. The walk is re-expressed over the layout tree
+/// instead; see [RenderActions3d.handleKeyEvent].
 ///
 /// ## The defaults
 ///
@@ -76,11 +76,11 @@ import 'focus.dart';
 ///
 /// A detached overlay entry is a surface of its own, so its walk ends at its
 /// own root and does not pass through the panel that opened it: a
-/// `Shortcuts3d` around a screen does not reach a dialog floating in front of
-/// that screen.
-class Shortcuts3d extends RenderProxyBox3d {
+/// `RenderShortcuts3d` around a screen does not reach a dialog floating in
+/// front of that screen.
+class RenderShortcuts3d extends RenderProxyBox3d {
   /// Creates a box that maps [shortcuts] for its subtree.
-  Shortcuts3d({
+  RenderShortcuts3d({
     Map<ShortcutActivator, Intent> shortcuts =
         const <ShortcutActivator, Intent>{},
     super.child,
@@ -166,8 +166,8 @@ class Shortcuts3d extends RenderProxyBox3d {
   /// extent.
   ///
   /// A key binding has nothing to do with pointers, and a box the size of a
-  /// control wrapped around a `TapTarget3d` would otherwise cut off the reach
-  /// the target grants beyond that size.
+  /// control wrapped around a `RenderTapTarget3d` would otherwise cut off the
+  /// reach the target grants beyond that size.
   @override
   bool hitTest(HitTestResult3d result, {required Ray3d ray}) =>
       hasSize && hitTestChildren(result, ray: ray);
@@ -198,9 +198,9 @@ class Shortcuts3d extends RenderProxyBox3d {
 /// A nearer binding that is disabled is not skipped over, which is Flutter's
 /// rule too: the key goes on up the focus walk instead, as though nothing had
 /// mapped it.
-class Actions3d extends RenderProxyBox3d {
+class RenderActions3d extends RenderProxyBox3d {
   /// Creates a box that binds [actions] for its subtree.
-  Actions3d({
+  RenderActions3d({
     Map<Type, Action<Intent>> actions = const <Type, Action<Intent>>{},
     super.child,
     super.name,
@@ -244,7 +244,7 @@ class Actions3d extends RenderProxyBox3d {
     final type = intent.runtimeType;
     RenderObject3d? node = from;
     while (node != null) {
-      if (node is Actions3d) {
+      if (node is RenderActions3d) {
         final action = node._actions[type];
         if (action != null) return action;
       }
@@ -272,31 +272,35 @@ class Actions3d extends RenderProxyBox3d {
   /// The walk behind every key that reaches a plane. It goes up from [from],
   /// nearest first, and at each box:
   ///
-  ///  * a [Focus3d] other than [from] with an `onKeyEvent` is offered the key,
-  ///    which is how a `Focus3d` around a region sees the keys of the controls
-  ///    inside it — the bubbling Flutter's `Focus` has, and which the focus
-  ///    tree cannot give here because every node hangs flat under its scope;
-  ///  * a [Shortcuts3d] that maps the key names an intent, whose action is
-  ///    found from [from] with [maybeFind] and invoked if enabled.
+  ///  * a [RenderFocus3d] other than [from] with an `onKeyEvent` is offered the
+  ///    key, which is how a `RenderFocus3d` around a region sees the keys of
+  ///    the controls inside it — the bubbling Flutter's `Focus` has, and which
+  ///    the focus tree cannot give here because every node hangs flat under its
+  ///    scope;
+  ///  * a [RenderShortcuts3d] that maps the key names an intent, whose action
+  ///    is found from [from] with [maybeFind] and invoked if enabled.
   ///
   /// The first answer that is not [KeyEventResult.ignored] ends the walk.
-  /// After the root, [Shortcuts3d.defaults] has the same chance. [from]'s own
-  /// `onKeyEvent` is not called here: it is the caller, and has already had
+  /// After the root, [RenderShortcuts3d.defaults] has the same chance. [from]'s
+  /// own `onKeyEvent` is not called here: it is the caller, and has already had
   /// the key.
   static KeyEventResult handleKeyEvent(RenderObject3d from, KeyEvent event) {
     RenderObject3d? node = from;
     while (node != null) {
-      if (node is Focus3d && !identical(node, from)) {
+      if (node is RenderFocus3d && !identical(node, from)) {
         final result = node.onKeyEvent?.call(node.focusNode, event);
         if (result != null && result != KeyEventResult.ignored) return result;
       }
-      if (node is Shortcuts3d) {
+      if (node is RenderShortcuts3d) {
         final result = _invokeFor(from, node.intentFor(event));
         if (result != KeyEventResult.ignored) return result;
       }
       node = node.parent;
     }
-    return _invokeFor(from, Shortcuts3d._find(Shortcuts3d.defaults, event));
+    return _invokeFor(
+      from,
+      RenderShortcuts3d._find(RenderShortcuts3d.defaults, event),
+    );
   }
 
   static KeyEventResult _invokeFor(RenderObject3d from, Intent? intent) {
@@ -312,7 +316,7 @@ class Actions3d extends RenderProxyBox3d {
         : KeyEventResult.ignored;
   }
 
-  /// Passes the ray straight to the child; see [Shortcuts3d.hitTest].
+  /// Passes the ray straight to the child; see [RenderShortcuts3d.hitTest].
   @override
   bool hitTest(HitTestResult3d result, {required Ray3d ray}) =>
       hasSize && hitTestChildren(result, ray: ray);
@@ -334,10 +338,10 @@ class Actions3d extends RenderProxyBox3d {
 ///
 /// Flutter's default actions read `primaryFocus` rather than being handed a
 /// context, and these do the same, which is what keeps them invokable from
-/// [Actions3d.maybeInvoke] with no key behind the call.
+/// [RenderActions3d.maybeInvoke] with no key behind the call.
 RenderObject3d? _focusedLayout() {
   final node = FocusManager.instance.primaryFocus;
-  return node == null ? null : Focus3d.layoutFor(node);
+  return node == null ? null : RenderFocus3d.layoutFor(node);
 }
 
 /// Tab and Shift-Tab: the next or previous box in tree order, inside the
@@ -356,10 +360,10 @@ class _TraverseAction<T extends Intent> extends Action<T> {
     if (from == null) return null;
     // A scope or a surface holding the focus itself has no current box, and
     // the walk starts from the first one.
-    final current = from is Focus3d ? from : null;
+    final current = from is RenderFocus3d ? from : null;
     final root = Focus3dTraversal.traversalRootFor(from);
     const traversal = Focus3dTraversal();
-    if (root is! FocusScope3d && _atEdge(traversal, root, current)) {
+    if (root is! RenderFocusScope3d && _atEdge(traversal, root, current)) {
       // Off the end of the whole tree, not of a dialog inside it: whoever
       // placed this surface among others may know where the focus goes next.
       final edge = from.owner?.onFocusTraversalEdge;
@@ -376,7 +380,7 @@ class _TraverseAction<T extends Intent> extends Action<T> {
   bool _atEdge(
     Focus3dTraversal traversal,
     RenderObject3d root,
-    Focus3d? current,
+    RenderFocus3d? current,
   ) {
     final candidates = traversal.focusableDescendants(root);
     if (candidates.isEmpty) return true;
@@ -397,7 +401,7 @@ class _DirectionalFocusAction extends Action<DirectionalFocusIntent> {
     if (from == null) return null;
     final root = Focus3dTraversal.traversalRootFor(from);
     const traversal = Focus3dTraversal();
-    if (from is Focus3d) {
+    if (from is RenderFocus3d) {
       traversal.moveInDirection(root, from, intent.direction);
     } else {
       traversal.firstFocus(root)?.requestFocus();

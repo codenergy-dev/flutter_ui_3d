@@ -54,17 +54,17 @@ import 'text_geometry.dart' show GlyphWallSegment3d;
 
 /// A span of rich text, drawn by Flutter itself onto a quad.
 ///
-/// The escape hatch, and the other half of [Text3d]. Where a `Text3d` is
-/// measured and drawn by this package — arithmetic over prepared segments,
-/// glyphs assembled out of an atlas — a `RichText3d` hands the whole problem
-/// back to the framework: a live `RichText` subtree is laid out and
-/// rasterized by Flutter and the result is sampled as a texture. Everything
-/// Flutter can draw, it draws. Several styles in one paragraph, inline
-/// widgets, emoji, Arabic and Devanagari with their joining and reordering
-/// intact, `TextStyle.foreground` and its shaders.
+/// The escape hatch, and the other half of [RenderText3d]. Where a
+/// `RenderText3d` is measured and drawn by this package — arithmetic over
+/// prepared segments, glyphs assembled out of an atlas — a `RenderRichText3d`
+/// hands the whole problem back to the framework: a live `RichText` subtree is
+/// laid out and rasterized by Flutter and the result is sampled as a texture.
+/// Everything Flutter can draw, it draws. Several styles in one paragraph,
+/// inline widgets, emoji, Arabic and Devanagari with their joining and
+/// reordering intact, `TextStyle.foreground` and its shaders.
 ///
 /// ```dart
-/// RichText3d(
+/// RenderRichText3d(
 ///   TextSpan(
 ///     style: const TextStyle(fontSize: 14, color: Color(0xFF202020)),
 ///     children: [
@@ -79,12 +79,12 @@ import 'text_geometry.dart' show GlyphWallSegment3d;
 /// the default [update] policy — a rasterization per frame per box. That is
 /// the trade the plan for this package names outright: correct immediately,
 /// but not the thing to build a catalogue's every label out of. A screen of
-/// buttons wants [Text3d] and a shared glyph atlas; the one paragraph with a
-/// link in it wants this.
+/// buttons wants [RenderText3d] and a shared glyph atlas; the one paragraph
+/// with a link in it wants this.
 ///
 /// **Measurement is exact and headless.** The size, the intrinsics and the
 /// baseline come from a [TextPainter] — the same object a Flutter `Text`
-/// measures with — so a `RichText3d` participates in the layout protocol
+/// measures with — so a `RenderRichText3d` participates in the layout protocol
 /// fully whether or not there is a GPU to draw it on, and reports the same
 /// numbers a 2D `RichText` would at the same width.
 ///
@@ -94,20 +94,20 @@ import 'text_geometry.dart' show GlyphWallSegment3d;
 /// and draws nothing.
 ///
 /// Pointer input is not forwarded into the subtree: this package dispatches
-/// its own pointers against the layout tree, and a hit on a `RichText3d`
-/// stops at the box, exactly as it stops at a [Text3d].
+/// its own pointers against the layout tree, and a hit on a `RenderRichText3d`
+/// stops at the box, exactly as it stops at a [RenderText3d].
 ///
-/// **Its letters have a thickness, by a different route than a [Text3d]'s.**
-/// There is no atlas here to trace a glyph out of, and the capture is a
-/// `gpu.Texture` with no readable copy — so the silhouette comes from a
-/// second, *CPU* rasterization of this box's own [painter], traced by the same
-/// [traceGlyphOutline]. That mask being on this side of the GPU is also what
-/// lets each segment's colour be **sampled out of it**, so one wall carries a
-/// span's several colours. [glyphDepth] is the dial; [depth] is a different
-/// thing and does not draw.
-class RichText3d extends RenderObject3d {
+/// **Its letters have a thickness, by a different route than a
+/// [RenderText3d]'s.** There is no atlas here to trace a glyph out of, and the
+/// capture is a `gpu.Texture` with no readable copy — so the silhouette comes
+/// from a second, *CPU* rasterization of this box's own [painter], traced by
+/// the same [traceGlyphOutline]. That mask being on this side of the GPU is
+/// also what lets each segment's colour be **sampled out of it**, so one wall
+/// carries a span's several colours. [glyphDepth] is the dial; [depth] is a
+/// different thing and does not draw.
+class RenderRichText3d extends RenderObject3d {
   /// Creates a box over [text].
-  RichText3d(
+  RenderRichText3d(
     InlineSpan text, {
     TextAlign textAlign = TextAlign.start,
     TextDirection textDirection = TextDirection.ltr,
@@ -153,10 +153,10 @@ class RichText3d extends RenderObject3d {
   static const String ellipsis = '…';
 
   // The reader's font setting is the painter's business here, unlike in a
-  // [Text3d]: a paragraph holds spans of several sizes, and a `TextScaler`
-  // that is not linear across sizes grows each of them by a different
-  // factor, which no single multiplier applied on the way to world units can
-  // express. [_layoutPainter] writes it before every measurement.
+  // [RenderText3d]: a paragraph holds spans of several sizes, and a
+  // `TextScaler` that is not linear across sizes grows each of them by a
+  // different factor, which no single multiplier applied on the way to world
+  // units can express. [_layoutPainter] writes it before every measurement.
   final TextPainter _painter = TextPainter();
 
   /// The scale the capture and the wall were built at.
@@ -172,8 +172,8 @@ class RichText3d extends RenderObject3d {
   /// How far this paragraph grows with the reader's font setting, or null
   /// for the surface's own [Layout3dMetrics.textScaler].
   ///
-  /// `Text3d.textScaler`'s counterpart, for the same reasons, and filled from
-  /// `SceneTextScaling3d` by the widget layer in the same way.
+  /// `RenderText3d.textScaler`'s counterpart, for the same reasons, and filled
+  /// from `TextScaling3d` by the widget layer in the same way.
   TextScaler? get textScaler => _textScaler;
 
   set textScaler(TextScaler? value) {
@@ -257,12 +257,12 @@ class RichText3d extends RenderObject3d {
 
   /// How much depth the box **reserves**, in world units. Zero by default.
   ///
-  /// A claim on space and not a promise to fill it, the way a `SizedBox3d`'s
-  /// is: the paragraph is drawn on one plane at the front of the box, and
-  /// whatever is between that plane and `depth` behind it stays empty. State
-  /// it when a sibling has to clear the paragraph, or when the paragraph is
-  /// about to be given a backing of its own; do not state it expecting a
-  /// slab.
+  /// A claim on space and not a promise to fill it, the way a
+  /// `RenderSizedBox3d`'s is: the paragraph is drawn on one plane at the front
+  /// of the box, and whatever is between that plane and `depth` behind it stays
+  /// empty. State it when a sibling has to clear the paragraph, or when the
+  /// paragraph is about to be given a backing of its own; do not state it
+  /// expecting a slab.
   ///
   /// **A slab is not what a thick paragraph is**, and it was tried. A capture
   /// is mostly transparent, so a box built out of two of them is two panes of
@@ -283,13 +283,13 @@ class RichText3d extends RenderObject3d {
   /// How thick the paragraph's letters are, in **logical pixels**, or null to
   /// derive it from the root span's font size through [glyphDepthFactor].
   ///
-  /// A paragraph here is extruded the way a [Text3d]'s glyphs are, and for the
-  /// same reason: a flat one beside a thick one on the same panel reads as a
-  /// decal next to a slab. The silhouette comes from a **CPU re-rasterization
-  /// of this box's own [painter]** — the capture is a GPU texture with no
-  /// readable copy — so it arrives a few frames after the content, and each
-  /// segment's colour is sampled out of that bitmap, which is what lets one
-  /// wall carry a span's several colours.
+  /// A paragraph here is extruded the way a [RenderText3d]'s glyphs are, and
+  /// for the same reason: a flat one beside a thick one on the same panel reads
+  /// as a decal next to a slab. The silhouette comes from a **CPU
+  /// re-rasterization of this box's own [painter]** — the capture is a GPU
+  /// texture with no readable copy — so it arrives a few frames after the
+  /// content, and each segment's colour is sampled out of that bitmap, which is
+  /// what lets one wall carry a span's several colours.
   ///
   /// Zero is the flat quad this box drew before it could do this, and it is
   /// the right answer more often than the default is: at body-copy sizes the
@@ -696,7 +696,7 @@ class RichText3d extends RenderObject3d {
         FlutterError.reportError(
           FlutterErrorDetails(
             exception: StateError(
-              'A RichText3d traced into ${segments.length} wall segments, '
+              'A RenderRichText3d traced into ${segments.length} wall segments, '
               'past its maxWallSegments of $_maxWallSegments, so its letters '
               'will be drawn flat. A paragraph this large has an edge no '
               'reader at this size can see and a mesh nobody wants: state '
@@ -755,7 +755,7 @@ class RichText3d extends RenderObject3d {
       );
     }
     _quad = Node(mesh: Mesh.primitives(primitives: primitives))
-      ..name = 'RichText3d surface'
+      ..name = 'RenderRichText3d surface'
       ..localTransform = Matrix4.translationValues(0.0, 0.0, -_liftInUnits);
     node.add(_quad!);
     _builtSize = _quadSize;
@@ -784,10 +784,10 @@ class RichText3d extends RenderObject3d {
   );
 
   void _bind(gpu.Texture texture) {
-    // The same material a `Text3d`'s glyphs are drawn with, and for the same
-    // reason: it writes depth, so a panel the paragraph is written on cannot
-    // erase it by being drawn afterwards. The capture already carries the
-    // colours the span asked for, so the tint is white and the material
+    // The same material a `RenderText3d`'s glyphs are drawn with, and for the
+    // same reason: it writes depth, so a panel the paragraph is written on
+    // cannot erase it by being drawn afterwards. The capture already carries
+    // the colours the span asked for, so the tint is white and the material
     // multiplies by one.
     final material = _material ??= GlyphMaterial3d.factory()
       ..tint(const Color(0xFFFFFFFF))
@@ -819,7 +819,8 @@ class RichText3d extends RenderObject3d {
     _wallToken++;
   }
 
-  /// A label answers a ray on its own account, exactly as a [Text3d] does.
+  /// A label answers a ray on its own account, exactly as a [RenderText3d]
+  /// does.
   @override
   bool hitTestSelf(Offset3d position) => true;
 
@@ -828,8 +829,8 @@ class RichText3d extends RenderObject3d {
   bool _hiddenByClip = false;
 
   /// Hides this paragraph when its clip excludes all of it, and shows it
-  /// again when it does not — `Text3d.refreshClipRegion`'s rule, for the same
-  /// reason: its quad reads no clip planes.
+  /// again when it does not — `RenderText3d.refreshClipRegion`'s rule, for the
+  /// same reason: its quad reads no clip planes.
   @override
   void refreshClipRegion() {
     if (!hasSize) return;
@@ -935,7 +936,7 @@ class ParagraphRaster3d {
 
 /// Paints [painter] into a bitmap at [resolution] texels per logical pixel.
 ///
-/// The whole reason a paragraph can have a wall at all. A [RichText3d]'s
+/// The whole reason a paragraph can have a wall at all. A [RenderRichText3d]'s
 /// *capture* is a `gpu.Texture` and there is no CPU copy of it anywhere, so
 /// the ink's shape has to come from somewhere else — and the box is already
 /// holding a laid-out [TextPainter], which will paint into any canvas it is

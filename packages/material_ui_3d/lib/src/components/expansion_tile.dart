@@ -18,7 +18,7 @@ import 'package:flutter/material.dart' show Icons;
 import 'package:flutter/painting.dart' show TextStyle;
 import 'package:flutter_ui_3d/rendering.dart'
     show
-        Align3d,
+        RenderAlign3d,
         Alignment3d,
         AlignmentGeometry3d,
         CrossAxisAlignment3d,
@@ -29,12 +29,12 @@ import 'package:flutter_ui_3d/rendering.dart'
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
-        SceneClipBox3d,
-        SceneColumn3d,
-        SceneOffstage3d,
-        ScenePadding3d,
-        SceneSizedBox3d,
-        SceneText3d,
+        ClipBox3d,
+        Column3d,
+        Offstage3d,
+        Padding3d,
+        SizedBox3d,
+        Text3d,
         SingleChildRenderObjectWidget3d;
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
@@ -143,8 +143,8 @@ class ExpansionTileStyle3d {
 /// and every row under it moves, and only layout can move them — Flutter
 /// lays out on every frame of its reveal too. What is kept is the part that
 /// matters: **a frame of the reveal builds nothing and measures no text.** A
-/// box listens to the clock and writes an `Align3d`'s height factor inside a
-/// clip, which is arithmetic over the boxes the tile already has. The
+/// box listens to the clock and writes a `RenderAlign3d`'s height factor inside
+/// a clip, which is arithmetic over the boxes the tile already has. The
 /// chevron's turn is the node tier, a rotation about its own centre. The tile
 /// rebuilds when it starts to move and once more when a close finishes, which
 /// is when the children leave the tree — unless [maintainState], which keeps
@@ -236,8 +236,8 @@ class ExpansionTile3d extends StatefulWidget {
     this.style,
     String? semanticLabel,
     this.textDirection,
-  }) : title = SceneText3d(title),
-       subtitle = subtitle == null ? null : SceneText3d(subtitle),
+  }) : title = Text3d(title),
+       subtitle = subtitle == null ? null : Text3d(subtitle),
        semanticLabel =
            semanticLabel ?? (subtitle == null ? title : '$title, $subtitle');
 
@@ -391,7 +391,7 @@ class _ExpansionTile3dState extends State<ExpansionTile3d>
 
     final chevronLeading =
         widget.controlAffinity == ListTileControlAffinity3d.leading;
-    final chevron = _SceneTurn3d(
+    final chevron = _Turn3d(
       animation: _turn,
       child: Icon3d(Icons.expand_more, color: iconColor),
     );
@@ -437,15 +437,15 @@ class _ExpansionTile3dState extends State<ExpansionTile3d>
     final closed = !_expanded && _clock.isDismissed;
     Widget? body;
     if (!closed || widget.maintainState) {
-      final revealed = SceneClipBox3d(
-        child: _SceneReveal3d(
+      final revealed = ClipBox3d(
+        child: _Reveal3d(
           animation: _reveal,
           alignment: widget.expandedAlignment ?? const Alignment3d(0, 0, -1),
-          child: ScenePadding3d(
+          child: Padding3d(
             padding: metrics.dpInsets(
               widget.childrenPadding ?? EdgeInsets3d.zero,
             ),
-            child: SceneColumn3d(
+            child: Column3d(
               mainAxisSize: MainAxisSize3d.min,
               crossAxisAlignment:
                   widget.expandedCrossAxisAlignment ??
@@ -456,7 +456,7 @@ class _ExpansionTile3dState extends State<ExpansionTile3d>
           ),
         ),
       );
-      body = closed ? SceneOffstage3d(child: revealed) : revealed;
+      body = closed ? Offstage3d(child: revealed) : revealed;
     }
 
     // Flutter's border is a 1dp line top and bottom, transparent while the
@@ -465,9 +465,9 @@ class _ExpansionTile3dState extends State<ExpansionTile3d>
     // writes no depth, but an empty box is plainer still.
     Widget rule() => _expanded
         ? Divider3d(space: 1.0, color: style.dividerColor)
-        : SceneSizedBox3d(height: metrics.dp(1.0));
+        : SizedBox3d(height: metrics.dp(1.0));
 
-    final tile = SceneColumn3d(
+    final tile = Column3d(
       mainAxisSize: MainAxisSize3d.min,
       crossAxisAlignment: CrossAxisAlignment3d.stretch,
       depthAxisAlignment: CrossAxisAlignment3d.start,
@@ -487,11 +487,11 @@ class _ExpansionTile3dState extends State<ExpansionTile3d>
   }
 }
 
-/// The box that reveals the children: an [Align3d] whose height factor is
+/// The box that reveals the children: a [RenderAlign3d] whose height factor is
 /// the clock, written from a listener so that no frame of the reveal builds
 /// anything.
-class _Reveal3d extends Align3d {
-  _Reveal3d({required Animation<double> animation, super.alignment})
+class _RenderReveal3d extends RenderAlign3d {
+  _RenderReveal3d({required Animation<double> animation, super.alignment})
     : _animation = animation,
       super(heightFactor: animation.value, name: ExpansionTile3d.revealName) {
     _animation.addListener(_apply);
@@ -506,8 +506,8 @@ class _Reveal3d extends Align3d {
     _apply();
   }
 
-  // Clamped, because an overshooting curve handed in by a style would ask an
-  // `Align3d` for a negative height.
+  // Clamped, because an overshooting curve handed in by a style would ask a
+  // `RenderAlign3d` for a negative height.
   void _apply() => heightFactor = math.max(0.0, _animation.value);
 
   @override
@@ -517,8 +517,8 @@ class _Reveal3d extends Align3d {
   }
 }
 
-class _SceneReveal3d extends SingleChildRenderObjectWidget3d {
-  const _SceneReveal3d({
+class _Reveal3d extends SingleChildRenderObjectWidget3d {
+  const _Reveal3d({
     required this.animation,
     required this.alignment,
     super.child,
@@ -528,11 +528,11 @@ class _SceneReveal3d extends SingleChildRenderObjectWidget3d {
   final AlignmentGeometry3d alignment;
 
   @override
-  _Reveal3d createLayout(BuildContext context) =>
-      _Reveal3d(animation: animation, alignment: alignment);
+  _RenderReveal3d createLayout(BuildContext context) =>
+      _RenderReveal3d(animation: animation, alignment: alignment);
 
   @override
-  void updateLayout(BuildContext context, _Reveal3d layout) {
+  void updateLayout(BuildContext context, _RenderReveal3d layout) {
     layout
       ..animation = animation
       ..alignment = alignment;
@@ -541,8 +541,8 @@ class _SceneReveal3d extends SingleChildRenderObjectWidget3d {
 
 /// The box that turns the chevron: half a turn about its own centre, on the
 /// node tier, as the clock runs.
-class _Turn3d extends RenderProxyBox3d {
-  _Turn3d({required Animation<double> animation})
+class _RenderTurn3d extends RenderProxyBox3d {
+  _RenderTurn3d({required Animation<double> animation})
     : _animation = animation,
       super(name: ExpansionTile3d.chevronName) {
     _animation.addListener(_apply);
@@ -586,16 +586,17 @@ class _Turn3d extends RenderProxyBox3d {
   }
 }
 
-class _SceneTurn3d extends SingleChildRenderObjectWidget3d {
-  const _SceneTurn3d({required this.animation, super.child});
+class _Turn3d extends SingleChildRenderObjectWidget3d {
+  const _Turn3d({required this.animation, super.child});
 
   final Animation<double> animation;
 
   @override
-  _Turn3d createLayout(BuildContext context) => _Turn3d(animation: animation);
+  _RenderTurn3d createLayout(BuildContext context) =>
+      _RenderTurn3d(animation: animation);
 
   @override
-  void updateLayout(BuildContext context, _Turn3d layout) {
+  void updateLayout(BuildContext context, _RenderTurn3d layout) {
     layout.animation = animation;
   }
 }

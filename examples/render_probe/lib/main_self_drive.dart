@@ -38,8 +38,8 @@ Future<void> main() async {
   // of this file's own: the first run of this harness did that, and every
   // glyph in every atlas came back with a double rule under it — Flutter's
   // `_errorTextStyle`, which is what a `Text` resolves to with no `Material`
-  // above it, and whose `decoration` a `Text3d` inherits and the atlas bakes.
-  // The harness has to photograph the application a person runs.
+  // above it, and whose `decoration` a `RenderText3d` inherits and the atlas
+  // bakes. The harness has to photograph the application a person runs.
   runApp(selfDriveBoundary(const Gallery3dApp()));
   unawaited(SelfDrive.start(_script));
 }

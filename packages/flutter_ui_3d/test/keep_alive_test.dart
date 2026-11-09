@@ -1,5 +1,5 @@
-// An item that keeps its state: `KeepAlive3d`, the bucket a lazy view parks a
-// child in instead of releasing it, and the seam that lets a view hold
+// An item that keeps its state: `RenderKeepAlive3d`, the bucket a lazy view
+// parks a child in instead of releasing it, and the seam that lets a view hold
 // something other than what was built.
 //
 // The claim under the keep-alive half is that parking is not hiding. A parked
@@ -50,7 +50,7 @@ class CounterState extends State<Counter> {
 
   @override
   Widget build(BuildContext context) =>
-      const SceneSizedBox3d(width: 4, height: 2, depth: 1);
+      const SizedBox3d(width: 4, height: 2, depth: 1);
 }
 
 /// A different kind of item, so that a rebuild can swap one for the other and
@@ -60,7 +60,7 @@ class Plain extends StatelessWidgetShim {
 
   @override
   Widget build(BuildContext context) =>
-      const SceneSizedBox3d(width: 4, height: 2, depth: 1);
+      const SizedBox3d(width: 4, height: 2, depth: 1);
 }
 
 /// `StatelessWidget` under another name, so `Plain` cannot be reconciled
@@ -92,22 +92,22 @@ void main() {
       final states = <int, CounterState>{};
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             controller: scroll,
             itemCount: 50,
             itemExtent: 2,
-            itemBuilder: (context, index) => SceneKeepAlive3d(
+            itemBuilder: (context, index) => KeepAlive3d(
               child: Counter(label: '$index', log: log),
             ),
           ),
         ),
       );
 
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       states[0] = tester.state<CounterState>(find.byType(Counter).first);
       states[0]!.count = 7;
 
@@ -137,22 +137,22 @@ void main() {
       final scroll = Scroll3dController();
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             controller: scroll,
             itemCount: 50,
             itemExtent: 2,
-            itemBuilder: (context, index) => const SceneKeepAlive3d(
-              child: SceneSizedBox3d(width: 4, height: 2, depth: 1),
+            itemBuilder: (context, index) => const KeepAlive3d(
+              child: SizedBox3d(width: 4, height: 2, depth: 1),
             ),
           ),
         ),
       );
 
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       final sliver = list.sliver;
       final parked = sliver.childAt(0);
 
@@ -174,11 +174,11 @@ void main() {
       final log = <String>[];
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             controller: scroll,
             itemCount: 50,
             itemExtent: 2,
@@ -187,7 +187,7 @@ void main() {
         ),
       );
 
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       scroll.jumpTo(40);
       await tester.pump();
 
@@ -201,15 +201,15 @@ void main() {
       final scroll = Scroll3dController();
       final log = <String>[];
 
-      Widget frame(bool keep) => SceneLayout3d(
+      Widget frame(bool keep) => Surface3d(
         parent: Node(),
         size: const Size3d(4, 4, 1),
         controller: controller,
-        child: SceneListView3d.builder(
+        child: ListView3d.builder(
           controller: scroll,
           itemCount: 50,
           itemExtent: 2,
-          itemBuilder: (context, index) => SceneKeepAlive3d(
+          itemBuilder: (context, index) => KeepAlive3d(
             keepAlive: keep,
             child: Counter(label: '$index', log: log),
           ),
@@ -217,7 +217,7 @@ void main() {
       );
 
       await tester.pumpWidget(frame(true));
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       scroll.jumpTo(40);
       await tester.pump();
       expect(list.sliver.keptAliveIndices, contains(0));
@@ -241,22 +241,22 @@ void main() {
       final scroll = Scroll3dController();
       final log = <String>[];
 
-      Widget frame(int count) => SceneLayout3d(
+      Widget frame(int count) => Surface3d(
         parent: Node(),
         size: const Size3d(4, 4, 1),
         controller: controller,
-        child: SceneListView3d.builder(
+        child: ListView3d.builder(
           controller: scroll,
           itemCount: count,
           itemExtent: 2,
-          itemBuilder: (context, index) => SceneKeepAlive3d(
+          itemBuilder: (context, index) => KeepAlive3d(
             child: Counter(label: '$index', log: log),
           ),
         ),
       );
 
       await tester.pumpWidget(frame(50));
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       scroll.jumpTo(40);
       await tester.pump();
       expect(list.sliver.keptAliveIndices, contains(0));
@@ -284,15 +284,15 @@ void main() {
       final log = <String>[];
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 4, 1),
           controller: controller,
-          child: SceneListView3d.builder(
+          child: ListView3d.builder(
             controller: scroll,
             itemCount: 50,
             itemExtent: 2,
-            itemBuilder: (context, index) => SceneKeepAlive3d(
+            itemBuilder: (context, index) => KeepAlive3d(
               child: Counter(label: '$index', log: log),
             ),
           ),
@@ -315,15 +315,15 @@ void main() {
       final scroll = Scroll3dController();
       final log = <String>[];
 
-      Widget frame(bool counters) => SceneLayout3d(
+      Widget frame(bool counters) => Surface3d(
         parent: Node(),
         size: const Size3d(4, 4, 1),
         controller: controller,
-        child: SceneListView3d.builder(
+        child: ListView3d.builder(
           controller: scroll,
           itemCount: 50,
           itemExtent: 2,
-          itemBuilder: (context, index) => SceneKeepAlive3d(
+          itemBuilder: (context, index) => KeepAlive3d(
             child: counters
                 ? Counter(label: '$index', log: log)
                 : const Plain(),
@@ -332,7 +332,7 @@ void main() {
       );
 
       await tester.pumpWidget(frame(true));
-      final list = rootOf(controller) as ListView3d;
+      final list = rootOf(controller) as RenderListView3d;
       scroll.jumpTo(40);
       await tester.pump();
       expect(list.sliver.keptAliveIndices, contains(0));
@@ -351,13 +351,13 @@ void main() {
     test('an imperative list parks and disposes its own', () {
       final scroll = Scroll3dController();
       final built = <int>[];
-      final list = ListView3d.builder(
+      final list = RenderListView3d.builder(
         controller: scroll,
         itemCount: 50,
         itemExtent: 2,
         itemBuilder: (index) {
           built.add(index);
-          return KeepAlive3d(child: TestBox(const Size3d(4, 2, 1)));
+          return RenderKeepAlive3d(child: RenderTestBox(const Size3d(4, 2, 1)));
         },
       );
       final surface = laidOut(
@@ -387,12 +387,12 @@ void main() {
 
     test('refresh releases what is parked, because the data changed', () {
       final scroll = Scroll3dController();
-      final list = ListView3d.builder(
+      final list = RenderListView3d.builder(
         controller: scroll,
         itemCount: 50,
         itemExtent: 2,
         itemBuilder: (index) =>
-            KeepAlive3d(child: TestBox(const Size3d(4, 2, 1))),
+            RenderKeepAlive3d(child: RenderTestBox(const Size3d(4, 2, 1))),
       );
       final surface = laidOut(
         list,
@@ -424,21 +424,21 @@ void main() {
       final order = <String>['a', 'b', 'c', 'd', 'e'];
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(1, 3, 1),
           controller: controller,
           child: StatefulBuilderShim(
-            builder: (context, setState) => SceneReorderableList3d(
+            builder: (context, setState) => ReorderableList3d(
               itemCount: order.length,
               itemExtent: 1,
               startMode: const Drag3dStartMode.immediate(),
               gapDuration: Duration.zero,
-              itemBuilder: (context, index) => SceneHitTestArea3d(
-                child: SceneSizedBox3d(width: 1, height: 1, depth: 0),
+              itemBuilder: (context, index) => HitTestArea3d(
+                child: SizedBox3d(width: 1, height: 1, depth: 0),
               ),
               feedbackBuilder: (index) =>
-                  TestBox(const Size3d(1, 1, 0), name: 'feedback'),
+                  RenderTestBox(const Size3d(1, 1, 0), name: 'feedback'),
               onReorder: (oldIndex, newIndex) {
                 reorders.add((oldIndex, newIndex));
                 setState(
@@ -450,7 +450,7 @@ void main() {
         ),
       );
 
-      final list = rootOf(controller) as ReorderableList3d;
+      final list = rootOf(controller) as RenderReorderableList3d;
       final surface = controller.surface!;
       final pointer = Layout3dPointer(surface);
       Ray at(double y) => rayAt(surface, Offset3d(0.5, y, 0));
@@ -458,7 +458,7 @@ void main() {
       // Each item is inside a handle the list wrapped around it, which is the
       // whole of what the seam is for: the manager built the box, the list
       // holds the draggable.
-      expect(list.sliver.childAt(0), isA<Draggable3d<Object>>());
+      expect(list.sliver.childAt(0), isA<RenderDraggable3d<Object>>());
 
       pointer
         ..down(at(0.5))
@@ -487,7 +487,7 @@ class SizedBoxShim extends StatefulWidget {
 class _SizedBoxShimState extends State<SizedBoxShim> {
   @override
   Widget build(BuildContext context) =>
-      const SceneSizedBox3d(width: 1, height: 1, depth: 1);
+      const SizedBox3d(width: 1, height: 1, depth: 1);
 }
 
 /// `StatefulBuilder` under a name this file owns, so a test can rebuild the

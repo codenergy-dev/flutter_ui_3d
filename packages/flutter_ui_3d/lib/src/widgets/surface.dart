@@ -34,17 +34,17 @@ import 'framework.dart';
 import 'input.dart';
 import 'media_query.dart';
 
-/// Imperative access to the [Layout3dSurface] a [SceneLayout3d] owns.
+/// Imperative access to the [RenderSurface3d] a [Surface3d] owns.
 ///
 /// Attach one to read the laid-out sizes, drive a scroll controller, or reach
 /// the plane [Node] for a raycast. Writes to the plane's transform are
 /// subject to the usual ownership rule: do not set what the widget also
 /// declares, because the next build overwrites it.
 class Layout3dController {
-  Layout3dSurface? _surface;
+  RenderSurface3d? _surface;
 
   /// The surface, or null while the widget is unmounted.
-  Layout3dSurface? get surface => _surface;
+  RenderSurface3d? get surface => _surface;
 
   /// The node the layout hangs from, or null while unmounted.
   Node? get plane => _surface?.plane;
@@ -54,31 +54,31 @@ class Layout3dController {
 /// on, mounted in the enclosing scene.
 ///
 /// Place it among a `SceneView`'s children (or below any scene widget) and
-/// describe the layout in [child] with the `Scene*3d` widgets. The layout
+/// describe the layout in [child] with the layout widgets. The layout
 /// runs as part of the Flutter pipeline, so the tree reconciles the way every
 /// other widget tree does, and what comes out is a subtree of scene [Node]s.
 ///
 /// ```dart
 /// SceneView.declarative(
 ///   children: [
-///     SceneLayout3d(
+///     Surface3d(
 ///       size: const Size3d(4, 3, 0.5),
 ///       position: Vector3(0, 1, 0),
-///       child: SceneColumn3d(
+///       child: Column3d(
 ///         mainAxisAlignment: MainAxisAlignment3d.center,
 ///         spacing: 0.2,
 ///         children: [
-///           SceneNodeBox3d(content: cube),
-///           SceneNodeBox3d(content: sphere),
+///           NodeBox3d(content: cube),
+///           NodeBox3d(content: sphere),
 ///         ],
 ///       ),
 ///     ),
 ///   ],
 /// )
 /// ```
-class SceneLayout3d extends StatefulWidget {
+class Surface3d extends StatefulWidget {
   /// Creates a layout surface.
-  const SceneLayout3d({
+  const Surface3d({
     super.key,
     this.size,
     this.constraints,
@@ -211,7 +211,7 @@ class SceneLayout3d extends StatefulWidget {
   /// Imperative access to the surface this widget owns.
   final Layout3dController? controller;
 
-  /// Where this surface stands among the others a [SceneInput3d] routes to,
+  /// Where this surface stands among the others an [Input3d] routes to,
   /// highest first.
   ///
   /// **Stated rather than derived, because geometry cannot state it.** A
@@ -221,7 +221,7 @@ class SceneLayout3d extends StatefulWidget {
   /// to, in the same place the rest of the surface is configured. Ties go to
   /// the surface nearest the camera.
   ///
-  /// Ignored when there is no [SceneInput3d] above: a surface pointed at by
+  /// Ignored when there is no [Input3d] above: a surface pointed at by
   /// hand is ordered by whatever the caller passed to
   /// [Layout3dPointerGroup.addSurface].
   final double zOrder;
@@ -236,11 +236,11 @@ class SceneLayout3d extends StatefulWidget {
   /// Tree-wide state every box on this surface can read as
   /// [RenderObject3d.slot].
   ///
-  /// The declarative form of [Layout3dSurface.setSlot], for an application
+  /// The declarative form of [RenderSurface3d.setSlot], for an application
   /// that knows its slots at the root:
   ///
   /// ```dart
-  /// SceneLayout3d(
+  /// Surface3d(
   ///   size: const Size3d(4, 3, 0.2),
   ///   slots: {themeSlot: Theme3dData.light()},
   ///   child: screen,
@@ -252,7 +252,7 @@ class SceneLayout3d extends StatefulWidget {
   /// a set of initial values. Anything written here relayouts the subtree
   /// when it changes, because a slot is read during layout, so a map rebuilt
   /// with fresh values every frame is a relayout every frame — keep the
-  /// values `const` or hold them in a field. [SceneSlotProvider3d] does the
+  /// values `const` or hold them in a field. [SlotProvider3d] does the
   /// same write from *inside* the tree, which is where a component library's
   /// theme widget will want to sit.
   ///
@@ -264,11 +264,11 @@ class SceneLayout3d extends StatefulWidget {
   final Widget? child;
 
   @override
-  State<SceneLayout3d> createState() => _SceneLayout3dState();
+  State<Surface3d> createState() => _Surface3dState();
 }
 
-class _SceneLayout3dState extends State<SceneLayout3d> {
-  late final Layout3dSurface _surface = Layout3dSurface(
+class _Surface3dState extends State<Surface3d> {
+  late final RenderSurface3d _surface = RenderSurface3d(
     constraints: _configuration,
     basis: widget.basis,
     metrics: widget.metrics ?? Layout3dMetrics.standard,
@@ -299,7 +299,7 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
   /// The contract this widget states, with the reader's setting written into
   /// it.
   ///
-  /// [SceneLayout3d.metrics] carries the scale and the density; the text
+  /// [Surface3d.metrics] carries the scale and the density; the text
   /// scaler on a surface is never authored there (the assert in
   /// [_debugCheckMetrics] says so), so composing the two here is the whole of
   /// the rule.
@@ -338,7 +338,7 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
   Input3dHost? _input;
 
   /// The camera this surface reads: its own, or the one the enclosing
-  /// [SceneInput3d] casts its rays from.
+  /// [Input3d] casts its rays from.
   ///
   /// Falling back is the whole point. A binding needs the same camera the
   /// view renders with, which is the camera the input host already has, so an
@@ -353,7 +353,7 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
   /// change: nothing has to re-assert the registration from a per-frame tick,
   /// and nothing can be skipped forever for having been asked too early.
   void _syncInputHost() {
-    final host = SceneInput3d.maybeOf(context);
+    final host = Input3d.maybeOf(context);
     if (!identical(host, _input)) {
       _input?.unregisterSurface(_surface);
       _input = host;
@@ -391,7 +391,7 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
   /// contract governs, and a padding converted in `build` is never measured
   /// against a different number than the boxes below use.
   ///
-  /// The exception is a write from inside the frame itself — `Overlay3d`
+  /// The exception is a write from inside the frame itself — `RenderOverlay3d`
   /// pushes the host's contract onto a detached entry's surface during
   /// `performLayout` — where marking this element dirty is either illegal or
   /// too late to matter. That one takes the next frame.
@@ -410,7 +410,7 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
     setState(() {});
   }
 
-  /// Applies [SceneLayout3d.slots] onto the surface, clearing what [previous]
+  /// Applies [Surface3d.slots] onto the surface, clearing what [previous]
   /// held and this build no longer does.
   void _syncSlots(Map<Layout3dSlot<Object>, Object> previous) {
     for (final key in previous.keys) {
@@ -448,7 +448,7 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
   }
 
   @override
-  void didUpdateWidget(SceneLayout3d oldWidget) {
+  void didUpdateWidget(Surface3d oldWidget) {
     super.didUpdateWidget(oldWidget);
     assert(_debugCheckBinding());
     assert(_debugCheckMetrics());
@@ -504,12 +504,12 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
     super.dispose();
   }
 
-  /// Whether a binding, rather than [SceneLayout3d.size], decides what the
+  /// Whether a binding, rather than [Surface3d.size], decides what the
   /// root child is laid out against.
   bool get _bindingOwnsConfiguration =>
       widget.binding?.derivesConstraints ?? false;
 
-  /// Whether a binding, rather than [SceneLayout3d.metrics], decides the unit
+  /// Whether a binding, rather than [Surface3d.metrics], decides the unit
   /// contract.
   bool get _bindingOwnsMetrics => widget.binding?.derivesMetrics ?? false;
 
@@ -519,8 +519,8 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
     assert(
       !binding.needsCamera || _camera != null,
       'This Layout3dCameraBinding derives the surface from a camera, so '
-      'SceneLayout3d needs one. Pass the camera the enclosing SceneView '
-      'renders with, or wrap the view in a SceneInput3d that states it once '
+      'Surface3d needs one. Pass the camera the enclosing SceneView '
+      'renders with, or wrap the view in an Input3d that states it once '
       'for every surface below it.',
     );
     assert(
@@ -544,7 +544,7 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
     assert(
       widget.metrics == null ||
           widget.metrics!.textScaler == TextScaler.noScaling,
-      'SceneLayout3d.metrics carries a TextScaler, and a surface does not '
+      'Surface3d.metrics carries a TextScaler, and a surface does not '
       'take its text scale from there: it takes the reader\'s own setting, '
       'from the enclosing MediaQuery, because a screen nobody can enlarge is '
       'the accessibility defect this contract exists to prevent. State the '
@@ -637,13 +637,13 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
 
   /// The logical size of the view the binding derives from.
   ///
-  /// [SceneLayout3d.viewSize] when it is given. Otherwise the size of the
+  /// [Surface3d.viewSize] when it is given. Otherwise the size of the
   /// nearest laid-out ancestor box: a declarative scene child is mounted in a
   /// chain of zero-sized hosts (they exist to reconcile the layout tree, not
   /// to take space), so the first ancestor with an extent is the `SceneView`
   /// itself, whose box is the view. Null when there is no such ancestor,
   /// which is the case for a layout pumped on its own, and which the caller
-  /// answers by passing [SceneLayout3d.viewSize].
+  /// answers by passing [Surface3d.viewSize].
   Size? _resolveViewSize() {
     final explicit = widget.viewSize;
     if (explicit != null) return explicit;
@@ -666,7 +666,7 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
         widget.transform != null;
     Widget mount = hasTransform
         ? SceneNode(
-            name: 'SceneLayout3d',
+            name: 'Surface3d',
             position: widget.position,
             rotation: widget.rotation,
             scale: widget.scale,
@@ -699,16 +699,16 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
 /// component library is *specified* in is measured in logical pixels. A
 /// `RenderObject3d` joins the two inside `performLayout`, where the owner's
 /// [Layout3dMetrics] is one getter away. A widget cannot reach that, so
-/// [SceneLayout3d] publishes the same value here and a build method converts
+/// [Surface3d] publishes the same value here and a build method converts
 /// its own figures before they ever reach a box:
 ///
 /// ```dart
 /// Widget build(BuildContext context) {
 ///   final metrics = Layout3dMetricsScope.of(context);
-///   return ScenePadding3d(
+///   return Padding3d(
 ///     // 16dp, the way a Material spec figure is written.
 ///     padding: metrics.dpInsets(const EdgeInsets3d.all(16)),
-///     child: SceneSizedBox3d(height: metrics.dp(56), child: child),
+///     child: SizedBox3d(height: metrics.dp(56), child: child),
 ///   );
 /// }
 /// ```
@@ -726,7 +726,7 @@ class _SceneLayout3dState extends State<SceneLayout3d> {
 /// numbers, so the panel's size and its unit contract never disagree.
 ///
 /// **Reading this does not replace the relayout.** Writing
-/// [Layout3dSurface.metrics] relayouts the whole subtree by design, because a
+/// [RenderSurface3d.metrics] relayouts the whole subtree by design, because a
 /// box that sized itself `metrics.dp(48)` is a different box afterward and
 /// nothing hands it the number as a constraint. This scope adds a rebuild in
 /// front of that relayout for the widgets that read it; it does not make a
@@ -757,7 +757,7 @@ class Layout3dMetricsScope extends InheritedWidget {
   /// The contract in force above [context].
   ///
   /// The caller becomes a dependent: it rebuilds when the contract changes.
-  /// Asserts when there is no [SceneLayout3d] above, because the alternative
+  /// Asserts when there is no [Surface3d] above, because the alternative
   /// — quietly answering [Layout3dMetrics.standard] — is the unit mistake
   /// this whole contract exists to prevent, and it would be silent.
   static Layout3dMetrics of(BuildContext context) {
@@ -765,7 +765,7 @@ class Layout3dMetricsScope extends InheritedWidget {
     assert(
       metrics != null,
       'Layout3dMetricsScope.of() found no surface above this context. The '
-      'unit contract is published by SceneLayout3d, so a widget that converts '
+      'unit contract is published by Surface3d, so a widget that converts '
       'a dp figure has to be built inside one; use maybeOf() if being outside '
       'is a legitimate state.',
     );
@@ -786,7 +786,7 @@ class Layout3dMetricsScope extends InheritedWidget {
 class _RenderObject3dRoot extends MultiChildRenderObjectWidget {
   const _RenderObject3dRoot({required this.surface, required super.children});
 
-  final Layout3dSurface surface;
+  final RenderSurface3d surface;
 
   @override
   RenderObject createRenderObject(BuildContext context) =>

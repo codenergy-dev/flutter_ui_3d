@@ -13,19 +13,14 @@ import 'package:flutter/widgets.dart'
         Widget;
 import 'package:flutter_ui_3d/rendering.dart'
     show
-        Focus3d,
+        RenderFocus3d,
         HitTestBehavior3d,
         Offset3d,
         PointerEvent3d,
         Size3d,
-        TapTarget3d;
+        RenderTapTarget3d;
 import 'package:flutter_ui_3d/widgets.dart'
-    show
-        SceneActions3d,
-        SceneFocus3d,
-        SceneGestureDetector3d,
-        SceneListener3d,
-        SceneTapTarget3d;
+    show Actions3d, Focus3d, GestureDetector3d, Listener3d, TapTarget3d;
 
 import '../tokens/state_layer.dart';
 import 'ink.dart';
@@ -40,17 +35,17 @@ import 'ink.dart';
 ///   shape: theme.shape.full,
 ///   child: InkWell3d(
 ///     onTap: _submit,
-///     child: const SceneText3d('Continue'),
+///     child: const Text3d('Continue'),
 ///   ),
 /// )
 /// ```
 ///
-/// Boxes in an order that matters. Outermost is a `TapTarget3d` at
-/// Material's 48dp minimum, so a small control is still easy to hit; then an
-/// `Actions3d` binding `ActivateIntent`, and a `Focus3d` inside it, so the
-/// control is reachable from a keyboard, lights up when it is, and fires on
-/// Enter or Space; then a `Listener3d` and a `GestureDetector3d` for the
-/// pointer.
+/// Boxes in an order that matters. Outermost is a `RenderTapTarget3d` at
+/// Material's 48dp minimum, so a small control is still easy to hit; then a
+/// `RenderActions3d` binding `ActivateIntent`, and a `RenderFocus3d` inside it,
+/// so the control is reachable from a keyboard, lights up when it is, and fires
+/// on Enter or Space; then a `RenderListener3d` and a `RenderGestureDetector3d`
+/// for the pointer.
 ///
 /// ## Activation from the keyboard
 ///
@@ -67,7 +62,7 @@ import 'ink.dart';
 /// **A hover, a focus or a press rebuilds nothing and lays nothing out.**
 /// This widget never calls `setState` for a state change; it calls
 /// [InkController3d.setInkState] on the controller the enclosing `Material3d`
-/// published, which assigns `DecoratedBox3d.stateLayer` and asks for a
+/// published, which assigns `RenderDecoratedBox3d.stateLayer` and asks for a
 /// repaint. That is the whole design of the decoration layer — a pointer
 /// crossing a list of twenty tiles costs twenty uniform writes and no layout
 /// at all — and a test in this package states it in those terms, by counting
@@ -90,13 +85,13 @@ import 'ink.dart';
 /// **The 48dp target grows the ray region and not the box.** Layout,
 /// intrinsics, `ensureVisible3d` and semantics all see the smaller rectangle,
 /// which is what keeps neighbours from moving apart when a dense toolbar pads
-/// its targets. Announce a label with a `SceneSemantics3d` around the whole
+/// its targets. Announce a label with a `Semantics3d` around the whole
 /// control, not around the target.
 ///
-/// **A `Text3d` answers hit tests on its own account.** A label inside a
+/// **A `RenderText3d` answers hit tests on its own account.** A label inside a
 /// control is not a problem — the gesture detector below this widget is
 /// opaque and is found first — but a label that has to let a ray through to
-/// something behind it wants a `SceneIgnorePointer3d`.
+/// something behind it wants an `IgnorePointer3d`.
 class InkWell3d extends StatefulWidget {
   /// Creates an interactive region over [child].
   const InkWell3d({
@@ -171,7 +166,8 @@ class InkWell3d extends StatefulWidget {
   final bool enabled;
 
   /// The smallest area the pointer is given, in **world units**, or null for
-  /// [TapTarget3d.materialMinimum] resolved through the surface's metrics.
+  /// [RenderTapTarget3d.materialMinimum] resolved through the surface's
+  /// metrics.
   ///
   /// The odd unit is the layout package's: every extent there is in world
   /// units, and the 48dp default is converted at hit-test time so that a
@@ -192,8 +188,8 @@ class _InkWell3dState extends State<InkWell3d> {
   /// The node the focus box uses when the caller gave none.
   ///
   /// Held here rather than left to the box, because an activation has to find
-  /// the box it is centred on, and [Focus3d.layoutFor] finds a box from its
-  /// node. Skips Flutter's own traversal, as a node the box made would.
+  /// the box it is centred on, and [RenderFocus3d.layoutFor] finds a box from
+  /// its node. Skips Flutter's own traversal, as a node the box made would.
   FocusNode? _ownedFocusNode;
 
   FocusNode get _focusNode =>
@@ -242,7 +238,7 @@ class _InkWell3dState extends State<InkWell3d> {
   /// lets it go; [InkWell3d.onHighlightChanged] is not called, because Flutter
   /// does not highlight a keyboard activation either.
   void _activate() {
-    final box = Focus3d.layoutFor(_focusNode);
+    final box = RenderFocus3d.layoutFor(_focusNode);
     if (box != null && box.hasSize) {
       _ink?.noteRipplePoint(
         box,
@@ -287,24 +283,24 @@ class _InkWell3dState extends State<InkWell3d> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.enabled;
-    return SceneTapTarget3d(
+    return TapTarget3d(
       minimumSize: widget.minimumSize,
-      child: SceneActions3d(
+      child: Actions3d(
         actions: _actions,
-        child: SceneFocus3d(
+        child: Focus3d(
           focusNode: _focusNode,
           autofocus: widget.autofocus,
           focusOnPointerDown: widget.focusOnPointerDown,
           canRequestFocus: enabled,
           onFocusChange: _handleFocusChange,
-          child: SceneListener3d(
+          child: Listener3d(
             onPointerEnter: (_) => _handleHover(true),
             onPointerExit: (_) => _handleHover(false),
             onPointerDown: _handleDown,
             // Defers to the gesture detector below, which is opaque: a control
             // is hovered exactly where it is pressable.
             behavior: HitTestBehavior3d.deferToChild,
-            child: SceneGestureDetector3d(
+            child: GestureDetector3d(
               onTapDown: enabled ? (_) => _handleHighlight(true) : null,
               onTapUp: enabled ? (_) => _handleHighlight(false) : null,
               onTapCancel: enabled ? () => _handleHighlight(false) : null,

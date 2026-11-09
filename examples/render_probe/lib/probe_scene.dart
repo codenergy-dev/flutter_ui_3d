@@ -27,7 +27,7 @@ class ProbeSceneContent {
   });
 
   /// The laid-out surfaces, in the order they are added to the scene.
-  final List<Layout3dSurface> surfaces;
+  final List<RenderSurface3d> surfaces;
 
   /// Boxes this scene wants its test to be able to locate on screen.
   final Map<String, RenderObject3d> probes;

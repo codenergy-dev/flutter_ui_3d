@@ -22,10 +22,10 @@ import 'drag.dart';
 /// layout that implements this, so a box that wants events only has to say so
 /// — there is no registration and no listener list.
 ///
-/// [Listener3d], [GestureDetector3d] and [Focus3d] are the implementations
-/// that ship here. A layout of your own can implement it directly when the
-/// event *is* the behaviour: a knob that turns, a slider that tracks, a piece
-/// of geometry that answers a poke.
+/// [RenderListener3d], [RenderGestureDetector3d] and [RenderFocus3d] are the
+/// implementations that ship here. A layout of your own can implement it
+/// directly when the event *is* the behaviour: a knob that turns, a slider that
+/// tracks, a piece of geometry that answers a poke.
 abstract interface class HitTestTarget3d {
   /// Handles [event], which reached this box because [entry] is on the path
   /// the pointer captured.
@@ -80,7 +80,7 @@ enum HitTestBehavior3d {
 /// all in this build, so the scroll drag and the drag-and-drop gesture are
 /// both hand-rolled arena members, and anything else that has to compete for
 /// a pointer — a knob, a slider, a rotation handle — will be too. The slider
-/// is no longer hypothetical: `material_ui_3d`'s `SliderGesture3d`
+/// is no longer hypothetical: `material_ui_3d`'s `RenderSliderGesture3d`
 /// is fifty lines over this seam, and what it buys is the case the seam
 /// exists for — a slider inside a scrolling list takes a sideways drag while
 /// the list keeps a vertical one.
@@ -128,8 +128,8 @@ abstract interface class PointerSequence3d {
 
   /// Starts [session] on this sequence's pointer.
   ///
-  /// The seam a [Draggable3d] reaches for once it has decided the press is a
-  /// drag. The pointer driving this sequence takes the session into its
+  /// The seam a [RenderDraggable3d] reaches for once it has decided the press
+  /// is a drag. The pointer driving this sequence takes the session into its
   /// registry and, from the next move on, hands it the fresh hit it already
   /// computes — so target resolution costs one path walk, not a second hit
   /// test.

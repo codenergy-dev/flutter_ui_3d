@@ -46,7 +46,7 @@ typedef Drag3dWillAccept<T> = bool Function(T data, Drag3dDetails details);
 /// Told that a payload did something over a target.
 typedef Drag3dTargetCallback<T> = void Function(T data, Drag3dDetails details);
 
-/// When a press on a [Draggable3d] turns into a drag.
+/// When a press on a [RenderDraggable3d] turns into a drag.
 ///
 /// Flutter's semantics without Flutter's classes, which is not a stylistic
 /// choice: in this build `DragGestureRecognizer` delivers `onStart` and
@@ -85,16 +85,16 @@ class Drag3dStartMode {
       : 'Drag3dStartMode.longPress($delay)';
 }
 
-/// A box whose contents can be picked up and carried to a [DragTarget3d].
+/// A box whose contents can be picked up and carried to a [RenderDragTarget3d].
 ///
 /// The 3D analogue of Flutter's `Draggable`, and the same three moving parts:
 /// a payload, a piece of feedback that follows the pointer, and a drop that
 /// either lands on a target or does not.
 ///
 /// ```dart
-/// Draggable3d<Photo>(
+/// RenderDraggable3d<Photo>(
 ///   data: photo,
-///   feedbackBuilder: (_) => Container3d(
+///   feedbackBuilder: (_) => RenderContainer3d(
 ///     size: const Size3d(0.6, 0.4, 0.02),
 ///     decoration: cardDecoration,
 ///   ),
@@ -111,25 +111,25 @@ class Drag3dStartMode {
 /// anything on a per-frame path and a drag is the most per-frame path there is.
 ///
 /// Note *which* channel. `ParentData3d.sceneOffset` belongs to the parent and
-/// [Overlay3d] is a [Stack3d], whose `depthStep` rewrites it on every
-/// placement — an animation stored there is silently erased. The two layout
-/// passes a drag does cost are the insertion of the feedback entry at the
-/// start and its removal at the end, and there is no way around either: an
+/// [RenderOverlay3d] is a [RenderStack3d], whose `depthStep` rewrites it on
+/// every placement — an animation stored there is silently erased. The two
+/// layout passes a drag does cost are the insertion of the feedback entry at
+/// the start and its removal at the end, and there is no way around either: an
 /// overlay entry is a child of a stack, and adding a child is a layout.
 ///
 /// ## Where the feedback lives
 ///
-/// In the nearest [Overlay3d] above this box, found by [Overlay3d.of], or in
-/// [overlay] when one is named. A draggable with no overlay above it still
-/// drags — the session runs, targets light up, the drop lands — it simply
-/// carries nothing visible, which is the right failure for a headless test
-/// and a loud one on screen.
+/// In the nearest [RenderOverlay3d] above this box, found by
+/// [RenderOverlay3d.of], or in [overlay] when one is named. A draggable with no
+/// overlay above it still drags — the session runs, targets light up, the drop
+/// lands — it simply carries nothing visible, which is the right failure for a
+/// headless test and a loud one on screen.
 ///
-/// The feedback is wrapped in an [IgnorePointer3d], and that is mandatory
+/// The feedback is wrapped in a [RenderIgnorePointer3d], and that is mandatory
 /// rather than tidy. Hit testing deliberately ignores
 /// [RenderObject3d.nodeOffset], so the feedback's *laid-out* position is still
-/// hit-testable even though it is drawn somewhere else, and a [Text3d] inside
-/// it would answer a ray on its own account and steal the drop.
+/// hit-testable even though it is drawn somewhere else, and a [RenderText3d]
+/// inside it would answer a ray on its own account and steal the drop.
 ///
 /// ## How it competes for the pointer
 ///
@@ -145,10 +145,11 @@ class Drag3dStartMode {
 /// draggable that is alone in the arena is handed the pointer by default as
 /// soon as the arena closes, a microtask after the press, and starting the
 /// drag there would mean no threshold at all.
-class Draggable3d<T extends Object> extends RenderProxyBoxWithHitTestBehavior3d
+class RenderDraggable3d<T extends Object>
+    extends RenderProxyBoxWithHitTestBehavior3d
     implements HitTestTarget3d {
   /// Creates a draggable box carrying [data].
-  Draggable3d({
+  RenderDraggable3d({
     this.data,
     this.feedbackBuilder,
     this.startMode = const Drag3dStartMode.immediate(),
@@ -173,9 +174,9 @@ class Draggable3d<T extends Object> extends RenderProxyBoxWithHitTestBehavior3d
   /// What this box carries.
   ///
   /// A target takes it only when `data is T` for the target's own `T`, so a
-  /// null payload is refused by every `DragTarget3d<T>`: `null is T` is false
-  /// for a non-nullable `T`. A draggable with no data is still a legal thing
-  /// to build — it drags and lands on nothing — but it is rarely what was
+  /// null payload is refused by every `RenderDragTarget3d<T>`: `null is T` is
+  /// false for a non-nullable `T`. A draggable with no data is still a legal
+  /// thing to build — it drags and lands on nothing — but it is rarely what was
   /// meant.
   T? data;
 
@@ -202,7 +203,7 @@ class Draggable3d<T extends Object> extends RenderProxyBoxWithHitTestBehavior3d
   Drag3dAnchor anchor;
 
   /// The overlay the feedback goes into, or null for the nearest one above.
-  Overlay3d? overlay;
+  RenderOverlay3d? overlay;
 
   /// Which layer of the overlay the feedback goes on.
   ///
@@ -228,7 +229,7 @@ class Draggable3d<T extends Object> extends RenderProxyBoxWithHitTestBehavior3d
   /// the right one for a card dragged between two panels: nothing about
   /// picking something up says the view underneath should start moving. A
   /// list that reorders itself is the case where it is always wanted, and
-  /// [SliverReorderableList3d] turns it on for its own items.
+  /// [RenderSliverReorderableList3d] turns it on for its own items.
   ///
   /// The settings are read afresh on every drag, so changing them between
   /// drags takes effect; changing them *during* one does not, since the
@@ -278,8 +279,8 @@ class Draggable3d<T extends Object> extends RenderProxyBoxWithHitTestBehavior3d
 
   /// Takes a travel measured in this box's frame into the feedback's.
   ///
-  /// The two are axis-aligned unless a `Transform3d` stands between them, and
-  /// this costs the same either way.
+  /// The two are axis-aligned unless a `RenderTransform3d` stands between them,
+  /// and this costs the same either way.
   Matrix4? _travelToFeedback;
 
   Drag3dAutoscroller? _autoscroller;
@@ -367,13 +368,13 @@ class Draggable3d<T extends Object> extends RenderProxyBoxWithHitTestBehavior3d
   void _insertFeedback(Drag3dSession session) {
     final builder = feedbackBuilder;
     if (builder == null) return;
-    final host = overlay ?? Overlay3d.of(this);
+    final host = overlay ?? RenderOverlay3d.of(this);
     if (host == null) return;
     final entry = Overlay3dEntry(
       layer: feedbackLayer,
-      debugLabel: 'Draggable3d feedback',
+      debugLabel: 'RenderDraggable3d feedback',
       builder: (_) {
-        final feedback = IgnorePointer3d(child: builder(session));
+        final feedback = RenderIgnorePointer3d(child: builder(session));
         _feedback = feedback;
         return feedback;
       },
@@ -415,9 +416,9 @@ class Draggable3d<T extends Object> extends RenderProxyBoxWithHitTestBehavior3d
     // The two plane axes only, and the depth axis deliberately left alone.
     //
     // This correction exists to cancel the *overlay's alignment*: an entry is
-    // placed by the overlay's own [Stack3d.alignment], which is nowhere near
-    // the box the drag was picked up from, so without it the card would jump
-    // to the middle of the panel at the moment it is lifted. That is a
+    // placed by the overlay's own [RenderStack3d.alignment], which is nowhere
+    // near the box the drag was picked up from, so without it the card would
+    // jump to the middle of the panel at the moment it is lifted. That is a
     // question about where things sit on the plane.
     //
     // Depth is a different question and it already has an answer:
@@ -476,7 +477,7 @@ class Draggable3d<T extends Object> extends RenderProxyBoxWithHitTestBehavior3d
     }
     final provider = vsync;
     final ticker = _dropTicker = provider == null
-        ? Ticker(_tickDrop, debugLabel: 'Draggable3d drop')
+        ? Ticker(_tickDrop, debugLabel: 'RenderDraggable3d drop')
         : provider.createTicker(_tickDrop);
     ticker.start();
   }
@@ -554,7 +555,7 @@ class Draggable3d<T extends Object> extends RenderProxyBoxWithHitTestBehavior3d
   }
 }
 
-/// One press on a [Draggable3d], competing for the pointer.
+/// One press on a [RenderDraggable3d], competing for the pointer.
 ///
 /// The same shape as `_Sequence` in `pointer.dart`, which is the package's
 /// other hand-rolled drag recognizer: accumulate travel on one axis, compare
@@ -569,7 +570,7 @@ class _Drag3dGesture implements GestureArenaMember {
     required this.metricsScale,
   });
 
-  final Draggable3d<Object> owner;
+  final RenderDraggable3d<Object> owner;
 
   /// Where the press landed, in the draggable's own frame, in world units.
   final Offset3d press;
@@ -699,7 +700,7 @@ class _Drag3dGesture implements GestureArenaMember {
       '${_won ? ', won' : ''})';
 }
 
-/// A box that catches what a [Draggable3d] carries.
+/// A box that catches what a [RenderDraggable3d] carries.
 ///
 /// The 3D analogue of Flutter's `DragTarget`, and the generic half of
 /// [Drag3dTarget]: the payload type is tested here, inside the target, rather
@@ -707,7 +708,7 @@ class _Drag3dGesture implements GestureArenaMember {
 /// never heard of `T`.
 ///
 /// ```dart
-/// DragTarget3d<Photo>(
+/// RenderDragTarget3d<Photo>(
 ///   onWillAccept: (photo, _) => photo.album != album,
 ///   onEnter: (_, _) => panel.stateLayer = hovered,
 ///   onLeave: (_, _) => panel.stateLayer = StateLayer3d.none,
@@ -731,20 +732,21 @@ class _Drag3dGesture implements GestureArenaMember {
 /// a tap would land*.
 ///
 /// The sharp edge that comes with that rule is in `docs/traps.md`:
-/// `Stack3d.depthStep` does not separate children thicker than the step, so a
-/// slab reaching further toward the viewer than the step can win the depth
+/// `RenderStack3d.depthStep` does not separate children thicker than the step,
+/// so a slab reaching further toward the viewer than the step can win the depth
 /// test while sitting behind in the stack, and a drop then lands on what
 /// looks like the back card. Keep drop targets thin relative to the step.
 ///
-/// ## `DragTarget3d<Object>` accepts everything
+/// ## `RenderDragTarget3d<Object>` accepts everything
 ///
 /// Inherited from Flutter, along with the trap: `data is Object` is true of
 /// every non-null payload. Name a real type, and use [onWillAccept] for the
 /// conditions a type cannot express.
-class DragTarget3d<T extends Object> extends RenderProxyBoxWithHitTestBehavior3d
+class RenderDragTarget3d<T extends Object>
+    extends RenderProxyBoxWithHitTestBehavior3d
     implements Drag3dTarget {
   /// Creates a drop target for payloads of type [T].
-  DragTarget3d({
+  RenderDragTarget3d({
     this.onWillAccept,
     this.onEnter,
     this.onMove,

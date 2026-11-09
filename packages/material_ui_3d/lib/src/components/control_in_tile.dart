@@ -10,7 +10,7 @@ import 'package:flutter/widgets.dart' show BuildContext, InheritedWidget;
 ///
 /// That is this package's answer to the problem Flutter solves with
 /// `MergeSemantics` and `ExcludeFocus`. There is no merge here — a
-/// `Semantics3d` gathers nothing — and taking one component off one node
+/// `RenderSemantics3d` gathers nothing — and taking one component off one node
 /// leaves every node under it published, so two announcements cannot be made
 /// into one after the fact. **There has to be only one control to begin
 /// with**, and this is what says which one it is.

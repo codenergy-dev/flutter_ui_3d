@@ -33,18 +33,18 @@ import 'slot.dart';
 /// is rewritten on every layout.
 ///
 /// ```dart
-/// final surface = Layout3dSurface(
+/// final surface = RenderSurface3d(
 ///   constraints: Constraints3d.tight(const Size3d(4, 3, 0.5)),
-///   child: Column3d(
+///   child: RenderColumn3d(
 ///     mainAxisAlignment: MainAxisAlignment3d.center,
-///     children: [NodeBox3d(content: cube), NodeBox3d(content: sphere)],
+///     children: [RenderNodeBox3d(content: cube), RenderNodeBox3d(content: sphere)],
 ///   ),
 /// );
 /// scene.root.add(surface.plane);
 /// surface.plane.rotation = Quaternion.axisAngle(Vector3(0, 1, 0), 0.4);
 /// surface.flush();
 /// ```
-class Layout3dSurface extends RenderSingleChild3d {
+class RenderSurface3d extends RenderSingleChild3d {
   /// Creates a layout surface.
   ///
   /// [constraints] is what the root child is laid out against; a tight one
@@ -53,7 +53,7 @@ class Layout3dSurface extends RenderSingleChild3d {
   /// [plane] node's origin, and defaults to the center. [metrics] is the unit
   /// contract the whole tree is specified in, and defaults to the authored
   /// one; bind the surface to a camera to have it derived instead.
-  Layout3dSurface({
+  RenderSurface3d({
     Constraints3d constraints = const Constraints3d(),
     LayoutBasis3d? basis,
     Layout3dMetrics metrics = Layout3dMetrics.standard,
@@ -63,15 +63,16 @@ class Layout3dSurface extends RenderSingleChild3d {
     String? name,
   }) : _configuration = constraints,
        _origin = origin,
-       super(name: name ?? 'Layout3dSurface.basis') {
-    _plane.name = name ?? 'Layout3dSurface';
+       super(name: name ?? 'RenderSurface3d.basis') {
+    _plane.name = name ?? 'RenderSurface3d';
     _plane.add(node);
     _owner
       ..basis = basis ?? LayoutBasis3d.xy
       ..metrics = metrics
       ..onNeedVisualUpdate = onNeedVisualUpdate
       ..focusRoot = this
-      ..onFocusScopeKeyEvent = (event) => Actions3d.handleKeyEvent(this, event);
+      ..onFocusScopeKeyEvent = (event) =>
+          RenderActions3d.handleKeyEvent(this, event);
     attach(_owner);
     applyNodeTransform();
   }
@@ -120,7 +121,7 @@ class Layout3dSurface extends RenderSingleChild3d {
   /// Sets the mapping from layout space to the plane's scene space.
   ///
   /// Changing it relayouts, because content measured through the old basis
-  /// (a [NodeBox3d] reading a model's bounds) can report a different size
+  /// (a [RenderNodeBox3d] reading a model's bounds) can report a different size
   /// through the new one.
   set basis(LayoutBasis3d value) {
     if (identical(_owner.basis, value)) return;
@@ -158,7 +159,7 @@ class Layout3dSurface extends RenderSingleChild3d {
   /// The unit contract, as something the widget layer can listen to.
   ///
   /// A binding writes [metrics] straight onto the surface, so no rebuild is
-  /// involved and nothing above would otherwise hear about it. `SceneLayout3d`
+  /// involved and nothing above would otherwise hear about it. `Surface3d`
   /// listens here and republishes the value as a `Layout3dMetricsScope`, which
   /// is how a `build` method converts a dp figure.
   ///

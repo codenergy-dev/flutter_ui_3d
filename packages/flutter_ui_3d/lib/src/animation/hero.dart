@@ -89,7 +89,7 @@ class Hero3dFlight {
   String toString() => 'Hero3dFlight($tag, $direction, $size)';
 }
 
-/// Builds what flies between two [Hero3d] boxes.
+/// Builds what flies between two [RenderHero3d] boxes.
 ///
 /// Called once, when the flight starts, and the subtree it returns belongs to
 /// the overlay entry that hosts it: it is disposed when the flight ends,
@@ -101,15 +101,15 @@ typedef Hero3dFlightBuilder = RenderObject3d Function(Hero3dFlight flight);
 /// The 3D analogue of Flutter's `Hero`, with one difference that is forced
 /// rather than chosen: **nothing is reparented.** Flutter lifts the hero's
 /// own subtree into the overlay for the duration of the flight; this stack
-/// cannot, for the reason `Draggable3d` found first — building a second copy
-/// of a widget-built child lays a render box out, and a flight begins in the
-/// middle of a route transition. So a hero is built twice, like a drag's
+/// cannot, for the reason `RenderDraggable3d` found first — building a second
+/// copy of a widget-built child lays a render box out, and a flight begins in
+/// the middle of a route transition. So a hero is built twice, like a drag's
 /// feedback is:
 ///
 /// ```dart
-/// RenderObject3d avatar() => Image3d(image: photo, fit: BoxFit3d.cover);
+/// RenderObject3d avatar() => RenderImage3d(image: photo, fit: BoxFit3d.cover);
 ///
-/// Hero3d(
+/// RenderHero3d(
 ///   tag: photo.id,
 ///   flightBuilder: (_) => avatar(),
 ///   child: avatar(),
@@ -153,14 +153,14 @@ typedef Hero3dFlightBuilder = RenderObject3d Function(Hero3dFlight flight);
 /// in transit. The two are answers to the same question and the flight is the
 /// better one: give a route carrying heroes `Motion3d.fade()`, or no motion at
 /// all.
-class Hero3d extends RenderProxyBox3d {
+class RenderHero3d extends RenderProxyBox3d {
   /// Creates a hero that flies to the box carrying the same [tag].
-  Hero3d({
+  RenderHero3d({
     required this.tag,
     required this.flightBuilder,
     this.fit = Hero3dFit.stretch,
     super.child,
-    super.name = 'Hero3d',
+    super.name = 'RenderHero3d',
   });
 
   /// What this box matches on.
@@ -199,7 +199,7 @@ class Hero3d extends RenderProxyBox3d {
     super.performLayout();
     // The scrolling views cull by writing this flag too, and the last writer
     // during a layout pass should be the box that owns the decision — the
-    // same rule `Visibility3d` keeps.
+    // same rule `RenderVisibility3d` keeps.
     node.visible = !_flying;
   }
 
@@ -221,14 +221,14 @@ class Hero3d extends RenderProxyBox3d {
 /// and the outer one is the flight.
 void collectHero3ds(
   RenderObject3d root,
-  Map<Object, Hero3d> into, {
+  Map<Object, RenderHero3d> into, {
   Set<RenderObject3d> stopAt = const <RenderObject3d>{},
 }) {
   if (stopAt.contains(root)) return;
-  if (root is Hero3d) {
+  if (root is RenderHero3d) {
     assert(
       !into.containsKey(root.tag),
-      'Two Hero3d boxes carry the tag ${root.tag} on one route. A tag names '
+      'Two RenderHero3d boxes carry the tag ${root.tag} on one route. A tag names '
       'one box per route, or a flight cannot tell which end it has.',
     );
     into.putIfAbsent(root.tag, () => root);
@@ -244,8 +244,8 @@ void collectHero3ds(
 /// the route's own clock in both directions, read from opposite ends.
 Overlay3dEntry buildHero3dFlightEntry({
   required Object tag,
-  required Hero3d aSide,
-  required Hero3d bSide,
+  required RenderHero3d aSide,
+  required RenderHero3d bSide,
   required Hero3dFlightDirection direction,
   required Animation<double> animation,
   OverlayLayer3d layer = const OverlayLayer3d.inPlane(),
@@ -258,19 +258,19 @@ Overlay3dEntry buildHero3dFlightEntry({
   final size = from.size;
   return Overlay3dEntry(
     layer: layer,
-    debugLabel: 'Hero3d flight ($tag)',
-    builder: (_) => Hero3dFlightBox(
+    debugLabel: 'RenderHero3d flight ($tag)',
+    builder: (_) => RenderHero3dFlightBox(
       animation: animation,
       aSide: aSide,
       bSide: bSide,
       fit: from.fit,
-      child: SizedBox3d.fromSize(
+      child: RenderSizedBox3d.fromSize(
         size,
         // Mandatory rather than tidy, for the reason the drag lane states:
         // hit testing ignores `nodeOffset`, so the flight's laid-out position
         // is still reachable even though it is drawn somewhere else, and
         // anything inside would answer a ray on its own account.
-        child: IgnorePointer3d(
+        child: RenderIgnorePointer3d(
           child: from.flightBuilder(
             Hero3dFlight(
               tag: tag,
@@ -289,15 +289,15 @@ Overlay3dEntry buildHero3dFlightEntry({
 ///
 /// Public so that a test can find one; built by [buildHero3dFlightEntry] and
 /// not usefully constructed by hand.
-class Hero3dFlightBox extends RenderProxyBox3d {
+class RenderHero3dFlightBox extends RenderProxyBox3d {
   /// Creates a flight between [aSide] and [bSide].
-  Hero3dFlightBox({
+  RenderHero3dFlightBox({
     required Animation<double> animation,
     required this.aSide,
     required this.bSide,
     this.fit = Hero3dFit.stretch,
     super.child,
-    super.name = 'Hero3dFlightBox',
+    super.name = 'RenderHero3dFlightBox',
   }) : _animation = animation {
     animation.addListener(_handleTick);
   }
@@ -305,10 +305,10 @@ class Hero3dFlightBox extends RenderProxyBox3d {
   final Animation<double> _animation;
 
   /// The hero on the covered route, where the flight stands at 0.
-  final Hero3d aSide;
+  final RenderHero3d aSide;
 
   /// The hero on the covering route, where the flight stands at 1.
-  final Hero3d bSide;
+  final RenderHero3d bSide;
 
   /// How this flight is scaled to reach each end.
   final Hero3dFit fit;
@@ -361,7 +361,7 @@ class Hero3dFlightBox extends RenderProxyBox3d {
   ///
   /// Null while [hero] has no size, which is every frame before its entry has
   /// been flushed.
-  ({Offset3d offset, Size3d size})? _placementOf(Hero3d hero) {
+  ({Offset3d offset, Size3d size})? _placementOf(RenderHero3d hero) {
     if (!hero.hasSize) return null;
     final offset = anchorOffsetTo(hero);
     if (offset == null) return null;
@@ -411,24 +411,24 @@ class Hero3dFlightBox extends RenderProxyBox3d {
   }
 }
 
-/// The declarative form of [Hero3d].
+/// The declarative form of [RenderHero3d].
 ///
 /// ```dart
-/// SceneHero3d(
+/// Hero3d(
 ///   tag: photo.id,
 ///   flightBuilder: (_) => avatar(),
-///   child: SceneImage3d(image: photo),
+///   child: Image3d(image: photo),
 /// )
 /// ```
 ///
 /// The flight itself is *not* built from the widget layer, and cannot be: it
 /// belongs to an overlay entry that is inserted from inside a route transition,
 /// where there is no element to build into. So [flightBuilder] returns a
-/// [RenderObject3d] here as it does on [Hero3d] — the same seam
-/// `Draggable3d.feedbackBuilder` has, for the same reason.
-class SceneHero3d extends SingleChildRenderObjectWidget3d {
+/// [RenderObject3d] here as it does on [RenderHero3d] — the same seam
+/// `RenderDraggable3d.feedbackBuilder` has, for the same reason.
+class Hero3d extends SingleChildRenderObjectWidget3d {
   /// Creates a hero that flies to the box carrying the same [tag].
-  const SceneHero3d({
+  const Hero3d({
     super.key,
     required this.tag,
     required this.flightBuilder,
@@ -446,11 +446,11 @@ class SceneHero3d extends SingleChildRenderObjectWidget3d {
   final Hero3dFit fit;
 
   @override
-  Hero3d createLayout(BuildContext context) =>
-      Hero3d(tag: tag, flightBuilder: flightBuilder, fit: fit);
+  RenderHero3d createLayout(BuildContext context) =>
+      RenderHero3d(tag: tag, flightBuilder: flightBuilder, fit: fit);
 
   @override
-  void updateLayout(BuildContext context, Hero3d layout) {
+  void updateLayout(BuildContext context, RenderHero3d layout) {
     layout
       ..tag = tag
       ..flightBuilder = flightBuilder

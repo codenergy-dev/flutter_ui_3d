@@ -20,25 +20,25 @@ import 'decoration.dart';
 /// box's node and keeps it the right size.
 ///
 /// ```dart
-/// DecoratedBox3d(
+/// RenderDecoratedBox3d(
 ///   decoration: const BoxDecoration3d(
 ///     color: Color(0xFF202124),
 ///     borderRadius: BorderRadius3d.circular(12),
 ///     elevation: 3,
 ///   ),
-///   child: Padding3d(
+///   child: RenderPadding3d(
 ///     padding: EdgeInsets3d.all(0.12),
-///     child: Text3d('Continue'),
+///     child: RenderText3d('Continue'),
 ///   ),
 /// )
 /// ```
 ///
-/// The direction of the dependency is what matters. `NodeBox3d`, the other
-/// leaf that holds geometry, takes content that already exists and *scales
-/// it* into the room available — which distorts a 12dp corner into whatever
-/// the box's aspect ratio makes of it. A decoration goes the other way: it is
-/// told the size and produces the right shape at that size, so a card is 12dp
-/// round whether it is a chip or a sheet.
+/// The direction of the dependency is what matters. `RenderNodeBox3d`, the
+/// other leaf that holds geometry, takes content that already exists and
+/// *scales it* into the room available — which distorts a 12dp corner into
+/// whatever the box's aspect ratio makes of it. A decoration goes the other
+/// way: it is told the size and produces the right shape at that size, so a
+/// card is 12dp round whether it is a chip or a sheet.
 ///
 /// **A size change never rebuilds geometry.** That is the contract with the
 /// painter, and it is why decorations are shader parameters rather than
@@ -49,10 +49,10 @@ import 'decoration.dart';
 /// **Elevation lifts the geometry, not the box.** A raised panel's mesh moves
 /// toward the viewer; its layout box, its intrinsics and what a ray reaches
 /// stay exactly where layout put them. See [BoxDecoration3d.elevation].
-class DecoratedBox3d extends RenderSingleChild3d
+class RenderDecoratedBox3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d {
   /// Creates a decorated box.
-  DecoratedBox3d({
+  RenderDecoratedBox3d({
     required Decoration3d decoration,
     StateLayer3d stateLayer = StateLayer3d.none,
     ImageConfiguration configuration = ImageConfiguration.empty,
@@ -180,10 +180,11 @@ class DecoratedBox3d extends RenderSingleChild3d
   ///
   /// The plane tier of the clip contract lives in a shader block, and the
   /// block is written by [repaint]. A box paints from inside its own
-  /// `performLayout`, where an enclosing `ClipBox3d` may not have an extent
-  /// yet — so without this the first block a panel ever gets is the
+  /// `performLayout`, where an enclosing `RenderClipBox3d` may not have an
+  /// extent yet — so without this the first block a panel ever gets is the
   /// unbounded one, and a row half inside a window draws straight through
-  /// its edge. `ClipBox3d` calls this over its subtree once it has a size.
+  /// its edge. `RenderClipBox3d` calls this over its subtree once it has a
+  /// size.
   @override
   void refreshClipRegion() {
     if (!hasSize) return;
@@ -264,8 +265,8 @@ class DecoratedBox3d extends RenderSingleChild3d
   ///
   /// A card, a button and an app bar answer for their whole face, including
   /// the gaps between whatever is laid out on them, which is what makes them
-  /// easy to hit. Wrap the box in an `IgnorePointer3d` for a decoration that
-  /// is purely a backdrop.
+  /// easy to hit. Wrap the box in a `RenderIgnorePointer3d` for a decoration
+  /// that is purely a backdrop.
   @override
   bool hitTestSelf(Offset3d position) => true;
 

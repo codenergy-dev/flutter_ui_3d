@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart'
 import '../rendering/object.dart';
 import 'stack.dart';
 
-/// A [Stack3d] that shows one child at a time, the 3D analogue of
+/// A [RenderStack3d] that shows one child at a time, the 3D analogue of
 /// [IndexedStack].
 ///
 /// Every child is laid out, so the stack is as big as its largest one and
@@ -21,14 +21,14 @@ import 'stack.dart';
 /// wizard whose steps must keep their state.
 ///
 /// ```dart
-/// IndexedStack3d(index: step, children: [details, payment, review])
+/// RenderIndexedStack3d(index: step, children: [details, payment, review])
 /// ```
 ///
 /// A null [index] hides every child while still reserving the room, the same
 /// as Flutter's.
-class IndexedStack3d extends Stack3d {
+class RenderIndexedStack3d extends RenderStack3d {
   /// Creates a stack showing the child at [index].
-  IndexedStack3d({
+  RenderIndexedStack3d({
     int? index = 0,
     super.alignment,
     super.textDirection,

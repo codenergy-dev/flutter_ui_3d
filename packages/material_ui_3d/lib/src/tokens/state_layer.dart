@@ -8,7 +8,7 @@ import 'package:flutter_ui_3d/rendering.dart' show StateLayer3d;
 /// Material calls the result a *state layer*: a wash of the surface's "on"
 /// colour laid over it at a published opacity. `StateLayer3d` in the layout
 /// package is exactly that — one colour, one opacity, across the whole box —
-/// and it is carried on `DecoratedBox3d` rather than on the decoration
+/// and it is carried on `RenderDecoratedBox3d` rather than on the decoration
 /// precisely so that entering one of these states writes a shader uniform and
 /// touches no layout at all.
 ///

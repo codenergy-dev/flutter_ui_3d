@@ -7,7 +7,7 @@ import 'package:flutter_ui_3d/widgets.dart';
 import 'package:material_ui_3d/material_ui_3d.dart';
 
 import 'overlays_support.dart';
-import 'support.dart' show SceneTestBox, TestBox;
+import 'support.dart' show TestBox, RenderTestBox;
 
 /// A surface with an overlay and a messenger in it.
 class PumpedMessenger {
@@ -18,15 +18,17 @@ class PumpedMessenger {
   final ScaffoldMessenger3dState messenger;
 
   /// The screen under the messenger, which counts its own layouts.
-  TestBox? screen;
+  RenderTestBox? screen;
 
-  Layout3dSurface get surface => controller.surface!;
-  Overlay3d get overlay => overlayController.overlay!;
-  List<DecoratedBox3d> get panels => boxesOf<DecoratedBox3d>(surface);
+  RenderSurface3d get surface => controller.surface!;
+  RenderOverlay3d get overlay => overlayController.overlay!;
+  List<RenderDecoratedBox3d> get panels =>
+      boxesOf<RenderDecoratedBox3d>(surface);
 
   /// Every label a reader would hear, in tree order.
-  List<String?> get announced =>
-      boxesOf<Semantics3d>(surface).map((box) => box.properties.label).toList();
+  List<String?> get announced => boxesOf<RenderSemantics3d>(
+    surface,
+  ).map((box) => box.properties.label).toList();
 }
 
 Future<PumpedMessenger> pumpMessenger(
@@ -36,25 +38,22 @@ Future<PumpedMessenger> pumpMessenger(
   final controller = Layout3dController();
   final overlayController = Overlay3dController();
   late ScaffoldMessenger3dState messenger;
-  TestBox? screen;
+  RenderTestBox? screen;
   await tester.pumpWidget(
-    SceneLayout3d(
+    Surface3d(
       parent: Node(),
       size: const Size3d(8, 6, 1),
       controller: controller,
-      child: SceneTheme3d(
+      child: Theme3d(
         data: Theme3dData.light,
-        child: SceneOverlay3d(
+        child: Overlay3d(
           controller: overlayController,
           child: ScaffoldMessenger3d(
             child: Builder(
               builder: (context) {
                 messenger = ScaffoldMessenger3d.of(context);
                 screenBuilds?[0]++;
-                return SceneTestBox(
-                  const Size3d(8, 6, 0.1),
-                  (box) => screen = box,
-                );
+                return TestBox(const Size3d(8, 6, 0.1), (box) => screen = box);
               },
             ),
           ),
@@ -211,10 +210,10 @@ void main() {
       await tester.pump();
 
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(8, 6, 1),
-          child: const SceneSizedBox3d.cube(1),
+          child: const SizedBox3d.cube(1),
         ),
       );
       expect(await waiting.closed, SnackBar3dClosedReason.dispose);
@@ -236,7 +235,7 @@ void main() {
       // for.
       await tester.pumpAndSettle();
 
-      final action = boxesOf<Semantics3d>(
+      final action = boxesOf<RenderSemantics3d>(
         pumped.surface,
       ).firstWhere((box) => box.properties.label == 'Undo');
       final at = action.drawnOffsetInSurface;
@@ -314,7 +313,7 @@ void main() {
         tester,
         child: const SnackBar3d(message: 'Saved'),
       );
-      final semantics = boxesOf<Semantics3d>(pumped.surface).first;
+      final semantics = boxesOf<RenderSemantics3d>(pumped.surface).first;
       expect(semantics.properties.label, 'Saved');
       expect(semantics.properties.liveRegion, isTrue);
     });
@@ -353,10 +352,10 @@ void main() {
     /// surface's own constraints are tight, and a bar pumped straight onto
     /// them would be the size of the surface.
     Widget atFoot(SnackBar3d bar) =>
-        SceneAlign3d(alignment: const Alignment3d(0, 1, -1), child: bar);
+        Align3d(alignment: const Alignment3d(0, 1, -1), child: bar);
 
-    Text3d labelled(Layout3dSurface surface, String text) =>
-        boxesOf<Text3d>(surface).singleWhere((box) => box.data == text);
+    RenderText3d labelled(RenderSurface3d surface, String text) =>
+        boxesOf<RenderText3d>(surface).singleWhere((box) => box.data == text);
 
     const long =
         'This message is long enough that it has to be broken onto a second '

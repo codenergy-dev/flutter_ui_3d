@@ -10,9 +10,9 @@ import 'shifted.dart';
 /// analogue of [IntrinsicWidth] and [IntrinsicHeight].
 ///
 /// The box asks its child [RenderObject3d.getMaxIntrinsicExtent] along [axis]
-/// and then hands the child that extent, tightly. Every child of a [Column3d]
-/// inside an [IntrinsicWidth3d] is therefore as wide as the widest of them,
-/// which is the classic reason to reach for one.
+/// and then hands the child that extent, tightly. Every child of a
+/// [RenderColumn3d] inside a [RenderIntrinsicWidth3d] is therefore as wide as
+/// the widest of them, which is the classic reason to reach for one.
 ///
 /// It is expensive, and for the same reason as in Flutter: answering the
 /// question walks the whole subtree, and then the subtree is laid out again
@@ -20,12 +20,13 @@ import 'shifted.dart';
 /// shortcut past deciding a size.
 ///
 /// The axis is a constructor argument here rather than three separate render
-/// objects, because a box has three of them; [IntrinsicWidth3d],
-/// [IntrinsicHeight3d] and [IntrinsicDepth3d] are the names to reach for.
-class IntrinsicExtent3d extends RenderSingleChild3d
+/// objects, because a box has three of them; [RenderIntrinsicWidth3d],
+/// [RenderIntrinsicHeight3d] and [RenderIntrinsicDepth3d] are the names to
+/// reach for.
+class RenderIntrinsicExtent3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d {
   /// Creates a box that sizes its child to its intrinsic extent along [axis].
-  IntrinsicExtent3d({
+  RenderIntrinsicExtent3d({
     required Axis3d axis,
     double? step,
     super.child,
@@ -34,7 +35,7 @@ class IntrinsicExtent3d extends RenderSingleChild3d
        _step = step,
        assert(
          step == null || step > 0.0,
-         'IntrinsicExtent3d.step must be positive.',
+         'RenderIntrinsicExtent3d.step must be positive.',
        );
 
   Axis3d _axis;
@@ -138,25 +139,25 @@ class IntrinsicExtent3d extends RenderSingleChild3d
 
 /// Sizes its child to its own preferred width, the 3D analogue of
 /// [IntrinsicWidth].
-class IntrinsicWidth3d extends IntrinsicExtent3d {
+class RenderIntrinsicWidth3d extends RenderIntrinsicExtent3d {
   /// Creates a width-shrinking box.
-  IntrinsicWidth3d({super.step, super.child, super.name})
+  RenderIntrinsicWidth3d({super.step, super.child, super.name})
     : super(axis: Axis3d.horizontal);
 }
 
 /// Sizes its child to its own preferred height, the 3D analogue of
 /// [IntrinsicHeight].
-class IntrinsicHeight3d extends IntrinsicExtent3d {
+class RenderIntrinsicHeight3d extends RenderIntrinsicExtent3d {
   /// Creates a height-shrinking box.
-  IntrinsicHeight3d({super.step, super.child, super.name})
+  RenderIntrinsicHeight3d({super.step, super.child, super.name})
     : super(axis: Axis3d.vertical);
 }
 
 /// Sizes its child to its own preferred depth, the axis Flutter does not
 /// have.
-class IntrinsicDepth3d extends IntrinsicExtent3d {
+class RenderIntrinsicDepth3d extends RenderIntrinsicExtent3d {
   /// Creates a depth-shrinking box.
-  IntrinsicDepth3d({super.step, super.child, super.name})
+  RenderIntrinsicDepth3d({super.step, super.child, super.name})
     : super(axis: Axis3d.depth);
 }
 
@@ -171,9 +172,9 @@ class IntrinsicDepth3d extends IntrinsicExtent3d {
 ///
 /// Line something up with it by asking for
 /// [CrossAxisAlignment3d.baseline] on the enclosing flex.
-class Baseline3d extends RenderShiftedBox3d {
+class RenderBaseline3d extends RenderShiftedBox3d {
   /// Creates a box that puts its child's baseline at [baseline].
-  Baseline3d({
+  RenderBaseline3d({
     required double baseline,
     Axis3d axis = Axis3d.vertical,
     super.child,

@@ -26,7 +26,7 @@ const List<NavigationDestination3d> _destinations = <NavigationDestination3d>[
 ];
 
 /// [build] on an 8 by 6 surface under a platform font setting of [scale].
-Future<Layout3dSurface> pumpAt(
+Future<RenderSurface3d> pumpAt(
   WidgetTester tester,
   double scale,
   Widget Function() build,
@@ -37,11 +37,11 @@ Future<Layout3dSurface> pumpAt(
       data: MediaQueryData(textScaler: TextScaler.linear(scale)),
       child: Directionality(
         textDirection: TextDirection.ltr,
-        child: SceneLayout3d(
+        child: Surface3d(
           parent: Node(),
           size: const Size3d(8, 6, 0.5),
           controller: controller,
-          child: SceneTheme3d(data: Theme3dData.light, child: build()),
+          child: Theme3d(data: Theme3dData.light, child: build()),
         ),
       ),
     ),
@@ -49,25 +49,25 @@ Future<Layout3dSurface> pumpAt(
   return controller.surface!;
 }
 
-Widget _atBottom(Widget bar) => SceneColumn3d(
+Widget _atBottom(Widget bar) => Column3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
-    const SceneExpanded3d(child: SceneSizedBox3d()),
+    const Expanded3d(child: SizedBox3d()),
     bar,
   ],
 );
 
-Widget _atTop(Widget bar) => SceneColumn3d(
+Widget _atTop(Widget bar) => Column3d(
   crossAxisAlignment: CrossAxisAlignment3d.stretch,
   children: <Widget>[
     bar,
-    const SceneExpanded3d(child: SceneSizedBox3d()),
+    const Expanded3d(child: SizedBox3d()),
   ],
 );
 
 /// The label reading [text], wherever it is.
-Text3d _label(Layout3dSurface surface, String text) =>
-    boxesOf<Text3d>(surface).singleWhere((label) => label.data == text);
+RenderText3d _label(RenderSurface3d surface, String text) =>
+    boxesOf<RenderText3d>(surface).singleWhere((label) => label.data == text);
 
 void main() {
   group('an icon', () {
@@ -77,16 +77,16 @@ void main() {
       final plain = await pumpAt(
         tester,
         1.0,
-        () => const SceneCenter3d(child: Icon3d(Icons.inbox)),
+        () => const Center3d(child: Icon3d(Icons.inbox)),
       );
-      final height = oneOf<Text3d>(plain).size.height;
+      final height = oneOf<RenderText3d>(plain).size.height;
       final doubled = await pumpAt(
         tester,
         2.0,
-        () => const SceneCenter3d(child: Icon3d(Icons.inbox)),
+        () => const Center3d(child: Icon3d(Icons.inbox)),
       );
-      expect(oneOf<Text3d>(doubled).size.height, closeTo(height, 1e-9));
-      expect(oneOf<Text3d>(doubled).textScaler, TextScaler.noScaling);
+      expect(oneOf<RenderText3d>(doubled).size.height, closeTo(height, 1e-9));
+      expect(oneOf<RenderText3d>(doubled).textScaler, TextScaler.noScaling);
     });
   });
 
@@ -98,7 +98,7 @@ void main() {
     );
 
     testWidgets('grows its labels to 1.3 and no further', (tester) async {
-      double labelHeight(Layout3dSurface s) => _label(s, 'Inbox').size.height;
+      double labelHeight(RenderSurface3d s) => _label(s, 'Inbox').size.height;
       final plain = labelHeight(
         await pumpAt(tester, 1.0, () => _atBottom(bar())),
       );
@@ -123,8 +123,8 @@ void main() {
       // 32 + 4 + 16 of content centred in 80 is 14dp down, which is what 12dp
       // of padding plus centring in the 56 left used to give.
       final surface = await pumpAt(tester, 1.0, () => _atBottom(bar()));
-      final panel = boxesOf<DecoratedBox3d>(surface).first;
-      final pill = boxesOf<DecoratedBox3d>(surface).firstWhere(
+      final panel = boxesOf<RenderDecoratedBox3d>(surface).first;
+      final pill = boxesOf<RenderDecoratedBox3d>(surface).firstWhere(
         (box) =>
             (box.decoration as BoxDecoration3d).color ==
             Theme3dData.light.colorScheme.secondaryContainer,
@@ -137,7 +137,7 @@ void main() {
     testWidgets('a rail\'s labels have no ceiling, as Flutter\'s have none', (
       tester,
     ) async {
-      Widget rail() => SceneRow3d(
+      Widget rail() => Row3d(
         crossAxisAlignment: CrossAxisAlignment3d.stretch,
         children: <Widget>[
           NavigationRail3d(
@@ -145,7 +145,7 @@ void main() {
             selectedIndex: 0,
             onDestinationSelected: (_) {},
           ),
-          const SceneExpanded3d(child: SceneSizedBox3d()),
+          const Expanded3d(child: SizedBox3d()),
         ],
       );
       // Its scale rather than its height: at double size the test font's
@@ -180,26 +180,20 @@ void main() {
 
   group('what still fits at a large setting', () {
     final cases = <String, Widget Function()>{
-      'a filled button': () => SceneCenter3d(
-        child: FilledButton3d(
-          onPressed: () {},
-          child: const SceneText3d('Save'),
-        ),
+      'a filled button': () => Center3d(
+        child: FilledButton3d(onPressed: () {}, child: const Text3d('Save')),
       ),
-      'a chip': () => SceneCenter3d(
-        child: AssistChip3d(
-          label: const SceneText3d('Track'),
-          onPressed: () {},
-        ),
+      'a chip': () => Center3d(
+        child: AssistChip3d(label: const Text3d('Track'), onPressed: () {}),
       ),
-      'a two-line tile': () => SceneCenter3d(
+      'a two-line tile': () => Center3d(
         child: ListTile3d.text(
           title: 'Inbox',
           subtitle: '12 unread',
           onTap: () {},
         ),
       ),
-      'a checkbox tile': () => SceneCenter3d(
+      'a checkbox tile': () => Center3d(
         child: CheckboxListTile3d.text(
           title: 'Remember me',
           value: true,
@@ -214,17 +208,17 @@ void main() {
           onDestinationSelected: (_) {},
         ),
       ),
-      'a menu': () => SceneCenter3d(
+      'a menu': () => Center3d(
         child: Menu3d(
           children: <Widget>[MenuItem3d(label: 'Rename', onPressed: () {})],
         ),
       ),
-      'an alert dialog': () => SceneCenter3d(
+      'an alert dialog': () => Center3d(
         child: AlertDialog3d.text(
           title: 'Delete?',
           content: 'Gone.',
           actions: <Widget>[
-            TextButton3d(onPressed: () {}, child: const SceneText3d('OK')),
+            TextButton3d(onPressed: () {}, child: const Text3d('OK')),
           ],
         ),
       ),

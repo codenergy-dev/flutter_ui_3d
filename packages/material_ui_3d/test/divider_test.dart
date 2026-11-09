@@ -74,7 +74,7 @@ void main() {
     ) async {
       final it = await pumpComponent(tester, () => const Divider3d());
       // The outer box is the space; the panel is the rule.
-      final space = outermostOf<SizedBox3d>(it.surface);
+      final space = outermostOf<RenderSizedBox3d>(it.surface);
       expect(space.size.height, closeTo(Divider3d.defaultSpace / 100.0, 1e-9));
       expect(
         it.panel.size.height,
@@ -129,7 +129,7 @@ void main() {
         tester,
         () => const Divider3d(indent: 16.0, endIndent: 32.0),
       );
-      final space = outermostOf<SizedBox3d>(it.surface);
+      final space = outermostOf<RenderSizedBox3d>(it.surface);
       expect(space.size.width, closeTo(4.0, 1e-9));
       expect(
         it.panel.size.width,
@@ -152,7 +152,7 @@ void main() {
       expect(it.panel.size.height, closeTo(0.04, 1e-9));
       expect(it.decoration.color, theme.colorScheme.primary);
       expect(
-        outermostOf<SizedBox3d>(it.surface).size.height,
+        outermostOf<RenderSizedBox3d>(it.surface).size.height,
         closeTo(0.24, 1e-9),
       );
     });
@@ -167,7 +167,7 @@ void main() {
       // one that skipped it — so the honest default is silence, and the
       // component says so rather than leaving it to look like an omission.
       final it = await pumpComponent(tester, () => const Divider3d());
-      expect(boxesOf<Semantics3d>(it.surface), isEmpty);
+      expect(boxesOf<RenderSemantics3d>(it.surface), isEmpty);
     });
 
     testWidgets('and a section break can name itself', (tester) async {
@@ -190,7 +190,7 @@ void main() {
     ) async {
       final it = await pumpComponent(
         tester,
-        () => SceneColumn3d(
+        () => Column3d(
           mainAxisSize: MainAxisSize3d.min,
           children: <Widget>[
             ListTile3d.text(title: 'Inbox'),
@@ -219,12 +219,12 @@ void main() {
     testWidgets('is the same rule with its axes swapped', (tester) async {
       final it = await pumpComponent(
         tester,
-        () => SceneRow3d(
+        () => Row3d(
           mainAxisSize: MainAxisSize3d.min,
           children: const <Widget>[
-            SceneSizedBox3d(width: 0.5, height: 0.5),
+            SizedBox3d(width: 0.5, height: 0.5),
             VerticalDivider3d(),
-            SceneSizedBox3d(width: 0.5, height: 0.5),
+            SizedBox3d(width: 0.5, height: 0.5),
           ],
         ),
       );
@@ -237,7 +237,7 @@ void main() {
       );
       // The 16dp of space it takes across the row is the row's width less
       // the two boxes beside it.
-      final row = oneOf<Flex3d>(it.surface);
+      final row = oneOf<RenderFlex3d>(it.surface);
       expect(
         row.size.width,
         closeTo(1.0 + Divider3d.defaultSpace * 0.01, 1e-9),
@@ -259,7 +259,7 @@ void main() {
         tester,
         () => const VerticalDivider3d(),
       );
-      expect(boxesOf<Semantics3d>(quiet.surface), isEmpty);
+      expect(boxesOf<RenderSemantics3d>(quiet.surface), isEmpty);
 
       final named = await pumpComponent(
         tester,
@@ -273,7 +273,7 @@ void main() {
         tester,
         () => const VerticalDivider3d(indent: 8, endIndent: 16),
       );
-      final padding = oneOf<Padding3d>(it.surface);
+      final padding = oneOf<RenderPadding3d>(it.surface);
       expect((padding.padding as EdgeInsets3d).top, closeTo(0.08, 1e-9));
       expect((padding.padding as EdgeInsets3d).bottom, closeTo(0.16, 1e-9));
       expect((padding.padding as EdgeInsets3d).left, 0.0);

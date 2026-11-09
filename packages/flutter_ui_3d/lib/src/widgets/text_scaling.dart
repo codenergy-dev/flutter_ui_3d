@@ -12,30 +12,26 @@ import 'surface.dart';
 /// [Layout3dMetrics.textScaler], one value per surface that the layout reads
 /// inside `performLayout`, and restating it for a subtree would be a second
 /// home for the same number. So this carries the *answer for a subtree*
-/// instead — the surface's scaler, clamped or replaced — and `SceneText3d`
-/// and `SceneRichText3d` hand it to their box as `textScaler`.
+/// instead — the surface's scaler, clamped or replaced — and `Text3d`
+/// and `RichText3d` hand it to their box as `textScaler`.
 ///
 /// ```dart
 /// // A navigation bar's labels keep the bar's hierarchy: they grow with the
 /// // reader's setting, and stop at 1.3, which is Flutter's own figure.
-/// SceneTextScaling3d.clamped(
+/// TextScaling3d.clamped(
 ///   maxScaleFactor: 1.3,
-///   child: SceneText3d(label),
+///   child: Text3d(label),
 /// )
 /// ```
 ///
-/// **It reaches labels built by the widget layer only.** A `Text3d` made
+/// **It reaches labels built by the widget layer only.** A `RenderText3d` made
 /// imperatively has no `BuildContext` and follows the surface unless it is
 /// given a `textScaler` of its own. And a label given one explicitly keeps
 /// it: an explicit scaler wins over the ambient one, as Flutter's
 /// `Text.textScaler` wins over `MediaQuery`.
-class SceneTextScaling3d extends InheritedWidget {
+class TextScaling3d extends InheritedWidget {
   /// Gives every label below [scaler] in place of the surface's.
-  const SceneTextScaling3d({
-    super.key,
-    required this.scaler,
-    required super.child,
-  });
+  const TextScaling3d({super.key, required this.scaler, required super.child});
 
   /// Clamps what the labels below grow by to between [minScaleFactor] and
   /// [maxScaleFactor], starting from whatever is in force here.
@@ -51,8 +47,8 @@ class SceneTextScaling3d extends InheritedWidget {
     assert(maxScaleFactor >= minScaleFactor);
     return Builder(
       key: key,
-      builder: (context) => SceneTextScaling3d(
-        scaler: SceneTextScaling3d.of(
+      builder: (context) => TextScaling3d(
+        scaler: TextScaling3d.of(
           context,
         ).clamp(minScaleFactor: minScaleFactor, maxScaleFactor: maxScaleFactor),
         child: child,
@@ -70,7 +66,7 @@ class SceneTextScaling3d extends InheritedWidget {
   /// keeps following [Layout3dMetrics.textScaler] if the surface's setting
   /// changes, where a box given a copy of it would not.
   static TextScaler? maybeOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<SceneTextScaling3d>()?.scaler;
+      context.dependOnInheritedWidgetOfExactType<TextScaling3d>()?.scaler;
 
   /// What a label built at [context] grows by: a scope's scaler, or the
   /// surface's own.
@@ -78,6 +74,6 @@ class SceneTextScaling3d extends InheritedWidget {
       maybeOf(context) ?? Layout3dMetricsScope.of(context).textScaler;
 
   @override
-  bool updateShouldNotify(SceneTextScaling3d oldWidget) =>
+  bool updateShouldNotify(TextScaling3d oldWidget) =>
       oldWidget.scaler != scaler;
 }

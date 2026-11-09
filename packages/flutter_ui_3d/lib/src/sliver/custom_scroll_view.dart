@@ -17,38 +17,38 @@ import 'sliver_constraints.dart';
 /// A scrolling window over a sequence of slivers, the 3D analogue of
 /// [CustomScrollView] and the viewport inside it.
 ///
-/// This is what the sliver protocol is for. A `ListView3d` is one list on one
-/// scroll position; a custom scroll view puts several sections on one
+/// This is what the sliver protocol is for. A `RenderListView3d` is one list on
+/// one scroll position; a custom scroll view puts several sections on one
 /// position, so a header, a grid and a list scroll together as a single
 /// surface, and each section is asked only about the part of the window it
 /// can see.
 ///
 /// ```dart
-/// CustomScrollView3d(
+/// RenderCustomScrollView3d(
 ///   controller: scroll,
 ///   slivers: [
-///     SliverToBoxAdapter3d(child: NodeBox3d(content: title)),
-///     SliverGrid3d(gridDelegate: ..., children: thumbnails),
-///     SliverList3d.builder(itemCount: 500, itemBuilder: buildRow),
+///     RenderSliverToBoxAdapter3d(child: RenderNodeBox3d(content: title)),
+///     RenderSliverGrid3d(gridDelegate: ..., children: thumbnails),
+///     RenderSliverList3d.builder(itemCount: 500, itemBuilder: buildRow),
 ///   ],
 /// )
 /// ```
 ///
-/// It is also what [ListView3d] and [GridView3d] are underneath, each over a
-/// single sliver; see [BoxScrollView3d].
+/// It is also what [RenderListView3d] and [RenderGridView3d] are underneath,
+/// each over a single sliver; see [RenderBoxScrollView3d].
 ///
 /// The window must be bounded across the scroll axis, which is what the
 /// slivers are given to span. Along the scroll axis it need not be: with no
 /// edge to fill, the view shrink-wraps to however long its slivers came out,
 /// the way Flutter's `ShrinkWrappingViewport` does.
-class CustomScrollView3d extends RenderMultiChild3d<ParentData3d>
-    with RenderLayoutPassMixin3d, Scroll3dHolderMixin {
+class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
+    with RenderLayoutPassMixin3d, RenderScroll3dHolderMixin {
   /// Creates a viewport over [slivers].
-  CustomScrollView3d({
+  RenderCustomScrollView3d({
     Axis3d scrollDirection = Axis3d.vertical,
     Scroll3dController? controller,
     double cacheExtent = 0.0,
-    List<Sliver3d> slivers = const <Sliver3d>[],
+    List<RenderSliver3d> slivers = const <RenderSliver3d>[],
     super.name,
   }) : _axis = scrollDirection,
        _cacheExtent = cacheExtent,
@@ -87,8 +87,8 @@ class CustomScrollView3d extends RenderMultiChild3d<ParentData3d>
     markNeedsLayout();
   }
 
-  /// Rejects a child that is not a [Sliver3d], where the caller can still see
-  /// what it did.
+  /// Rejects a child that is not a [RenderSliver3d], where the caller can still
+  /// see what it did.
   ///
   /// The constructor is typed, but [add], [insert] and [syncChildren] come from
   /// the child-list mixin and take any [RenderObject3d], and the declarative
@@ -98,21 +98,21 @@ class CustomScrollView3d extends RenderMultiChild3d<ParentData3d>
   @override
   void setupParentData(RenderObject3d child) {
     assert(
-      child is Sliver3d,
+      child is RenderSliver3d,
       '$runtimeType takes slivers, but was given a '
-      '${child.runtimeType}. Wrap an ordinary box in a SliverToBoxAdapter3d '
-      '(SceneSliverToBoxAdapter3d in the declarative layer) to give it its '
+      '${child.runtimeType}. Wrap an ordinary box in a RenderSliverToBoxAdapter3d '
+      '(SliverToBoxAdapter3d in the declarative layer) to give it its '
       'turn in the viewport.',
     );
     super.setupParentData(child);
   }
 
   /// The slivers in this viewport, in scroll order.
-  List<Sliver3d> get slivers =>
-      List<Sliver3d>.unmodifiable(heldChildren.cast<Sliver3d>());
+  List<RenderSliver3d> get slivers =>
+      List<RenderSliver3d>.unmodifiable(heldChildren.cast<RenderSliver3d>());
 
   /// Replaces the sliver list, adopting what is new and dropping what is gone.
-  void syncSlivers(List<Sliver3d> slivers) => syncChildren(slivers);
+  void syncSlivers(List<RenderSliver3d> slivers) => syncChildren(slivers);
 
   /// Opaque across the whole window, so a drag that starts between two
   /// sections still scrolls the viewport.
@@ -122,9 +122,9 @@ class CustomScrollView3d extends RenderMultiChild3d<ParentData3d>
   /// Tests slivers in scroll order, first one first, which is the reverse of
   /// what a [RenderMultiChild3d] does by default.
   ///
-  /// A viewport's children do not sit side by side the way a `Stack3d`'s do:
-  /// the leading ones are in *front*. A pinned header holds the leading edge
-  /// while the list slides underneath it, so the header is what the viewer
+  /// A viewport's children do not sit side by side the way a `RenderStack3d`'s
+  /// do: the leading ones are in *front*. A pinned header holds the leading
+  /// edge while the list slides underneath it, so the header is what the viewer
   /// sees there and the header is what a ray aimed there must find, even
   /// though the row behind it is still a laid-out box at the same place.
   /// Flutter's viewport orders its children the same way and for the same
@@ -331,7 +331,7 @@ class CustomScrollView3d extends RenderMultiChild3d<ParentData3d>
         math.max(0.0, _cacheExtent - scrollOffset);
 
     for (final child in heldChildren) {
-      final sliver = child as Sliver3d;
+      final sliver = child as RenderSliver3d;
       final sliverScrollOffset = math.max(0.0, remainingScroll);
       final correctedCacheOrigin = math.max(cacheOrigin, -sliverScrollOffset);
       final cacheCorrection = cacheOrigin - correctedCacheOrigin;

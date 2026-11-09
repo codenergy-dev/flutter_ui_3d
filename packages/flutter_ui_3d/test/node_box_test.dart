@@ -1,4 +1,5 @@
-// NodeBox3d: how engine content reports a size, and where the box puts it.
+// RenderNodeBox3d: how engine content reports a size, and where the box puts
+// it.
 
 import 'package:flutter_scene/scene.dart'
     show Mesh, Node, UnlitMaterial, UnskinnedGeometry;
@@ -19,9 +20,9 @@ Node meshNode(Vector3 min, Vector3 max, {Matrix4? transform}) {
   return Node(mesh: Mesh(geometry, UnlitMaterial()), localTransform: transform);
 }
 
-/// A [NodeBox3d] whose content reports [bounds], standing in for real
+/// A [RenderNodeBox3d] whose content reports [bounds], standing in for real
 /// geometry (which needs a GPU context to build).
-class FakeContentBox extends NodeBox3d {
+class FakeContentBox extends RenderNodeBox3d {
   FakeContentBox({
     required this.bounds,
     Node? content,
@@ -218,7 +219,7 @@ void main() {
 
   group('real engine content', () {
     test('measures a node through combinedLocalBounds', () {
-      final box = NodeBox3d(
+      final box = RenderNodeBox3d(
         content: meshNode(Vector3(-1, -2, -3), Vector3(1, 2, 3)),
       );
       laidOut(box);
@@ -235,7 +236,7 @@ void main() {
             transform: Matrix4.translationValues(4, 0, 0),
           ),
         );
-      final box = NodeBox3d(content: content);
+      final box = RenderNodeBox3d(content: content);
       laidOut(box);
       // The union spans x from -1 to 5.
       expect(box.size, const Size3d(6, 2, 2));
@@ -249,7 +250,7 @@ void main() {
     });
 
     test('scales real content to fit', () {
-      final box = NodeBox3d(
+      final box = RenderNodeBox3d(
         content: meshNode(Vector3(-1, -1, -1), Vector3(1, 1, 1)),
         fit: BoxFit3d.contain,
       );
@@ -262,7 +263,7 @@ void main() {
       final geometry = UnskinnedGeometry()
         ..setLocalBounds(Aabb3.minMax(Vector3.all(-1), Vector3.all(1)), null);
       final content = Node(mesh: Mesh(geometry, UnlitMaterial()));
-      final box = NodeBox3d(content: content);
+      final box = RenderNodeBox3d(content: content);
       final surface = laidOut(box);
       expect(box.size, const Size3d(2, 2, 2));
 
@@ -276,7 +277,7 @@ void main() {
     });
 
     test('a node with no geometry falls back', () {
-      final box = NodeBox3d(
+      final box = RenderNodeBox3d(
         content: Node(),
         fallbackSize: const Size3d(1, 1, 1),
       );
@@ -292,7 +293,7 @@ void main() {
     final second = FakeContentBox(
       bounds: boundsOf(Vector3(-2, -0.5, -1), Vector3(2, 0.5, 1)),
     );
-    final column = Column3d(
+    final column = RenderColumn3d(
       mainAxisSize: MainAxisSize3d.min,
       children: [first, second],
     );

@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
-/// The cell grid a [GridView3d] places its children on, the 3D analogue of
-/// [SliverGridLayout].
+/// The cell grid a [RenderGridView3d] places its children on, the 3D analogue
+/// of [SliverGridLayout].
 ///
 /// Every position is arithmetic: given an index, the offsets fall out without
 /// measuring anything. That is what makes a grid exactly lazy where a list of
@@ -78,8 +78,8 @@ class Grid3dLayout {
       '$cellMainAxisExtent)';
 }
 
-/// Decides the cell grid from the room a [GridView3d] has across its scroll
-/// axis, the 3D analogue of [SliverGridDelegate].
+/// Decides the cell grid from the room a [RenderGridView3d] has across its
+/// scroll axis, the 3D analogue of [SliverGridDelegate].
 abstract class Grid3dDelegate {
   /// Allows subclasses to be const.
   const Grid3dDelegate();

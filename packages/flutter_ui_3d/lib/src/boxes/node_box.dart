@@ -21,7 +21,7 @@ import '../geometry/offset3d.dart';
 import '../geometry/size3d.dart';
 import '../rendering/object.dart';
 
-/// How a [NodeBox3d] scales its content to the room it is given, the 3D
+/// How a [RenderNodeBox3d] scales its content to the room it is given, the 3D
 /// analogue of [BoxFit].
 enum BoxFit3d {
   /// Never scale. The box takes the content's own size, clamped to the
@@ -54,9 +54,9 @@ enum BoxFit3d {
 /// basis so the model keeps its own upright orientation. Content that needs
 /// an offset of its own should be wrapped in a plain [Node] and handed over
 /// as that.
-class NodeBox3d extends RenderObject3d {
+class RenderNodeBox3d extends RenderObject3d {
   /// Puts [content] into the layout.
-  NodeBox3d({
+  RenderNodeBox3d({
     required Node content,
     BoxFit3d fit = BoxFit3d.none,
     AlignmentGeometry3d alignment = Alignment3d.center,
@@ -141,13 +141,13 @@ class NodeBox3d extends RenderObject3d {
   /// **The one place in this package where a caller has to answer for an
   /// opacity.** Everything else a tree draws — a panel, a label, the wall
   /// around its letters — is drawn with a material this package owns and can
-  /// give a `fade` uniform to. The content of a [NodeBox3d] is geometry the
-  /// application brought, with materials of its own, and the package has no
+  /// give a `fade` uniform to. The content of a [RenderNodeBox3d] is geometry
+  /// the application brought, with materials of its own, and the package has no
   /// way to fade it and no business guessing how.
   ///
-  /// So an [Opacity3d] over a `NodeBox3d` calls this, with the opacity in
-  /// force, whenever it changes and once per layout. What to do with it
-  /// depends on the content: write a uniform on a `.fmat` of your own, scale
+  /// So a [RenderOpacity3d] over a `RenderNodeBox3d` calls this, with the
+  /// opacity in force, whenever it changes and once per layout. What to do with
+  /// it depends on the content: write a uniform on a `.fmat` of your own, scale
   /// a `baseColorFactor`'s alpha, or — for a model that genuinely cannot —
   /// hide the node below some threshold. The package's own answer is a
   /// screen-door discard, and it is worth copying if the content is
@@ -294,12 +294,12 @@ class NodeBox3d extends RenderObject3d {
       if (opacity >= 1.0) return true;
       throw FlutterError.fromParts(<DiagnosticsNode>[
         ErrorSummary(
-          'A NodeBox3d inside a faded subtree has no way to fade its '
+          'A RenderNodeBox3d inside a faded subtree has no way to fade its '
           'content.',
         ),
         ErrorDescription(
           'Something above ${node.name} imposes an opacity of '
-          '${opacity.toStringAsFixed(3)}, and a NodeBox3d holds geometry this '
+          '${opacity.toStringAsFixed(3)}, and a RenderNodeBox3d holds geometry this '
           'package did not build: it has no material of its own to write a '
           'fade onto, so the content will keep drawing at full strength while '
           'everything around it fades.',
@@ -307,7 +307,7 @@ class NodeBox3d extends RenderObject3d {
         ErrorHint(
           'Give the box an onFade callback that spends the opacity on '
           'whatever the content is drawn with, or move it out of the faded '
-          'subtree. Wrapping it in an Offstage3d or a Visibility3d is the '
+          'subtree. Wrapping it in a RenderOffstage3d or a RenderVisibility3d is the '
           'answer when the content only has to disappear rather than fade.',
         ),
       ]);
@@ -320,7 +320,7 @@ class NodeBox3d extends RenderObject3d {
   /// model with a ragged silhouette still easy to point at. For a triangle
   /// exact answer, raycast the content node with the engine's `raycastNode`.
   ///
-  /// Wrap the box in an [IgnorePointer3d] for content that should not be
+  /// Wrap the box in a [RenderIgnorePointer3d] for content that should not be
   /// pointable at all.
   @override
   bool hitTestSelf(Offset3d position) => true;

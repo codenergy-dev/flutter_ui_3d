@@ -177,8 +177,8 @@ class Constraints3d {
   ///
   /// Flutter's `constrainSizeAndAttemptToPreserveAspectRatio`, and the box
   /// that wants it is the one that has something of its own to show:
-  /// [Image3d] sizes itself this way, so a photograph in a column as wide as
-  /// the screen comes out the right shape rather than the shape of whatever
+  /// [RenderImage3d] sizes itself this way, so a photograph in a column as wide
+  /// as the screen comes out the right shape rather than the shape of whatever
   /// room was left.
   ///
   /// **The ratio is the one in the plane.** Depth is constrained on its own,
@@ -272,8 +272,8 @@ class Constraints3d {
   /// These constraints clamped into [constraints].
   ///
   /// The result satisfies [constraints] while staying as close as it can to
-  /// these; this is how a `ConstrainedBox3d` combines what it was given with
-  /// what it wants.
+  /// these; this is how a `RenderConstrainedBox3d` combines what it was given
+  /// with what it wants.
   Constraints3d enforce(Constraints3d constraints) => Constraints3d(
     minWidth: minWidth.clamp(constraints.minWidth, constraints.maxWidth),
     maxWidth: maxWidth.clamp(constraints.minWidth, constraints.maxWidth),

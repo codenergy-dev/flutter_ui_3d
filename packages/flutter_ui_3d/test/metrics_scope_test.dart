@@ -42,8 +42,8 @@ class RecorderBox extends RenderObject3d {
 }
 
 /// The widget form of [RecorderBox].
-class SceneRecorder3d extends MultiChildRenderObjectWidget3d {
-  const SceneRecorder3d(this.log, {super.key});
+class Recorder3d extends MultiChildRenderObjectWidget3d {
+  const Recorder3d(this.log, {super.key});
 
   final List<String> log;
 
@@ -59,9 +59,9 @@ class SceneRecorder3d extends MultiChildRenderObjectWidget3d {
 
 /// A leaf that writes the surface's contract from inside its own layout.
 ///
-/// The shape `Overlay3d` has when it pushes the host's metrics onto a detached
-/// entry's surface: a write from inside a layout pass, which no rebuild can be
-/// scheduled for.
+/// The shape `RenderOverlay3d` has when it pushes the host's metrics onto a
+/// detached entry's surface: a write from inside a layout pass, which no
+/// rebuild can be scheduled for.
 class WriterBox extends RenderObject3d {
   WriterBox(this.write);
 
@@ -80,8 +80,8 @@ class WriterBox extends RenderObject3d {
 }
 
 /// The widget form of [WriterBox].
-class SceneWriter3d extends MultiChildRenderObjectWidget3d {
-  const SceneWriter3d(this.write, {super.key});
+class Writer3d extends MultiChildRenderObjectWidget3d {
+  const Writer3d(this.write, {super.key});
 
   final void Function() write;
 
@@ -117,9 +117,9 @@ class DpPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final metrics = Layout3dMetricsScope.of(context);
     log?.add('build@${metrics.unitsPerLogicalPixel}');
-    return ScenePadding3d(
+    return Padding3d(
       padding: metrics.dpInsets(EdgeInsets3d.all(paddingDp)),
-      child: SceneSizedBox3d(
+      child: SizedBox3d(
         width: metrics.dp(widthDp),
         height: metrics.dp(heightDp),
         child: child,
@@ -129,12 +129,12 @@ class DpPanel extends StatelessWidget {
 }
 
 /// The padded box the [DpPanel] built.
-Padding3d paddingOf(Layout3dController controller) =>
-    controller.surface!.child! as Padding3d;
+RenderPadding3d paddingOf(Layout3dController controller) =>
+    controller.surface!.child! as RenderPadding3d;
 
 /// The sized box inside it.
-SizedBox3d sizedOf(Layout3dController controller) =>
-    paddingOf(controller).child! as SizedBox3d;
+RenderSizedBox3d sizedOf(Layout3dController controller) =>
+    paddingOf(controller).child! as RenderSizedBox3d;
 
 void main() {
   group('reading the contract from a build method', () {
@@ -142,7 +142,7 @@ void main() {
       tester,
     ) async {
       final controller = Layout3dController();
-      Widget frame(double unitsPerLogicalPixel) => SceneLayout3d(
+      Widget frame(double unitsPerLogicalPixel) => Surface3d(
         parent: Node(),
         controller: controller,
         constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
@@ -175,7 +175,7 @@ void main() {
     ) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           controller: controller,
           constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
@@ -202,7 +202,7 @@ void main() {
       final log = <String>[];
       // The same widget instance twice: an identical widget is not rebuilt,
       // so every build in the log came from the scope.
-      final frame = SceneLayout3d(
+      final frame = Surface3d(
         parent: Node(),
         controller: controller,
         constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
@@ -228,11 +228,11 @@ void main() {
     ) async {
       final controller = Layout3dController();
       final log = <String>[];
-      final frame = SceneLayout3d(
+      final frame = Surface3d(
         parent: Node(),
         controller: controller,
         constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
-        child: SceneRecorder3d(log),
+        child: Recorder3d(log),
       );
 
       await tester.pumpWidget(frame);
@@ -277,13 +277,13 @@ void main() {
     ) async {
       final controller = Layout3dController();
       final log = <String>[];
-      Widget frame(Size viewSize) => SceneLayout3d(
+      Widget frame(Size viewSize) => Surface3d(
         parent: Node(),
         controller: controller,
         camera: frontCamera(),
         viewSize: viewSize,
         binding: const Layout3dCameraBinding.screenFilling(distance: 2),
-        child: DpPanel(log: log, child: SceneRecorder3d(log)),
+        child: DpPanel(log: log, child: Recorder3d(log)),
       );
 
       await tester.pumpWidget(frame(const Size(800, 600)));
@@ -313,8 +313,9 @@ void main() {
       );
 
       // And what `build` computed is the new rate's figure. A screen-filling
-      // surface is tight, so the padding is the honest witness: a SizedBox3d
-      // under it is stretched to the panel whatever it asked for.
+      // surface is tight, so the padding is the honest witness: a
+      // RenderSizedBox3d under it is stretched to the panel whatever it asked
+      // for.
       expect(
         (paddingOf(controller).padding as EdgeInsets3d).left,
         closeTo(8 * second, 1e-9),
@@ -327,13 +328,13 @@ void main() {
       final controller = Layout3dController();
       final log = <String>[];
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           controller: controller,
           constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
           child: DpPanel(
             log: log,
-            child: SceneWriter3d(
+            child: Writer3d(
               () => controller.surface!.metrics = const Layout3dMetrics(
                 unitsPerLogicalPixel: 0.02,
               ),
@@ -342,8 +343,8 @@ void main() {
         ),
       );
 
-      // The shape `Overlay3d` really has: it pushes the host's contract onto a
-      // detached entry's surface from inside `performLayout`. Marking an
+      // The shape `RenderOverlay3d` really has: it pushes the host's contract
+      // onto a detached entry's surface from inside `performLayout`. Marking an
       // element dirty for a pass already running is either illegal or too late
       // to help it, so the rebuild is deferred to the next frame — and what
       // `build` converted is stale until then, which is why nothing on a
@@ -366,7 +367,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           size: const Size3d(4, 3, 0.5),
           metrics: const Layout3dMetrics(unitsPerLogicalPixel: 0.01),
@@ -381,7 +382,7 @@ void main() {
     ) async {
       final controller = Layout3dController();
       await tester.pumpWidget(
-        SceneLayout3d(
+        Surface3d(
           parent: Node(),
           controller: controller,
           camera: frontCamera(),
@@ -403,7 +404,7 @@ void main() {
       tester,
     ) async {
       final controller = Layout3dController();
-      Widget frame({Layout3dMetrics? metrics}) => SceneLayout3d(
+      Widget frame({Layout3dMetrics? metrics}) => Surface3d(
         parent: Node(),
         controller: controller,
         constraints: Constraints3d.loose(const Size3d(10, 10, 10)),
@@ -432,6 +433,6 @@ class Builder3dProbe extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     onBuild(context);
-    return SceneLayout3d(parent: Node(), size: const Size3d(1, 1, 1));
+    return Surface3d(parent: Node(), size: const Size3d(1, 1, 1));
   }
 }

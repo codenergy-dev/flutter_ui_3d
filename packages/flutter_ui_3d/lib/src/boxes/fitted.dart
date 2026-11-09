@@ -16,17 +16,17 @@ import 'node_box.dart' show BoxFit3d;
 /// A box that lays its child out at whatever size it wants and then scales
 /// the result into the room available, the 3D analogue of [FittedBox].
 ///
-/// [NodeBox3d] already does this for engine content, where "the content" is a
-/// mesh with bounds. This is the same idea for a laid-out *subtree*: the child
-/// is laid out under unbounded constraints, so it reports its natural size,
-/// and the difference between that and the room this box was given becomes a
-/// scale on the child's scene node. Nothing below is laid out twice, and
-/// nothing below knows it was scaled — which is exactly why a scaled subtree
-/// is cheap here and why the text in it does not re-shape.
+/// [RenderNodeBox3d] already does this for engine content, where "the content"
+/// is a mesh with bounds. This is the same idea for a laid-out *subtree*: the
+/// child is laid out under unbounded constraints, so it reports its natural
+/// size, and the difference between that and the room this box was given
+/// becomes a scale on the child's scene node. Nothing below is laid out twice,
+/// and nothing below knows it was scaled — which is exactly why a scaled
+/// subtree is cheap here and why the text in it does not re-shape.
 ///
 /// It is also why the result is not the same as sizing the child down. A
-/// [Text3d] scaled to 0.5 is a half-size glyph run, not a run laid out for
-/// half the width; a decorated box scaled to 0.5 has half-size corners, not
+/// [RenderText3d] scaled to 0.5 is a half-size glyph run, not a run laid out
+/// for half the width; a decorated box scaled to 0.5 has half-size corners, not
 /// corners of the size the design system asked for. Reach for this when the
 /// subtree is a picture of a fixed thing (a preview, a thumbnail, a scene
 /// miniature); reach for constraints when it is a piece of user interface
@@ -35,28 +35,28 @@ import 'node_box.dart' show BoxFit3d;
 /// ## Hit testing
 ///
 /// The scale lives in [localTransform], which makes this box a relative of
-/// [Transform3d] — and that box is the documented exception in hit testing:
-/// it neither answers a hit itself nor gates its children on its own extent,
-/// because its size is measured in the frame *before* the matrix and the two
-/// cannot be compared.
+/// [RenderTransform3d] — and that box is the documented exception in hit
+/// testing: it neither answers a hit itself nor gates its children on its own
+/// extent, because its size is measured in the frame *before* the matrix and
+/// the two cannot be compared.
 ///
 /// This box does better, on the half that can be done better. Its size is the
 /// room it fills, in the frame the ray arrives in, and the scale is what puts
 /// the child inside that room — so the extent gate is meaningful here and is
 /// applied: a ray that misses the fitted box misses everything in it, and one
 /// that hits it is mapped through the scale so it reaches the child where the
-/// viewer sees it. What it keeps from [Transform3d] is the other half: it is
-/// not a target itself, so a ray through a gap in the child passes on
+/// viewer sees it. What it keeps from [RenderTransform3d] is the other half: it
+/// is not a target itself, so a ray through a gap in the child passes on
 /// through.
 ///
 /// The gate is exact for every fit that puts the child inside the box, which
 /// is all of them except [BoxFit3d.none], where a child larger than the box
 /// keeps its own size and the part outside the box is out of reach. That is
 /// the same bargain Flutter strikes, where the overflowing part is clipped.
-class FittedBox3d extends RenderSingleChild3d
+class RenderFittedBox3d extends RenderSingleChild3d
     with RenderChildIntrinsicsMixin3d {
   /// Creates a box that scales its child into the room available.
-  FittedBox3d({
+  RenderFittedBox3d({
     BoxFit3d fit = BoxFit3d.contain,
     AlignmentGeometry3d alignment = Alignment3d.center,
     TextDirection? textDirection,
@@ -195,7 +195,7 @@ class FittedBox3d extends RenderSingleChild3d
   @override
   bool hitTest(HitTestResult3d result, {required Ray3d ray}) {
     if (!hasSize) return false;
-    // Unlike Transform3d, the gate is meaningful: this box's size and the
+    // Unlike RenderTransform3d, the gate is meaningful: this box's size and the
     // incoming ray are in the same frame, and the fit is what put the child
     // inside that size.
     final range = ray.intersectBox(size);

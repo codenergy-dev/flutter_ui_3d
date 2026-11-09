@@ -61,7 +61,7 @@ enum Input3dHitPhase {
   scroll,
 }
 
-/// What a pointer found, reported to [SceneInput3d.onHit].
+/// What a pointer found, reported to [Input3d.onHit].
 class Input3dHit {
   /// Creates a report.
   const Input3dHit({
@@ -91,13 +91,13 @@ typedef Input3dHitCallback = void Function(Input3dHit hit);
 
 /// The input host in force above a widget.
 ///
-/// A [SceneInput3d] owns one. It is the registry every surface below it
+/// An [Input3d] owns one. It is the registry every surface below it
 /// announces itself to, the [Layout3dPointerGroup] the rays are dispatched
 /// through, and the [camera] they are cast from — the seam a navigator, a
 /// keyboard layer or a test harness reaches through rather than rebuilding
 /// the wiring.
 ///
-/// A `SceneLayout3d` and a `SceneOverlay3d` register themselves, so an
+/// A `Surface3d` and an `Overlay3d` register themselves, so an
 /// application never calls any of this. Register by hand only for a surface
 /// built imperatively, which the declarative layer cannot see.
 abstract class Input3dHost {
@@ -113,23 +113,23 @@ abstract class Input3dHost {
   /// whether a hit here ends the walk. Calling it again for a surface
   /// already here rewrites both and does nothing else.
   void registerSurface(
-    Layout3dSurface surface, {
+    RenderSurface3d surface, {
     double zOrder = 0.0,
     bool absorbs = true,
   });
 
   /// Takes [surface] out of the group, cancelling anything it had captured.
-  void unregisterSurface(Layout3dSurface surface);
+  void unregisterSurface(RenderSurface3d surface);
 
   /// Keeps [overlay]'s detached entries in the group from now on.
   ///
   /// The entries themselves are synced immediately before each dispatch
   /// rather than now: what is in an overlay changes when a dialog opens, and
   /// the only moment the answer is consumed is the moment an event arrives.
-  void registerOverlay(Overlay3d overlay);
+  void registerOverlay(RenderOverlay3d overlay);
 
   /// Stops tracking [overlay], and takes its entries out of the group.
-  void unregisterOverlay(Overlay3d overlay);
+  void unregisterOverlay(RenderOverlay3d overlay);
 
   /// Hands the keyboard back to the scene, and reports whether anything took
   /// it.
@@ -139,7 +139,7 @@ abstract class Input3dHost {
   /// to its first focusable box in tree order otherwise. The call for "the
   /// user came back to the scene" — a click on its window, a menu command.
   /// Arriving by Tab is different, and lands on the first box of the scene
-  /// instead; see [SceneInput3d]'s *A key*.
+  /// instead; see [Input3d]'s *A key*.
   bool requestSceneFocus();
 
   /// Every path a press at [position] would be dispatched to, front to back,
@@ -159,11 +159,11 @@ abstract class Input3dHost {
   List<HitTestResult3d> hitTestAt(Offset position);
 }
 
-/// Imperative access to the [Input3dHost] a [SceneInput3d] owns.
+/// Imperative access to the [Input3dHost] an [Input3d] owns.
 ///
 /// The counterpart of `Layout3dController` for input: the widget that *builds*
-/// a [SceneInput3d] has no context below it, so it reaches the host through
-/// one of these. Anything built inside uses [SceneInput3d.of] instead.
+/// an [Input3d] has no context below it, so it reaches the host through
+/// one of these. Anything built inside uses [Input3d.of] instead.
 class Input3dController {
   Input3dHost? _host;
 
@@ -174,19 +174,19 @@ class Input3dController {
 /// Routes the platform's pointers into every layout surface in a scene.
 ///
 /// Wrap the `SceneView` in one, give it the camera the view renders with, and
-/// the wiring is done: a `SceneLayout3d` anywhere below announces its surface
-/// on mount, a `SceneOverlay3d` announces its dialogs, and a press, a drag or
+/// the wiring is done: a `Surface3d` anywhere below announces its surface
+/// on mount, an `Overlay3d` announces its dialogs, and a press, a drag or
 /// a hover reaches the box under the cursor through
 /// [Layout3dPointerGroup]'s ordering rules.
 ///
 /// ```dart
-/// SceneInput3d(
+/// Input3d(
 ///   camera: camera,
 ///   child: SceneView(
 ///     scene,
 ///     camera: camera,
 ///     children: [
-///       SceneLayout3d(
+///       Surface3d(
 ///         size: const Size3d(3.5, 4.8, 0.6),
 ///         child: const MaterialScreen(),
 ///       ),
@@ -203,7 +203,7 @@ class Input3dController {
 ///
 /// ## What is in front of what
 ///
-/// Stated, not derived, on each `SceneLayout3d`'s `zOrder`. Geometry cannot
+/// Stated, not derived, on each `Surface3d`'s `zOrder`. Geometry cannot
 /// answer it: a panel turned away from the camera is in front of another
 /// panel for some pixels and behind it for others, while a pointer needs one
 /// answer for the whole surface. Ties go to the surface nearest the [camera].
@@ -231,7 +231,7 @@ class Input3dController {
 /// ## A key
 ///
 /// A key goes to the focus, not to the cursor, and it reaches a box on a
-/// plane without passing through this widget; [Shortcuts3d] explains the
+/// plane without passing through this widget; [RenderShortcuts3d] explains the
 /// walk. What this widget adds is the way in, the way across and the way out.
 ///
 /// **In.** A keyboard cannot reach a scene nothing has focused, so the host is
@@ -250,9 +250,9 @@ class Input3dController {
 /// next focusable widget after the scene. When there is none — a window that
 /// is nothing but the scene — the traversal comes straight back in at the
 /// other end, and Tab goes round the whole scene.
-class SceneInput3d extends StatefulWidget {
+class Input3d extends StatefulWidget {
   /// Creates an input host over [child].
-  const SceneInput3d({
+  const Input3d({
     super.key,
     this.camera,
     this.controller,
@@ -266,8 +266,8 @@ class SceneInput3d extends StatefulWidget {
   ///
   /// Usually the same camera the enclosing `SceneView` renders with —
   /// anything else aims the rays somewhere other than where the picture is.
-  /// Published to everything below, so a `SceneLayout3d` with a camera
-  /// binding and a `SceneOverlay3d` need not be given one of their own.
+  /// Published to everything below, so a `Surface3d` with a camera
+  /// binding and an `Overlay3d` need not be given one of their own.
   final Camera? camera;
 
   /// Imperative access to the host this widget owns.
@@ -314,22 +314,22 @@ class SceneInput3d extends StatefulWidget {
     final host = maybeOf(context);
     assert(
       host != null,
-      'SceneInput3d.of() found no input host above this context. Wrap the '
-      'SceneView in a SceneInput3d; use maybeOf() if being outside one is a '
+      'Input3d.of() found no input host above this context. Wrap the '
+      'SceneView in an Input3d; use maybeOf() if being outside one is a '
       'legitimate state.',
     );
     return host!;
   }
 
   @override
-  State<SceneInput3d> createState() => _SceneInput3dState();
+  State<Input3d> createState() => _Input3dState();
 }
 
 /// Publishes the [Input3dHost] to the subtree.
 ///
 /// Public because the widgets that register with it live in other libraries
 /// of this package; there is nothing here an application needs that
-/// [SceneInput3d.of] does not answer.
+/// [Input3d.of] does not answer.
 class Input3dScope extends InheritedWidget {
   /// Creates a scope over [child].
   const Input3dScope({
@@ -351,14 +351,14 @@ class Input3dScope extends InheritedWidget {
       !identical(oldWidget.host, host) || !identical(oldWidget.camera, camera);
 }
 
-class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
+class _Input3dState extends State<Input3d> implements Input3dHost {
   late final Layout3dPointerGroup _group = Layout3dPointerGroup(
     camera: widget.camera,
   );
 
   /// The overlays whose detached entries this host keeps in the group, and
   /// the surface each of them is laid out on once that is knowable.
-  final List<Overlay3d> _overlays = <Overlay3d>[];
+  final List<RenderOverlay3d> _overlays = <RenderOverlay3d>[];
 
   /// Which surface owns which layout tree, so an overlay can be placed in
   /// front of the panel it belongs to.
@@ -366,14 +366,14 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
   /// A `RenderObject3d` knows its [PipelineOwner3d] and not the surface above
   /// it, and every surface attaches its tree to an owner of its own — so this
   /// map, filled in as surfaces register, is what turns one into the other.
-  final Map<PipelineOwner3d, Layout3dSurface> _surfacesByOwner =
-      <PipelineOwner3d, Layout3dSurface>{};
+  final Map<PipelineOwner3d, RenderSurface3d> _surfacesByOwner =
+      <PipelineOwner3d, RenderSurface3d>{};
 
   /// Every registered surface, in the order it registered, with its z-order.
   ///
   /// Insertion-ordered, and a re-registration keeps its place, so the keys are
   /// also the order Tab walks the panels in.
-  final Map<Layout3dSurface, double> _zOrders = <Layout3dSurface, double>{};
+  final Map<RenderSurface3d, double> _zOrders = <RenderSurface3d, double>{};
 
   /// Set while the host takes the focus in order to hand it on, so that
   /// taking it does not hand it straight back into the scene.
@@ -382,7 +382,7 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
   /// The host's place in Flutter's own focus traversal: the door a keyboard
   /// comes into the scene through. It never keeps the focus when something
   /// in the scene can take it.
-  final FocusNode _focusNode = FocusNode(debugLabel: 'SceneInput3d');
+  final FocusNode _focusNode = FocusNode(debugLabel: 'Input3d');
 
   @override
   void initState() {
@@ -391,7 +391,7 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
   }
 
   @override
-  void didUpdateWidget(SceneInput3d oldWidget) {
+  void didUpdateWidget(Input3d oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(widget.controller, oldWidget.controller)) {
       if (identical(oldWidget.controller?._host, this)) {
@@ -430,7 +430,7 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
 
   @override
   void registerSurface(
-    Layout3dSurface surface, {
+    RenderSurface3d surface, {
     double zOrder = 0.0,
     bool absorbs = true,
   }) {
@@ -442,7 +442,7 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
   }
 
   @override
-  void unregisterSurface(Layout3dSurface surface) {
+  void unregisterSurface(RenderSurface3d surface) {
     _group.removeSurface(surface);
     _zOrders.remove(surface);
     _surfacesByOwner.removeWhere((_, value) => identical(value, surface));
@@ -450,7 +450,7 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
   }
 
   @override
-  void registerOverlay(Overlay3d overlay) {
+  void registerOverlay(RenderOverlay3d overlay) {
     if (_overlays.contains(overlay)) return;
     _overlays.add(overlay);
     overlay.entriesChanged.addListener(_watchEntryEdges);
@@ -458,7 +458,7 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
   }
 
   @override
-  void unregisterOverlay(Overlay3d overlay) {
+  void unregisterOverlay(RenderOverlay3d overlay) {
     if (!_overlays.remove(overlay)) return;
     overlay.entriesChanged.removeListener(_watchEntryEdges);
     _group.forgetDetachedEntries(overlay);
@@ -525,9 +525,9 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
   /// out on it, in their own order — so a snack bar's action comes after the
   /// screen that showed it. Entries of an overlay whose panel cannot be
   /// resolved come last.
-  List<Layout3dSurface> _traversalOrder() {
-    final order = <Layout3dSurface>[];
-    final placed = <Overlay3d>{};
+  List<RenderSurface3d> _traversalOrder() {
+    final order = <RenderSurface3d>[];
+    final placed = <RenderOverlay3d>{};
     for (final surface in _zOrders.keys) {
       order.add(surface);
       for (final overlay in _overlays) {
@@ -546,7 +546,7 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
   }
 
   /// Asks [surface]'s tree to consult this host before Tab wraps round it.
-  void _watchTraversalEdge(Layout3dSurface surface) {
+  void _watchTraversalEdge(RenderSurface3d surface) {
     surface.owner?.onFocusTraversalEdge = (forward) =>
         _handleTraversalEdge(surface, forward: forward);
   }
@@ -564,7 +564,7 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
 
   /// Tab ran off the end of [from]: on to the next surface that has something
   /// to focus, or out of the scene when none does.
-  bool _handleTraversalEdge(Layout3dSurface from, {required bool forward}) {
+  bool _handleTraversalEdge(RenderSurface3d from, {required bool forward}) {
     final order = _traversalOrder();
     final index = order.indexOf(from);
     if (index < 0) return false;
@@ -583,7 +583,7 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
   /// trapping entry open lands inside the entry, never on a box behind its
   /// barrier. The owner's scope remembers the dialog's scope as the child
   /// that had the focus, and asking the dialog's scope restores its own.
-  bool _focusInto(Layout3dSurface surface, {required bool forward}) {
+  bool _focusInto(RenderSurface3d surface, {required bool forward}) {
     final owner = surface.owner;
     if (owner != null && owner.hasFocusScope) {
       final held = owner.focusScope.focusedChild;
@@ -665,7 +665,7 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
     final camera = widget.camera;
     assert(
       camera != null,
-      'A pointer reached a SceneInput3d with no camera, so there is nothing '
+      'A pointer reached an Input3d with no camera, so there is nothing '
       'to cast a ray with. Give it the camera the enclosing SceneView '
       'renders with.',
     );
@@ -673,11 +673,11 @@ class _SceneInput3dState extends State<SceneInput3d> implements Input3dHost {
     final size = _viewSize;
     assert(
       size != null,
-      'A pointer reached a SceneInput3d whose box has no extent, so there is '
+      'A pointer reached an Input3d whose box has no extent, so there is '
       'nothing to cast a ray against. The child is normally the SceneView, '
       'which fills what it is given; a child that takes no space leaves this '
       'widget with none either. Give it a child that fills, or state the '
-      'view\'s size with SceneInput3d.viewSize.',
+      'view\'s size with Input3d.viewSize.',
     );
     if (size == null) return null;
     return camera.screenPointToRay(position, size);
