@@ -15,7 +15,7 @@
 //   wrap   gpu.Texture.fromImage over a rendered image, on a timer
 //   resize the window is maximized and restored between probes
 //   busy   a second offscreen `toImage` runs continuously alongside the probe
-//   layout a flutter_scene_layout3d surface inside the scene view
+//   layout a flutter_ui_3d surface inside the scene view
 
 import 'dart:async' show unawaited;
 import 'dart:io';
@@ -36,9 +36,8 @@ import 'package:flutter_scene/scene.dart'
         Scene,
         SceneView,
         SphereGeometry;
-import 'package:flutter_scene_layout3d/flutter_scene_layout3d.dart' show Size3d;
-import 'package:flutter_scene_layout3d/widgets.dart'
-    show SceneLayout3d, SceneSizedBox3d;
+import 'package:flutter_ui_3d/rendering.dart' show Size3d;
+import 'package:flutter_ui_3d/widgets.dart' show SceneLayout3d, SceneSizedBox3d;
 import 'package:vector_math/vector_math.dart' show Vector3, Vector4;
 
 const bool _withScene = bool.fromEnvironment('scene');

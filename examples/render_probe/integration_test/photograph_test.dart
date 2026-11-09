@@ -14,14 +14,13 @@
 // at the gallery's window. This is that window, on every run, without anyone
 // having to start it.
 
-import 'package:flutter_scene_layout3d/flutter_scene_layout3d.dart'
-    show GlyphAtlasCache3d, Layout3d, ModalBarrier3d, Navigator3d;
-import 'package:flutter_scene_layout3d/testing.dart';
-import 'package:flutter_scene_material3d/flutter_scene_material3d.dart'
-    show initializeMaterial3d;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_ui_3d/rendering.dart'
+    show GlyphAtlasCache3d, Layout3d, ModalBarrier3d, Navigator3d;
+import 'package:flutter_ui_3d/testing.dart';
+import 'package:flutter_ui_3d_gallery/main.dart' show Gallery3dApp;
 import 'package:integration_test/integration_test.dart';
-import 'package:layout3d_gallery/main.dart' show Layout3dGalleryApp;
+import 'package:material_ui_3d/material_ui_3d.dart' show initializeMaterial3d;
 import 'photograph.dart';
 
 void main() {
@@ -60,7 +59,7 @@ void main() {
   ) async {
     final first = await photograph(
       tester,
-      const Layout3dGalleryApp(),
+      const Gallery3dApp(),
       name: 'gallery',
       initialize: initializeMaterial3d,
     );

@@ -16,11 +16,10 @@
 import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_scene_layout3d/flutter_scene_layout3d.dart'
+import 'package:flutter_ui_3d/rendering.dart'
     show debugReportGlyphAtlasRepacks, debugVerifyGlyphAtlasInk;
-import 'package:flutter_scene_material3d/flutter_scene_material3d.dart'
-    show initializeMaterial3d;
-import 'package:layout3d_gallery/main.dart' show Layout3dGalleryApp;
+import 'package:flutter_ui_3d_gallery/main.dart' show Gallery3dApp;
+import 'package:material_ui_3d/material_ui_3d.dart' show initializeMaterial3d;
 
 import 'self_drive.dart';
 
@@ -41,7 +40,7 @@ Future<void> main() async {
   // `_errorTextStyle`, which is what a `Text` resolves to with no `Material`
   // above it, and whose `decoration` a `Text3d` inherits and the atlas bakes.
   // The harness has to photograph the application a person runs.
-  runApp(selfDriveBoundary(const Layout3dGalleryApp()));
+  runApp(selfDriveBoundary(const Gallery3dApp()));
   unawaited(SelfDrive.start(_script));
 }
 

@@ -13,16 +13,16 @@ several files, guidance for using the engine underneath.
 | You want to | Read |
 | --- | --- |
 | Understand what this project is and why | the root [README](../README.md) |
-| Use the layout protocol: boxes, slivers, scrolling, text, decoration, input, overlays, animation | the [layout package README](../packages/flutter_scene_layout3d/README.md) — the deep reference, box by box |
-| Theme a surface, or build a Material component | the [Material package README](../packages/flutter_scene_material3d/README.md) — the one setup call, `Material3d` and `InkWell3d`, the token families, and both halves of the theme channel |
+| Use the layout protocol: boxes, slivers, scrolling, text, decoration, input, overlays, animation | the [layout package README](../packages/flutter_ui_3d/README.md) — the deep reference, box by box |
+| Theme a surface, or build a Material component | the [Material package README](../packages/material_ui_3d/README.md) — the one setup call, `Material3d` and `InkWell3d`, the token families, and both halves of the theme channel |
 | Work in this repository as a coding agent | [AGENTS.md](../AGENTS.md) — conventions, plans, commits, how to run things |
 | Avoid the sharp edges of this package | [traps.md](traps.md) |
 | Use `flutter_scene` correctly | [engine-rules.md](engine-rules.md) |
-| See it running, or write a demo | [examples/layout3d_gallery](../examples/layout3d_gallery/README.md) |
-| Test a screen you built: find a box, press it through the camera, ask whether it is hidden | *Testing a screen* in the [layout package README](../packages/flutter_scene_layout3d/README.md#testing-a-screen), with the gallery's `test/screens_test.dart` as the worked example |
+| See it running, or write a demo | [examples/flutter_ui_3d_gallery](../examples/flutter_ui_3d_gallery/README.md) |
+| Test a screen you built: find a box, press it through the camera, ask whether it is hidden | *Testing a screen* in the [layout package README](../packages/flutter_ui_3d/README.md#testing-a-screen), with the gallery's `test/screens_test.dart` as the worked example |
 | Verify something actually draws, or look at a photograph of the gallery | [examples/render_probe](../examples/render_probe/README.md) |
-| Know what is planned, in progress, or was decided and why | the plans directories of [the layout package](../packages/flutter_scene_layout3d/plans/) and [the Material package](../packages/flutter_scene_material3d/plans/) |
-| Know what is being built next | [what a real application still needs](../packages/flutter_scene_layout3d/plans/2026_09_11_what_a_real_application_still_needs.md) — the index of the plans between here and an application people use, with the order and the seams between them |
+| Know what is planned, in progress, or was decided and why | the plans directories of [the layout package](../packages/flutter_ui_3d/plans/) and [the Material package](../packages/material_ui_3d/plans/) |
+| Know what is being built next | [what a real application still needs](../packages/flutter_ui_3d/plans/2026_09_11_what_a_real_application_still_needs.md) — the index of the plans between here and an application people use, with the order and the seams between them |
 
 ## The pages here
 
@@ -52,25 +52,28 @@ Used by the root README, and worth reading on their own:
 - **[units.svg](units.svg)** — where the dp ↔ world-unit rate comes from when
   a surface is bound to the camera.
 - **[material-screen.png](material-screen.png)** — a `Scaffold3d` drawn as
-  geometry, captured from `examples/layout3d_gallery` running on macOS. Not a
+  geometry, captured from `examples/flutter_ui_3d_gallery` running on macOS. Not a
   diagram; the first picture in this repository of what any of it looks like.
 
 ## Where the reasoning lives
 
-`packages/flutter_scene_layout3d/plans/` is not a backlog. Each plan records
+`packages/flutter_ui_3d/plans/` is not a backlog. Each plan records
 what was intended, what shipped, and — in a section every finished plan has —
 **what the original reasoning got wrong**. Several of those corrections are
 load-bearing and are not deducible from the code.
 
-Two entry points:
+The entry points:
 
-- [The Material readiness overview](../packages/flutter_scene_layout3d/plans/2026_08_25_material3d_readiness_overview.md)
+- [The Material readiness overview](../packages/flutter_ui_3d/plans/2026_08_25_material3d_readiness_overview.md)
   is the map of the ten plans that built most of this package, and its *Where
   to pick up* section says what to do next and why.
-- [The render coverage plan](../packages/flutter_scene_layout3d/plans/2026_08_28_render_coverage.md)
+- [The render coverage plan](../packages/flutter_ui_3d/plans/2026_08_28_render_coverage.md)
   built the lane that draws a frame and checks it, and its findings section is
   a good sample of what surprises people here.
-- [The Material catalogue plan](../packages/flutter_scene_material3d/plans/2026_09_01_flutter_scene_material3d.md)
+- [Names that say what Flutter calls them](../packages/flutter_ui_3d/plans/2026_11_09_names_that_say_what_flutter_calls_them.md)
+  is **in progress**, in three phases: the packages have their new names, and
+  the render object family and the widgets do not yet.
+- [The Material catalogue plan](../packages/material_ui_3d/plans/2026_09_01_flutter_scene_material3d.md)
   is **completed**, all ten phases of it, and its closing section is the thing
   to read before extending any of the catalogue: what the whole thing proved,
   what its original reasoning got wrong, and what was deliberately left out.
@@ -78,38 +81,38 @@ Two entry points:
   middle section — what an elevation, a ripple, a disabled state and a
   thickness mean once the depth is real — is design reasoning that exists
   nowhere else. Its phase 0 is done, in
-  [the four things before a component](../packages/flutter_scene_layout3d/plans/2026_09_01_the_four_things_before_a_component.md):
+  [the four things before a component](../packages/flutter_ui_3d/plans/2026_09_01_the_four_things_before_a_component.md):
   the four additions to the layout package a first component could not do
   without, and the two places that plan's own reasoning turned out wrong. Its
   phase 1 — the package and the tokens — is done too, and its findings section
   records what that turned up, including the gap that stood in phase 2's way:
   the widget layer could not read the surface's metrics, so a figure written in
   a `build` method was in world units and not logical pixels. That is closed,
-  in [the metrics a build method can read](../packages/flutter_scene_layout3d/plans/2026_09_02_the_metrics_a_build_method_can_read.md)
+  in [the metrics a build method can read](../packages/flutter_ui_3d/plans/2026_09_02_the_metrics_a_build_method_can_read.md)
   — `Layout3dMetricsScope.of(context)`, and the phase-ordering argument that
   says a value read in `build` is not stale by the time the layout uses it.
   Phase 2 left one gap of its own and phase 3 closed it the same way:
   `TapTarget3d`'s 48dp minimum grew the ray region and delivered no press out
   in the margin, which is settled in
-  [a tap target that delivers a press](../packages/flutter_scene_layout3d/plans/2026_09_02_a_tap_target_that_delivers_a_press.md)
+  [a tap target that delivers a press](../packages/flutter_ui_3d/plans/2026_09_02_a_tap_target_that_delivers_a_press.md)
   — the nine-line fix, and the placement rule underneath it that is the half
   worth reading. Phase 3, the seven buttons, is done, and so is phase 4, the
   surfaces and rows — which found something larger than itself: the clip
   contract's plane tier had never fired at all, closed in
-  [a clip that reaches the shader](../packages/flutter_scene_layout3d/plans/2026_09_03_a_clip_that_reaches_the_shader.md).
+  [a clip that reaches the shader](../packages/flutter_ui_3d/plans/2026_09_03_a_clip_that_reaches_the_shader.md).
   Phase 5, the structure, is done too, and it found the *same* tier dead in a
   second place — a pinned header's clip never reached a shader either — which
   is closed, with the two widget forms the declarative layer was missing, in
-  [the declarative side of a pinned bar](../packages/flutter_scene_layout3d/plans/2026_09_08_the_declarative_side_of_a_pinned_bar.md).
+  [the declarative side of a pinned bar](../packages/flutter_ui_3d/plans/2026_09_08_the_declarative_side_of_a_pinned_bar.md).
   Phase 6, the overlays, is done as well, and it needed two things the layout
   package did not have — a widget subtree as an overlay entry's content, and
   any way at all to anchor one box to another — both landed in
-  [a widget under an overlay entry](../packages/flutter_scene_layout3d/plans/2026_09_08_a_widget_under_an_overlay_entry.md).
+  [a widget under an overlay entry](../packages/flutter_ui_3d/plans/2026_09_08_a_widget_under_an_overlay_entry.md).
   Phase 7, the selection controls, is the one phase since the third that needed
   **nothing** here — `PointerSequence3d.addArenaMember` had been built for
   exactly that customer and took a slider without a change. Phase 8, the press
   ripple, is done as well, and its half of the layout package is
-  [where a press landed](../packages/flutter_scene_layout3d/plans/2026_09_09_where_a_press_landed.md):
+  [where a press landed](../packages/flutter_ui_3d/plans/2026_09_09_where_a_press_landed.md):
   two shader parameters, a `Ripple3d` on `StateLayer3d`, and
   `Layout3d.localPointFrom` — `anchorOffsetTo`'s own change of frame,
   generalized off an alignment, because a finger is not an alignment. Phase 9
@@ -117,49 +120,49 @@ Two entry points:
   five things it found were defects that a full green suite had been standing
   behind, including a `Scaffold3d` whose every slot was unreachable by a ray.
   Its fifth and sixth findings each got a plan and both are closed:
-  [a label that survives a repack](../packages/flutter_scene_layout3d/plans/2026_09_10_a_label_that_survives_a_repack.md),
+  [a label that survives a repack](../packages/flutter_ui_3d/plans/2026_09_10_a_label_that_survives_a_repack.md),
   which began as a shared glyph atlas repacking under a second surface's
   letters and ended somewhere else — a glyph reserved while the atlas was
   being rasterized was never drawn into the texture at all — and
-  [a transparent slab that does not erase](../packages/flutter_scene_layout3d/plans/2026_09_10_a_transparent_slab_that_does_not_erase.md),
+  [a transparent slab that does not erase](../packages/flutter_ui_3d/plans/2026_09_10_a_transparent_slab_that_does_not_erase.md),
   the panel shader writing depth for a fragment with no alpha.
 
 - **Four more plans came from watching the same app *turn***, which is a
   question nothing here had asked.
-  [A letter on a slab](../packages/flutter_scene_layout3d/plans/2026_09_10_a_letter_on_a_slab.md)
+  [A letter on a slab](../packages/flutter_ui_3d/plans/2026_09_10_a_letter_on_a_slab.md)
   is four defects stacked and none of them is the atlas: the decoration's slab
   was built inside out, the catalogue buried its content inside its slabs, a
   glyph mesh wrote no depth so the translucent sort could erase it, and the
   atlas was keyed by a style that still carried `decorationColor`.
-  [A letter with a side to it](../packages/flutter_scene_layout3d/plans/2026_09_11_a_letter_with_a_side_to_it.md)
+  [A letter with a side to it](../packages/flutter_ui_3d/plans/2026_09_11_a_letter_with_a_side_to_it.md)
   gives a glyph a front face, a back face and a wall traced out of the atlas
   raster, because `dart:ui` exposes no outlines and there is no font parser
   here.
-  [A paragraph with a side to it](../packages/flutter_scene_layout3d/plans/2026_09_11_a_paragraph_with_a_side_to_it.md)
+  [A paragraph with a side to it](../packages/flutter_ui_3d/plans/2026_09_11_a_paragraph_with_a_side_to_it.md)
   does the same for `RichText3d`, whose capture has no readable copy, so its
   silhouette comes from a second CPU rasterization it can sample colours off.
 - **What is being built next** is
-  [what a real application still needs](../packages/flutter_scene_layout3d/plans/2026_09_11_what_a_real_application_still_needs.md),
+  [what a real application still needs](../packages/flutter_ui_3d/plans/2026_09_11_what_a_real_application_still_needs.md),
   the index of the seventeen plans between a finished catalogue and an
   application people use — **twelve closed, five open**, with the whole motion
   lane among the closed and the colour generator with it, and the catalogue
   batch five phases of seven in. It is a map rather
   than a work item: each row becomes a plan of its own when it is picked up.
-  [An application that does not wire its own rays](../packages/flutter_scene_layout3d/plans/2026_09_11_an_application_that_does_not_wire_its_own_rays.md)
+  [An application that does not wire its own rays](../packages/flutter_ui_3d/plans/2026_09_11_an_application_that_does_not_wire_its_own_rays.md)
   is the first of them, and it led for the reason the map gave: it is the item
   every other item is consumed through. `SceneInput3d` wraps the `SceneView`
   and owns the listener, the rays and the group, a surface announces itself
   when it mounts, and what is in front of what is stated on the surface rather
   than restated from a tick — because geometry cannot answer that question for
   a panel turned away from the camera.
-  [A wheel, a trackpad and a key that reach a box](../packages/flutter_scene_layout3d/plans/2026_09_15_a_wheel_a_trackpad_and_a_key_that_reach_a_box.md)
+  [A wheel, a trackpad and a key that reach a box](../packages/flutter_ui_3d/plans/2026_09_15_a_wheel_a_trackpad_and_a_key_that_reach_a_box.md)
   is the second, and it lands on that host: a wheel goes where a press would
   have gone, a trackpad pan is a drag by a finger at the cursor, and a key walks
   Flutter's own shortcuts and actions over the layout tree, because a focus
   node on a plane has no context for Flutter's widgets to look them up
   through. Tab walks from surface to surface and out of the scene through the
   same host, because only the host knows which surfaces exist.
-  [A way to test a screen someone else built](../packages/flutter_scene_layout3d/plans/2026_09_15_a_way_to_test_a_screen_someone_else_built.md)
+  [A way to test a screen someone else built](../packages/flutter_ui_3d/plans/2026_09_15_a_way_to_test_a_screen_someone_else_built.md)
   is the third, taken early because the real-application ports will produce
   the class of defect only a person looking at a window used to find. Its
   opening table is the reason to read it: of the ten defects found that way,
@@ -168,7 +171,7 @@ Two entry points:
   elsewhere — and the rest exist only in a frame, so the render probe app now
   photographs the gallery on every CI run. The photograph found a defect on
   its first run.
-  [A row that reads right to left](../packages/flutter_scene_layout3d/plans/2026_09_15_a_row_that_reads_right_to_left.md)
+  [A row that reads right to left](../packages/flutter_ui_3d/plans/2026_09_15_a_row_that_reads_right_to_left.md)
   is the fourth, and the first of the four a real port was expected to ask
   for. It ports Flutter's direction rules flip for flip — `textDirection` and
   `verticalDirection` on every line, `EdgeInsetsDirectional3d` and
@@ -178,7 +181,7 @@ Two entry points:
   viewer. Its most useful finding is about the catalogue: once the rows read
   the ambient direction, every physical padding and every hand-computed
   position in it was suddenly on the wrong side.
-  [A picture on a panel](../packages/flutter_scene_layout3d/plans/2026_09_15_a_picture_on_a_panel.md)
+  [A picture on a panel](../packages/flutter_ui_3d/plans/2026_09_15_a_picture_on_a_panel.md)
   is the fifth. A picture and a gradient are parts of the *decoration* rather
   than things drawn over it, and the reason is a wall this repository already
   had: there is no rounded clip, so only the signed distance field that carves
@@ -187,7 +190,7 @@ Two entry points:
   Flutter's `onChanged` rather than a fourth revision counter — an atlas needs
   counters because its one texture keeps changing under the meshes baked from
   it, and a picture's arrival is a value anyone can compare.
-  [An item that keeps its state](../packages/flutter_scene_layout3d/plans/2026_09_16_an_item_that_keeps_its_state.md)
+  [An item that keeps its state](../packages/flutter_ui_3d/plans/2026_09_16_an_item_that_keeps_its_state.md)
   is the sixth, and it is two absences that turned out to be one seam: a view
   wanting a say in the lifetime of a child it did not build. `KeepAlive3d`
   parks an item the window has left instead of releasing it — dropped from the
@@ -198,7 +201,7 @@ Two entry points:
   a view asking whether it *has* a child manager asks the wrong question,
   because the element clears itself on the way out while the children it built
   are still on the books.
-  [A screen that knows how big it is](../packages/flutter_scene_layout3d/plans/2026_09_16_a_screen_that_knows_how_big_it_is.md)
+  [A screen that knows how big it is](../packages/flutter_ui_3d/plans/2026_09_16_a_screen_that_knows_how_big_it_is.md)
   is the seventh, and the last of the four a real port was expected to ask
   for. It is the item that was a hole rather than an absence: the semantics
   tree had been carefully built while the reader's own font setting had never
@@ -212,7 +215,7 @@ Two entry points:
   purpose: `MediaQuery3d` publishes the extent a screen would branch on, and
   the breakpoints belong to whoever builds the components that need them.
 - **A route that arrives instead of appearing** is
-  [the eighth](../packages/flutter_scene_layout3d/plans/2026_09_16_a_route_that_arrives_instead_of_appearing.md),
+  [the eighth](../packages/flutter_ui_3d/plans/2026_09_16_a_route_that_arrives_instead_of_appearing.md),
   and the first of the motion lane. The seam had been left on purpose and
   nothing filled it, so every dialog, menu and sheet existed between one frame
   and the next. A route now carries a clock — `Route3d.animation`, resting at
@@ -229,14 +232,14 @@ Two entry points:
   see the next entry. `Hero3d` is deferred to a plan of its own, and that plan
   has since landed — see *A hero that flies between two routes*.
 - **A box that fades** is
-  [the ninth](../packages/flutter_scene_layout3d/plans/2026_09_16_a_box_that_fades.md),
+  [the ninth](../packages/flutter_ui_3d/plans/2026_09_16_a_box_that_fades.md),
   and it is the one plan here written *after* its experiment rather than
   before it. The map had parked the item on an upstream gate — the engine has
   no opacity on `Node` — and that is true and beside the point, because this
   package draws with materials it owns and both of them already multiply
   alpha. What actually stood in the way is `depth_write`, which makes a fading
   subtree the *partly* transparent case
-  [the transparent slab](../packages/flutter_scene_layout3d/plans/2026_09_10_a_transparent_slab_that_does_not_erase.md)
+  [the transparent slab](../packages/flutter_ui_3d/plans/2026_09_10_a_transparent_slab_that_does_not_erase.md)
   left open. Five ways round it were built and photographed; **two of them
   draw the wrong picture at opacity 1.0**, where nothing is meant to be
   happening. What shipped is screen-door coverage against an ordered Bayer
@@ -250,7 +253,7 @@ Two entry points:
   plan: it generated its variants by patching the shaders this work has now
   patched.
 - **A hero that flies between two routes** is
-  [the thirteenth](../packages/flutter_scene_layout3d/plans/2026_09_20_a_hero_that_flies_between_two_routes.md),
+  [the thirteenth](../packages/flutter_ui_3d/plans/2026_09_20_a_hero_that_flies_between_two_routes.md),
   and it closes the motion lane. `Hero3d` matches a box on an arriving route
   with one carrying the same tag on the route it covers, and flies between
   them. **What flies is built rather than reparented** — the constraint
@@ -266,7 +269,7 @@ Two entry points:
   turn that pushed it**, so the arriving side could not be collected there —
   a defect both headless suites were green through, and the gallery caught.
 - **A scheme from one colour** is
-  [the fourteenth](../packages/flutter_scene_material3d/plans/2026_09_20_a_scheme_from_one_colour.md),
+  [the fourteenth](../packages/material_ui_3d/plans/2026_09_20_a_scheme_from_one_colour.md),
   and it is the item on that map with the shortest distance between its
   reasoning and its correction. `ColorScheme3d.fromSeed` derives all
   forty-six roles from a brand colour, through Material's tonal palettes,
@@ -284,7 +287,7 @@ Two entry points:
   scheme costs **679µs**, so `fromSeed` memoizes, because a theme is installed
   from a `build` method and a `build` method runs on frames.
 - **The components a screen still needs** is
-  [the fifteenth](../packages/flutter_scene_material3d/plans/2026_09_21_the_components_a_screen_still_needs.md),
+  [the fifteenth](../packages/material_ui_3d/plans/2026_09_21_the_components_a_screen_still_needs.md),
   and the first on that map to be phased rather than done in one piece: the
   two thirds of Material not yet here, grouped by what each component needs
   underneath it and ordered by what a ported screen reaches for first. Phase
@@ -303,7 +306,7 @@ Two entry points:
   overflows at a large setting: none does, and the one component that did
   was the navigation bar, whose icons grew with type when Flutter's never do.
   That needed a change here, planned as
-  [a label that says how far it grows](../packages/flutter_scene_layout3d/plans/2026_09_21_a_label_that_says_how_far_it_grows.md):
+  [a label that says how far it grows](../packages/flutter_ui_3d/plans/2026_09_21_a_label_that_says_how_far_it_grows.md):
   a per-box `textScaler` and `SceneTextScaling3d.clamped`, with the reader's
   setting still living only on the metrics. The safe area half is Flutter's
   `Scaffold` arithmetic, and has no lane that draws it yet — nothing in
@@ -312,7 +315,7 @@ Two entry points:
   slide, growth and swell, gave a held chip its 1dp lift as a real distance,
   and added both progress indicators, none of which lays anything out while it
   moves. The circular one needed a change here, planned as
-  [a border painted by a gradient](../packages/flutter_scene_layout3d/plans/2026_09_30_a_border_painted_by_a_gradient.md):
+  [a border painted by a gradient](../packages/flutter_ui_3d/plans/2026_09_30_a_border_painted_by_a_gradient.md):
   a ring is the radial half of an arc and a sweep the angular half, and a
   sweep on a ring's *border* is the intersection the shader had no other way
   to draw. The phase also found that the check every "nothing laid out" test
@@ -321,7 +324,7 @@ Two entry points:
   both are in [traps.md](traps.md). And driving the gallery in a real window
   found a defect a month old: a list with no controller of its own went back
   to its top on every rebuild above it, which
-  [the plan that set the rule](../packages/flutter_scene_layout3d/plans/2026_08_25_scroll_controller_ownership.md)
+  [the plan that set the rule](../packages/flutter_ui_3d/plans/2026_08_25_scroll_controller_ownership.md)
   now corrects.
   Phase 4 — nothing new underneath — added `Badge3d`, `MaterialBanner3d`,
   `BottomAppBar3d`, the drawer and `NavigationDrawer3d`, `ExpansionTile3d`
@@ -337,7 +340,7 @@ Two entry points:
   Phase 5 — one choice over many options — added `SegmentedButton3d`,
   `TabBar3d` and `TabBarView3d` on Flutter's own `TabController`, and
   `RadioGroup3d` with the arrows that move it, and needed one change here,
-  [a label wholly outside its window](../packages/flutter_scene_layout3d/plans/2026_10_01_a_label_wholly_outside_its_window.md):
+  [a label wholly outside its window](../packages/flutter_ui_3d/plans/2026_10_01_a_label_wholly_outside_its_window.md):
   a photograph of a tab change half way showed the outgoing page's labels
   floating beside the panel while its cards were cut at the edge, and a
   label wholly outside its clip now hides itself. The rounded clip the map expected the tab bar to meet was the segmented
@@ -351,7 +354,7 @@ Two entry points:
   lists does not swipe — which is in [traps.md](traps.md) and is the layout
   package's to change.
 - **The motion tokens** are
-  [the tenth](../packages/flutter_scene_material3d/plans/2026_09_17_the_motion_tokens.md),
+  [the tenth](../packages/material_ui_3d/plans/2026_09_17_the_motion_tokens.md),
   the first plan in the Material package since its own ten phases, and the
   one that makes the catalogue move: `MotionScheme3d` is Material's sixteen
   durations and nine easings on `Theme3dData`, checked value for value against
@@ -360,7 +363,7 @@ Two entry points:
   is not a scale* — and six overlays wanting the same curve is the case that
   was being waited for. It needed one change to the layout protocol, planned
   here as
-  [a route that carries its own clock](../packages/flutter_scene_layout3d/plans/2026_09_17_a_route_that_carries_its_own_clock.md):
+  [a route that carries its own clock](../packages/flutter_ui_3d/plans/2026_09_17_a_route_that_carries_its_own_clock.md):
   a navigator's single transition is read again at pop time, so a caller
   writing it per push closes an already-open route on the last push's timing.
   What the work actually cost was elsewhere. `pumpAndSettle` turned out to be
@@ -376,7 +379,7 @@ Two entry points:
   than the `Icon3d` every caller passes.
 
 - **An overlay that clears the screen** is
-  [the eleventh](../packages/flutter_scene_layout3d/plans/2026_09_17_an_overlay_that_clears_the_screen.md),
+  [the eleventh](../packages/flutter_ui_3d/plans/2026_09_17_an_overlay_that_clears_the_screen.md),
   and the only one here that began as a bug report rather than a piece of
   work: a person opened a dialog on the gallery, looked at the window, and saw
   half a screen dimmed. An overlay's lift had never actually been applied —
@@ -395,7 +398,7 @@ Two entry points:
   and are written up as failures.
 
 - **A scrim that dims evenly** is
-  [the twelfth](../packages/flutter_scene_material3d/plans/2026_09_17_a_scrim_that_dims_evenly.md),
+  [the twelfth](../packages/material_ui_3d/plans/2026_09_17_a_scrim_that_dims_evenly.md),
   the second plan written *after* its experiment rather than before it, and
   the direct sequel to the eleventh: once a scrim actually reached the screen
   it was supposed to dim, it turned out not to dim it but to **erase** parts
@@ -411,9 +414,9 @@ Two entry points:
   than a smooth dim, and it was chosen by looking at a window.
 
 **The thirteenth is closed, and it was never ours**:
-[the engine drops draw calls when its queue blocks](../packages/flutter_scene_layout3d/plans/2026_09_19_the_engine_drops_draw_calls_under_a_blocked_queue.md),
+[the engine drops draw calls when its queue blocks](../packages/flutter_ui_3d/plans/2026_09_19_the_engine_drops_draw_calls_under_a_blocked_queue.md),
 which is the resolution of
-[a letter that comes back wrong](../packages/flutter_scene_layout3d/plans/2026_09_17_a_letter_that_comes_back_wrong.md)
+[a letter that comes back wrong](../packages/flutter_ui_3d/plans/2026_09_17_a_letter_that_comes_back_wrong.md)
 after seven rounds. Individual glyphs came out of the gallery missing or
 replaced by a speckled block, and a person could only reproduce it by
 **maximizing the window** — which turned out to be exactly the right clue, for

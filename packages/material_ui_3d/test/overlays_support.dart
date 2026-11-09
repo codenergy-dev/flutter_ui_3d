@@ -1,0 +1,140 @@
+// Shared scaffolding for the phase-6 overlays: dialogs, menus, snack bars,
+// tooltips and sheets.
+//
+// Everything here pumps a real surface with a real `SceneOverlay3d` in it,
+// because that is the only place an overlay component works: the entries are
+// inserted into the overlay and their content is reconciled by the widget
+// layer one frame later.
+
+import 'package:flutter/widgets.dart'
+    show BuildContext, Builder, Directionality, TextDirection, Widget;
+import 'package:flutter_scene/scene.dart' show Node;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_ui_3d/rendering.dart';
+import 'package:flutter_ui_3d/widgets.dart';
+import 'package:material_ui_3d/material_ui_3d.dart';
+import 'package:vector_math/vector_math.dart' show Ray, Vector3;
+
+/// Every box of type [T] in [surface], outermost first.
+List<T> boxesOf<T extends Layout3d>(Layout3dSurface surface) {
+  final found = <T>[];
+  void walk(Layout3d box) {
+    if (box is T) found.add(box);
+    box.visitChildren(walk);
+  }
+
+  final child = surface.child;
+  if (child != null) walk(child);
+  return found;
+}
+
+/// The one box of type [T] in [surface].
+T oneOf<T extends Layout3d>(Layout3dSurface surface) {
+  final found = boxesOf<T>(surface);
+  if (found.length != 1) {
+    throw StateError('expected one $T, found ${found.length}');
+  }
+  return found.single;
+}
+
+/// The scrim's panel: the one [DecoratedBox3d] inside the modal barrier.
+///
+/// Found by *where it is* rather than by being translucent, which is how
+/// every one of these tests used to find it. A scrim's alpha is spent as
+/// coverage now — the slab draws in an opaque colour and keeps a fraction of
+/// its fragments — so "the panel whose colour is not opaque" finds nothing.
+/// See `scrimCoverage3d`.
+DecoratedBox3d? scrimOf(Layout3dSurface surface) {
+  for (final barrier in boxesOf<ModalBarrier3d>(surface)) {
+    final found = <DecoratedBox3d>[];
+    void walk(Layout3d box) {
+      if (box is DecoratedBox3d) found.add(box);
+      box.visitChildren(walk);
+    }
+
+    barrier.visitChildren(walk);
+    if (found.isNotEmpty) return found.first;
+  }
+  return null;
+}
+
+/// How strongly the scrim dims, which is the coverage imposed on it.
+double scrimCoverageOf(Layout3dSurface surface) =>
+    scrimOf(surface)?.inheritedOpacity ?? 0.0;
+
+/// A surface with a themed overlay in it, and the handles a test wants.
+class PumpedOverlay {
+  PumpedOverlay(this.controller, this.overlayController, this.context);
+
+  final Layout3dController controller;
+  final Overlay3dController overlayController;
+
+  /// A context inside the overlay, which is what a component that opens
+  /// something is handed.
+  final BuildContext context;
+
+  Layout3dSurface get surface => controller.surface!;
+  Overlay3d get overlay => overlayController.overlay!;
+
+  /// Every panel in the tree, outermost first.
+  List<DecoratedBox3d> get panels => boxesOf<DecoratedBox3d>(surface);
+
+  Layout3dPointer? _pointer;
+
+  /// One pointer for the whole test: the sequence between a down and its up
+  /// is what holds the captured path.
+  Layout3dPointer get pointer => _pointer ??= Layout3dPointer(surface);
+}
+
+/// Pumps an overlay over [child], under [theme].
+Future<PumpedOverlay> pumpOverlay(
+  WidgetTester tester, {
+  Widget? child,
+  Theme3dData theme = Theme3dData.light,
+  Size3d size = const Size3d(8, 6, 1),
+  Layout3dMetrics metrics = Layout3dMetrics.standard,
+  TextDirection? textDirection,
+}) async {
+  final controller = Layout3dController();
+  final overlayController = Overlay3dController();
+  late BuildContext captured;
+  Widget directed(Widget child) => textDirection == null
+      ? child
+      : Directionality(textDirection: textDirection, child: child);
+  await tester.pumpWidget(
+    directed(
+      SceneLayout3d(
+        parent: Node(),
+        size: size,
+        metrics: metrics,
+        controller: controller,
+        child: SceneTheme3d(
+          data: theme,
+          child: SceneOverlay3d(
+            controller: overlayController,
+            child: Builder(
+              builder: (context) {
+                captured = context;
+                return child ?? const SceneSizedBox3d.cube(1);
+              },
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  return PumpedOverlay(controller, overlayController, captured);
+}
+
+/// A ray aimed straight at [point] on [surface]'s plane, from in front of it.
+///
+/// A copy of the layout package's own test helper: a test package cannot
+/// import another package's `test/` directory.
+Ray rayAt(Layout3dSurface surface, Offset3d point) {
+  final toWorld = surface.node.globalTransform;
+  final origin = toWorld.transformed3(
+    Vector3(point.x, point.y, point.z - 10.0),
+  );
+  final direction = toWorld.rotated3(Vector3(0, 0, 1));
+  return Ray.originDirection(origin, direction);
+}

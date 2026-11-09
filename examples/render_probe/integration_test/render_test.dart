@@ -1,4 +1,4 @@
-// Render tests for flutter_scene_layout3d.
+// Render tests for flutter_ui_3d.
 //
 // The package's own suite is 700-odd tests and all of it is arithmetic: it
 // proves the protocol arranges correctly and proves nothing about whether a
@@ -21,8 +21,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_scene/scene.dart' show Scene;
-import 'package:flutter_scene_layout3d/flutter_scene_layout3d.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_ui_3d/rendering.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:render_probe/frame_probe.dart';
 import 'package:render_probe/probe_scene.dart';
@@ -1324,7 +1324,7 @@ void main() {
       // of parallax further in than layout said. Correcting the slab's
       // winding put the geometry back where the box is, and this arithmetic
       // had to become true. See
-      // `packages/flutter_scene_layout3d/plans/2026_09_10_a_letter_on_a_slab.md`.
+      // `packages/flutter_ui_3d/plans/2026_09_10_a_letter_on_a_slab.md`.
       const rim = Offset3d(0.5, 0.0125, 0);
       const middle = Offset3d(0.5, 0.5, 0);
 

@@ -1,0 +1,199 @@
+/// Material Design 3, built as real geometry on `flutter_ui_3d`.
+///
+/// Material 3 is a specification for a flat surface, and every token in it
+/// that stands in for depth has to be re-derived here, because here the depth
+/// is real. An elevation is a shadow in Flutter and a distance here. A
+/// disabled control is 38% opacity in Flutter and a substituted colour here.
+/// A component has no thickness in Flutter and must have one here, which is
+/// the token Material does not publish at all.
+///
+/// The library is in two halves. The **tokens** — [ColorScheme3d],
+/// [Typography3d], [ShapeScale3d], [Elevation3d], [Thickness3d],
+/// [StateLayerOpacity3d] and [MotionScheme3d] — are held by a [Theme3dData], installed by
+/// [SceneTheme3d], and read by `Theme3d.of(context)` in the widget layer or
+/// `theme3d` inside a `Layout3d`'s `performLayout`. The **primitive** is
+/// [Material3d], a decorated box with those tokens resolved into it, with
+/// [InkWell3d] for the interaction, [Icon3d] for a glyph and
+/// [SceneTextStyle3d] for a group of labels. Every component in the catalogue
+/// is a `Material3d` with a different set of tokens.
+///
+/// ```dart
+/// void main() async {
+///   WidgetsFlutterBinding.ensureInitialized();
+///   await initializeMaterial3d();   // nothing draws without this
+///   runApp(const MyApp());
+/// }
+///
+/// SceneLayout3d(
+///   size: const Size3d(4, 3, 0.5),
+///   child: SceneTheme3d(
+///     data: Theme3dData.dark,
+///     textRendererFactory: AtlasText3dRenderer.new,
+///     child: FilledButton3d(
+///       onPressed: submit,
+///       semanticLabel: 'Continue',
+///       child: const SceneText3d('Continue'),
+///     ),
+///   ),
+/// )
+/// ```
+///
+/// There is one import rather than the `rendering.dart` /
+/// `widgets.dart` pair the layout package has, because the split there
+/// separates a complete imperative protocol from a declarative layer over
+/// it, and no such split exists here: a catalogue is widgets, and the tokens
+/// underneath are plain values both layers read.
+///
+/// **Nothing in this package draws until [initializeMaterial3d] has run.**
+/// `BoxDecoration3d.painterFactory` is null until something sets it, so a
+/// themed component measures, lays out and shows nothing, with no error
+/// anywhere. That call awaits the engine and installs the painter — giving
+/// each box a material of its own, since panels that share one all come out
+/// the colour of whichever painted last. The shader itself is compiled for
+/// you by `flutter_ui_3d`'s own build hook, and this package
+/// deliberately ships no build hook of its own.
+library;
+
+export 'src/app/setup.dart'
+    show
+        PanelMaterialFactory,
+        initializeMaterial3d,
+        installPanelPainter3d,
+        kPanelMaterialSource,
+        loadPanelMaterialFactory;
+export 'src/components/app_bar.dart' show AppBar3d, SliverAppBar3d;
+export 'src/components/app_bar_style.dart' show AppBarStyle3d, AppBarVariant3d;
+export 'src/components/badge.dart' show Badge3d;
+export 'src/components/badge_style.dart' show BadgeStyle3d;
+export 'src/components/banner.dart' show MaterialBanner3d;
+export 'src/components/banner_style.dart' show MaterialBannerStyle3d;
+export 'src/components/bottom_app_bar.dart'
+    show BottomAppBar3d, BottomAppBarStyle3d;
+export 'src/components/bottom_sheet.dart'
+    show BottomSheet3d, Sheet3dEdge, showBottomSheet3d, showModalBottomSheet3d;
+export 'src/components/button_style.dart'
+    show ButtonStyle3d, ButtonVariant3d, ResolvedButtonStyle3d;
+export 'src/components/card.dart'
+    show Card3d, ElevatedCard3d, FilledCard3d, OutlinedCard3d;
+export 'src/components/card_style.dart' show CardStyle3d, CardVariant3d;
+export 'src/components/chip.dart'
+    show AssistChip3d, Chip3d, FilterChip3d, InputChip3d, SuggestionChip3d;
+export 'src/components/chip_style.dart'
+    show ChipStyle3d, ChipVariant3d, ResolvedChipStyle3d;
+export 'src/components/dialog.dart' show AlertDialog3d, Dialog3d, showDialog3d;
+export 'src/components/divider.dart' show Divider3d, VerticalDivider3d;
+export 'src/components/drawer.dart'
+    show
+        Drawer3d,
+        DrawerAlignment3d,
+        NavigationDrawer3d,
+        NavigationDrawerDestination3d,
+        showDrawer3d;
+export 'src/components/drawer_style.dart'
+    show DrawerStyle3d, NavigationDrawerStyle3d;
+export 'src/components/buttons.dart'
+    show
+        Button3d,
+        ElevatedButton3d,
+        FilledButton3d,
+        FilledTonalButton3d,
+        FloatingActionButton3d,
+        IconButton3d,
+        OutlinedButton3d,
+        TextButton3d;
+export 'src/components/expansion_tile.dart'
+    show ExpansionTile3d, ExpansionTileStyle3d;
+export 'src/components/icon.dart' show Icon3d;
+export 'src/components/ink.dart'
+    show InkController3d, InkController3dScope, MutableInkController3d;
+export 'src/components/ink_ripple.dart' show InkRipple3dRun, InkRipple3dStyle;
+export 'src/components/ink_well.dart' show InkWell3d;
+export 'src/components/list_tile.dart' show ListTile3d;
+export 'src/components/material.dart' show Material3d;
+export 'src/components/node_shift.dart' show NodeShift3d, SceneNodeShift3d;
+export 'src/components/navigation.dart'
+    show
+        NavigationBar3d,
+        NavigationDestination3d,
+        NavigationDestination3dCallback,
+        NavigationRail3d;
+export 'src/components/navigation_style.dart'
+    show NavigationStyle3d, NavigationVariant3d;
+export 'src/components/anchor.dart'
+    show Anchor3d, Anchor3dWidget, Follower3d, Follower3dWidget;
+export 'src/components/menu.dart'
+    show Menu3d, MenuItem3d, MenuItem3dEntry, PopupMenuButton3d, showMenu3d;
+export 'src/components/snack_bar.dart'
+    show
+        ScaffoldMessenger3d,
+        ScaffoldMessenger3dState,
+        SnackBar3d,
+        SnackBar3dClosedReason,
+        SnackBar3dController;
+export 'src/components/overlay_support.dart' show scrimCoverage3d;
+export 'src/components/overlay_style.dart'
+    show
+        AlertDialogStyle3d,
+        Arrival3d,
+        BottomSheetStyle3d,
+        DialogStyle3d,
+        MenuStyle3d,
+        SnackBarStyle3d,
+        TooltipStyle3d;
+export 'src/components/progress_indicator.dart'
+    show CircularProgressIndicator3d, LinearProgressIndicator3d;
+export 'src/components/progress_indicator_style.dart'
+    show ProgressIndicatorStyle3d;
+export 'src/components/radio_group.dart'
+    show RadioGroup3d, RadioGroupRegistry3d;
+export 'src/components/scaffold.dart' show Scaffold3d, Scaffold3dSlot;
+export 'src/components/segmented_button.dart'
+    show ButtonSegment3d, SegmentedButton3d;
+export 'src/components/segmented_button_style.dart' show SegmentedButtonStyle3d;
+export 'src/components/selection.dart' show Checkbox3d, Radio3d, Switch3d;
+export 'src/components/selection_list_tile.dart'
+    show
+        CheckboxListTile3d,
+        ListTileControlAffinity3d,
+        RadioListTile3d,
+        SwitchListTile3d;
+export 'src/components/slider.dart'
+    show SceneSliderGesture3d, Slider3d, SliderGesture3d;
+export 'src/components/selection_style.dart'
+    show
+        CheckboxStyle3d,
+        RadioStyle3d,
+        ResolvedCheckboxStyle3d,
+        ResolvedRadioStyle3d,
+        ResolvedSliderStyle3d,
+        ResolvedSwitchStyle3d,
+        SliderStyle3d,
+        SwitchStyle3d;
+export 'src/components/tab_bar_style.dart'
+    show
+        TabBarIndicatorSize3d,
+        TabBarStyle3d,
+        TabBarVariant3d,
+        TabIndicatorAnimation3d;
+export 'src/components/tabs.dart' show Tab3d, TabBar3d, TabBarView3d;
+export 'src/components/text_style.dart' show SceneTextStyle3d;
+export 'src/components/tooltip.dart' show Tooltip3d;
+export 'src/theme/theme.dart' show SceneTheme3d, Theme3d;
+export 'src/theme/theme_data.dart' show Layout3dTheme3d, Theme3dData;
+export 'src/theme/tweens.dart'
+    show
+        ColorScheme3dTween,
+        Elevation3dTween,
+        MotionScheme3dTween,
+        ShapeScale3dTween,
+        StateLayerOpacity3dTween,
+        Theme3dDataTween,
+        Thickness3dTween,
+        Typography3dTween;
+export 'src/tokens/color_scheme.dart' show ColorScheme3d;
+export 'src/tokens/color_scheme_variant.dart' show ColorSchemeVariant3d;
+export 'src/tokens/depth.dart' show Elevation3d, Thickness3d;
+export 'src/tokens/motion.dart' show MotionScheme3d;
+export 'src/tokens/shape.dart' show ShapeScale3d;
+export 'src/tokens/state_layer.dart' show Material3dState, StateLayerOpacity3d;
+export 'src/tokens/typography.dart' show Typography3d, Typography3dToken;

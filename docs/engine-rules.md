@@ -91,7 +91,7 @@ window.
 
 It costs a whole framing to discover, because nothing about the scene looks
 wrong — the type is not mirrored and the lighting is right; the pieces are
-simply not where the code said. `examples/layout3d_gallery` calls the surface
+simply not where the code said. `examples/flutter_ui_3d_gallery` calls the surface
 at positive x "left" for exactly this reason, and says so where the camera is
 built. If you want a scene authored with +x on the right, put the camera on
 `-z` and turn whatever has a front face around with it.
@@ -130,7 +130,7 @@ The arrangement has three parts, and all three are needed:
 - The directory exists in the checkout with the engine's `.gitignore` inside
   it, so a fresh clone has the entry the pubspec promises.
 
-`packages/flutter_scene_layout3d/hook/build.dart` is the worked example: it
+`packages/flutter_ui_3d/hook/build.dart` is the worked example: it
 compiles the panel shader this package ships, for every app that depends on
 it. `flutter_scene` does the same for the engine's own shaders.
 
@@ -141,7 +141,7 @@ directory, so an app calls it only to have its own copy in its own bundle,
 which a locked-down pub cache forces. A second *library* must never call it: a
 package that did would put two copies of the engine's shaders in every app
 that used it. `examples/render_probe/hook/build.dart` calls that and nothing
-else; `packages/flutter_scene_layout3d/hook/build.dart` calls
+else; `packages/flutter_ui_3d/hook/build.dart` calls
 `buildMaterials` and nothing else.
 
 **A generated tree is not cleaned by removing the call that filled it.**

@@ -1,6 +1,6 @@
 # render_probe
 
-Render tests for `flutter_scene_layout3d` and `flutter_scene_material3d`. Both
+Render tests for `flutter_ui_3d` and `material_ui_3d`. Both
 packages' own suites are all arithmetic — they prove the protocol arranges
 correctly and prove nothing about whether a frame comes out. This is the other
 half.
@@ -192,7 +192,7 @@ It stays a photograph rather than becoming a probe, and the reason is worth
 knowing before you try to promote it. With the defect deliberately put back,
 this frame came out *correct* — the window is a race against a texture readback
 and it is not open on every run or every machine. The claim is pinned headless,
-in `packages/flutter_scene_layout3d/test/atlas_text_renderer_test.dart`, which
+in `packages/flutter_ui_3d/test/atlas_text_renderer_test.dart`, which
 drives the same cycle with no clock in it. This is here so a person has
 somewhere to see it.
 
@@ -321,7 +321,7 @@ is most of what the round learned, and keeping them costs one file.
 
 **Photograph the application, not a widget of it.** The first run of this
 harness wrapped the gallery's *screen* widget in a `MaterialApp` of its own
-rather than running `Layout3dGalleryApp`, and every glyph in every atlas came
+rather than running `Gallery3dApp`, and every glyph in every atlas came
 back with a double rule through its descenders. That is Flutter's
 `_errorTextStyle` — what a `Text` resolves to with no `Material` above it —
 whose `decoration` a `SceneText3d` inherits like any other and the atlas bakes
@@ -332,7 +332,7 @@ which does not run the real application invents defects of its own.
 
 ## The catalogue scenes
 
-A growing share of the scenes belong to `flutter_scene_material3d` rather than
+A growing share of the scenes belong to `material_ui_3d` rather than
 to the layout protocol, and they are here because there is nowhere else they
 could be: what they check needs a GPU.
 
@@ -552,7 +552,7 @@ What the pictures settled, in one line each:
 Ordered Bayer screen door shipped, and the group-opacity error is the price:
 the label read 0.140 against a predicted 0.095 at 30%, zero at either end.
 The whole comparison, with the numbers and what each picture showed, is in
-`packages/flutter_scene_layout3d/plans/2026_09_16_a_box_that_fades.md`.
+`packages/flutter_ui_3d/plans/2026_09_16_a_box_that_fades.md`.
 
 **The experiment itself was retired when the approach shipped**, because it
 worked by generating patched copies of the package's two shaders and the

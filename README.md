@@ -1,4 +1,4 @@
-# flutter_scene_layout3d
+# flutter_ui_3d
 
 **Flutter's layout protocol, in a 3D scene.**
 
@@ -12,6 +12,13 @@ A `Column3d` is a `Column`. It measures its children, distributes the free
 space, and positions them. The difference is that a box has three extents
 instead of two, a position is a point in space, and the output of layout is a
 tree of scene `Node` transforms rather than a display list.
+
+There are two packages, named for what Flutter calls the same things:
+**`flutter_ui_3d`** is the protocol and the widgets over it, and
+**`material_ui_3d`** is Material Design 3 on top of that. Neither stands apart
+from the engine. A box owns a `flutter_scene` `Node`, every frame is a
+`flutter_scene` frame, and `flutter_scene` is a hard dependency of both, the
+way `flutter` depends on its engine.
 
 ![Constraints go down, sizes come up, the parent positions the child — and the result is geometry on a plane](docs/protocol.svg)
 
@@ -29,14 +36,14 @@ Material one if you want the component catalogue:
 ```yaml
 dependencies:
   flutter_scene: ^0.23.0
-  flutter_scene_layout3d:
+  flutter_ui_3d:
     git:
       url: https://github.com/codenergy-dev/flutter_scene_layout3d.git
-      path: packages/flutter_scene_layout3d
-  flutter_scene_material3d:
+      path: packages/flutter_ui_3d
+  material_ui_3d:
     git:
       url: https://github.com/codenergy-dev/flutter_scene_layout3d.git
-      path: packages/flutter_scene_material3d
+      path: packages/material_ui_3d
 
 # Temporary: 0.23.0 loses draw calls out of an offscreen render, which the
 # glyph atlas bakes into a texture, so letters come out hollow once a window
@@ -58,7 +65,7 @@ dependency_overrides:
 published**, and neither is the `scene` entry beside them — the engine's git
 version needs a newer `scene` than pub.dev has. Why, and what to change when
 0.24.0 lands, is in
-[the layout package's README](packages/flutter_scene_layout3d/README.md#installing).
+[the layout package's README](packages/flutter_ui_3d/README.md#installing).
 
 Two things to know before the first run. **The app has to be launched with
 `--enable-flutter-gpu`** — the engine draws through Flutter GPU and without
@@ -79,8 +86,8 @@ button — on a panel standing in a 3D scene, and the button can be pressed.
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_scene/scene.dart';
-import 'package:flutter_scene_layout3d/widgets.dart';
-import 'package:flutter_scene_material3d/flutter_scene_material3d.dart';
+import 'package:flutter_ui_3d/widgets.dart';
+import 'package:material_ui_3d/material_ui_3d.dart';
 import 'package:vector_math/vector_math.dart' show Vector3;
 
 Future<void> main() async {
@@ -292,7 +299,7 @@ modal barriers and a route stack; tweens, implicit animation and scroll
 physics; and a diagnostics layer with tree dumps, overflow reporting and debug
 wireframes.
 
-The [package README](packages/flutter_scene_layout3d/README.md) is the deep
+The [package README](packages/flutter_ui_3d/README.md) is the deep
 reference for all of it — it goes box by box, and it is honest about where this
 differs from Flutter and why. [docs/](docs/) maps everything else, and
 [docs/traps.md](docs/traps.md) is the list of sharp edges worth reading before
@@ -333,7 +340,7 @@ time, written down as they were found.
 
 ## Material, built as geometry
 
-The reason the package exists is **`flutter_scene_material3d`**: a Material
+The reason the package exists is **`material_ui_3d`**: a Material
 catalogue — `Button3d`, `Card3d`, `Icon3d`, `ListTile3d`, `Scaffold3d`,
 `AppBar3d` — built as real geometry on this protocol, with a button that is an
 actual object you can light, tilt and press into the panel rather than a
@@ -343,7 +350,7 @@ picture of one. **It is here, and it draws.**
 holding list tiles and checkboxes — drawn as geometry on a panel in a 3D
 scene](docs/material-screen.png)
 
-That is the upright panel of `examples/layout3d_gallery`, photographed from a
+That is the upright panel of `examples/flutter_ui_3d_gallery`, photographed from a
 frame of the app running on macOS. Every panel in it is a slab with a thickness,
 every letter and every icon is a slab too — extruded off a silhouette traced
 out of a shared glyph atlas — and every one of them can be
@@ -404,18 +411,18 @@ shader uniforms; a slider's thumb and its filling track are one matrix a frame.
 None of it rebuilds a widget or lays out a box, and the test suite asserts that
 in those terms rather than trusting it.
 
-The [package README](packages/flutter_scene_material3d/README.md) is the deep
+The [package README](packages/material_ui_3d/README.md) is the deep
 reference, component by component, and it is honest at the end about what is
 not there — text input above all, which needs an editing layer that does not
 exist anywhere in this stack and is not planned.
 
 ## Seeing it run
 
-`examples/layout3d_gallery` is the fastest way to see what any of this looks
+`examples/flutter_ui_3d_gallery` is the fastest way to see what any of this looks
 like. It commits no platform scaffolding, so generate one first:
 
 ```sh
-cd examples/layout3d_gallery
+cd examples/flutter_ui_3d_gallery
 flutter create . --platforms=macos
 flutter run -d macos --enable-flutter-gpu
 ```
@@ -435,10 +442,10 @@ The suites are two, and both matter:
 
 ```sh
 flutter pub get                                        # resolves the workspace
-cd packages/flutter_scene_layout3d && flutter test      # 1288, arithmetic
-cd packages/flutter_scene_material3d && flutter test    # 585, arithmetic
+cd packages/flutter_ui_3d && flutter test              # 1318, arithmetic
+cd packages/material_ui_3d && flutter test             # 852, arithmetic
 
-cd examples/render_probe                                # 79, on a real GPU
+cd examples/render_probe                               # 112, on a real GPU
 flutter drive --driver=test_driver/integration_test.dart \
   --target=integration_test/render_test.dart -d macos --enable-flutter-gpu
 ```

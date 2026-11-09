@@ -1,13 +1,13 @@
-name: flutter_scene_layout3d_workspace
+name: flutter_ui_3d_workspace
 publish_to: none
 
 environment:
   sdk: ^3.10.0
 
 workspace:
-  - packages/flutter_scene_layout3d
-  - packages/flutter_scene_material3d
-  - examples/layout3d_gallery
+  - packages/flutter_ui_3d
+  - packages/material_ui_3d
+  - examples/flutter_ui_3d_gallery
   - examples/render_probe
 
 # **The engine comes from git, not pub.dev, and this is temporary.**

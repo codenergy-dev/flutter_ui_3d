@@ -1,6 +1,6 @@
 # Working in this repository
 
-This repository is **flutter_scene_layout3d**: Flutter's box layout protocol,
+This repository is **flutter_ui_3d**: Flutter's box layout protocol,
 in three dimensions, over the [flutter_scene](https://github.com/bdero/flutter_scene)
 realtime 3D engine. Constraints go down, sizes come up, the parent positions
 the child — arranged on a freely transformable plane in a real 3D scene.
@@ -68,20 +68,20 @@ goes in the changelog and the plans. This file stays a contract.**
 
 | Package | What it is |
 | --- | --- |
-| `packages/flutter_scene_layout3d` | The layout protocol. Constraints, intrinsics, baselines, flex, stack, wrap, reading direction, slivers, scrolling, text measurement and geometry, decoration with pictures and gradients, clipping, pointer dispatch, wheel and trackpad scrolling, focus and key bindings, overlays, animation, diagnostics, the unit contract and the screen a surface stands in for — and `testing.dart`, the library an application tests its screens with. |
-| `packages/flutter_scene_material3d` | Material Design 3 on that protocol: seven token families, a theme both layers read, and the catalogue over one `Material3d` primitive — buttons and the segmented button, cards, rows, chips, badges and banners, the structure, its drawers and its tabs, the overlays that arrive rather than appear, the selection controls, the progress indicators and the press ripple. |
-| `examples/layout3d_gallery` | The example app, and the only place a person sees any of this drawn. A Material screen on an upright panel that turns — with a gradient header, a circular avatar on every row, and an overflow menu that opens a dialog and a sheet so that an arrival has somewhere to be looked at — the same catalogue flat on the ground, and a scrolling list of raw meshes beside them: all hit-testable, through one `SceneInput3d` around the view. |
+| `packages/flutter_ui_3d` | The layout protocol. Constraints, intrinsics, baselines, flex, stack, wrap, reading direction, slivers, scrolling, text measurement and geometry, decoration with pictures and gradients, clipping, pointer dispatch, wheel and trackpad scrolling, focus and key bindings, overlays, animation, diagnostics, the unit contract and the screen a surface stands in for — and `testing.dart`, the library an application tests its screens with. |
+| `packages/material_ui_3d` | Material Design 3 on that protocol: seven token families, a theme both layers read, and the catalogue over one `Material3d` primitive — buttons and the segmented button, cards, rows, chips, badges and banners, the structure, its drawers and its tabs, the overlays that arrive rather than appear, the selection controls, the progress indicators and the press ripple. |
+| `examples/flutter_ui_3d_gallery` | The example app, and the only place a person sees any of this drawn. A Material screen on an upright panel that turns — with a gradient header, a circular avatar on every row, and an overflow menu that opens a dialog and a sheet so that an arrival has somewhere to be looked at — the same catalogue flat on the ground, and a scrolling list of raw meshes beside them: all hit-testable, through one `SceneInput3d` around the view. |
 | `examples/render_probe` | Render tests. Draws the layout on a GPU and probes the frame at the pixels layout says to check, and photographs the gallery. Commits its platform scaffolding, unlike the gallery. |
 
-`flutter_scene_material3d` is the reason the layout package exists: a Material
+`material_ui_3d` is the reason the layout package exists: a Material
 catalogue built as real geometry rather than as a picture of it. It is
-[planned in full](packages/flutter_scene_material3d/plans/2026_09_01_flutter_scene_material3d.md),
+[planned in full](packages/material_ui_3d/plans/2026_09_01_flutter_scene_material3d.md),
 all ten phases of it are `completed`, and that plan's closing sections — what
 the whole thing proved, what its reasoning got wrong, and what each phase
 deliberately left out — are the thing to read before extending any of it.
 
 **What is being built next**, and the map of the plans that get there, is
-[what a real application still needs](packages/flutter_scene_layout3d/plans/2026_09_11_what_a_real_application_still_needs.md).
+[what a real application still needs](packages/flutter_ui_3d/plans/2026_09_11_what_a_real_application_still_needs.md).
 Start there rather than here when you want the shape of the remaining work.
 
 ## Running things
@@ -90,9 +90,9 @@ Everything below runs from the repository root unless stated otherwise.
 
 ```sh
 flutter pub get                                      # clones the engine, see below
-cd packages/flutter_scene_layout3d && flutter test   # 1318 today
-cd packages/flutter_scene_material3d && flutter test # 852 today
-cd examples/layout3d_gallery && flutter test         # 13 today
+cd packages/flutter_ui_3d && flutter test            # 1318 today
+cd packages/material_ui_3d && flutter test           # 852 today
+cd examples/flutter_ui_3d_gallery && flutter test    # 13 today
 dart analyze                                         # must be clean, everywhere
 dart format .                                        # before every commit
 ```
@@ -123,7 +123,7 @@ How to write a scene is in
 [examples/render_probe/README.md](examples/render_probe/README.md); the
 gotchas are in [docs/traps.md](docs/traps.md), under *When probing a rendered
 frame*. That lane is also the only thing that *runs* the compiled shaders in
-`packages/flutter_scene_layout3d/assets/`. The package's own `hook/build.dart`
+`packages/flutter_ui_3d/assets/`. The package's own `hook/build.dart`
 compiles them — for the render probe, the gallery, and any application that
 depends on the package — so a syntax error in the panel shader fails every
 build, while a shader that compiles and draws the wrong thing fails there and
@@ -133,7 +133,7 @@ The example app commits no platform scaffolding, so generate the platform you
 want first:
 
 ```sh
-cd examples/layout3d_gallery
+cd examples/flutter_ui_3d_gallery
 flutter create . --platforms=macos
 flutter run -d macos --enable-flutter-gpu
 ```
@@ -198,7 +198,7 @@ The PNGs are in `build/photographs/`. **Open them.** The test asserts that a
 frame came out and nothing else; the looking is the lane, and CI keeps the
 pictures from every run for that reason. Headless tests of a *screen* — can
 this be pressed, is this label hidden inside its card — are written with
-`package:flutter_scene_layout3d/testing.dart`, and the gallery's
+`package:flutter_ui_3d/testing.dart`, and the gallery's
 `test/screens_test.dart` is the example.
 
 ## What you need to know before writing code
@@ -241,7 +241,7 @@ ones that got skipped.
    been reread.
 7. **The indexes that track state were checked**:
    [docs/README.md](docs/README.md) and the
-   [plan index](packages/flutter_scene_layout3d/plans/2026_09_11_what_a_real_application_still_needs.md).
+   [plan index](packages/flutter_ui_3d/plans/2026_09_11_what_a_real_application_still_needs.md).
    An index pointing at finished work as "next" is the failure mode here.
 8. **A commit message is proposed, and nothing is committed** unless the user
    asked.
@@ -256,8 +256,8 @@ unmentioned is what makes the next reader trust something false.
 
 Any piece of work worth planning before writing gets a plan file under the
 `plans/` directory **of the package it belongs to**
-(`packages/flutter_scene_layout3d/plans/`,
-`packages/flutter_scene_material3d/plans/`). Create the directory if it is not
+(`packages/flutter_ui_3d/plans/`,
+`packages/material_ui_3d/plans/`). Create the directory if it is not
 there yet. A change to the layout protocol that the catalogue needs gets its
 own plan in the layout package, not a line item in a Material plan — that is
 what phase 0 did.

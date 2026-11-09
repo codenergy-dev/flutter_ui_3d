@@ -141,7 +141,7 @@ smooth interaction becomes a stutter:
 1. **Repaint only.** `DecoratedBox3d.decoration` and `.stateLayer` are setters
    that never touch layout — they write shader uniforms. A colour, a corner, an
    elevation, a hover state, **a press ripple**: all of this. The ripple is the
-   one that runs on a `Ticker` — `flutter_scene_material3d`'s
+   one that runs on a `Ticker` — `material_ui_3d`'s
    `MutableInkController3d` assigns `stateLayer` once a frame and nothing else
    — and `test/ink_ripple_test.dart` there counts the builds and the layouts
    across sixty frames of one to say so.
@@ -186,7 +186,7 @@ relayout on every frame. A `nodeTransform` **pivots on the box's origin
 corner** — `applyNodeTransform` composes `T(offset + sceneOffset + nodeOffset)
 * nodeTransform * localTransform`, and `offset` is the corner — so a
 full-length bar scaled on x keeps its left end exactly where layout put it and
-stops wherever the value says. `flutter_scene_material3d`'s `NodeShift3d` is
+stops wherever the value says. `material_ui_3d`'s `NodeShift3d` is
 that channel with a name on it, and `Slider3d` fills its track with it: twenty
 frames of drag, and nothing is marked for layout on any of them.
 
@@ -232,7 +232,7 @@ returns a `Layout3d` even on the declarative `SceneHero3d` — the flight
 belongs to an overlay entry inserted from inside a transition, where there is
 no element to build a widget into. Write one small function and call it from
 both places. An application that only imports `widgets.dart` needs
-`flutter_scene_layout3d.dart` as well to have the boxes a flight is made of.
+`rendering.dart` as well to have the boxes a flight is made of.
 
 **A flight lands where layout put the far end, not where the route is drawing
 it.** `Layout3d.worldTransform` undoes the node tier, which is what makes a
@@ -335,7 +335,7 @@ per box precisely so each box can have its own — but it is *synchronous* and
 The way through is `loadFmatMaterial`'s `factory` parameter, which hands you
 the compiled fragment shader, the sidecar metadata and the vertex variants: one
 asynchronous load captures those and a closure builds any number of further
-instances synchronously afterwards. `flutter_scene_material3d`'s
+instances synchronously afterwards. `material_ui_3d`'s
 `loadPanelMaterialFactory` is that, `initializeMaterial3d()` is the one call an
 application makes, and `examples/render_probe` uses it — so an application
 depending on the catalogue never has to write this at all. The
@@ -482,7 +482,7 @@ dialog's scrim sat behind the app bar and behind the floating action button and
 dimmed neither, and two modals whose frames differed in depth were centred on
 different remainders and so dimmed the same screen differently. An in-plane
 entry is pinned to the front face now, and so is the barrier inside
-`flutter_scene_material3d`'s `modalFrame3d`. Anything else that computes a
+`material_ui_3d`'s `modalFrame3d`. Anything else that computes a
 distance from a face should say **which face**, and check: 1825 headless tests
 and 108 render probes passed over this one, and two of them asserted it as the
 contract.
@@ -500,7 +500,7 @@ wipes out whatever the sort puts after it. An app bar's title came out as a
 bare outline while the navigation bar's labels, under the same scrim on the
 same screen, were untouched. **Turning `depth_write` off does not fix it**: it
 was photographed, and the scrim then draws *under* the app bar instead, so the
-error inverts. `flutter_scene_material3d`'s answer is to stop being partly
+error inverts. `material_ui_3d`'s answer is to stop being partly
 transparent — a scrim draws opaque and keeps a fraction of its fragments, so
 every fragment it draws is an opaque one and the order stops mattering. See
 `scrimCoverage3d`. The general case — any other partly transparent slab — is
@@ -520,7 +520,7 @@ height *in the plane*.
 depth-buffer separation between two things with no thickness. A
 `Thickness3d.structural` bar (8dp) over a `Thickness3d.raised` card (4dp)
 needs a step above the *mean* of the two — 6dp — before the card stops poking
-through the bar. `flutter_scene_material3d`'s `SliverAppBar3d` therefore sets
+through the bar. `material_ui_3d`'s `SliverAppBar3d` therefore sets
 the lift from `Thickness3d.depthStep`, and `Scaffold3d` states the same number
 once for a whole screen: each slot sits one step in front of the one behind
 it, in the order `Scaffold3dSlot` declares. Anything stacking Material
@@ -534,7 +534,7 @@ things with no thickness. A Material screen is not two things with no
 thickness: a `Scaffold3d` has already spent four `thickness.depthStep`s on its
 own slots by the time anything is put in front of it, and the frontmost of them
 is a slab. So a dialog at the default lift is *behind* the floating action
-button it was meant to cover. `flutter_scene_material3d`'s
+button it was meant to cover. `material_ui_3d`'s
 `Scaffold3d.overlayLift(step)` is the number — one step in front of
 `Scaffold3dSlot.values.last`, 60dp at the baseline scale — and it is arithmetic
 rather than a figure, so adding a slot moves the overlays with it. Anything
@@ -549,7 +549,7 @@ in it, which is what a menu wants, and wrong the moment the scrim is
 decorated. The way through is to leave `modal` false and build the frame
 yourself — a `SceneModalBarrier3d` with the scrim as its child and the content
 one `depthStep` in front, in one `SceneStack3d` — which is what every modal in
-`flutter_scene_material3d` does. And a scrim needs a **thickness**: a
+`material_ui_3d` does. And a scrim needs a **thickness**: a
 zero-depth one is coplanar with whatever it covers, which is the same argument
 `Divider3d` makes about a rule on a card.
 
@@ -558,7 +558,7 @@ second half is the one that had to be arranged.** The panel shader declares
 `blending: alpha` **and** `depth_write: true`, so a fragment with no alpha used
 to occlude everything drawn after it: a fully transparent `Material3d` punched
 a hole clean through the surface it was standing on, with the scene's backdrop
-showing through. `examples/layout3d_gallery` showed one through its navigation
+showing through. `examples/flutter_ui_3d_gallery` showed one through its navigation
 bar. The shader now discards where its own alpha is zero, which costs nothing —
 such a fragment contributes no colour, and a state layer cannot rescue it
 either, because the wash mixes into the *colour* and leaves the alpha alone.
@@ -579,7 +579,7 @@ it is "a decoration whose resolved colour is not opaque does not write depth",
 per instance, and `flutter_scene` 0.23.0 has no runtime flag for it —
 `depth_write` is read once out of the compiled material's metadata. It is
 written up in
-[a transparent slab that does not erase](../packages/flutter_scene_layout3d/plans/2026_09_10_a_transparent_slab_that_does_not_erase.md)
+[a transparent slab that does not erase](../packages/flutter_ui_3d/plans/2026_09_10_a_transparent_slab_that_does_not_erase.md)
 as what to do when one lands.
 
 **A slab occludes what is inside it only if its faces are wound the right way
@@ -684,7 +684,7 @@ where the face in front of it hides it. `Table3d` places its cells the same
 way, for the same reason.
 
 It defaulted to `center` until
-[a letter on a slab](../packages/flutter_scene_layout3d/plans/2026_09_10_a_letter_on_a_slab.md),
+[a letter on a slab](../packages/flutter_ui_3d/plans/2026_09_10_a_letter_on_a_slab.md),
 and what it cost is worth keeping: every title, subtitle, icon and navigation
 label in the gallery was a couple of dp behind the card or bar it belonged to.
 It did not read as "the label is behind the card" — a slab did not occlude what
@@ -758,7 +758,7 @@ share, where Flutter would composite the pair and fade the result once.
 Measured, the label comes out about half again as strong as Flutter's at 30%,
 and exactly right at 0 and 1. If a component's disabled or ghosted state needs
 the contrast between two layers to fall linearly, substitute colours instead —
-which is what `flutter_scene_material3d` does for disabled, and why it still
+which is what `material_ui_3d` does for disabled, and why it still
 does after this shipped.
 
 **Anything drawn with a material this package does not own will not fade.**
@@ -779,7 +779,7 @@ glyph by alpha alone is worse: `text_glyph3d.fmat` discards below
 `alpha_cutoff`, so the faces walk under the cutoff in one step while the
 opaque wall stays at full strength, and a 30% label reads as a hollow outline
 of itself. That was photographed; see
-`packages/flutter_scene_layout3d/plans/2026_09_16_a_box_that_fades.md`.
+`packages/flutter_ui_3d/plans/2026_09_16_a_box_that_fades.md`.
 
 ### A picture arrives after the frame that asked for it
 
@@ -943,7 +943,7 @@ milliseconds its picture took to arrive. Artifacts that coincide with a wide
 window are this family; artifacts with nothing open near them are not, which is
 the more useful half of the answer. Reading a 64-texel atlas back takes ~30ms
 in a headless test; on a real GPU a 512-texel one measures **700–850ms** in
-`examples/layout3d_gallery`, which is not frames, it is a second of a person's
+`examples/flutter_ui_3d_gallery`, which is not frames, it is a second of a person's
 attention.
 
 **A window resize is the worst case, and the reason is not the obvious one.** A
@@ -1245,7 +1245,7 @@ remains a reservation of space and `glyphDepth` is the figure that draws.
   rejected a level above and never sees the ray. Nothing inside the target
   can reach past its own parent. Flutter puts the input padding outside the
   `Material` for exactly this reason, and so does
-  `flutter_scene_material3d`'s button: `SceneSemantics3d` >
+  `material_ui_3d`'s button: `SceneSemantics3d` >
   `SceneTapTarget3d` > `Material3d` > `InkWell3d`, with the ink well's own
   `minimumSize: Size3d.zero` so there is one target rather than two nested
   ones disagreeing about where the control is.
@@ -1268,7 +1268,7 @@ remains a reservation of space and `glyphDepth` is the figure that draws.
   padding *between* the panel and the well, which is what
   `Material3d(padding: …, child: InkWell3d(…))` does, and the padding is
   exactly that rim. Every button, chip and list tile in
-  `flutter_scene_material3d` was built that way for nine phases: a floating
+  `material_ui_3d` was built that way for nine phases: a floating
   action button answered only at its middle, a list tile not in its 16dp
   leading margin, a navigation destination not beside its pill. Every suite
   pressed controls at their centres, so nothing said so until a press through
@@ -1285,7 +1285,7 @@ remains a reservation of space and `glyphDepth` is the figure that draws.
   and the target comes out as a rectangle with no volume — which lays out,
   draws, announces itself to a screen reader, and answers nothing. Put the
   align **inside** the well, where the well still has the surface's own
-  constraints, depth included. `flutter_scene_material3d`'s
+  constraints, depth included. `material_ui_3d`'s
   `PopupMenuButton3d` had it the other way round and its overflow menu could
   not be opened at all.
 - **A second affordance *inside* a component gets neither a reach nor a wash.**
@@ -1302,7 +1302,7 @@ remains a reservation of space and `glyphDepth` is the figure that draws.
   destinations sharing the bar's ink controller would light the whole bar up
   under one finger, and a bar is 8dp deep, so a `Thickness3d.thin` slab per
   destination has room to stand proud of it rather than fighting it. That is
-  what `flutter_scene_material3d`'s `NavigationBar3d` does: each destination is
+  what `material_ui_3d`'s `NavigationBar3d` does: each destination is
   a transparent `Material3d` of its own with its own `InkWell3d` inside it.
 - **A `Text3d` answers hit tests on its own account**, so a label inside a
   button usually wants an `IgnorePointer3d` around it. Inside a control it is
@@ -1359,7 +1359,7 @@ remains a reservation of space and `glyphDepth` is the figure that draws.
   barrier behind it. A box whose node offset is its placement shifts its own
   hit test by it: override `hitTest` to call
   `super.hitTest(result, ray: ray.shifted(nodeOffset))`, which is what
-  `flutter_scene_material3d`'s `Follower3d` does and what Flutter's
+  `material_ui_3d`'s `Follower3d` does and what Flutter's
   `CompositedTransformFollower` does with its offset. `PopupMenuButton3d`
   shipped without it, and its test passed by pressing the empty middle of the
   panel; `tester.tap3d` aims where the item is drawn, and failed.
@@ -1531,7 +1531,7 @@ about its *letters*, not its box — a stretching column makes a label as wide
 as the column, with its glyphs at the start. Before they did, a
 page of a page view half across its window carried every label on it up to a
 page's width outside the panel, with the cards around them cut cleanly — see
-[a label wholly outside its window](../packages/flutter_scene_layout3d/plans/2026_10_01_a_label_wholly_outside_its_window.md).
+[a label wholly outside its window](../packages/flutter_ui_3d/plans/2026_10_01_a_label_wholly_outside_its_window.md).
 **And a scroll view does not clip on its own**: the window is a `ClipBox3d`
 around it — a `Scaffold3d`'s body is one, and a `TabBarView3d` puts one round
 its pages — so a bare list or page view in front of nothing cuts nothing.
@@ -1592,7 +1592,7 @@ Things that cost time, in phase 5 and since, and are invisible from the code.
   everything between the platform and the surface: the camera, the order of
   the surfaces, the host. Every slot of a `Scaffold3d` was reachable by such a
   ray and by nothing a person could do. A test about a *screen* presses with
-  `tester.tap3d` from `package:flutter_scene_layout3d/testing.dart`, which goes
+  `tester.tap3d` from `package:flutter_ui_3d/testing.dart`, which goes
   through the camera and fails when the press would land somewhere else.
 - **`find3d` finds boxes, and a widget does not always build the box its name
   says.** `SceneColumn3d` and `SceneRow3d` both build a `Flex3d`, so
@@ -1663,7 +1663,7 @@ Things that cost time, in phase 5 and since, and are invisible from the code.
   `Layout3dSurface.needsFlush` is true. Wrap `surface.onNeedVisualUpdate`,
   record when it is called with the surface dirty, and forward the call; a
   node-tier write and a repaint call it too, with nothing to flush, so the
-  check tells them apart. `flutter_scene_material3d`'s
+  check tells them apart. `material_ui_3d`'s
   `test/surfaces_support.dart` has it as `watchFrames`, with Flutter's
   `debugOnRebuildDirtyWidget` counting the builds beside it, and a control
   test that it does see a relayout — from a tick and from a rebuild — so that

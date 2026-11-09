@@ -34,10 +34,10 @@ import 'package:flutter/gestures.dart'
 import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter/widgets.dart';
-import 'package:flutter_scene_layout3d/flutter_scene_layout3d.dart'
+import 'package:flutter_ui_3d/rendering.dart'
     show GlyphAtlasCache3d, Layout3d, Semantics3d;
 // ignore: implementation_imports
-import 'package:flutter_scene_layout3d/src/testing/scene.dart'
+import 'package:flutter_ui_3d/src/testing/scene.dart'
     show Reach3d, sceneSurfaces3d;
 
 /// The window the run happens in, which Dart cannot resize on its own.

@@ -33,8 +33,8 @@ import 'package:flutter/painting.dart'
         TextAlign,
         TextSpan,
         TextStyle;
-import 'package:flutter_scene_layout3d/flutter_scene_layout3d.dart';
-import 'package:flutter_scene_material3d/flutter_scene_material3d.dart';
+import 'package:flutter_ui_3d/rendering.dart';
+import 'package:material_ui_3d/material_ui_3d.dart';
 import 'package:vector_math/vector_math.dart'
     show Matrix4, Quaternion, Ray, Vector3, Vector4;
 
@@ -47,7 +47,7 @@ import 'probe_scene.dart';
 /// application does at startup, and the only thing standing between a
 /// decoration and a visible panel.
 ///
-/// It is `flutter_scene_material3d`'s own call rather than the two lines the
+/// It is `material_ui_3d`'s own call rather than the two lines the
 /// layout package's README shows, and running it here is the point: the
 /// setup a Material application makes has no other verification lane, since
 /// loading a compiled `.fmat` needs a GPU context that `flutter test` does
@@ -56,7 +56,7 @@ import 'probe_scene.dart';
 /// different colours draws in three different colours instead of collapsing
 /// onto whichever painted last.
 ///
-/// The shader itself is compiled by `flutter_scene_layout3d`'s own build
+/// The shader itself is compiled by `flutter_ui_3d`'s own build
 /// hook, not by this app's: the source path names the file in the package
 /// that ships it, and `loadFmatMaterial` resolves it through that package's
 /// generated manifest. This app used to compile it through a symlink, and no
@@ -1123,7 +1123,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   }),
   // ── The catalogue: does a token become a picture? ─────────────────────
   //
-  // Everything below is built through flutter_scene_material3d's own
+  // Everything below is built through material_ui_3d's own
   // resolution — `Material3d.decorationFor` is the single place a token
   // becomes a `BoxDecoration3d`, and a probe that reimplemented it would be
   // checking its own arithmetic. The scenes are imperative because this
@@ -1389,7 +1389,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
     // **The clip contract's deliberate decision about depth, as a scene.**
     //
     // `Clip3dRegion.rect` is four planes and leaves the thickness alone, and
-    // `flutter_scene_layout3d/lib/src/clip.dart` says why in as many words:
+    // `flutter_ui_3d/lib/src/clip.dart` says why in as many words:
     // "a raised card inside a scrolling list should still stand proud of it".
     // Phase 4 is the first work that actually builds that, and until now
     // nobody had looked at what it draws.
@@ -2672,7 +2672,7 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
   // Two scenes for the two halves of what it takes to draw type on a panel:
   // a slab that occludes what is inside it, and a label that survives the
   // translucent sort when the plane it is written on turns. See
-  // `packages/flutter_scene_layout3d/plans/2026_09_10_a_letter_on_a_slab.md`.
+  // `packages/flutter_ui_3d/plans/2026_09_10_a_letter_on_a_slab.md`.
   ProbeScene('slab_occludes_its_inside', () {
     // A thick slab with two labels: one on its front face, one sunk a third
     // of the way into it. Exactly one of them should be readable, and for a

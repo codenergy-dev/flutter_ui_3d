@@ -1,0 +1,70 @@
+// The seam a label's material comes through.
+//
+// Almost everything about `GlyphMaterial3d` needs a GPU — building an engine
+// material, binding an atlas, drawing a letter — and lives in
+// `examples/render_probe` (`type_on_a_turning_panel`). What is checkable here
+// is the part an application actually touches: which factory is in force, and
+// that installing the compiled material does not overwrite a factory someone
+// chose deliberately.
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_ui_3d/rendering.dart';
+
+/// A stand-in that never builds an engine material, so the parts of the seam
+/// that are arithmetic can be checked without a shader bundle.
+class _NeverBuilt implements GlyphMaterial3d {
+  @override
+  Never get material => throw UnimplementedError();
+
+  @override
+  void bindAtlas(Object? atlas) {}
+
+  @override
+  void tint(Object color) {}
+
+  @override
+  void fade(double opacity) {}
+}
+
+/// The same, for the wall around a glyph.
+class _NeverBuiltWall implements GlyphWallMaterial3d {
+  @override
+  Never get material => throw UnimplementedError();
+
+  @override
+  void fade(double opacity) {}
+}
+
+void main() {
+  test(
+    'a label draws with the unlit fallback until something installs one',
+    () {
+      expect(GlyphMaterial3d.factory, same(UnlitGlyphMaterial3d.new));
+      expect(GlyphWallMaterial3d.factory, same(UnlitGlyphWallMaterial3d.new));
+    },
+  );
+
+  test(
+    'installing the compiled material leaves a chosen factory alone',
+    () async {
+      final original = GlyphMaterial3d.factory;
+      final originalWall = GlyphWallMaterial3d.factory;
+      addTearDown(() {
+        GlyphMaterial3d.factory = original;
+        GlyphWallMaterial3d.factory = originalWall;
+      });
+
+      // **Both**, because the installer loads two shaders now and each is
+      // skipped on its own. Leaving the wall at its default here would send
+      // the installer off to load a `.fmat` in a test with no GPU.
+      GlyphMaterial3d.factory = _NeverBuilt.new;
+      GlyphWallMaterial3d.factory = _NeverBuiltWall.new;
+      // Returns before it loads anything, which is what makes this callable
+      // without a GPU — and is the behaviour an application with a glyph
+      // material of its own depends on.
+      await installGlyphMaterial3d();
+      expect(GlyphMaterial3d.factory, same(_NeverBuilt.new));
+      expect(GlyphWallMaterial3d.factory, same(_NeverBuiltWall.new));
+    },
+  );
+}

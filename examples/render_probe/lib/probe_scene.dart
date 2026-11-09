@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_scene/scene.dart'
     show Camera, PerspectiveCamera, Scene, SceneView;
-import 'package:flutter_scene_layout3d/flutter_scene_layout3d.dart';
+import 'package:flutter_ui_3d/rendering.dart';
 import 'package:vector_math/vector_math.dart' show Vector3;
 
 /// The colour the probe clears to.

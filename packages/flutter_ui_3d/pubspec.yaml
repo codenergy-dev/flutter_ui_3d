@@ -1,0 +1,50 @@
+name: flutter_ui_3d
+description: Flutter's box layout protocol in three dimensions, built on flutter_scene. Constraints go down, sizes go up, and the parent positions the child, on a transformable 3D plane.
+repository: https://github.com/codenergy-dev/flutter_scene_layout3d
+homepage: https://github.com/codenergy-dev/flutter_scene_layout3d
+version: 0.5.0
+
+topics:
+  - layout
+  - 3d
+  - ui
+  - gamedev
+
+platforms:
+  macos:
+  ios:
+  android:
+  windows:
+  linux:
+  web:
+
+resolution: workspace
+
+environment:
+  sdk: ^3.10.0
+  flutter: ">=3.29.0-1.0.pre.242"
+
+dependencies:
+  characters: ^1.3.0
+  flutter:
+    sdk: flutter
+  flutter_scene: ^0.23.0
+  # For lib/testing.dart alone, which nothing outside a test imports. See that
+  # library for why it is not a package of its own.
+  flutter_test:
+    sdk: flutter
+  # Build-time only: hook/build.dart compiles this package's shaders.
+  hooks: ^2.0.0
+  vector_math: ^2.1.4
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+
+flutter:
+  assets:
+    # The panel shader and the glyph one, compiled by this package's own build
+    # hook for the engine that consumes it. A shader bundle is only valid for
+    # that engine, so nothing here is published: the archive carries the
+    # directory and its .gitignore alone, and every app that depends on this
+    # package builds its own copy.
+    - flutter_scene_generated/
