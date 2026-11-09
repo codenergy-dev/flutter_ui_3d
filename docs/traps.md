@@ -1363,7 +1363,7 @@ remains a reservation of space and `glyphDepth` is the figure that draws.
   barrier behind it. A box whose node offset is its placement shifts its own
   hit test by it: override `hitTest` to call
   `super.hitTest(result, ray: ray.shifted(nodeOffset))`, which is what
-  `material_ui_3d`'s `RenderFollower3d` does and what Flutter's
+  `RenderFollower3d` does and what Flutter's
   `CompositedTransformFollower` does with its offset. `PopupMenuButton3d`
   shipped without it, and its test passed by pressing the empty middle of the
   panel; `tester.tap3d` aims where the item is drawn, and failed.

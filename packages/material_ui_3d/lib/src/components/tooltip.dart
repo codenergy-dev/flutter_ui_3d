@@ -14,11 +14,18 @@ import 'package:flutter/widgets.dart'
         TextDirection,
         Widget;
 import 'package:flutter_ui_3d/rendering.dart'
-    show Alignment3d, EdgeInsets3d, HitTestBehavior3d, RenderOverlay3d;
+    show
+        Alignment3d,
+        EdgeInsets3d,
+        HitTestBehavior3d,
+        RenderAnchor3d,
+        RenderOverlay3d;
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
         Align3d,
+        Anchor3d,
+        Follower3d,
         IgnorePointer3d,
         Listener3d,
         MotionTransition3d,
@@ -29,7 +36,6 @@ import 'package:flutter_ui_3d/widgets.dart'
         WidgetOverlay3dEntry;
 
 import '../theme/theme.dart';
-import 'anchor.dart';
 import 'material.dart';
 import 'overlay_style.dart';
 import 'overlay_support.dart';
@@ -214,7 +220,7 @@ class _Tooltip3dState extends State<Tooltip3d>
         // The fade is inside the follower for the same reason the menu's
         // growth is: the anchoring is one corner on another, and a label that
         // is arriving is still hung where it belongs.
-        child: Follower3dWidget(
+        child: Follower3d(
           anchor: anchor,
           self: Alignment3d.topCenter,
           target: Alignment3d.bottomCenter,
@@ -278,7 +284,7 @@ class _Tooltip3dState extends State<Tooltip3d>
       // the hover region. The control inside still takes every tap, because
       // children are tested before their parent.
       behavior: HitTestBehavior3d.opaque,
-      child: Anchor3dWidget(
+      child: Anchor3d(
         onCreated: (anchor) => _anchor = anchor,
         child: widget.child,
       ),

@@ -1276,8 +1276,8 @@ overlays with it.
 An overlay entry is placed by the overlay's own alignment, which is in the
 middle of the panel and nowhere near the button that asked for a menu. There is
 no `CompositedTransformTarget` here; there is `RenderObject3d.anchorOffsetTo`,
-which this package drives through `RenderAnchor3d` (around the trigger) and
-`RenderFollower3d` (around the menu). It answers a `nodeOffset`, so anchoring is
+and `flutter_ui_3d` drives it through `Anchor3d` (around the trigger) and
+`Follower3d` (around the menu). It answers a `nodeOffset`, so anchoring is
 the node tier: one matrix, no relayout, and re-anchoring every frame costs
 nothing.
 

@@ -18,12 +18,15 @@ import 'package:flutter_ui_3d/rendering.dart'
         Constraints3d,
         CrossAxisAlignment3d,
         MainAxisSize3d,
+        RenderAnchor3d,
         Route3dTransition,
         Size3d;
 import 'package:flutter_ui_3d/widgets.dart'
     show
         Layout3dMetricsScope,
         Align3d,
+        Anchor3d,
+        Follower3d,
         Column3d,
         ConstrainedBox3d,
         IgnorePointer3d,
@@ -38,7 +41,6 @@ import 'package:flutter_ui_3d/widgets.dart'
         WidgetPageRoute3d;
 
 import '../theme/theme.dart';
-import 'anchor.dart';
 import 'ink_well.dart';
 import 'material.dart';
 import 'overlay_style.dart';
@@ -396,7 +398,7 @@ class _PopupMenuButton3dState<T> extends State<PopupMenuButton3d<T>> {
         // Inside the follower, not around it: the anchoring stays one corner
         // on another and only the menu grows, so a menu that is arriving is
         // still hung where it belongs.
-        child: Follower3dWidget(
+        child: Follower3d(
           anchor: anchor,
           self: widget.menuCorner,
           target: widget.anchorCorner,
@@ -457,7 +459,7 @@ class _PopupMenuButton3dState<T> extends State<PopupMenuButton3d<T>> {
         textDirection: readingDirection3d(context, widget.textDirection),
         onTap: widget.enabled ? _open3d : null,
       ),
-      child: Anchor3dWidget(
+      child: Anchor3d(
         onCreated: (anchor) => _anchor = anchor,
         child: Material3d(
           color: const Color(0x00000000),
@@ -552,7 +554,7 @@ Future<T?> showMenu3d<T>({
       depthStep: metrics.dp(theme.thickness.depthStep),
       dismissible: true,
       onDismiss: route.pop,
-      child: Follower3dWidget(
+      child: Follower3d(
         anchor: anchor,
         self: menuCorner,
         target: anchorCorner,

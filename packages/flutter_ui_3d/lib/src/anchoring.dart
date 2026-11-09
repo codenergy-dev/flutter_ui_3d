@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart' show VoidCallback;
 import 'package:vector_math/vector_math.dart' show Matrix4, Vector3;
 
 import 'geometry/alignment3d.dart';
 import 'geometry/offset3d.dart';
+import 'hit_test.dart';
 import 'rendering/object.dart';
 
 /// Putting one box over another when neither is the other's parent.
@@ -73,7 +75,7 @@ extension Layout3dAnchoring on RenderObject3d {
   /// that is its own job: a hit test moves a ray into a child by [offset]
   /// alone, so a box anchored by [nodeOffset] answers where layout put it. Shift
   /// the ray by [nodeOffset] in the follower's `hitTest`, as
-  /// `material_ui_3d`'s `RenderFollower3d` does.
+  /// [RenderFollower3d] does.
   ///
   /// **It writes nothing and lays nothing out.** [nodeOffset] is the node
   /// tier — one matrix a frame, no `markNeedsLayout` — which is the only tier
@@ -113,5 +115,117 @@ extension Layout3dAnchoring on RenderObject3d {
       wanted.y - here.y,
       includeDepth ? wanted.z - here.z : nodeOffset.z,
     );
+  }
+}
+
+/// The box an overlay is anchored to: a menu's button, a tooltip's control.
+///
+/// A proxy that reports when it has been **placed**, which is one of the two
+/// hooks a follower needs. A scrolling view places its rows rather than
+/// relaying them out, so a follower watching only for a relayout would never
+/// hear about a scroll.
+class RenderAnchor3d extends RenderProxyBox3d {
+  /// Creates an anchor.
+  RenderAnchor3d({super.name = 'RenderAnchor3d'});
+
+  /// Called after this box has been positioned, every pass.
+  VoidCallback? onPlaced;
+
+  @override
+  void place(Offset3d offset) {
+    super.place(offset);
+    onPlaced?.call();
+  }
+}
+
+/// Keeps its child over [anchor], on the node tier.
+///
+/// The follower half of the anchoring. It re-anchors on two occasions and
+/// both are inside the layout pass, so the menu is never a frame behind its
+/// button: when the follower itself is placed, and when the anchor is.
+///
+/// **It is pressed where it is drawn.** A node offset moves geometry and
+/// leaves the box where layout put it, which is right for an animation — a
+/// sliding thumb, a lifted slot — and wrong for this one: the offset *is* the
+/// placement, and the place layout gave the follower is wherever the overlay
+/// happened to lay its entry out, with nothing drawn there. So a hit test is
+/// shifted by [nodeOffset] before it is asked, which is what Flutter's
+/// `CompositedTransformFollower` does with its own offset. A menu item used
+/// to answer in the empty middle of the panel while a press on the item, at
+/// its button, reached the barrier and closed the menu.
+class RenderFollower3d extends RenderProxyBox3d {
+  /// Creates a follower for [anchor].
+  RenderFollower3d({
+    required RenderAnchor3d anchor,
+    Alignment3d self = Alignment3d.topLeft,
+    Alignment3d target = Alignment3d.bottomLeft,
+    super.name = 'RenderFollower3d',
+  }) : _anchor = anchor,
+       _self = self,
+       _target = target {
+    anchor.onPlaced = reanchor;
+  }
+
+  RenderAnchor3d _anchor;
+
+  Alignment3d _self;
+
+  /// Which point of this box sits on the anchor's [target] point.
+  ///
+  /// Physical: this box places a plane against a node and knows no reading
+  /// direction. `Follower3d` resolves a directional corner into this.
+  Alignment3d get self => _self;
+
+  set self(Alignment3d value) {
+    if (_self == value) return;
+    _self = value;
+    reanchor();
+  }
+
+  Alignment3d _target;
+
+  /// Which point of the anchor it sits on.
+  Alignment3d get target => _target;
+
+  set target(Alignment3d value) {
+    if (_target == value) return;
+    _target = value;
+    reanchor();
+  }
+
+  /// The box being followed.
+  RenderAnchor3d get anchor => _anchor;
+
+  set anchor(RenderAnchor3d value) {
+    if (identical(_anchor, value)) return;
+    if (identical(_anchor.onPlaced, reanchor)) _anchor.onPlaced = null;
+    _anchor = value..onPlaced = reanchor;
+    reanchor();
+  }
+
+  /// Puts this box back over its anchor.
+  ///
+  /// A no-op until both boxes have been laid out, which is the frame the
+  /// menu was inserted on.
+  void reanchor() {
+    final placed = anchorOffsetTo(_anchor, self: self, target: target);
+    if (placed == null || placed == nodeOffset) return;
+    nodeOffset = placed;
+  }
+
+  @override
+  void place(Offset3d offset) {
+    super.place(offset);
+    reanchor();
+  }
+
+  @override
+  bool hitTest(HitTestResult3d result, {required Ray3d ray}) =>
+      super.hitTest(result, ray: ray.shifted(nodeOffset));
+
+  @override
+  void dispose() {
+    if (identical(_anchor.onPlaced, reanchor)) _anchor.onPlaced = null;
+    super.dispose();
   }
 }

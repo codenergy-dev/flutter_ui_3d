@@ -2610,7 +2610,7 @@ bool hitTest(HitTestResult3d result, {required Ray3d ray}) =>
     super.hitTest(result, ray: ray.shifted(nodeOffset));
 ```
 
-That is `material_ui_3d`'s `RenderFollower3d`, and Flutter's
+That is `RenderFollower3d`, and Flutter's
 `CompositedTransformFollower` does the same with its own offset. An animation
 leaves it out on purpose: a sliding thumb should still be pressed where layout
 put its slot.

@@ -1,5 +1,13 @@
 ## Unreleased
 
+- **`Anchor3d` and `Follower3d` belong to this package now.** They came from
+  `material_ui_3d`, where they were `Anchor3dWidget` and `Follower3dWidget`, and
+  nothing in them was Material's: a menu at its button and a tooltip under its
+  control are one problem, and the arithmetic for it was already here. An
+  application on this package alone can now anchor an overlay from a `build`
+  method. `RenderAnchor3d` and `RenderFollower3d` came with them, exported from
+  `rendering.dart`, and the widgets from `widgets.dart`.
+
 - **The widgets have the plain names, and the render objects are called
   `Render`, as in Flutter.** A widget used to be the imperative class's name
   under a `Scene` prefix, which is the reverse of Flutter and the same tie to

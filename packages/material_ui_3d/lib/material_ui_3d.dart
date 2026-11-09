@@ -119,8 +119,6 @@ export 'src/components/navigation.dart'
         NavigationRail3d;
 export 'src/components/navigation_style.dart'
     show NavigationStyle3d, NavigationVariant3d;
-export 'src/components/anchor.dart'
-    show RenderAnchor3d, Anchor3dWidget, RenderFollower3d, Follower3dWidget;
 export 'src/components/menu.dart'
     show Menu3d, MenuItem3d, MenuItem3dEntry, PopupMenuButton3d, showMenu3d;
 export 'src/components/snack_bar.dart'

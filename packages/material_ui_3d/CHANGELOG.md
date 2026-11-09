@@ -1,5 +1,12 @@
 ## Unreleased
 
+- **The anchoring widgets moved to `flutter_ui_3d`, under their plain names.**
+  `Anchor3dWidget` is `Anchor3d` and `Follower3dWidget` is `Follower3d`, imported
+  from `package:flutter_ui_3d/widgets.dart`. `RenderAnchor3d` and
+  `RenderFollower3d` come from `rendering.dart` there. Nothing about them was
+  Material's. This package no longer exports any of the four, and `menu.dart`
+  and `tooltip.dart` use them from there.
+
 - **The widgets and render objects here follow the layout package's names.**
   `SceneTheme3d` is `Theme3d`, as `Theme` is in Flutter, and the inherited widget
   that was `Theme3d` is `InheritedTheme3d`, its name for what that half is. So

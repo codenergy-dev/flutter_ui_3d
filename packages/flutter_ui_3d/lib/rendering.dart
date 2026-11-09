@@ -89,7 +89,8 @@
 /// `build` method, is in `package:flutter_ui_3d/widgets.dart`.
 library;
 
-export 'src/anchoring.dart' show Layout3dAnchoring;
+export 'src/anchoring.dart'
+    show Layout3dAnchoring, RenderAnchor3d, RenderFollower3d;
 export 'src/animation/hero.dart'
     show
         RenderHero3d,

@@ -223,7 +223,8 @@ pairs below.
 - **`Anchor3d` and `Follower3d` got the prefix and left their widgets alone.**
   `Anchor3dWidget` and `Follower3dWidget` are declared by that name and took
   no `Scene`, so they stay; plain `Anchor3d` is free and renaming the widgets
-  into it is a follow-up, not this pass.
+  into it is a follow-up, not this pass. That follow-up is
+  [anchoring in the base package](2026_11_09_anchoring_in_the_base_package.md).
 - **The private render classes that collided were renamed in pairs, the same
   rule:** `_BadgePlacement3d`, `_BadgeStadium3d`, `_ProgressSpan3d`,
   `_Reveal3d`, `_RingFrame3d`, `_RingPanel3d`, `_SwitchThumb3d`,
