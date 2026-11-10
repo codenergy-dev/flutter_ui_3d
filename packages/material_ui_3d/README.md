@@ -58,7 +58,7 @@ window has been maximized on macOS.** The defect is in Flutter rather than in
 this catalogue; why, and which Flutter carries the fix, is in
 [the layout package's README](../flutter_ui_3d/README.md#installing).
 
-Flutter 3.29 or newer, run with `--enable-flutter-gpu`. There is no build hook
+Flutter 3.47 or newer, run with `--enable-flutter-gpu`. There is no build hook
 to write: the layout package compiles the panel shader itself, for whatever
 application depends on it.
 

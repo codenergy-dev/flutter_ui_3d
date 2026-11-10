@@ -59,7 +59,7 @@ layout package carries a build hook that runs `impellerc` over its own
 `.fmat`, so there is nothing about panels to add to your app's build hook, and
 usually no build hook to write at all.
 
-Flutter 3.29 or newer. Everything here is developed and verified on macOS,
+Flutter 3.47 or newer. Everything here is developed and verified on macOS,
 which is where the render probes run; the packages declare the platforms
 `flutter_scene` supports, and this project has not tested the others.
 

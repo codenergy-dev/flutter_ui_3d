@@ -25,7 +25,9 @@ says what a bump has to change. **One defect this repository cannot fix is
 still open**: on a GPU-bound macOS window, Flutter's Impeller overwrites an
 offscreen render still waiting on the GPU, which the glyph atlas bakes into a
 texture and keeps. It is fixed in Flutter's 3.50 beta and not yet in stable, and
-no version of `flutter_scene` closes it. The measurement is in
+no version of `flutter_scene` closes it. The decision is to wait for stable
+rather than carry a workaround, and how to tell when it has arrived is in
+[docs/engine-rules.md](docs/engine-rules.md); the measurement is in
 [docs/traps.md](docs/traps.md).
 
 The package began inside a fork of the engine's own monorepo and was moved out

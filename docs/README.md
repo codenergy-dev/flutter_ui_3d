@@ -38,7 +38,8 @@ several files, guidance for using the engine underneath.
   three.js, Godot and Unity in specific ways, and most first-attempt failures
   come from reaching for another engine's spelling. Short, and each item is a
   build failure or a silent wrong result. It also opens with **which version of
-  the engine this workspace is on**, and what a bump has to change.
+  the engine this workspace is on**, what a bump has to change, and how to tell
+  when Flutter's fix for the hollow letters has reached stable.
 
 ## The diagrams
 

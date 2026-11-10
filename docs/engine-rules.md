@@ -30,6 +30,33 @@ more. The workspace once overrode the engine with a git commit in the belief
 that the pacing was the fix. See *The engine drops the draw calls it encoded
 first* in [traps.md](traps.md).
 
+### Waiting on a stable Flutter
+
+**The decision is to wait for the fix to reach stable, and to carry no
+workaround here.** The one workaround that measured clean is stopping frame
+production while the glyph atlas rasterizes, and that would stutter on every
+repack to cover a defect Flutter has already fixed.
+
+The fix is [flutter/flutter#188965](https://github.com/flutter/flutter/pull/188965).
+To see whether a stable release carries it, put its tag in this and look at the
+count, which is `0` until the fix is there:
+
+```sh
+curl -s https://raw.githubusercontent.com/flutter/flutter/3.47.9/engine/src/flutter/impeller/core/host_buffer.cc \
+  | grep -c submission_tracker_
+```
+
+When a stable has it:
+
+1. Upgrade, then run `lib/main_engine_probe.dart` in `examples/render_probe`
+   several times. Every step has to report clean, every time, because a single
+   clean run is what misled this repository in September.
+2. Run the gallery, maximize and restore it a few times, and read the plain
+   `Text` in the bottom-left corner.
+3. Delete the warnings that say the fix is not in stable (the root and both
+   package READMEs, `AGENTS.md`, `docs/README.md` and the trap), and close
+   [the plan that tracks this](../packages/flutter_ui_3d/plans/2026_09_19_the_engine_drops_draw_calls_under_a_blocked_queue.md).
+
 ## Do not reach for these
 
 - **Not `package:vector_math/vector_math_64.dart`.** Use

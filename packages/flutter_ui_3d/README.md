@@ -28,7 +28,7 @@ dependencies:
       path: packages/flutter_ui_3d
 ```
 
-Flutter 3.29 or newer, and the app must be run with `--enable-flutter-gpu`;
+Flutter 3.47 or newer, and the app must be run with `--enable-flutter-gpu`;
 without that flag the engine renders nothing at all. Verified on macOS, which
 is where this project's render probes run.
 

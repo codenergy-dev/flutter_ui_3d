@@ -3,10 +3,12 @@ status: blocked
 reason: >-
   The cause below is wrong: the pacing only narrowed the defect. It is Impeller
   overwriting transient buffers, fixed by flutter/flutter#188965, which is in
-  the 3.50 beta and not in stable. Closes when a stable Flutter carrying it
-  runs the engine probe clean. See the correction at the end.
+  the 3.50 beta and not in stable. The decision is to wait for it rather than
+  carry a workaround. Closes when a stable Flutter carrying it runs the engine
+  probe clean; how to check is in docs/engine-rules.md, under Waiting on a
+  stable Flutter. See the correction at the end.
 created_at: 2026-09-19T18:30:00Z
-updated_at: 2026-11-09T23:40:59Z
+updated_at: 2026-11-10T00:12:49Z
 commit: 41fbce3d63c2cb4ab1c1f1e5b9e4b46c2b6f2f0e
 ---
 
