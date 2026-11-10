@@ -19,17 +19,14 @@ edits the engine; if something is genuinely missing from `flutter_scene`, the
 answer is either to work around it on this side or to open an issue upstream,
 and to write down which.
 
-**The engine is not a pub dependency right now**, and that is the one
-outstanding case of the rule above. The published 0.23.0 loses draw calls out
-of an offscreen render, which this package's glyph atlas bakes into a texture
-and keeps; the workspace root overrides it with a pinned commit from upstream's
-git, where it is already fixed. Nothing was written upstream and nothing is
-owed there — 0.24.0 carries the fix and has not been released. The override
-carries its own reasoning, the engine-facing half is in
-[docs/engine-rules.md](docs/engine-rules.md) under *The version this workspace
-is on*, and the measurement is in [docs/traps.md](docs/traps.md). **Deleting
-the override is not enough when 0.24.0 lands** — the four `^0.23.0` constraints
-have to move with it, or the release that fixes this is the one they refuse.
+The engine is an ordinary pub dependency, the same `flutter_scene` constraint
+in all four workspace members; [docs/engine-rules.md](docs/engine-rules.md)
+says what a bump has to change. **One defect this repository cannot fix is
+still open**: on a GPU-bound macOS window, Flutter's Impeller overwrites an
+offscreen render still waiting on the GPU, which the glyph atlas bakes into a
+texture and keeps. It is fixed in Flutter's 3.50 beta and not yet in stable, and
+no version of `flutter_scene` closes it. The measurement is in
+[docs/traps.md](docs/traps.md).
 
 The package began inside a fork of the engine's own monorepo and was moved out
 once it became clear the scope was its own project. That history is preserved:
@@ -89,19 +86,13 @@ Start there rather than here when you want the shape of the remaining work.
 Everything below runs from the repository root unless stated otherwise.
 
 ```sh
-flutter pub get                                      # clones the engine, see below
+flutter pub get
 cd packages/flutter_ui_3d && flutter test            # 1336 today
 cd packages/material_ui_3d && flutter test           # 852 today
 cd examples/flutter_ui_3d_gallery && flutter test    # 13 today
 dart analyze                                         # must be clean, everywhere
 dart format .                                        # before every commit
 ```
-
-The first of those clones a git repository, which is not what a workspace
-usually does: the engine is overridden to a pinned upstream commit, for the
-reason the section above gives. A `pub get` that suddenly resolves
-`flutter_scene` from pub.dev means the override was lost, and the gallery's
-text will start breaking on the next window resize.
 
 All three suites are headless, all three must be green, and CI runs all
 three. The Material
@@ -180,8 +171,8 @@ gallery and measures *the engine* at every step — plain `dart:ui` drawn into a
 offscreen picture, reported as which cells came back empty, in three variants
 that are only separable together. Reach for it before a long hunt through the
 packing: a text artifact that had survived six rounds of that turned out to be
-`flutter_scene` 0.23.0 blocking the calling thread on the GPU's backlog, losing
-draw calls Flutter had already encoded. See *The engine drops the draw calls it
+Flutter's Impeller overwriting draw calls it had already encoded, once a scene
+fell far enough behind on the GPU. See *The engine drops the draw calls it
 encoded first* in [docs/traps.md](docs/traps.md).
 
 When the window itself cannot be looked at — from a shell, from CI — the

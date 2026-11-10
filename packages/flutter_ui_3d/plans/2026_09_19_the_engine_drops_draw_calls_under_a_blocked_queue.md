@@ -1,7 +1,12 @@
 ---
-status: completed
+status: blocked
+reason: >-
+  The cause below is wrong: the pacing only narrowed the defect. It is Impeller
+  overwriting transient buffers, fixed by flutter/flutter#188965, which is in
+  the 3.50 beta and not in stable. Closes when a stable Flutter carrying it
+  runs the engine probe clean. See the correction at the end.
 created_at: 2026-09-19T18:30:00Z
-updated_at: 2026-09-20T12:00:00Z
+updated_at: 2026-11-09T23:40:59Z
 commit: 41fbce3d63c2cb4ab1c1f1e5b9e4b46c2b6f2f0e
 ---
 
@@ -150,3 +155,26 @@ The minimal negative controls are in
 `examples/render_probe/lib/main_minimal_repro.dart`, switchable by
 `--dart-define`, so the next reader does not have to rediscover that none of
 them is it.
+
+## What this plan got wrong (2026-11-09)
+
+**The measurement held; the mechanism and the fix did not.** The defect came
+back on the pinned commit, and the probe run at `e2006db`, the commit that
+introduced the override, lost the same cells on the same Intel Iris Plus 655
+and the same Flutter 3.47.1. So did `flutter_scene` 0.24.3. Why September's
+runs came out clean was not established; what is established is that a clean
+run did not prove a fix, because the defect depends on how far the GPU falls
+behind.
+
+**The cause is Impeller's `HostBuffer`**, a ring of four buffers reused with no
+check that the GPU has finished with them. The bisect above found a real
+effect, since `maxGpuFramesInFlight = 1` shortens the queue, and read it as the
+cure. The control: on 0.24.3, stopping frame production right after `toImage`
+and resuming after the readback left all 17 probe steps clean, with the GPU as
+far behind as before.
+
+The fix is [flutter/flutter#188965](https://github.com/flutter/flutter/pull/188965).
+It is in the 3.50 beta and not in 3.47.9, and this workspace has not yet run the
+probe against it. The git override is gone, because it was buying nothing that
+0.24.3 does not have. "There is no pull request to open" remains true, for a
+different reason.

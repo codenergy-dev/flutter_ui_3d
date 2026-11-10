@@ -1008,12 +1008,18 @@ stable factory**, and a closure in `build` is the reliable way to defeat one.
 **This is the one the other three in this family were mistaken for**, it cost
 seven rounds, and it is not in this package. It is not about text either.
 
-On `flutter_scene` **0.23.0**, a GPU-bound scene blocks the calling thread on
-the GPU's backlog, and the engine's queue is serialized with the raster
-thread's own submissions. While it is blocked, **draw calls Flutter has already
-encoded into an offscreen `Picture.toImage` are lost — the ones encoded
-first.** A glyph atlas bakes that into a texture and keeps it, so a letter it
-lost is hollow until the atlas repacks.
+When a scene is GPU-bound on macOS, **draw calls Flutter has already encoded
+into an offscreen `Picture.toImage` are lost — the ones encoded first.** A glyph
+atlas bakes that into a texture and keeps it, so a letter it lost is hollow
+until the atlas repacks.
+
+The cause is Impeller's `HostBuffer`. Each frame's vertex and uniform data goes
+into a ring of `kHostBufferArenaSize` (4) buffers, written from offset 0, and
+nothing checks that the GPU has finished with a buffer before it comes round
+again. macOS applies no frame backpressure, so a picture queued behind a slow
+scene can have its data overwritten by the frames that follow it. The draws
+recorded first sit at the start of the buffer, which is the part the next frame
+writes over.
 
 The measurement that separates it from everything it looks like, taken in the
 gallery just after the window is maximized:
@@ -1028,12 +1034,26 @@ Reversing the order of the draw calls, moving nothing, moves the loss to the
 other end of the image; rectangles lose exactly the way glyphs do. So it is not
 a region, not a glyph, not a font and not text.
 
-**Check the engine version before anything else.** `Scene.maxGpuFramesInFlight`
-and its default of 1 fix it; they are on the engine's `master`, in the
-unreleased `## 0.24.0`. On a fixed engine the gallery is clean at every step,
-including the plain Flutter `Text` in its corner — which no amount of work in
-this package could ever have repaired, and which is the proof the cause was
-never here.
+The control that names the cause: on `flutter_scene` 0.24.3 and Flutter 3.47.1,
+the probe loses cells from `after_maximize` onward. Changing only one thing —
+stopping frame production right after calling `toImage`, with
+`handleAppLifecycleStateChanged(AppLifecycleState.paused)`, and resuming after
+the readback — left all 17 steps clean, with the GPU exactly as far behind.
+Nothing overwrote the buffer, so nothing was lost.
+
+**Check the Flutter version before anything else.** The fix is
+[flutter/flutter#188965](https://github.com/flutter/flutter/pull/188965), which
+reuses a buffer only after the GPU has finished with it. It is in the 3.50 beta
+and is not in 3.47.9, the newest stable when this was written.
+
+**`Scene.maxGpuFramesInFlight` is not the fix, and this page used to say it
+was.** Its default of 1, from `flutter_scene` 0.24, keeps the queue shallower,
+so the margin improves: the commit that introduced it measured clean in
+September on an Intel Iris Plus 655. The same commit, on the same GPU and the
+same Flutter, loses the same cells in November, and so does 0.24.3. Treat a
+clean run as a run that did not fall behind far enough. A plain Flutter `Text`
+beside the scene breaks the same way, which no work in this package could
+repair.
 
 **How to tell in one run**, rather than inferring it:
 `examples/render_probe/lib/main_engine_probe.dart` drives the gallery and

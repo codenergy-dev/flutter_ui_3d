@@ -21,48 +21,32 @@ Not on pub.dev yet, so take it from git:
 
 ```yaml
 dependencies:
-  flutter_scene: ^0.23.0
+  flutter_scene: ^0.24.3
   flutter_ui_3d:
     git:
       url: https://github.com/codenergy-dev/flutter_ui_3d.git
       path: packages/flutter_ui_3d
-
-# Temporary, and the reason is below: 0.23.0 loses draw calls out of an
-# offscreen render, which this package's glyph atlas bakes into a texture.
-dependency_overrides:
-  flutter_scene:
-    git:
-      url: https://github.com/bdero/flutter_scene.git
-      path: packages/flutter_scene
-      ref: 25f133d90716348f76565362be597b33ebc6e4db
-  scene:
-    git:
-      url: https://github.com/bdero/flutter_scene.git
-      path: packages/scene
-      ref: 25f133d90716348f76565362be597b33ebc6e4db
 ```
 
 Flutter 3.29 or newer, and the app must be run with `--enable-flutter-gpu`;
 without that flag the engine renders nothing at all. Verified on macOS, which
 is where this project's render probes run.
 
-**Take the engine from git until 0.24.0 is published**, or expect letters to
-come out hollow. On `flutter_scene` 0.23.0 a GPU-bound scene blocks the calling
-thread on the GPU's backlog, and that queue is serialized with the raster
-thread's own submissions; while it is blocked, draw calls Flutter has already
-encoded into an offscreen `Picture.toImage` are lost — the ones encoded first,
-text or not. A glyph atlas draws its letters into exactly such a render, and it
-keeps the result, so the loss is permanent until the atlas repacks. Maximizing
-a window is enough to make a scene GPU-bound on an integrated GPU, and that is
-all it takes. It is fixed upstream by `Scene.maxGpuFramesInFlight`, written and
-not yet released; `ref` above is a commit verified to contain it.
+**On macOS, a GPU-bound window can lose letters, and the cause is in Flutter.**
+Impeller writes each frame's vertex and uniform data into a ring of four
+buffers and reuses one without checking that the GPU has finished with it, and
+macOS applies no frame backpressure. Once a scene falls far enough behind, the
+following frames overwrite the data of a `Picture.toImage` still waiting in the
+queue — the draws encoded first, text or not. A glyph atlas draws its letters
+into exactly such a render and keeps the result, so the loss lasts until the
+atlas repacks. Maximizing a window on an integrated GPU is enough. Plain Flutter
+`Text` beside a scene breaks the same way.
 
-Two things follow that are easy to get wrong. The `scene` override is not
-optional — the engine's git version needs a newer `scene` than pub.dev has, and
-leaving it out fails to resolve. And when 0.24.0 lands, `flutter_scene:
-^0.23.0` must become `^0.24.0`: on a 0.x version the caret means
-`>=0.23.0 <0.24.0`, so the constraint that looks permissive would *refuse* the
-release that carries the fix.
+`Scene.maxGpuFramesInFlight`, whose default of 1 ships in `flutter_scene`
+0.24, keeps the queue shallower and makes this rarer, but it cannot close it.
+The fix is [flutter/flutter#188965](https://github.com/flutter/flutter/pull/188965),
+which reuses a buffer only after the GPU has finished with it. It is in the
+3.50 beta and is not in 3.47.9, the newest stable when this was written.
 
 If you want Material components rather than the protocol on its own,
 [`material_ui_3d`](../material_ui_3d) is built on this and

@@ -305,7 +305,7 @@ are only separable together — text recorded first-to-last, the same text
 recorded last-to-first, and plain rectangles. If reversing the order moves the
 loss to the other end of the image, what is being lost is the draw calls made
 first, and nothing in this repository can be the cause. That is how a
-seven-round text defect was finally placed in `flutter_scene` 0.23.0; see *The
+seven-round text defect was finally placed outside this repository; see *The
 engine drops the draw calls it encoded first* in
 [docs/traps.md](../../docs/traps.md).
 

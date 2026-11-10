@@ -168,19 +168,21 @@
   no frame is left empty. `Hero3dFlight`, `Hero3dFlightBuilder`,
   `Hero3dFlightDirection` and `Hero3dFlightBox` are the rest of the surface.
 
-- **The engine has to come from git until `flutter_scene` 0.24.0 is
-  published.** On 0.23.0 a GPU-bound scene blocks the calling thread on the
-  GPU's backlog, and that queue is serialized with the raster thread's own
-  submissions; while it is blocked, draw calls Flutter has already encoded into
-  an offscreen `Picture.toImage` are lost — the ones encoded first, text or
-  not. A glyph atlas draws its letters into exactly such a render and keeps the
-  result, so on 0.23.0 this package's text comes out hollow and stays hollow
-  once a window has been maximized. **The fix is not in this package and there
-  is nothing here to upgrade to**: it is `Scene.maxGpuFramesInFlight` upstream,
-  written and unreleased. `README.md` carries the `dependency_overrides` to
-  copy, including the `scene` one, which is not optional. When 0.24.0 lands,
-  the constraint has to move to `^0.24.0` as well — on a 0.x version `^0.23.0`
-  means `>=0.23.0 <0.24.0`, so it would refuse the release that fixes this.
+- **The engine is `flutter_scene: ^0.24.3`, from pub.dev.** The
+  `dependency_overrides` this package's README used to ask for are gone, and an
+  application should delete its copy. The new engine stores reversed float
+  depth on Metal, draws unlit `.fmat` materials on Impeller Vulkan, which both
+  of this package's text materials are, and no longer crashes newer Macs on a
+  lit material with directional shadows.
+
+- **Letters can still come out hollow on macOS, and the cause is in Flutter.**
+  When a scene is GPU-bound, Impeller overwrites the data of an offscreen
+  `Picture.toImage` still waiting on the GPU, and the draw calls encoded first
+  are lost, text or not. A glyph atlas draws into exactly such a render and
+  keeps the result, so the letters stay hollow once a window has been maximized.
+  **There is nothing in this package to upgrade to**, and no version of
+  `flutter_scene` closes it: `Scene.maxGpuFramesInFlight` only makes it rarer.
+  The fix is flutter/flutter#188965, in the 3.50 beta and not yet in stable.
 
 - **A glyph is typeset once, and copied forward ever after.** `GlyphAtlas3d`
   used to typeset its whole alphabet into a fresh picture on every flush, so a
@@ -194,11 +196,9 @@
   rasterization's own `await`.
 
   **This is not what fixed the hollow letters in the gallery**, and an earlier
-  draft of this entry said it was. That defect is `flutter_scene` 0.23.0
-  blocking the calling thread on the GPU's backlog, which loses draw calls
-  Flutter has already encoded into an offscreen render — the ones encoded
-  first, text or not. It is fixed upstream by `Scene.maxGpuFramesInFlight`, in
-  the engine's unreleased 0.24.0. See *The engine drops the draw calls it
+  draft of this entry said it was. That defect is Flutter's Impeller
+  overwriting draw calls it has already encoded into an offscreen render — the
+  ones encoded first, text or not. See *The engine drops the draw calls it
   encoded first* in `docs/traps.md`.
 
 - **The glyph atlas texture wraps its picture instead of copying it.**

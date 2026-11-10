@@ -372,13 +372,12 @@
     and five contrast levels. **Its constraint tracks the SDK's pin**; the
     pubspec says so where a reader upgrading Flutter will find it.
 
-- **The engine has to come from git until `flutter_scene` 0.24.0 is
-  published.** On 0.23.0 a GPU-bound scene blocks the calling thread on the
-  GPU's backlog and draw calls Flutter has already encoded into an offscreen
-  render are lost, which the layout package's glyph atlas bakes into a texture
-  and keeps — so every label in this catalogue comes out hollow once a window
-  has been maximized. It is fixed upstream and unreleased; `README.md` carries
-  the `dependency_overrides` to copy, and the layout package's changelog has
+- **The engine is `flutter_scene: ^0.24.3`, from pub.dev**, and the
+  `dependency_overrides` this package's README used to ask for are gone. Labels
+  can still come out hollow on a GPU-bound macOS window, because Flutter's
+  Impeller overwrites an offscreen render still waiting on the GPU, which the
+  layout package's glyph atlas bakes into a texture and keeps. That is fixed in
+  Flutter's 3.50 beta and not yet in stable; the layout package's changelog has
   the whole of it.
 
 - **A modal's scrim dims the screen evenly.** Its alpha is spent as

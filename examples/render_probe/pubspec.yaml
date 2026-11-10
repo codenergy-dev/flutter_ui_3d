@@ -14,7 +14,7 @@ dependencies:
   hooks: ^2.0.0
   flutter:
     sdk: flutter
-  flutter_scene: ^0.23.0
+  flutter_scene: ^0.24.3
   flutter_ui_3d:
     path: ../../packages/flutter_ui_3d
   # Photographed by integration_test/photograph_test.dart. A copy of its

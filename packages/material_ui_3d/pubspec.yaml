@@ -34,7 +34,7 @@ dependencies:
   # A real dependency since phase 2: `initializeMaterial3d` awaits
   # `Scene.initializeStaticResources()` and loads the compiled panel shader,
   # which is the one call standing between a themed component and a picture.
-  flutter_scene: ^0.23.0
+  flutter_scene: ^0.24.3
   flutter_ui_3d:
     path: ../flutter_ui_3d
   # What `ColorScheme3d.fromSeed` generates a scheme with, and the same

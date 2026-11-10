@@ -38,8 +38,7 @@ several files, guidance for using the engine underneath.
   three.js, Godot and Unity in specific ways, and most first-attempt failures
   come from reaching for another engine's spelling. Short, and each item is a
   build failure or a silent wrong result. It also opens with **which version of
-  the engine this workspace is on** — the published 0.23.0 is not usable here,
-  and what has to change when 0.24.0 lands is more than deleting an override.
+  the engine this workspace is on**, and what a bump has to change.
 
 ## The diagrams
 
@@ -425,14 +424,14 @@ which is the resolution of
 after seven rounds. Individual glyphs came out of the gallery missing or
 replaced by a speckled block, and a person could only reproduce it by
 **maximizing the window** — which turned out to be exactly the right clue, for
-a reason no round reached until the last one. On `flutter_scene` 0.23.0 a
-GPU-bound scene blocks the calling thread on the GPU's backlog, and that queue
-is serialized with the raster thread's own submissions; while it is blocked,
-draw calls Flutter has already encoded into an offscreen `Picture.toImage` are
-lost — **the ones encoded first**, text or not. A glyph atlas bakes the loss
-into a texture and keeps it. It is fixed upstream, in the engine's unreleased
-0.24.0, by `Scene.maxGpuFramesInFlight`. Read *The engine drops the draw calls
-it encoded first* in [traps.md](traps.md) first; the newer plan carries the
+a reason no round reached until the last one. When a scene is GPU-bound on
+macOS, Impeller's frames overwrite the data of an offscreen `Picture.toImage`
+still waiting on the GPU, and draw calls are lost — **the ones encoded first**,
+text or not. A glyph atlas bakes the loss into a texture and keeps it. It is
+fixed in Flutter's 3.50 beta and not yet in stable;
+`Scene.maxGpuFramesInFlight`, once believed to be the fix, only makes it rarer.
+Read *The engine drops the draw calls it encoded first* in
+[traps.md](traps.md) first; the newer plan carries the
 measurement that separates it from everything it looks like, and the older one
 carries six rounds of hypotheses that were all wrong and why.
 

@@ -35,7 +35,7 @@ Material one if you want the component catalogue:
 
 ```yaml
 dependencies:
-  flutter_scene: ^0.23.0
+  flutter_scene: ^0.24.3
   flutter_ui_3d:
     git:
       url: https://github.com/codenergy-dev/flutter_ui_3d.git
@@ -44,27 +44,12 @@ dependencies:
     git:
       url: https://github.com/codenergy-dev/flutter_ui_3d.git
       path: packages/material_ui_3d
-
-# Temporary: 0.23.0 loses draw calls out of an offscreen render, which the
-# glyph atlas bakes into a texture, so letters come out hollow once a window
-# has been maximized. Fixed upstream, unreleased. Both entries are needed.
-dependency_overrides:
-  flutter_scene:
-    git:
-      url: https://github.com/bdero/flutter_scene.git
-      path: packages/flutter_scene
-      ref: 25f133d90716348f76565362be597b33ebc6e4db
-  scene:
-    git:
-      url: https://github.com/bdero/flutter_scene.git
-      path: packages/scene
-      ref: 25f133d90716348f76565362be597b33ebc6e4db
 ```
 
-**The `dependency_overrides` are not optional until `flutter_scene` 0.24.0 is
-published**, and neither is the `scene` entry beside them — the engine's git
-version needs a newer `scene` than pub.dev has. Why, and what to change when
-0.24.0 lands, is in
+**On Flutter's current stable, letters can come out hollow once a GPU-bound
+window has been maximized on macOS.** The defect is in Flutter rather than in
+either package, and no version of `flutter_scene` closes it; why, and which
+Flutter carries the fix, is in
 [the layout package's README](packages/flutter_ui_3d/README.md#installing).
 
 Two things to know before the first run. **The app has to be launched with

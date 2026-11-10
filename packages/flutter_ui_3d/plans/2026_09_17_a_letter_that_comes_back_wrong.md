@@ -2,13 +2,13 @@
 status: completed
 reason: >-
   Closed by its successor, 2026_09_19_the_engine_drops_draw_calls_under_a_
-  blocked_queue.md: the cause is flutter_scene 0.23.0 blocking the calling
-  thread on the GPU's backlog, not anything in this package. Everything in
+  blocked_queue.md: the cause is Flutter's Impeller overwriting an offscreen
+  render still waiting on the GPU, not anything in this package. Everything in
   this plan below the front matter is six rounds of hypotheses, four real
   defects found on the way, and a long list of things ruled out by
-  measurement. Read the successor first.
+  measurement. Read the successor first, including its correction at the end.
 created_at: 2026-09-17T21:30:00Z
-updated_at: 2026-09-19T21:30:00Z
+updated_at: 2026-11-09T23:40:59Z
 commit: e1c4bc6c8f42eea060fb9f157ee6dc1deb21c1de
 ---
 
