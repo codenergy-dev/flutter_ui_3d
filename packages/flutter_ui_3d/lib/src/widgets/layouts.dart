@@ -111,6 +111,7 @@ import '../text/rich_text3d.dart';
 import '../text/text3d.dart';
 import '../text/text_measurement.dart';
 import '../text/text_renderer.dart';
+import 'default_text_relief.dart';
 import 'default_text_renderer.dart';
 import 'framework.dart';
 import 'text_scaling.dart';
@@ -2496,6 +2497,7 @@ class Text3d extends MultiChildRenderObjectWidget3d {
     this.measurement,
     this.renderer,
     this.textScaler,
+    this.relief,
   });
 
   /// The string to lay out.
@@ -2541,6 +2543,14 @@ class Text3d extends MultiChildRenderObjectWidget3d {
   ///
   /// Flutter's `Text.textScaler`. An icon states `TextScaler.noScaling`.
   final TextScaler? textScaler;
+
+  /// Whether the letters stand off the surface or are painted on it, or null
+  /// for the ambient [DefaultTextRelief3d], and failing that
+  /// [TextRelief3d.extruded].
+  ///
+  /// The legend on a key wants [TextRelief3d.flat]: it is printed on the key,
+  /// and the key is what has the thickness. See [TextRelief3d].
+  final TextRelief3d? relief;
 
   /// Writes whichever of the two renderer sources applies onto [layout].
   ///
@@ -2588,6 +2598,7 @@ class Text3d extends MultiChildRenderObjectWidget3d {
         ? DefaultTextRenderer3d.maybeOf(context)
         : null,
     textScaler: textScaler ?? TextScaling3d.maybeOf(context),
+    relief: relief ?? DefaultTextRelief3d.of(context),
   );
 
   @override
@@ -2603,7 +2614,8 @@ class Text3d extends MultiChildRenderObjectWidget3d {
       ..depth = depth
       ..rules = rules
       ..measurement = measurement ?? SegmentedTextMeasurement3d.shared
-      ..textScaler = textScaler ?? TextScaling3d.maybeOf(context);
+      ..textScaler = textScaler ?? TextScaling3d.maybeOf(context)
+      ..relief = relief ?? DefaultTextRelief3d.of(context);
     _applyRenderer(context, layout);
   }
 }
@@ -2654,6 +2666,7 @@ class RichText3d extends MultiChildRenderObjectWidget3d {
     this.resolution = 2.0,
     this.depthOffset = 0.2,
     this.update = WidgetUpdatePolicy.everyFrame,
+    this.relief,
   });
 
   /// The span this box lays out.
@@ -2708,6 +2721,11 @@ class RichText3d extends MultiChildRenderObjectWidget3d {
   /// When the captured texture is refreshed.
   final WidgetUpdatePolicy update;
 
+  /// Whether the letters stand off the surface or are painted on it, or null
+  /// for the ambient [DefaultTextRelief3d], and failing that
+  /// [TextRelief3d.extruded]. Flat draws no wall whatever [glyphDepth] says.
+  final TextRelief3d? relief;
+
   TextDirection _resolveDirection(BuildContext context) =>
       textDirection ?? Directionality.maybeOf(context) ?? TextDirection.ltr;
 
@@ -2729,6 +2747,7 @@ class RichText3d extends MultiChildRenderObjectWidget3d {
     resolution: resolution,
     depthOffset: depthOffset,
     update: update,
+    relief: relief ?? DefaultTextRelief3d.of(context),
   );
 
   @override
@@ -2749,7 +2768,8 @@ class RichText3d extends MultiChildRenderObjectWidget3d {
       ..textScaler = textScaler ?? TextScaling3d.maybeOf(context)
       ..resolution = resolution
       ..depthOffset = depthOffset
-      ..update = update;
+      ..update = update
+      ..relief = relief ?? DefaultTextRelief3d.of(context);
   }
 }
 

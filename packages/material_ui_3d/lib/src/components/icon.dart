@@ -10,7 +10,8 @@ import 'package:flutter/widgets.dart'
         StatelessWidget,
         TextDirection,
         Widget;
-import 'package:flutter_ui_3d/widgets.dart' show Semantics3d, Text3d;
+import 'package:flutter_ui_3d/widgets.dart'
+    show Semantics3d, Text3d, TextRelief3d;
 
 import '../theme/theme.dart';
 import 'reading_direction.dart';
@@ -47,6 +48,13 @@ import 'reading_direction.dart';
 /// them, which is the right coupling — an icon that stood proud of the text
 /// beside it would not read as the same material.
 ///
+/// **And it can be painted on instead**, with the labels beside it. An icon
+/// follows the same `TextRelief3d` its labels do: [relief] on the icon, a
+/// `DefaultTextRelief3d` above a subtree, or `Theme3d.textRelief` for the
+/// whole application. Flat is one face and no wall, where the back face of
+/// an extruded icon would be, so the icon stays where it was and only its
+/// sides go.
+///
 /// **It is drawn unlit.** `AtlasText3dRenderer` draws the faces with an
 /// unlit material and bakes the wall's shading into its vertex colours, so an
 /// icon keeps its colour as the surface it sits on turns away from a light
@@ -73,6 +81,7 @@ class Icon3d extends StatelessWidget {
     this.color,
     this.semanticLabel,
     this.textDirection,
+    this.relief,
   });
 
   /// Material's default icon size, in logical pixels.
@@ -104,6 +113,11 @@ class Icon3d extends StatelessWidget {
   /// `Directionality`.
   final TextDirection? textDirection;
 
+  /// Whether the icon stands off its surface or is painted on it, or null for
+  /// whatever the labels around it do: the ambient `DefaultTextRelief3d`, and
+  /// failing that extruded.
+  final TextRelief3d? relief;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme3d.of(context);
@@ -116,6 +130,7 @@ class Icon3d extends StatelessWidget {
       // navigation icon was 48dp at double-size type, and the bar it sits in
       // overflowed at 1.3.
       textScaler: TextScaler.noScaling,
+      relief: relief,
       style: TextStyle(
         // The font the icon's own IconData names, with its package, which is
         // what makes an icon from a third-party set work. Flutter's own icons

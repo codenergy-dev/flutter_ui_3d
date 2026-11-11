@@ -51,6 +51,7 @@ import 'atlas_text_renderer.dart' show AtlasText3dRenderer;
 import 'glyph_material.dart' show GlyphMaterial3d, GlyphWallMaterial3d;
 import 'glyph_outline.dart';
 import 'text_geometry.dart' show GlyphWallSegment3d;
+import 'text_renderer.dart' show TextRelief3d;
 
 /// A span of rich text, drawn by Flutter itself onto a quad.
 ///
@@ -124,8 +125,10 @@ class RenderRichText3d extends RenderObject3d {
     double resolution = 2.0,
     double depthOffset = 0.2,
     WidgetUpdatePolicy update = WidgetUpdatePolicy.everyFrame,
+    TextRelief3d relief = TextRelief3d.extruded,
     super.name,
   }) : _text = text,
+       _relief = relief,
        _textAlign = textAlign,
        _textDirection = textDirection,
        _softWrap = softWrap,
@@ -354,8 +357,28 @@ class RenderRichText3d extends RenderObject3d {
   static const int defaultMaxWallSegments = 20000;
 
   /// How thick the letters actually are, in logical pixels.
-  double get resolvedGlyphDepth =>
-      _glyphDepth ?? _glyphDepthFactor * (_text.style?.fontSize ?? 14.0);
+  ///
+  /// Zero when [relief] is [TextRelief3d.flat], whatever [glyphDepth] says.
+  double get resolvedGlyphDepth => _relief == TextRelief3d.flat
+      ? 0.0
+      : _glyphDepth ?? _glyphDepthFactor * (_text.style?.fontSize ?? 14.0);
+
+  TextRelief3d _relief;
+
+  /// Whether the letters stand off the surface or are painted on it.
+  ///
+  /// [TextRelief3d.extruded] by default, which draws [glyphDepth].
+  /// [TextRelief3d.flat] draws the capture alone, with no wall, and — the
+  /// part that matters at paragraph length — never runs the CPU
+  /// rasterization the wall is traced from. The same choice a [RenderText3d]
+  /// makes through its own `relief`, so a `DefaultTextRelief3d` covers both.
+  TextRelief3d get relief => _relief;
+
+  set relief(TextRelief3d value) {
+    if (_relief == value) return;
+    _relief = value;
+    _invalidateWall();
+  }
 
   /// How many wall segments the current mesh holds.
   ///
@@ -870,6 +893,13 @@ class RenderRichText3d extends RenderObject3d {
       FlagProperty('drawn', value: isDrawn, ifFalse: 'not captured yet'),
     );
     properties.add(DoubleProperty('glyphDepth', resolvedGlyphDepth));
+    properties.add(
+      EnumProperty<TextRelief3d>(
+        'relief',
+        relief,
+        defaultValue: TextRelief3d.extruded,
+      ),
+    );
     properties.add(IntProperty('wallSegments', wallSegmentCount));
   }
 }

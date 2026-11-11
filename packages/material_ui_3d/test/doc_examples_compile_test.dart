@@ -30,6 +30,14 @@ Future<void> setUpUnlitApplication() async {
 Scene sceneInTheTokensColours() =>
     Scene()..toneMapping = ToneMappingMode.linear;
 
+/// The README's *Labels and icons painted on* example.
+Widget paintedOnScreen(Widget screen) => Theme3d(
+  data: Theme3dData.light,
+  textRendererFactory: AtlasText3dRenderer.new,
+  textRelief: TextRelief3d.flat,
+  child: screen,
+);
+
 // ------------------------------------------------------------- Material3d,
 // and everything that is one.
 

@@ -430,7 +430,11 @@ export 'src/text/text_measurement.dart'
         TextMetrics3d,
         debugTextParagraphCount;
 export 'src/text/text_renderer.dart'
-    show Text3dRenderRequest, Text3dRenderer, Text3dRendererFactory;
+    show
+        Text3dRenderRequest,
+        Text3dRenderer,
+        Text3dRendererFactory,
+        TextRelief3d;
 export 'src/scroll/viewport.dart' show RenderViewport3d;
 export 'src/slot.dart' show Layout3dSlot, RenderSlotProvider3d;
 export 'src/surface.dart' show RenderSurface3d;

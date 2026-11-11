@@ -82,8 +82,10 @@ class RenderText3d extends RenderObject3d {
     Text3dRenderer? renderer,
     Text3dRendererFactory? rendererFactory,
     TextScaler? textScaler,
+    TextRelief3d relief = TextRelief3d.extruded,
     super.name,
   }) : _data = data,
+       _relief = relief,
        _textScaler = textScaler,
        _style = style,
        _textAlign = textAlign,
@@ -239,8 +241,10 @@ class RenderText3d extends RenderObject3d {
 
   /// How thick the box is, in world units.
   ///
-  /// Zero by default. Glyphs are flat, so this is room reserved rather than
-  /// anything the text fills.
+  /// Zero by default, and room reserved rather than anything the text fills.
+  /// How thick the *letters* are is the renderer's business and [relief]'s,
+  /// and never the box's: a glyph's thickness grows toward the viewer from
+  /// the box's front, which is why switching it moves nothing in layout.
   double get depth => _depth;
 
   set depth(double value) {
@@ -248,6 +252,29 @@ class RenderText3d extends RenderObject3d {
     assert(value >= 0.0);
     _depth = value;
     markParentNeedsLayout();
+  }
+
+  TextRelief3d _relief;
+
+  /// Whether the letters stand off the surface or are painted on it.
+  ///
+  /// [TextRelief3d.extruded] by default, which draws whatever thickness the
+  /// renderer was built with. [TextRelief3d.flat] draws one face and no wall,
+  /// on the plane an extruded letter's back face occupies, so the letter sits
+  /// exactly where it did and only its sides go. Nothing about the box's
+  /// size, its hit testing or its semantics depends on this.
+  ///
+  /// From the widget layer, `Text3d.relief` sets it, and a
+  /// `DefaultTextRelief3d` sets it for a whole subtree.
+  TextRelief3d get relief => _relief;
+
+  set relief(TextRelief3d value) {
+    if (_relief == value) return;
+    _relief = value;
+    // Not a size change: the layout is cached and comes back as it was. It
+    // is the pass that hands the renderer a request, and the one a scene
+    // drawn on demand already watches.
+    markNeedsLayout();
   }
 
   TextBreakRules3d _rules;
@@ -511,6 +538,7 @@ class RenderText3d extends RenderObject3d {
         unitsPerLogicalPixel: scale,
         logicalPixelsPerUnit: metrics.logicalPixelsPerUnit,
         opacity: inheritedOpacity,
+        relief: _relief,
       ),
     );
   }
@@ -611,6 +639,13 @@ class RenderText3d extends RenderObject3d {
       IntProperty('lines', textLayout?.lines.length, defaultValue: null),
     );
     properties.add(DoubleProperty('logicalPixelScale', logicalPixelScale));
+    properties.add(
+      EnumProperty<TextRelief3d>(
+        'relief',
+        relief,
+        defaultValue: TextRelief3d.extruded,
+      ),
+    );
     properties.add(
       DiagnosticsProperty<TextScaler>(
         'textScaler',

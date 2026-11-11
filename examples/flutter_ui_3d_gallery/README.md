@@ -149,6 +149,18 @@ three seconds, starting three seconds after it opens, and then stops. After
 that, nothing is drawn until you touch it. `lib/main_on_demand.dart` in
 `examples/render_probe` drives and measures exactly that.
 
+And one for type painted on rather than extruded:
+
+```sh
+flutter run -d macos --enable-flutter-gpu --dart-define=flat_type=true
+```
+
+That sets `Theme3d.textRelief` to `TextRelief3d.flat`: every label and icon
+is drawn as its face alone, on its surface, while the cards, buttons and
+panels keep their thickness. Watch the panel turn to see the difference; the
+render probe's photographs take it face-on and turned, as
+`gallery_flat_type.png` and `gallery_flat_type_later.png`.
+
 `flutter create` writes more than the platform directory — a `.metadata`, an
 `analysis_options.yaml` the repository root already provides, a `.gitignore`,
 and a `widget_test.dart` stub for a `MyApp` this app does not have. All of it

@@ -68,6 +68,12 @@ Geometry? uploadGlyphGeometry(GeometryBuilder builder) => builder.build();
 /// first frame of a label is flat and the wall appears when the atlas says it
 /// has one. [depth] and [depthFactor] are the dials, and a zero depth gets the
 /// single quad this renderer drew before there was a wall.
+///
+/// **A label can ask for no thickness without a renderer of its own.** A
+/// request whose [Text3dRenderRequest.relief] is [TextRelief3d.flat] is drawn
+/// at a depth of zero whatever this renderer was built with, so one inherited
+/// factory serves a screen whose keys are slabs and whose legends are painted
+/// on. `Text3d.relief` and `DefaultTextRelief3d` are where that is stated.
 class AtlasText3dRenderer extends Text3dRenderer {
   /// Creates a renderer drawing at [resolution] times the surface's own
   /// scale.
@@ -131,8 +137,9 @@ class AtlasText3dRenderer extends Text3dRenderer {
   /// `contentLift` a component computed to clear the surface underneath still
   /// clear it. Only the front of the letter moves.
   ///
-  /// Zero is the old picture — one quad, no wall — and is the thing to state
-  /// when type is being drawn flat against something on purpose.
+  /// Zero is the old picture — one quad, no wall. To draw a label flat on
+  /// purpose, prefer [TextRelief3d.flat] on the label or on a subtree: it
+  /// says what is meant, and it leaves the renderer shared.
   final double? depth;
 
   /// How thick a glyph is as a fraction of its font size, when [depth] says
@@ -162,6 +169,7 @@ class AtlasText3dRenderer extends Text3dRenderer {
   double _scale = 0.0;
   double _units = 0.0;
   TextStyle? _style;
+  TextRelief3d _relief = TextRelief3d.extruded;
   double _opacity = 1.0;
   int _generation = -1;
   int _outlineRevision = -1;
@@ -216,12 +224,20 @@ class AtlasText3dRenderer extends Text3dRenderer {
     // geometry, which is the tier a fade has to stay on.
     _opacity = request.opacity;
     _publish();
+    // **Before the flush below, so the first picture is traced.** An atlas
+    // reads its pixels back to trace silhouettes only once a label that has
+    // a wall to build has asked; one drawn from by flat labels alone never
+    // reads back at all. See [GlyphAtlas3d.requestOutlines].
+    if (thicknessFor(request.style, request.relief) > 0.0) {
+      atlas.requestOutlines();
+    }
     if (identical(request.layout, _layout) &&
         _scale == scale &&
         _units == request.unitsPerLogicalPixel &&
         _style == request.style &&
+        _relief == request.relief &&
         (_generation == atlas.generation || _waitsForPicture(atlas)) &&
-        _outlineRevision == atlas.outlineRevision &&
+        !_outlinesOwed(atlas) &&
         identical(_parent, request.node)) {
       // Two ways to arrive here, and the second one is the fix for a letter
       // that came back wrong: either nothing changed, or the only thing that
@@ -240,6 +256,7 @@ class AtlasText3dRenderer extends Text3dRenderer {
     _scale = scale;
     _units = request.unitsPerLogicalPixel;
     _style = request.style;
+    _relief = request.relief;
     _parent = request.node;
     _rebuild(request, atlas);
     // Reserving a glyph can repack the atlas, which invalidates every UV
@@ -303,11 +320,30 @@ class AtlasText3dRenderer extends Text3dRenderer {
     _attach(
       request.node,
       quads,
-      buildGlyphWallSegments(quads: quads, atlas: atlas),
+      _wallsFor(quads, atlas),
       request.unitsPerLogicalPixel,
       request.style,
     );
   }
+
+  /// The wall segments around [quads], or none when this label is drawn
+  /// without a thickness — in which case nothing would draw them, and
+  /// tracing a paragraph's worth of silhouettes into segments is not free.
+  List<GlyphWallSegment3d> _wallsFor(
+    List<TextGlyphQuad3d> quads,
+    GlyphAtlas3d atlas,
+  ) => _style != null && thicknessFor(_style!, _relief) > 0.0
+      ? buildGlyphWallSegments(quads: quads, atlas: atlas)
+      : const <GlyphWallSegment3d>[];
+
+  /// Whether the atlas has traced silhouettes this mesh has not been built
+  /// with, and this label has a wall to build out of them.
+  ///
+  /// A flat label is indifferent to outlines, so the silhouettes another
+  /// label's wall asked for do not cost it a rebake.
+  bool _outlinesOwed(GlyphAtlas3d atlas) =>
+      _outlineRevision != atlas.outlineRevision &&
+      (_style == null || thicknessFor(_style!, _relief) > 0.0);
 
   /// How thick a glyph of [style] is, in logical pixels.
   ///
@@ -317,6 +353,12 @@ class AtlasText3dRenderer extends Text3dRenderer {
   /// about what "the type" is.
   double resolveDepth(TextStyle style) =>
       depth ?? depthFactor * (style.fontSize ?? 14.0);
+
+  /// How thick a glyph of [style] is drawn at [relief], in logical pixels:
+  /// [resolveDepth] when extruded, and zero when flat whatever this renderer
+  /// was built with.
+  double thicknessFor(TextStyle style, TextRelief3d relief) =>
+      relief == TextRelief3d.flat ? 0.0 : resolveDepth(style);
 
   void _attach(
     Node parent,
@@ -329,7 +371,7 @@ class AtlasText3dRenderer extends Text3dRenderer {
     if (quads.isEmpty) return;
     final color = style.color ?? const Color(0xFFFFFFFF);
     final material = _material = GlyphMaterial3d.factory()..tint(color);
-    final thickness = resolveDepth(style) * units;
+    final thickness = thicknessFor(style, _relief) * units;
     _wallSegmentCount = thickness > 0.0 ? walls.length : 0;
 
     // Layout's z runs away from the viewer, so a glyph's front face is at
@@ -449,8 +491,7 @@ class AtlasText3dRenderer extends Text3dRenderer {
     // out before the first flush has quads and no wall. That is not a repack,
     // so the generation has not moved to say so, and a panel that has settled
     // would otherwise stay flat for good.
-    if (atlas.generation != _generation ||
-        atlas.outlineRevision != _outlineRevision) {
+    if (atlas.generation != _generation || _outlinesOwed(atlas)) {
       // The atlas repacked under someone else's glyph, so every UV in this
       // mesh is stale. **Bake them again here rather than waiting for a
       // layout.** This used to drop the mesh and rely on the box laying out
@@ -505,13 +546,7 @@ class AtlasText3dRenderer extends Text3dRenderer {
             shaper: _shaper,
           );
           _quadCount = quads.length;
-          _attach(
-            parent,
-            quads,
-            buildGlyphWallSegments(quads: quads, atlas: atlas),
-            _units,
-            style,
-          );
+          _attach(parent, quads, _wallsFor(quads, atlas), _units, style);
         } while (_generation != atlas.generation && ++guard < 4);
       } finally {
         _rebuilding = false;

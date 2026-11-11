@@ -26,6 +26,7 @@ class RecordingAtlas {
     int initialSize = 128,
     int maxSize = 2048,
     TextStyle textStyle = style,
+    bool traceOutlines = true,
   }) {
     atlas = GlyphAtlas3d(
       style: textStyle,
@@ -40,6 +41,10 @@ class RecordingAtlas {
       // Explicitly the slow path: there is no GPU here to wrap a picture with.
       uploadPicture: (picture) => null,
     );
+    // As an atlas behind an extruded label is: tracing silhouettes. An atlas
+    // only flat labels draw from never traces, and `text_relief_test.dart`
+    // is where that is pinned; the tests here are about the tracing itself.
+    if (traceOutlines) atlas.requestOutlines();
   }
 
   late final GlyphAtlas3d atlas;

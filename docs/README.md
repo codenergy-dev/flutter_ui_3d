@@ -47,7 +47,8 @@ several files, guidance for using the engine underneath.
   Android and why the manifest cannot change it, and the three settings that
   took an Android tablet from 2 new images a second to 40: unlit panels, two
   frames in flight, and a lower render scale. Then how to stop drawing a
-  scene that is not changing at all.
+  scene that is not changing at all, and what painting the legends on
+  instead of extruding them saves.
 
 ## The diagrams
 
@@ -95,6 +96,10 @@ The entry points:
 - [Draw the scene only when it changes](../packages/flutter_ui_3d/plans/2026_11_11_draw_the_scene_only_when_it_changes.md)
   is **completed**: `SceneRedraw3d`, which stops a `SceneView` encoding an
   idle scene every vsync, what asks it for a frame, and what was measured.
+- [Type painted on its surface](../packages/flutter_ui_3d/plans/2026_11_11_type_painted_on_its_surface.md)
+  is **completed**: `TextRelief3d`, which draws a label or an icon flat on
+  its surface instead of extruded, per label or once for a subtree, and the
+  atlas readback a flat application no longer pays.
 - [Two GPU frames in flight, proposed upstream](../packages/flutter_ui_3d/plans/2026_11_11_two_gpu_frames_in_flight_proposed_upstream.md)
   is **blocked** on `flutter_scene`'s maintainer: the pacing cost that plan
   measured, written as the pull request that would change the engine's

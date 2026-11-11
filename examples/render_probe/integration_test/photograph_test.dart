@@ -239,4 +239,27 @@ void main() {
       );
     }
   });
+  testWidgets('the gallery with its type painted on', (tester) async {
+    // `Theme3d.textRelief: TextRelief3d.flat`: every label and icon drawn
+    // with one face and no wall, and every card, button and panel keeping
+    // its thickness. Face-on that should look like the gallery above; the
+    // second photograph is the turned one, where an extruded letter shows
+    // its side and a flat one must show only its face, on the face of its
+    // slab and not sunk into it.
+    final first = await photograph(
+      tester,
+      const Gallery3dApp(flatType: true),
+      name: 'gallery_flat_type',
+      initialize: initializeMaterial3d,
+    );
+    keep(first);
+    expectAFrame(first);
+    final later = await photographAgain(
+      tester,
+      name: 'gallery_flat_type_later',
+      frames: 240,
+    );
+    keep(later);
+    expectAFrame(later);
+  });
 }

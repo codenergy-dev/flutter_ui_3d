@@ -2,7 +2,7 @@
 status: in progress
 reason: steps 1 to 3 are done; the draw count (step 4) is open, and the upstream proposal on pacing (step 5) is written and waits on the user opening it
 created_at: 2026-11-11T20:23:25Z
-updated_at: 2026-11-11T21:37:39Z
+updated_at: 2026-11-11T22:10:20Z
 commit: 14ee12ae09764a691516c4af4edbca4b93cac75d
 ---
 
@@ -244,7 +244,12 @@ in flight, and the palette reached the screen exactly.
 4. [ ] **The draw count.** 433 draws for 80 keys is about five a key. Count
    what each is (slab, legend faces, legend walls), and decide whether any
    can merge. *Done when* the count per key is written down with what each
-   draw is, and whatever can be merged is.
+   draw is, and whatever can be merged is. **Partly answered** by
+   [type painted on its surface](2026_11_11_type_painted_on_its_surface.md):
+   an extruded legend is three draws (face, back face, wall) and a flat one
+   is one, so painting a keyboard's legends on takes two draws a key away.
+   On ten keycaps in the render probe that was 41 draws to 21. What is left,
+   and whether any of it merges, is still this step.
 5. [ ] **Report the pacing cost upstream (F3).** The measurement contradicts
    `maxGpuFramesInFlight`'s dartdoc on these devices. The user decided to
    propose a change rather than only report it, so this step became its own

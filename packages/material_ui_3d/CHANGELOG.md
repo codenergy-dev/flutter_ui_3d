@@ -1,5 +1,13 @@
 ## Unreleased
 
+- **`Theme3d.textRelief` paints every label and icon on its surface.** Null,
+  the default, installs nothing, and type stays extruded. `TextRelief3d.flat`
+  wraps the subtree in a `DefaultTextRelief3d`, so each `Text3d` and `Icon3d`
+  is drawn as its face alone while cards, buttons and every other slab keep
+  their thickness. `Icon3d` takes a `relief` of its own, which wins over the
+  theme's. A flat label is one draw instead of three, and its atlas never
+  reads pixels back for walls nobody draws.
+
 - **`initializeMaterial3d` takes a `shading`, and `PanelShading3d.unlit` draws
   panels with no lighting at a fraction of the cost.** The default is still
   lit. An application whose surface fills the screen and faces the camera

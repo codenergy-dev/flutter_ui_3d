@@ -278,6 +278,30 @@ final scene = Scene()..toneMapping = ToneMappingMode.linear;
 The choice is made once. Like the rest of the call, it does nothing once a
 painter is installed, so the first call decides.
 
+### Labels and icons painted on
+
+The theme takes one more choice about type, beside the renderer: whether
+labels and icons stand off their surfaces or are painted on them.
+
+```dart
+Theme3d(
+  data: Theme3dData.light,
+  textRendererFactory: AtlasText3dRenderer.new,
+  textRelief: TextRelief3d.flat,
+  child: screen,
+)
+```
+
+By default every glyph is extruded, a slab with a wall around its
+silhouette, and so is every `Icon3d`, which is a glyph of the icon font.
+`TextRelief3d.flat` draws each one as its face alone, on the face of the
+surface it labels. Cards, buttons, chips and sheets keep their thickness;
+only the type goes flat. That is the picture for an interface whose labels
+are printed on things — a keyboard's legends — and it is cheaper: one draw a
+label instead of three, and no atlas readback for walls nobody draws.
+`TextRelief3d` comes from `flutter_ui_3d`, and a `Text3d` or an `Icon3d`
+that states its own `relief` still wins.
+
 ### Why it is not the two lines the layout package's README shows
 
 That form installs one material and hands it to every box, which is right

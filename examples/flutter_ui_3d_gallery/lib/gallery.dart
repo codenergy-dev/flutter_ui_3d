@@ -50,7 +50,7 @@ import 'screens.dart';
 /// deliberately *not* Material: the same protocol arranges an application's
 /// own geometry, and having both in one frame is what says so.
 class Gallery3d extends StatefulWidget {
-  const Gallery3d({super.key, this.onDemand = false});
+  const Gallery3d({super.key, this.onDemand = false, this.flatType = false});
 
   /// Whether the scene is drawn only when something changes, under a
   /// `SceneRedraw3d`, rather than on every vsync.
@@ -60,6 +60,15 @@ class Gallery3d extends StatefulWidget {
   /// long enough to watch the panel turn and the list sweep, and then nothing
   /// is drawn until something changes again.
   final bool onDemand;
+
+  /// Whether every label and icon is painted on its surface rather than
+  /// extruded, through `Theme3d.textRelief`.
+  ///
+  /// The cards, buttons and panels keep their thickness; only the type goes
+  /// flat. It is what an application whose labels are printed on things —
+  /// a keyboard's legends — would set, and the gallery is where to look at
+  /// it face-on and while the panel turns.
+  final bool flatType;
 
   @override
   State<Gallery3d> createState() => _Gallery3dState();
@@ -400,6 +409,7 @@ class _Gallery3dState extends State<Gallery3d>
         ),
       ),
       textRendererFactory: _textRenderer,
+      textRelief: widget.flatType ? TextRelief3d.flat : null,
       child: child,
     ),
   );

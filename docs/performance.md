@@ -227,9 +227,42 @@ screen that is mostly still is most of them. The design and the reasoning
 are in
 [draw the scene only when it changes](../packages/flutter_ui_3d/plans/2026_11_11_draw_the_scene_only_when_it_changes.md).
 
+### 5. Paint the legends on
+
+Every glyph is extruded by default: a front face, a back face and a wall
+traced around its silhouette. That is three draw calls per label, and the
+wall is most of a label's vertices. The legend on a key has no relief on a
+real keyboard, so an application whose type is printed on things can say so
+once:
+
+```dart
+DefaultTextRelief3d(relief: TextRelief3d.flat, child: keyboard)
+// or, in the Material package:
+Theme3d(data: theme, textRelief: TextRelief3d.flat, child: screen)
+```
+
+Only the type goes flat; the keys and panels keep their thickness. On a row
+of ten keycaps in the render probe (`keycaps_extruded` against
+`keycaps_flat`, read from `Scene.renderStats`), on a Mac:
+
+| Legends | Draws | Vertices |
+| --- | --- | --- |
+| Extruded | 41 | 5166 |
+| Flat | 21 | 426 |
+
+Two draws fewer a key, and nine vertices in ten gone. The second saving is
+off the drawing path: a glyph atlas reads its picture back from the GPU only
+to trace silhouettes for walls, and an atlas that no extruded label draws
+from now never reads back at all. That readback measured 785–973ms for a
+512-texel atlas on a Mac, every time a label brought new glyphs. Neither
+figure was measured on the tablet. The reasoning is in
+[type painted on its surface](../packages/flutter_ui_3d/plans/2026_11_11_type_painted_on_its_surface.md).
+
 ## What is not solved yet
 
 **433 draws is about five per key**, none of them merged, because the engine
-batches only opaque draws. Fewer draws make every frame that is drawn
+batches only opaque draws. Flat legends take two of those five away; what
+is left is each key's slab, its legend's face, and whatever else the key
+draws. Fewer draws make every frame that is drawn
 cheaper, which is what an interaction costs. That is step 4 of
 [a frame a small GPU can afford](../packages/flutter_ui_3d/plans/2026_11_11_a_frame_a_small_gpu_can_afford.md).

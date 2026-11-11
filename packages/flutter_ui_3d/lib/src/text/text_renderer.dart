@@ -5,6 +5,47 @@ import '../geometry/basis3d.dart';
 import '../geometry/size3d.dart';
 import 'text_layout.dart';
 
+/// Whether a label's letters stand off the surface or are painted on it.
+///
+/// **Type here has a thickness by default.** A glyph from
+/// `AtlasText3dRenderer` is a slab, with a front face, a back face and a wall
+/// traced around its silhouette, so a label on a panel that turns shows an
+/// edge rather than reading as a decal. That is right for a sign, a headline,
+/// a label meant to read as an object. It is wrong for the legend on a key:
+/// the letter on a real keycap is printed on it and has no relief, and a
+/// keyboard of extruded legends is eighty small walls nobody asked for.
+///
+/// So the choice is stated, per label or once for a subtree:
+///
+/// ```dart
+/// Text3d('Esc', relief: TextRelief3d.flat)
+///
+/// DefaultTextRelief3d(
+///   relief: TextRelief3d.flat,
+///   child: keyboard, // every Text3d, RichText3d and icon below is flat
+/// )
+/// ```
+///
+/// [flat] is not a different plane: the letter is drawn where the back face
+/// of an extruded one is, a hair in front of the surface it labels, so a
+/// component's `contentLift` holds for both and switching one for the other
+/// moves nothing but the wall. Layout, hit testing and semantics never see
+/// the difference, because a glyph's thickness was never part of its box.
+///
+/// It is also cheaper, by more than the geometry. A flat label is one draw
+/// where an extruded one is three, and a glyph atlas that no extruded label
+/// draws from never reads its pixels back to trace a silhouette — the one
+/// readback left on the drawing path. See `docs/performance.md`.
+enum TextRelief3d {
+  /// The letters are slabs, as thick as the renderer's own depth says. The
+  /// default.
+  extruded,
+
+  /// The letters are painted on: one face, no wall, whatever depth the
+  /// renderer was built with.
+  flat,
+}
+
 /// Everything a renderer needs to turn one laid-out string into geometry.
 ///
 /// Handed to [Text3dRenderer.render] after every layout the box performs, and
@@ -21,6 +62,7 @@ class Text3dRenderRequest {
     required this.unitsPerLogicalPixel,
     required this.logicalPixelsPerUnit,
     this.opacity = 1.0,
+    this.relief = TextRelief3d.extruded,
   });
 
   /// The box's scene node, which the geometry hangs under.
@@ -80,6 +122,15 @@ class Text3dRenderRequest {
   /// everything else unchanged, so a renderer that early-returns on "nothing
   /// changed" has to count this among the things that can have.
   final double opacity;
+
+  /// Whether the letters are drawn with a thickness, from
+  /// [RenderText3d.relief].
+  ///
+  /// A renderer with no notion of thickness can ignore it. One that has one
+  /// treats [TextRelief3d.flat] as a depth of zero, whatever it was
+  /// constructed with: the label asked, and the label's choice is the one a
+  /// reader of the tree can see.
+  final TextRelief3d relief;
 }
 
 /// Makes a [Text3dRenderer] for one box.

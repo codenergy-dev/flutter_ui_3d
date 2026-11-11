@@ -568,12 +568,46 @@ class GlyphAtlas3d extends ChangeNotifier {
   }
 
   /// [grapheme]'s silhouette, or null until the raster it is traced from has
-  /// been read back.
+  /// been read back — and null for good on an atlas no one has asked to trace,
+  /// see [requestOutlines].
   ///
   /// In logical pixels from the top-left of the glyph's padded cell, which is
   /// where its quad's top-left is too — see [GlyphOutline3d]. A blank glyph
   /// never gets one, because there is nothing to trace.
   GlyphOutline3d? outlineFor(String grapheme) => _outlines[grapheme];
+
+  bool _outlinesWanted = false;
+
+  /// Whether a renderer has asked this atlas to trace silhouettes.
+  bool get outlinesWanted => _outlinesWanted;
+
+  /// Asks this atlas to trace the silhouette of every glyph it pictures, from
+  /// now on.
+  ///
+  /// **Tracing is the one thing on the drawing path that still reads pixels
+  /// back.** The texture itself is wrapped rather than copied, but a
+  /// silhouette is arithmetic over a bitmap, and the bitmap has to come off
+  /// the GPU to be read: `toByteData` of a 512-texel atlas measured 785–973ms
+  /// on a Mac. Only a label with a wall needs one, so an atlas drawn from by
+  /// flat labels alone — every legend on a keyboard painted on, say — should
+  /// never pay it. `AtlasText3dRenderer` calls this when it draws a label
+  /// with a thickness, before it flushes.
+  ///
+  /// Latched: once one label has asked, the atlas traces for the rest of its
+  /// life, because the outlines are cached by grapheme and cost nothing once
+  /// traced. When the first ask comes after glyphs were already pictured, the
+  /// atlas owes a raster to trace them from, since the picture it uploaded
+  /// is a texture now and has no readable copy; the next [flush] makes one,
+  /// and [outlineRevision] moves when it lands.
+  void requestOutlines() {
+    if (_outlinesWanted) return;
+    _outlinesWanted = true;
+    if (_hasUntracedGlyphs) _needsRaster = true;
+  }
+
+  bool get _hasUntracedGlyphs => _slots.values.any(
+    (slot) => !slot.isBlank && !_outlines.containsKey(slot.grapheme),
+  );
 
   /// The style a glyph is rasterized at: [style] at [scale], white, with
   /// room around it.
@@ -664,9 +698,11 @@ class GlyphAtlas3d extends ChangeNotifier {
         // traces nothing — an outline is stated from its own cell's corner, so
         // moving the cell does not change it — which is exactly the case the
         // readback used to be most expensive in.
-        if (_slots.values.any(
-          (slot) => !slot.isBlank && !_outlines.containsKey(slot.grapheme),
-        )) {
+        //
+        // **And only when someone asked.** An atlas whose every label is flat
+        // has no wall to build, and the readback below is the most expensive
+        // thing a flush can do. See [requestOutlines].
+        if (_outlinesWanted && _hasUntracedGlyphs) {
           pixels ??= await readBack(picture);
           _traceOutlines(pixels);
         }

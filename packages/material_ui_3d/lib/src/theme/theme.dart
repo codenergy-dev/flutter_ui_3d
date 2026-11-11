@@ -1,8 +1,9 @@
 import 'package:flutter/widgets.dart'
     show BuildContext, InheritedWidget, StatelessWidget, Widget;
-import 'package:flutter_ui_3d/rendering.dart' show Text3dRendererFactory;
+import 'package:flutter_ui_3d/rendering.dart'
+    show Text3dRendererFactory, TextRelief3d;
 import 'package:flutter_ui_3d/widgets.dart'
-    show DefaultTextRenderer3d, SlotProvider3d;
+    show DefaultTextRelief3d, DefaultTextRenderer3d, SlotProvider3d;
 
 import 'theme_data.dart';
 
@@ -88,12 +89,24 @@ class InheritedTheme3d extends InheritedWidget {
 /// (`AtlasText3dRenderer.new`) or a field on a `State`. A closure written
 /// inline in `build` is a new function every build, and every label in the
 /// tree rebuilds its renderer.
+///
+/// ## And how thick the letters are
+///
+/// [textRelief] is offered on the same terms. Null installs nothing, and
+/// every label and icon is extruded, as it always was. `TextRelief3d.flat`
+/// wraps the child in a `DefaultTextRelief3d`, so every `Text3d` and
+/// `Icon3d` in the application is painted on its surface rather than
+/// standing off it — the legends of a keyboard, say, where the key is the
+/// object and the letter is ink. Cards, buttons and every other slab keep
+/// their thickness; only the type changes. A label or an icon that states
+/// its own `relief` still wins.
 class Theme3d extends StatelessWidget {
   /// Publishes [data] to the widgets and the boxes below.
   const Theme3d({
     super.key,
     required this.data,
     this.textRendererFactory,
+    this.textRelief,
     required this.child,
   });
 
@@ -104,6 +117,14 @@ class Theme3d extends StatelessWidget {
   ///
   /// See the class doc for why this is here and why it is optional.
   final Text3dRendererFactory? textRendererFactory;
+
+  /// Whether every label and icon below is extruded or painted on, or null
+  /// to install nothing.
+  ///
+  /// See the class doc. Unlike [textRendererFactory] this is a choice and
+  /// not a resource, so it costs nothing to state; it is optional only so
+  /// that a theme says nothing about type it was not asked to.
+  final TextRelief3d? textRelief;
 
   /// The subtree the theme covers.
   final Widget child;
@@ -128,9 +149,13 @@ class Theme3d extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final factory = textRendererFactory;
-    final content = factory == null
+    final relief = textRelief;
+    final relieved = relief == null
         ? child
-        : DefaultTextRenderer3d(factory: factory, child: child);
+        : DefaultTextRelief3d(relief: relief, child: child);
+    final content = factory == null
+        ? relieved
+        : DefaultTextRenderer3d(factory: factory, child: relieved);
     return InheritedTheme3d(
       data: data,
       child: SlotProvider3d<Theme3dData>(

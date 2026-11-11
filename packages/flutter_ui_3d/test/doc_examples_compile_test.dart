@@ -140,7 +140,19 @@ Widget fadeExamples(
 Widget navigationLabel(String label) =>
     TextScaling3d.clamped(maxScaleFactor: 1.3, child: Text3d(label));
 
+/// `TextRelief3d`'s dartdoc and the README's *Or painted on* examples.
+Widget paintedOnExamples(Widget keyboard) => Column3d(
+  children: <Widget>[
+    const Text3d('Esc', relief: TextRelief3d.flat),
+    DefaultTextRelief3d(relief: TextRelief3d.flat, child: keyboard),
+  ],
+);
+
 void main() {
+  test('the relief dartdoc and README examples compile as written', () {
+    expect(paintedOnExamples(const Text3d('Q')), isNotNull);
+  });
+
   test('the text scaling dartdoc example compiles as written', () {
     expect(navigationLabel('Inbox'), isNotNull);
   });

@@ -112,6 +112,82 @@ void main() {
     });
   });
 
+  group('relief', () {
+    // Whether an icon stands off its surface or is painted on it. The icon
+    // is a label, so it follows the same choice its labels do; the claim
+    // that a flat one draws no wall is the layout package's, pinned there
+    // and on a GPU in the render probe.
+    testWidgets('an icon is extruded unless something says otherwise', (
+      tester,
+    ) async {
+      final surface = await pump(tester, const Icon3d(Icons.favorite));
+      expect(textIn(surface).relief, TextRelief3d.extruded);
+    });
+
+    testWidgets('an icon states its own', (tester) async {
+      final surface = await pump(
+        tester,
+        const Icon3d(Icons.favorite, relief: TextRelief3d.flat),
+      );
+      expect(textIn(surface).relief, TextRelief3d.flat);
+    });
+
+    testWidgets('the theme states it for every label and icon below', (
+      tester,
+    ) async {
+      final controller = Layout3dController();
+      Future<void> pumpTheme(TextRelief3d? relief) => tester.pumpWidget(
+        Surface3d(
+          parent: Node(),
+          constraints: Constraints3d.loose(const Size3d(4, 3, 0.5)),
+          controller: controller,
+          child: Theme3d(
+            data: Theme3dData.light,
+            textRelief: relief,
+            child: const Row3d(
+              children: [Icon3d(Icons.favorite), Text3d('Save')],
+            ),
+          ),
+        ),
+      );
+      List<TextRelief3d> reliefs() {
+        final found = <TextRelief3d>[];
+        void walk(RenderObject3d box) {
+          if (box is RenderText3d) found.add(box.relief);
+          box.visitChildren(walk);
+        }
+
+        walk(controller.surface!.child!);
+        return found;
+      }
+
+      await pumpTheme(TextRelief3d.flat);
+      expect(reliefs(), [TextRelief3d.flat, TextRelief3d.flat]);
+
+      // Null installs nothing, which is what a theme said before it could
+      // say this at all.
+      await pumpTheme(null);
+      expect(reliefs(), [TextRelief3d.extruded, TextRelief3d.extruded]);
+    });
+
+    testWidgets('an icon\'s own beats the theme\'s', (tester) async {
+      final controller = Layout3dController();
+      await tester.pumpWidget(
+        Surface3d(
+          parent: Node(),
+          constraints: Constraints3d.loose(const Size3d(4, 3, 0.5)),
+          controller: controller,
+          child: Theme3d(
+            data: Theme3dData.light,
+            textRelief: TextRelief3d.flat,
+            child: const Icon3d(Icons.favorite, relief: TextRelief3d.extruded),
+          ),
+        ),
+      );
+      expect(textIn(controller.surface!).relief, TextRelief3d.extruded);
+    });
+  });
+
   group('TextStyle3d', () {
     testWidgets('resolves a token and a role into one style', (tester) async {
       late TextStyle seen;

@@ -1,5 +1,26 @@
 ## Unreleased
 
+- **Type can be painted on its surface instead of extruded.**
+  `TextRelief3d.flat` draws a label's letters as one face with no wall, on
+  the plane an extruded letter's back face occupies, so nothing in layout,
+  hit testing or semantics moves. It is a choice on the label rather than a
+  renderer: `Text3d.relief`, `RichText3d.relief`, `RenderText3d.relief` and
+  `RenderRichText3d.relief` state it, `DefaultTextRelief3d` states it once for
+  a subtree, and `Text3dRenderRequest.relief` hands it to the renderer, which
+  draws flat whatever depth it was built with. The default is still
+  `TextRelief3d.extruded`. A flat label is one draw where an extruded one is
+  three; on ten keycaps that was 41 draws and 5166 vertices against 21 and
+  426. It is what a keyboard's legends want, since the key is the object and
+  the letter is ink.
+
+- **A glyph atlas reads its pixels back only for a wall.** Tracing silhouettes
+  was the one readback left on the drawing path, and it ran on every flush
+  that pictured a glyph not yet traced, whether or not any label would build
+  a wall. `GlyphAtlas3d.requestOutlines` now turns tracing on, latched, and
+  `AtlasText3dRenderer` asks for it when it draws a label with a thickness.
+  An atlas that only flat labels draw from never reads back at all. One asked
+  late rasterizes once more to trace what it had already pictured.
+
 - **A scene can be drawn only when something changed.** `SceneRedraw3d` goes
   directly around a `SceneView(autoTick: false)` and draws a frame only when
   one is needed. A ticking view encodes the whole scene every vsync whether

@@ -585,8 +585,8 @@ own title looked like nothing.
 The silhouette has to come from somewhere, and `dart:ui` exposes no glyph
 outlines — there is no font parser here, and extruding one is the textbook
 answer this package cannot reach for. What it has instead is the raster: the
-atlas already reads its own pixels back on the way to the GPU, so the shape of
-the ink is sitting in a byte buffer. `traceGlyphOutline` walks that buffer's
+atlas reads its picture back once for every batch of glyphs it has not traced
+yet, so the shape of the ink is sitting in a byte buffer. `traceGlyphOutline` walks that buffer's
 boundary, links it into closed loops, and simplifies each one; the result is a
 `GlyphOutline3d` in logical pixels from the glyph's own cell, cached per
 grapheme and therefore untouched by a repack.
@@ -607,9 +607,13 @@ AtlasText3dRenderer()
 // component's own thickness scale.
 AtlasText3dRenderer(depth: 2.0)
 
-// Or turn it off, and get the single flat quad this renderer used to draw.
+// Or turn it off for everything this renderer draws, and get the single flat
+// quad it used to draw.
 AtlasText3dRenderer(depth: 0.0)
 ```
+
+That last one is the blunt instrument. To draw *some* type flat — the
+next section — say so on the label instead.
 
 What it costs, measured rather than estimated: about **18 wall segments a
 glyph** at UI sizes and 28 for a 24dp icon, so a 35-character line is roughly
@@ -625,6 +629,40 @@ its vertex colours — lit from the letter's own upper left, whichever way the
 panel is turned — because a wall that answered to the scene's lighting would
 go dark exactly where a turn makes it most visible, and type here is drawn
 unlit for that reason.
+
+### Or painted on
+
+The letter on a keycap is printed on the key and has no relief; the key is
+the object. A keyboard of extruded legends is eighty small walls nobody asked
+for, so a label can say it is painted on, and a subtree can say it once for
+everything in it:
+
+```dart
+// One label.
+Text3d('Esc', relief: TextRelief3d.flat)
+
+// Every Text3d, RichText3d and icon below — and only the type: the keys,
+// the cards and the panels keep their thickness.
+DefaultTextRelief3d(
+  relief: TextRelief3d.flat,
+  child: SceneView(scene, children: [Surface3d(child: keyboard)]),
+)
+```
+
+`TextRelief3d.flat` is a choice on the label, not a different renderer, so the
+renderer an application installed draws both: an extruded headline and flat
+legends from one `DefaultTextRenderer3d`. A label that states its own relief
+beats the inherited one, as a style does. A flat letter is drawn where the
+back face of an extruded one is — on the surface, lifted the same fifth of a
+logical pixel — so switching one for the other moves nothing but the wall,
+and layout, hit testing and semantics never see the difference.
+
+It is also the cheaper picture, by more than the geometry. A flat label is
+**one draw** where an extruded one is three: its face, its back face and its
+wall. And the atlas reads its pixels back only for a wall: an atlas no
+extruded label draws from never reads back at all, which on a slow device is
+the most expensive thing it used to do on the way to a texture.
+`docs/performance.md` has the figures.
 
 ### Type on a panel wants one more call
 

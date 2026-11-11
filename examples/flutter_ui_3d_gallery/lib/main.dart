@@ -25,15 +25,24 @@ Future<void> main() async {
   // that draws nothing into a panel on screen.
   await initializeMaterial3d();
   // `--dart-define=on_demand=true` draws the scene only when something
-  // changes. See `Gallery3d.onDemand`.
-  runApp(const Gallery3dApp(onDemand: bool.fromEnvironment('on_demand')));
+  // changes. See `Gallery3d.onDemand`. `--dart-define=flat_type=true` paints
+  // every label and icon on its surface. See `Gallery3d.flatType`.
+  runApp(
+    const Gallery3dApp(
+      onDemand: bool.fromEnvironment('on_demand'),
+      flatType: bool.fromEnvironment('flat_type'),
+    ),
+  );
 }
 
 class Gallery3dApp extends StatelessWidget {
-  const Gallery3dApp({super.key, this.onDemand = false});
+  const Gallery3dApp({super.key, this.onDemand = false, this.flatType = false});
 
   /// See `Gallery3d.onDemand`.
   final bool onDemand;
+
+  /// See `Gallery3d.flatType`.
+  final bool flatType;
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +55,7 @@ class Gallery3dApp extends StatelessWidget {
       // against black, and telling them apart is most of debugging a scene.
       home: Scaffold(
         backgroundColor: const Color(0xFF101820),
-        body: Gallery3d(onDemand: onDemand),
+        body: Gallery3d(onDemand: onDemand, flatType: flatType),
       ),
     );
   }

@@ -2593,6 +2593,109 @@ void main() {
     });
   });
 
+  group('the picture: type painted on', () {
+    testWidgets('a flat label draws no wall from a renderer that would', (
+      tester,
+    ) async {
+      final thick = await _draw(tester, kProbeScenes.byId('glyph_extrusion'));
+      final zero = await _draw(
+        tester,
+        kProbeScenes.byId('glyph_extrusion_flat'),
+      );
+      final flat = await _draw(tester, kProbeScenes.byId('glyph_relief_flat'));
+
+      // The letter drew: a relief that hid the face along with the wall
+      // would pass every comparison below with an empty frame.
+      expect(flat.frame.coverage, greaterThan(0.01));
+
+      // The same letter as a renderer with no depth at all draws, to within
+      // a few edge pixels of antialiasing...
+      expect(
+        (flat.frame.coverage - zero.frame.coverage).abs(),
+        lessThan(zero.frame.coverage * 0.03),
+        reason:
+            'a flat label covers ${flat.frame.coverage} of the frame and a '
+            'depth-zero one ${zero.frame.coverage}: the relief did not take '
+            'the wall away, or took more than the wall',
+      );
+      // ...and visibly less than the renderer draws when the label lets it
+      // extrude, so the two scenes above are still telling walls apart.
+      expect(
+        thick.frame.coverage,
+        greaterThan(flat.frame.coverage * 1.1),
+        reason: 'the extruded control drew no wall, so this proves nothing',
+      );
+    });
+
+    testWidgets('a flat label on a turned panel is not lost in it', (
+      tester,
+    ) async {
+      final capture = await _draw(
+        tester,
+        kProbeScenes.byId('flat_text_on_turned_panel'),
+      );
+
+      expect(
+        capture.frame.coverageAt(capture.centerOf('panel'), radius: 20),
+        greaterThan(0.95),
+        reason: 'the panel behind the label did not draw',
+      );
+      // Turned, a flat letter has no wall to show if its face lost the depth
+      // test to the slab it is painted on. The label's own colour at its
+      // centre is the face, and nothing else.
+      final panelColor = capture.frame.meanColorAt(
+        capture.pointOf('panel', const Offset3d(0.08, 0.5, 0)),
+        radius: 6,
+      )!;
+      final labelColor = capture.frame.meanColorAt(
+        capture.centerOf('label'),
+        radius: 30,
+      )!;
+      expect(
+        FrameProbe.colorDistance(panelColor, labelColor),
+        greaterThan(0.05),
+        reason:
+            'the flat label is the colour of the panel it is painted on, so '
+            'it sank into it: panel $panelColor, label $labelColor',
+      );
+    });
+
+    testWidgets('a keyboard\'s legends cost fewer draws painted on', (
+      tester,
+    ) async {
+      ({int draws, int vertices}) countsOf(_Capture capture) {
+        // The last frame that encoded anything: a paced frame has no views.
+        final frame = capture.state.scene.renderStats.history.lastWhere(
+          (frame) => frame.views.isNotEmpty,
+        );
+        return (draws: frame.counters.draws, vertices: frame.counters.vertices);
+      }
+
+      final extruded = countsOf(
+        await _draw(tester, kProbeScenes.byId('keycaps_extruded')),
+      );
+      final flat = countsOf(
+        await _draw(tester, kProbeScenes.byId('keycaps_flat')),
+      );
+      // The figures docs/performance.md quotes come from this line.
+      debugPrint(
+        'keycaps: extruded ${extruded.draws} draws, ${extruded.vertices} '
+        'vertices; flat ${flat.draws} draws, ${flat.vertices} vertices',
+      );
+
+      // Ten legends, and an extruded one is its face, its back face and its
+      // wall: two draws more than a flat one, each.
+      expect(
+        extruded.draws - flat.draws,
+        20,
+        reason:
+            'extruded ${extruded.draws} draws against flat ${flat.draws}: a '
+            'flat legend should be one draw where an extruded one is three',
+      );
+      expect(flat.vertices, lessThan(extruded.vertices));
+    });
+  });
+
   group('a picture on a panel', () {
     // Which colour is where, always. A picture drawn mirrored, or a gradient
     // running the wrong way, satisfies every claim of the form "these two

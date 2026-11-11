@@ -3103,6 +3103,119 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       );
     }, minCoverage: 0.01),
 
+  // ── A letter painted on ──────────────────────────────────────────────
+  //
+  // `TextRelief3d.flat` asks for no wall on the *label*, so one renderer
+  // with its ordinary thickness serves a slab's labels and a keyboard's
+  // legends alike. The claim is the pair above read once more: the same
+  // letter, the same turn, a renderer that would extrude it, and the label
+  // saying flat. It has to come out as the depth-zero letter does, and not
+  // as the thick one.
+  ProbeScene('glyph_relief_flat', () {
+    final letter = RenderText3d(
+      'H',
+      style: const TextStyle(fontSize: 200, color: _panelBorder),
+      // No depth stated: this renderer would draw a wall a tenth of the em
+      // deep, and only the label's relief says otherwise.
+      renderer: AtlasText3dRenderer(),
+      relief: TextRelief3d.flat,
+      name: 'letter',
+    );
+    final surface = RenderSurface3d(
+      constraints: Constraints3d.tight(const Size3d(3.6, 2.4, 0.6)),
+      child: RenderCenter3d(child: letter),
+    );
+    surface.plane.rotation = Quaternion.axisAngle(Vector3(0, 1, 0), 0.55);
+    return ProbeSceneContent(surfaces: [surface], probes: {'letter': letter});
+  }, minCoverage: 0.01),
+
+  // A flat label on the face of a slab, turned. `text_on_panel` is the
+  // face-on case, where a label that sank into its panel and one that sat on
+  // it are told apart by colour alone. Turned, a flat letter has no wall to
+  // stand in for its face: if it lost the depth test against the slab it was
+  // painted on, nothing of it would be left.
+  ProbeScene('flat_text_on_turned_panel', () {
+    final label = RenderText3d(
+      'OK',
+      style: _labelStyle,
+      renderer: AtlasText3dRenderer(),
+      relief: TextRelief3d.flat,
+      name: 'label',
+    );
+    final panel = RenderDecoratedBox3d(
+      decoration: const BoxDecoration3d(
+        color: Color(0xFF26B3A8),
+        borderRadius: BorderRadius3d.circular(40),
+      ),
+      name: 'panel',
+      child: RenderAlign3d(alignment: Alignment3d.frontCenter, child: label),
+    );
+    final surface = RenderSurface3d(
+      constraints: Constraints3d.tight(const Size3d(3.6, 1.8, 0.2)),
+      child: panel,
+    );
+    surface.plane.rotation = Quaternion.axisAngle(Vector3(0, 1, 0), 0.55);
+    return ProbeSceneContent(
+      surfaces: [surface],
+      probes: {'panel': panel, 'label': label},
+    );
+  }, preload: installPanelPainter),
+
+  // ── What the relief costs ────────────────────────────────────────────
+  //
+  // A row of ten keycaps, each a decorated slab with its legend on the face:
+  // the shape of screen the choice was made for. The two scenes differ only
+  // in the legends' relief, so the difference in what the engine counted is
+  // what extruding them costs. The test reads it out of `Scene.renderStats`.
+  for (final (id, relief) in <(String, TextRelief3d)>[
+    ('keycaps_extruded', TextRelief3d.extruded),
+    ('keycaps_flat', TextRelief3d.flat),
+  ])
+    ProbeScene(id, () {
+      final keys = <RenderObject3d>[
+        for (final legend in 'QWERTYUIOP'.split(''))
+          RenderPadding3d(
+            padding: const EdgeInsets3d.all(0.03),
+            child: RenderSizedBox3d(
+              width: 0.4,
+              height: 0.4,
+              depth: 0.12,
+              child: RenderDecoratedBox3d(
+                decoration: const BoxDecoration3d(
+                  color: Color(0xFF3A3F47),
+                  borderRadius: BorderRadius3d.circular(12),
+                ),
+                child: RenderAlign3d(
+                  alignment: Alignment3d.frontCenter,
+                  child: RenderText3d(
+                    legend,
+                    style: const TextStyle(
+                      fontSize: 40,
+                      color: Color(0xFFEA9F26),
+                    ),
+                    renderer: AtlasText3dRenderer(),
+                    relief: relief,
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ];
+      final row = RenderRow3d(
+        mainAxisAlignment: MainAxisAlignment3d.center,
+        crossAxisAlignment: CrossAxisAlignment3d.center,
+        children: keys,
+        name: 'row',
+      );
+      final surface = RenderSurface3d(
+        constraints: Constraints3d.tight(const Size3d(4.8, 1.0, 0.2)),
+        child: row,
+      );
+      // Turned, so the walls are on screen and not edge-on to the camera.
+      surface.plane.rotation = Quaternion.axisAngle(Vector3(0, 1, 0), 0.4);
+      return ProbeSceneContent(surfaces: [surface], probes: {'row': row});
+    }, preload: installPanelPainter),
+
   // ── A picture on a panel ─────────────────────────────────────────────
   //
   // The picture is drawn *by the panel shader*, so these scenes are asking

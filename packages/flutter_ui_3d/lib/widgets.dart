@@ -228,7 +228,12 @@ export 'src/text/text_measurement.dart'
         SegmentedTextMeasurement3d,
         TextMeasurement3d;
 export 'src/text/text_renderer.dart'
-    show Text3dRenderRequest, Text3dRenderer, Text3dRendererFactory;
+    show
+        Text3dRenderRequest,
+        Text3dRenderer,
+        Text3dRendererFactory,
+        TextRelief3d;
+export 'src/widgets/default_text_relief.dart' show DefaultTextRelief3d;
 export 'src/widgets/default_text_renderer.dart' show DefaultTextRenderer3d;
 export 'src/widgets/drag.dart' show Dismissible3d, DragTarget3d, Draggable3d;
 export 'src/widgets/framework.dart'
