@@ -1,8 +1,8 @@
 ---
 status: in progress
-reason: steps 1 and 2 are done; render on demand (step 3) and the draw count (step 4) are open, and the upstream proposal on pacing (step 5) is written and waits on the user opening it
+reason: steps 1 to 3 are done; the draw count (step 4) is open, and the upstream proposal on pacing (step 5) is written and waits on the user opening it
 created_at: 2026-11-11T20:23:25Z
-updated_at: 2026-11-11T21:14:12Z
+updated_at: 2026-11-11T21:37:39Z
 commit: 14ee12ae09764a691516c4af4edbca4b93cac75d
 ---
 
@@ -154,7 +154,13 @@ the engine, not of this package, so they are documentation:
 and how to measure an application of one's own. A helper that set them would
 hide three trade-offs behind one call.
 
-### D3. Render on demand (open)
+### D3. Render on demand
+
+**Decided in its own plan**,
+[draw the scene only when it changes](2026_11_11_draw_the_scene_only_when_it_changes.md):
+a `SceneRedraw3d` around a `SceneView(autoTick: false)`. What follows is the
+reasoning as it stood before that plan, and its last sentence turned out to
+be wrong (see below).
 
 F4 is the one finding that needs design. `SceneView` can stop ticking
 (`autoTick: false`), but then it repaints only when it is rebuilt, and nothing
@@ -199,6 +205,14 @@ in flight, and the palette reached the screen exactly.
   linear", and the probe checks both halves and that the default curve still
   moves a colour.
 
+- **"Nothing in this package can ask it to" repaint was wrong.** D3 read
+  `SceneView`'s dartdoc, which says a view that does not tick repaints when
+  it is rebuilt, and concluded that a redraw needed a rebuild. The view
+  paints through a `CustomPainter` with no repaint boundary of its own, so
+  repainting any layer it sits in repaints the scene. A widget around it can
+  redraw it without rebuilding anything. That is the whole mechanism step 3
+  uses.
+
 ## Steps
 
 1. [x] **An unlit panel material.** `assets/box_decoration3d_unlit.fmat`,
@@ -220,7 +234,9 @@ in flight, and the palette reached the screen exactly.
    order they paid here, and the trade-off of each. *Done when* an
    application can be configured from that page alone, with the numbers
    above.
-3. [ ] **Render on demand (F4, D3).** Design the signal a surface raises when
+3. [x] **Render on demand (F4, D3).** Done in
+   [draw the scene only when it changes](2026_11_11_draw_the_scene_only_when_it_changes.md),
+   which has the measurement and what is left to the application. Design the signal a surface raises when
    its subtree changes what it draws, and a way for an application to stop
    ticking `SceneView` while nothing does. *Done when* an idle keyboard
    encodes no frames, and a key press, an animation and a label arriving

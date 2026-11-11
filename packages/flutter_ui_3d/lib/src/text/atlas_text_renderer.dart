@@ -4,6 +4,7 @@ import 'package:flutter_scene/scene.dart'
 import 'package:vector_math/vector_math.dart'
     show Matrix4, Vector2, Vector3, Vector4;
 
+import '../scene_redraw.dart';
 import 'glyph_atlas.dart';
 import 'glyph_material.dart';
 import 'text_geometry.dart';
@@ -484,6 +485,7 @@ class AtlasText3dRenderer extends Text3dRenderer {
         _outlineRevision = -1;
         _layout = null;
         _detach();
+        requestSceneRedraw3d();
         return;
       }
       // Baking our glyphs can reserve one the atlas does not have, which
@@ -522,9 +524,14 @@ class AtlasText3dRenderer extends Text3dRenderer {
       // texture is current and returns the in-flight future otherwise, so
       // saying it here costs nothing and makes the invariant local.
       atlas.flush();
+      // Nothing above went through a layout, so nothing has asked for the
+      // frame that draws it. A scene drawn on demand would keep the old
+      // letters until something else moved. See `SceneRedraw3d`.
+      requestSceneRedraw3d();
       return;
     }
     _publish();
+    requestSceneRedraw3d();
   }
 
   @override

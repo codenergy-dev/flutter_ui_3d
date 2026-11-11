@@ -1,6 +1,8 @@
+import 'dart:async' show Timer;
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart' show Ticker;
 import 'package:flutter/semantics.dart' show SemanticsProperties;
 import 'package:flutter_scene/scene.dart'
     show
@@ -24,6 +26,7 @@ import 'package:flutter_ui_3d/widgets.dart'
         ListView3d,
         NodeBox3d,
         Overlay3d,
+        SceneRedraw3d,
         Semantics3d,
         SizedBox3d;
 import 'package:material_ui_3d/material_ui_3d.dart';
@@ -47,13 +50,23 @@ import 'screens.dart';
 /// deliberately *not* Material: the same protocol arranges an application's
 /// own geometry, and having both in one frame is what says so.
 class Gallery3d extends StatefulWidget {
-  const Gallery3d({super.key});
+  const Gallery3d({super.key, this.onDemand = false});
+
+  /// Whether the scene is drawn only when something changes, under a
+  /// `SceneRedraw3d`, rather than on every vsync.
+  ///
+  /// A gallery that is always moving cannot show that, so on demand it holds
+  /// still except for three seconds, starting three seconds after it opens:
+  /// long enough to watch the panel turn and the list sweep, and then nothing
+  /// is drawn until something changes again.
+  final bool onDemand;
 
   @override
   State<Gallery3d> createState() => _Gallery3dState();
 }
 
-class _Gallery3dState extends State<Gallery3d> {
+class _Gallery3dState extends State<Gallery3d>
+    with SingleTickerProviderStateMixin {
   final Scene scene = Scene();
 
   /// Where the whole gallery is looked at from.
@@ -121,16 +134,73 @@ class _Gallery3dState extends State<Gallery3d> {
 
   double _time = 0.0;
 
+  /// On demand, the clock the panel turns and the list sweeps by, which runs
+  /// only for a while at a time. A `Ticker`, so `SceneRedraw3d` follows it
+  /// and draws every frame it runs without being told.
+  late final Ticker _motion = createTicker(_onMotion);
+  Duration _motionOrigin = Duration.zero;
+  double _timeAtMotionStart = 0.0;
+  Timer? _motionStop;
+
   @override
   void initState() {
     super.initState();
     scene.add(_panelPivot);
+    _advance(0.0);
+    if (widget.onDemand) {
+      // Still for the first seconds, so the labels arriving from the glyph
+      // atlas have nothing else drawing them; then a while of movement.
+      _motionStop = Timer(const Duration(seconds: 3), _move);
+    }
   }
 
   @override
   void dispose() {
+    _motionStop?.cancel();
+    _motion.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  /// Turns the panel and sweeps the list for a few seconds, then stops.
+  void _move() {
+    if (!mounted) return;
+    _motionStop?.cancel();
+    if (!_motion.isActive) {
+      _timeAtMotionStart = _time;
+      _motionOrigin = Duration.zero;
+      _motion.start();
+    }
+    _motionStop = Timer(const Duration(seconds: 3), () {
+      if (mounted) _motion.stop();
+    });
+  }
+
+  void _onMotion(Duration elapsed) {
+    _motionOrigin = elapsed;
+    _advance(_timeAtMotionStart + _motionOrigin.inMicroseconds / 1e6);
+  }
+
+  /// Puts the panel and the list where [time] says, in seconds.
+  void _advance(double time) {
+    _time = time;
+
+    // Turning the pivot carries the whole screen laid out on it, and
+    // relayouts nothing.
+    _panelPivot
+      ..position = vm.Vector3(1.4, 2.4, -0.3)
+      ..rotation = vm.Quaternion.axisAngle(
+        vm.Vector3(0, 1, 0),
+        math.sin(_time * 0.35) * 0.13,
+      );
+
+    // The mesh list scrolls itself until someone takes hold of it, so
+    // there is movement before anything is touched and the position is
+    // handed to the drag for good afterwards.
+    if (!_scrolledByHand) {
+      final sweep = (math.sin(_time * 0.5) + 1) / 2;
+      _scroll.jumpTo(_scroll.maxScrollExtent * sweep);
+    }
   }
 
   Node _piece(Geometry geometry, vm.Vector4 color, {double metallic = 0.0}) {
@@ -214,9 +284,15 @@ class _Gallery3dState extends State<Gallery3d> {
   }
 
   Widget _buildScene() {
-    return SceneView(
+    final view = SceneView(
       scene,
       camera: camera,
+      // Ticking, the view's own clock moves everything. On demand it has no
+      // clock, and `_motion` does the same work for a while at a time.
+      autoTick: !widget.onDemand,
+      onTick: widget.onDemand
+          ? null
+          : (elapsed, deltaSeconds) => _advance(elapsed.inMicroseconds / 1e6),
       children: [
         // The upright screen. It hangs from a pivot node this state owns and
         // turns, so the surface widget declares no rotation of its own: the
@@ -291,27 +367,8 @@ class _Gallery3dState extends State<Gallery3d> {
           ),
         ),
       ],
-      onTick: (elapsed, deltaSeconds) {
-        _time = elapsed.inMicroseconds / 1e6;
-
-        // Turning the pivot carries the whole screen laid out on it, and
-        // relayouts nothing.
-        _panelPivot
-          ..position = vm.Vector3(1.4, 2.4, -0.3)
-          ..rotation = vm.Quaternion.axisAngle(
-            vm.Vector3(0, 1, 0),
-            math.sin(_time * 0.35) * 0.13,
-          );
-
-        // The mesh list scrolls itself until someone takes hold of it, so
-        // there is movement before anything is touched and the position is
-        // handed to the drag for good afterwards.
-        if (!_scrolledByHand) {
-          final sweep = (math.sin(_time * 0.5) + 1) / 2;
-          _scroll.jumpTo(_scroll.maxScrollExtent * sweep);
-        }
-      },
     );
+    return widget.onDemand ? SceneRedraw3d(child: view) : view;
   }
 
   /// The two halves of Material setup that are widgets rather than the one

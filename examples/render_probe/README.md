@@ -320,6 +320,27 @@ churn, `Texture.fromImage`, a window resize, a second offscreen render running
 alongside, a layout surface. None of them reproduces anything on its own, which
 is most of what the round learned, and keeping them costs one file.
 
+**When the question is whether a scene drawn on demand still updates**, the
+fifth entry point runs the gallery under `SceneRedraw3d`:
+
+```sh
+flutter run --profile -d macos --enable-flutter-gpu -t lib/main_on_demand.dart
+```
+
+On demand, the gallery holds still except for three seconds of movement
+early on. The script photographs:
+- the panel turning;
+- the About dialog a second and a half after it opened, when only the glyph
+  atlas arriving can be what draws its letters;
+- the list scrolled;
+- the sort sheet arrived.
+
+It logs frames a second and the UI thread's milliseconds over five seconds
+of nothing happening. `--dart-define=on_demand=false` runs the same script
+with the view ticking, which is the number to compare against. A missed
+redraw is a frame that stays on the screen, and nothing but the photographs
+reports it, so open them.
+
 **Photograph the application, not a widget of it.** The first run of this
 harness wrapped the gallery's *screen* widget in a `MaterialApp` of its own
 rather than running `Gallery3dApp`, and every glyph in every atlas came

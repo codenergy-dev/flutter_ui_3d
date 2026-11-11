@@ -136,6 +136,19 @@ reaches this: `flutter drive` pumps frames slowly enough for the readback to
 land between them, so the window never opens there, and a render probe that
 asserted it would be asserting a race.
 
+And one for drawing on demand:
+
+```sh
+flutter run -d macos --enable-flutter-gpu --dart-define=on_demand=true
+```
+
+That puts the view under `SceneRedraw3d` with its ticking off, so the scene
+is drawn only when something changes. A gallery that is always moving would
+never be still, so on demand it turns the panel and sweeps the list for
+three seconds, starting three seconds after it opens, and then stops. After
+that, nothing is drawn until you touch it. `lib/main_on_demand.dart` in
+`examples/render_probe` drives and measures exactly that.
+
 `flutter create` writes more than the platform directory — a `.metadata`, an
 `analysis_options.yaml` the repository root already provides, a `.gitignore`,
 and a `widget_test.dart` stub for a `MyApp` this app does not have. All of it

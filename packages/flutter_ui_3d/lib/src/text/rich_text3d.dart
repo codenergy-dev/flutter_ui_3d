@@ -715,6 +715,9 @@ class RenderRichText3d extends RenderObject3d {
     _wallSegments = segments;
     _builtWall = -1;
     _syncQuad();
+    // The wall arrived after the frame that laid this paragraph out, and
+    // swapping the mesh is not layout, so ask for the frame that draws it.
+    owner?.requestVisualUpdate();
   }
 
   /// Builds or resizes the quad and its wall, once there is a capture to

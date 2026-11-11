@@ -33,6 +33,7 @@ import '../view.dart';
 import 'framework.dart';
 import 'input.dart';
 import 'media_query.dart';
+import 'scene_redraw.dart';
 
 /// Imperative access to the [RenderSurface3d] a [Surface3d] owns.
 ///
@@ -323,6 +324,10 @@ class _Surface3dState extends State<Surface3d> {
   /// in front of the camera.
   ValueListenable<Duration>? _frames;
 
+  /// The frames a [SceneRedraw3d] above draws, when the view is drawn on
+  /// demand and its own clock does not move.
+  ValueListenable<int>? _redrawFrames;
+
   bool _bindingUpdateScheduled = false;
 
   @override
@@ -439,6 +444,16 @@ class _Surface3dState extends State<Surface3d> {
     // The ambient camera may have changed with the host, and a binding reads
     // it, so ask for a run whether or not the scene's clock moved.
     _scheduleBindingUpdate();
+    // A view drawn on demand does not tick, so its clock stands still; the
+    // frames it does draw are counted by the SceneRedraw3d around it instead,
+    // and a binding is re-applied on those. A ticking view under one does
+    // both, which applies a binding twice in a frame and changes nothing.
+    final redrawFrames = SceneRedraw3d.maybeOf(context)?.frames;
+    if (!identical(redrawFrames, _redrawFrames)) {
+      _redrawFrames?.removeListener(_applyBinding);
+      _redrawFrames = redrawFrames;
+      redrawFrames?.addListener(_applyBinding);
+    }
     final frames = SceneScope.maybeOf(context)?.elapsed;
     if (identical(frames, _frames)) return;
     _frames?.removeListener(_applyBinding);
@@ -496,6 +511,7 @@ class _Surface3dState extends State<Surface3d> {
   void dispose() {
     _input?.unregisterSurface(_surface);
     _frames?.removeListener(_applyBinding);
+    _redrawFrames?.removeListener(_applyBinding);
     _surface.metricsListenable.removeListener(_handleMetricsChanged);
     if (identical(widget.controller?._surface, _surface)) {
       widget.controller?._surface = null;

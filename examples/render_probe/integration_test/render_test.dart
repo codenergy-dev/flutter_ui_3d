@@ -20,13 +20,17 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_scene/scene.dart' show Scene;
+import 'package:flutter_scene/scene.dart'
+    show CuboidGeometry, Mesh, Node, PhysicallyBasedMaterial, Scene, SceneView;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart';
+import 'package:flutter_ui_3d/widgets.dart'
+    show SceneRedraw3d, SceneRedraw3dController;
 import 'package:integration_test/integration_test.dart';
 import 'package:render_probe/frame_probe.dart';
 import 'package:render_probe/probe_scene.dart';
 import 'package:render_probe/probe_scenes.dart';
+import 'package:vector_math/vector_math.dart' show Vector3, Vector4;
 
 /// Draws [probe] and captures the frame.
 ///
@@ -2859,6 +2863,106 @@ void main() {
       expectInkOnlyIn(
         await _draw(tester, kProbeScenes.byId('arc_turned')),
         'top right',
+      );
+    });
+  });
+  group('a scene drawn on demand', () {
+    // The claim `SceneRedraw3d` rests on, and the one thing about it no
+    // headless test can make: that repainting its layer repaints the
+    // `SceneView` inside it. A `flutter_scene` that put a repaint boundary of
+    // its own between the two would cut it off silently, and this is what
+    // would say so.
+    testWidgets('draws when asked, and not before', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(backgroundColor: kProbeClear, body: SizedBox.expand()),
+        ),
+      );
+      await tester.pump();
+      await Scene.initializeStaticResources();
+
+      const viewSize = ui.Size(640, 480);
+      final scene = Scene();
+      final cube = Node(
+        mesh: Mesh(
+          CuboidGeometry(Vector3.all(1)),
+          PhysicallyBasedMaterial()
+            ..baseColorFactor = Vector4(0.9, 0.6, 0.2, 1.0),
+        ),
+      )..position = Vector3(-1.5, 0, 0);
+      scene.add(cube);
+      final redraw = SceneRedraw3dController();
+      final boundary = GlobalKey();
+      await tester.pumpWidget(
+        MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: Scaffold(
+            backgroundColor: kProbeClear,
+            body: Center(
+              child: RepaintBoundary(
+                key: boundary,
+                child: SizedBox.fromSize(
+                  size: viewSize,
+                  child: ColoredBox(
+                    color: kProbeClear,
+                    child: SceneRedraw3d(
+                      controller: redraw,
+                      child: SceneView(
+                        scene,
+                        camera: ProbeScene.defaultCamera(),
+                        autoTick: false,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      Future<void> frames() async {
+        for (var i = 0; i < 10; i++) {
+          await tester.pump(const Duration(milliseconds: 50));
+          await Future<void>.delayed(const Duration(milliseconds: 30));
+        }
+      }
+
+      Future<double> centroid() async {
+        final image =
+            await (boundary.currentContext!.findRenderObject()!
+                    as RenderRepaintBoundary)
+                .toImage(pixelRatio: 1.0);
+        final x = (await FrameProbe.fromImage(
+          image,
+        )).centroidXIn(ui.Offset.zero & viewSize);
+        expect(x, isNotNull, reason: 'the cube drew nothing at all');
+        return x!;
+      }
+
+      await frames();
+      // The engine's camera puts +x on the viewer's left, so a cube at
+      // negative x is drawn on the right of the frame.
+      expect(await centroid(), greaterThan(viewSize.width / 2));
+
+      // Moved outside any frame, and nobody told: nothing redraws it.
+      cube.position = Vector3(1.5, 0, 0);
+      final drawn = redraw.redrawCount;
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      expect(redraw.redrawCount, drawn);
+      expect(
+        await centroid(),
+        greaterThan(viewSize.width / 2),
+        reason: 'the old frame stands until something asks for a new one',
+      );
+
+      redraw.requestRedraw();
+      await frames();
+      expect(redraw.redrawCount, greaterThan(drawn));
+      expect(
+        await centroid(),
+        lessThan(viewSize.width / 2),
+        reason: 'repainting the scope repaints the view inside it',
       );
     });
   });

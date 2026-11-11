@@ -2,7 +2,7 @@
 status: in progress
 reason: five of the seventeen items are open; the motion lane is closed and so is the colour generator, so what is left is the catalogue batch — planned in seven phases, five landed — more than one screen, more than one language, and the letter someone can type with the keyboard controls behind it
 created_at: 2026-09-11T21:20:18Z
-updated_at: 2026-11-11T21:14:12Z
+updated_at: 2026-11-11T21:37:50Z
 commit: abc2469ce5c4ec4c41e2738fc5acf55bcf40640a
 ---
 
@@ -127,8 +127,10 @@ measurements.
 Nor is
 [a frame a small GPU can afford](2026_11_11_a_frame_a_small_gpu_can_afford.md),
 in progress: the same application measured on its tablet and phone, unlit
-panels and a page of engine settings done, and drawing only when something
-changed still open. Its pacing finding is proposed to the engine in
+panels, a page of engine settings and
+[drawing the scene only when it changes](2026_11_11_draw_the_scene_only_when_it_changes.md)
+done, and the draw count still open. Its pacing finding is proposed to the
+engine in
 [two GPU frames in flight, proposed upstream](2026_11_11_two_gpu_frames_in_flight_proposed_upstream.md),
 blocked on `flutter_scene`'s maintainer.
 

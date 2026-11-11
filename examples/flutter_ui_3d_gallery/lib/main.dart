@@ -24,11 +24,16 @@ Future<void> main() async {
   // panel painter, which is what turns a `BoxDecoration3d` from arithmetic
   // that draws nothing into a panel on screen.
   await initializeMaterial3d();
-  runApp(const Gallery3dApp());
+  // `--dart-define=on_demand=true` draws the scene only when something
+  // changes. See `Gallery3d.onDemand`.
+  runApp(const Gallery3dApp(onDemand: bool.fromEnvironment('on_demand')));
 }
 
 class Gallery3dApp extends StatelessWidget {
-  const Gallery3dApp({super.key});
+  const Gallery3dApp({super.key, this.onDemand = false});
+
+  /// See `Gallery3d.onDemand`.
+  final bool onDemand;
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +44,9 @@ class Gallery3dApp extends StatelessWidget {
       // The backdrop the scene is drawn over. Deliberately not black:
       // "nothing was drawn" and "something dark was drawn" look identical
       // against black, and telling them apart is most of debugging a scene.
-      home: const Scaffold(
-        backgroundColor: Color(0xFF101820),
-        body: Gallery3d(),
+      home: Scaffold(
+        backgroundColor: const Color(0xFF101820),
+        body: Gallery3d(onDemand: onDemand),
       ),
     );
   }

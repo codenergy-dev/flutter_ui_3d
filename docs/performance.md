@@ -8,7 +8,9 @@ what each one costs. The measurements and the reasoning are in
 [a frame a small GPU can afford](../packages/flutter_ui_3d/plans/2026_11_11_a_frame_a_small_gpu_can_afford.md).
 
 The short version: the tablet went from **2 new images a second to 40**, with
-three settings and no change to the application's screens.
+three settings and no change to the application's screens. A fourth,
+drawing only when something changed, stops it encoding a still screen at
+all.
 
 ## Read the right number
 
@@ -57,7 +59,8 @@ changes above it:
 | `renderScale = 0.75` | 40 | 45 |
 
 At that point neither device was waiting on its GPU. Both were waiting on the
-UI thread. That is the open problem at the end of this page.
+UI thread re-encoding a scene that had not changed, which step 4 below
+removes.
 
 ### Know which backend Impeller chose
 
@@ -179,20 +182,54 @@ Changing it reallocates the view's render target, so set it once rather than
 animating it. `scene.renderQuality.adaptive = true` lowers it by itself when
 frames run long; that was not measured here.
 
+### 4. Draw only when something changed
+
+`SceneView` ticks by default: it encodes the whole scene on every vsync,
+idle or not. Encoding the keyboard's 433 draw calls took about 12ms of UI
+thread a frame on the tablet, with nothing on the screen changing. That was
+the limit both devices reached in the table above, and it heats the device.
+On the tablet's Vulkan backend, with pacing off, a cool run drew 60 new
+images a second at 0.75. After about forty seconds the CPU clocked down, the
+same work took 19ms, and 60 became 32. The phone's display runs at 90Hz, and
+13ms does not fit in 11.1ms, so it settles at 45.
+
+`SceneRedraw3d` stops the ticking and draws a frame only when one is needed:
+
+```dart
+SceneRedraw3d(
+  child: SceneView(scene, camera: camera, autoTick: false, children: [...]),
+)
+```
+
+While nothing happens it draws nothing. Flutter schedules no frames, so the
+UI thread, the raster thread and the GPU all go quiet. The gallery in a
+profile build on a Mac, left alone for five seconds:
+
+| | Frames a second | UI thread a second |
+| --- | --- | --- |
+| Ticking | 60 | 217ms (3.6ms a frame) |
+| `SceneRedraw3d` | 0 | 0ms |
+
+That was not measured on the tablet. There, the ticking side of the same
+table is about 12ms a frame, so the saving is larger, and so is the heat it
+no longer makes.
+
+A press, a scroll, an animation, a label arriving from the glyph atlas and
+any running ticker still draw, at full rate, with nothing wired. What needs a
+call is a change made outside any frame, such as a node moved from a timer;
+see *Drawn on demand, a change made outside a frame is not drawn* in
+[traps.md](traps.md). The view's `onTick` stops with its ticker, so per-frame
+work moves to an `AnimationController` of the application's own.
+
+This changes nothing about a frame that *is* drawn: an interaction still
+costs what it cost. It removes the frames nobody was looking at, which on a
+screen that is mostly still is most of them. The design and the reasoning
+are in
+[draw the scene only when it changes](../packages/flutter_ui_3d/plans/2026_11_11_draw_the_scene_only_when_it_changes.md).
+
 ## What is not solved yet
 
-**The scene is redrawn every vsync, even when nothing changed.** `SceneView`
-ticks by default, and encoding the keyboard's 433 draw calls took about 12ms
-of UI thread a frame on the tablet, idle or not. That is the limit both
-devices reached above. It also heats the device. On the tablet's Vulkan
-backend, with pacing off, a cool run drew 60 new images a second at 0.75.
-After about forty seconds the CPU clocked down, the same work took 19ms, and
-60 became 32. The
-phone's display runs at 90Hz, and 13ms does not fit in 11.1ms, so it settles
-at 45. The fix is to draw only when something changed. That needs a signal
-from the layout tree, which does not exist yet. It is step 3 of the plan
-above.
-
 **433 draws is about five per key**, none of them merged, because the engine
-batches only opaque draws. Fewer draws means less encoding per frame. That is
-step 4.
+batches only opaque draws. Fewer draws make every frame that is drawn
+cheaper, which is what an interaction costs. That is step 4 of
+[a frame a small GPU can afford](../packages/flutter_ui_3d/plans/2026_11_11_a_frame_a_small_gpu_can_afford.md).

@@ -316,5 +316,7 @@ export 'src/widgets/layouts.dart'
         Viewport3d,
         Visibility3d,
         Wrap3d;
+export 'src/widgets/scene_redraw.dart'
+    show SceneRedraw3d, SceneRedraw3dController, SceneRedrawScope3d;
 export 'src/widgets/surface.dart'
     show Layout3dController, Layout3dMetricsScope, Surface3d;

@@ -1,5 +1,25 @@
 ## Unreleased
 
+- **A scene can be drawn only when something changed.** `SceneRedraw3d` goes
+  directly around a `SceneView(autoTick: false)` and draws a frame only when
+  one is needed. A ticking view encodes the whole scene every vsync whether
+  or not anything moved. On an Android tablet that was about 12ms of UI
+  thread a frame on an idle screen, and enough heat that the same work later
+  took 19ms. These ask for a frame without any wiring:
+  - a layout, scroll, animation, decoration, focus change or overlay in a
+    layout tree below it;
+  - a glyph atlas or a paragraph's wall arriving after its layout;
+  - any Flutter frame that did not draw the scene;
+  - any running `Ticker`.
+
+  A change made outside any frame, such as a node moved from a timer, asks
+  with `SceneRedraw3d.request(context)`, a `SceneRedraw3dController`, or
+  `SceneRedraw3d.requestAll()`. `Surface3d` re-applies its camera binding on
+  the frames the scope draws, since the view's own clock no longer moves. The
+  view's `onTick` and `cameraBuilder` stop with its ticker. Their work moves
+  to a ticker of the application's own, which the scope follows.
+  `docs/performance.md` has the measurement.
+
 - **Panels can be drawn unlit, and on a small GPU that is most of the frame.**
   `PanelShading3d` names the two compiled panel shaders the package now ships:
   `lit`, the one there has always been, and `unlit`, the same shader drawing

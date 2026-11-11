@@ -1425,6 +1425,56 @@ hand-written transform needs. Anything below the root — a measured size, a
 scroll position — is reached by keeping a reference to the object itself (a
 `Scroll3dController` you passed in, say), not through the controller.
 
+### Drawing only when something changed
+
+A `SceneView` ticks by default: it encodes the whole scene on every vsync,
+whether anything moved or not. On a desktop that costs nothing anyone
+notices. On an inexpensive Android tablet a screen-filling interface of a few
+hundred draw calls took about 12ms of the UI thread a frame that way, while
+nobody touched it, and the device warmed up until the same work took 19ms.
+`SceneRedraw3d` stops that:
+
+```dart
+SceneRedraw3d(
+  child: SceneView(
+    scene,
+    camera: camera,
+    autoTick: false,
+    children: [Surface3d(child: const KeyboardScreen())],
+  ),
+)
+```
+
+It goes **directly** around the view, with the view's ticking off. It draws
+a frame when one is needed, and needed covers more than it sounds:
+- anything a layout tree below it does, in the frame it happens: a layout, a
+  scroll, a box animating, a decoration or focus changing, an overlay
+  arriving;
+- a glyph atlas or a paragraph's wall arriving up to a second later;
+- any Flutter frame that did not draw the scene, so a rebuild that moved a
+  `Surface3d` is drawn on the next frame;
+- every frame a `Ticker` runs, so an `AnimationController` turning the camera
+  draws at full rate without being wired to anything.
+
+While nothing happens, Flutter schedules no frames and the scene is not
+encoded at all.
+
+What it cannot see is a change made **outside any frame**: a node moved from
+a timer or a stream. Ask for that one:
+
+```dart
+pointer.position = next;
+SceneRedraw3d.request(context); // or a SceneRedraw3dController
+```
+
+The view's `onTick` and `cameraBuilder` stop with its ticker. Move that work
+to an `AnimationController` of your own; the scope follows it. A camera
+binding on a `Surface3d` is re-applied on every frame the scope draws. The
+reasoning, and what was measured, is in
+[draw the scene only when it changes](plans/2026_11_11_draw_the_scene_only_when_it_changes.md),
+and the traps are in *Drawn on demand, a change made outside a frame is not
+drawn* in [docs/traps.md](../../docs/traps.md).
+
 ### Why the names carry a suffix, and sometimes a prefix
 
 `Column3d` and `RenderColumn3d` are not two names for one thing. They are the

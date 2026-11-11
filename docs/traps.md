@@ -785,6 +785,43 @@ opaque wall stays at full strength, and a 30% label reads as a hollow outline
 of itself. That was photographed; see
 `packages/flutter_ui_3d/plans/2026_09_16_a_box_that_fades.md`.
 
+### Drawn on demand, a change made outside a frame is not drawn
+
+**Under `SceneRedraw3d` the scene is drawn only when something asks.** The
+widget hears about almost every change without being told:
+- anything in a layout tree;
+- a glyph atlas arriving;
+- any Flutter frame that did not draw the scene;
+- any running `Ticker`.
+
+What it cannot hear is a node moved, a camera turned or a material changed
+by code that runs outside a frame: a timer, a stream listener, the callback
+of a future. That change sits in the scene graph, and the screen keeps the
+last frame until something else happens to draw. On a busy screen that is a
+moment; on a still one it is for ever. Call `SceneRedraw3d.request(context)`
+or a `SceneRedraw3dController`'s `requestRedraw` after the change. A
+`setState` works too, because a frame that did not draw the scene is
+followed by one that does. There is deliberately no periodic redraw to paper
+over a missing request.
+
+Three more:
+
+- **The view's `onTick` and `cameraBuilder` stop with its ticker.** They are
+  driven by the `SceneView`'s own clock, which `autoTick: false` removes.
+  Move that work onto an `AnimationController` or a `Ticker` of your own,
+  which the scope follows frame by frame.
+- **Do not flip `autoTick` back and forth on one view.** Ticking while
+  something moves and stopping when nothing does is the obvious design, and
+  `flutter_scene` 0.24.3 cannot do it twice. `didUpdateWidget` creates a new
+  ticker from a `SingleTickerProviderStateMixin`, which asserts in debug on
+  the second one. Leave the view at `false` and let the scope decide.
+- **Nothing may stand between the scope and the view.** The scope redraws by
+  repainting its own layer, and the view paints the scene into whatever
+  layer it is in. A `RepaintBoundary` between them gives the view a layer of
+  its own, which the scope's repaint never reaches. The render probe's *a
+  scene drawn on demand* is what says this still holds after an engine
+  bump.
+
 ### A picture arrives after the frame that asked for it
 
 **An `ImageProvider` resolves asynchronously, and the pixels have to reach the

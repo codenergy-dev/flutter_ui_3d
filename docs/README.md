@@ -31,7 +31,8 @@ several files, guidance for using the engine underneath.
   code. The unit contract and where the reader's font setting lives, staying
   off the relayout path, why a widget-built box cannot keep a child of its
   own, the four transform channels, why nothing draws by default, depth
-  ordering, the clock a picture arrives on, the pointer, drag and clipping
+  ordering, the clock a picture arrives on, what a scene drawn on demand
+  cannot see, the pointer, drag and clipping
   edges, what does and does not mirror in right to left, and how to tell
   that a test's "nothing laid out" could have failed.
   If you are about to write a component, read this first.
@@ -45,7 +46,8 @@ several files, guidance for using the engine underneath.
   the frame rate a person actually sees, which backend a release build gets on
   Android and why the manifest cannot change it, and the three settings that
   took an Android tablet from 2 new images a second to 40: unlit panels, two
-  frames in flight, and a lower render scale.
+  frames in flight, and a lower render scale. Then how to stop drawing a
+  scene that is not changing at all.
 
 ## The diagrams
 
@@ -88,8 +90,11 @@ The entry points:
   and phone, lost time to, with a decision and a step for each.
 - [A frame a small GPU can afford](../packages/flutter_ui_3d/plans/2026_11_11_a_frame_a_small_gpu_can_afford.md)
   is **in progress**: the same application measured on the same devices,
-  with unlit panels and the engine settings done, and drawing only when
-  something changed still open.
+  with unlit panels, the engine settings and drawing on demand done, and the
+  draw count still open.
+- [Draw the scene only when it changes](../packages/flutter_ui_3d/plans/2026_11_11_draw_the_scene_only_when_it_changes.md)
+  is **completed**: `SceneRedraw3d`, which stops a `SceneView` encoding an
+  idle scene every vsync, what asks it for a frame, and what was measured.
 - [Two GPU frames in flight, proposed upstream](../packages/flutter_ui_3d/plans/2026_11_11_two_gpu_frames_in_flight_proposed_upstream.md)
   is **blocked** on `flutter_scene`'s maintainer: the pacing cost that plan
   measured, written as the pull request that would change the engine's
