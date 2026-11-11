@@ -2,7 +2,7 @@
 status: in progress
 reason: five of the seventeen items are open; the motion lane is closed and so is the colour generator, so what is left is the catalogue batch — planned in seven phases, five landed — more than one screen, more than one language, and the letter someone can type with the keyboard controls behind it
 created_at: 2026-09-11T21:20:18Z
-updated_at: 2026-11-09T17:11:37Z
+updated_at: 2026-11-11T20:35:04Z
 commit: abc2469ce5c4ec4c41e2738fc5acf55bcf40640a
 ---
 
@@ -123,6 +123,12 @@ Nor is
 pending: the findings of the first application built on these packages
 outside this repository, sorted into guards, documentation and
 measurements.
+
+Nor is
+[a frame a small GPU can afford](2026_11_11_a_frame_a_small_gpu_can_afford.md),
+in progress: the same application measured on its tablet and phone, unlit
+panels and a page of engine settings done, and drawing only when something
+changed still open.
 
 ## The order, and why
 

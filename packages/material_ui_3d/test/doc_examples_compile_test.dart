@@ -23,6 +23,13 @@ Future<void> setUpApplication() async {
   await initializeMaterial3d();
 }
 
+Future<void> setUpUnlitApplication() async {
+  await initializeMaterial3d(shading: PanelShading3d.unlit);
+}
+
+Scene sceneInTheTokensColours() =>
+    Scene()..toneMapping = ToneMappingMode.linear;
+
 // ------------------------------------------------------------- Material3d,
 // and everything that is one.
 

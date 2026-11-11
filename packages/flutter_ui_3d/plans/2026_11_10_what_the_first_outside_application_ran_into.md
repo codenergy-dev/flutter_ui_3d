@@ -1,7 +1,7 @@
 ---
 status: pending
 created_at: 2026-11-10T21:20:50Z
-updated_at: 2026-11-11T17:42:07Z
+updated_at: 2026-11-11T20:35:04Z
 commit: cad596bd443b60770a7f4dc7245ba82f2314f567
 ---
 
@@ -49,6 +49,12 @@ full size. The numbers below come from a debug build with
 `debugReportGlyphAtlasRepacks` on and a timer printing
 `GlyphAtlasCache3d.shared.atlases`. It still pins this plan's commit.
 
+A fourth pass, recorded on 2026-11-11, measured why the application was not
+smooth on either device. It has a plan of its own,
+[a frame a small GPU can afford](2026_11_11_a_frame_a_small_gpu_can_afford.md),
+because its findings are about cost rather than about anything an outside
+reader tripped on.
+
 ## What worked, for the record
 
 These deserve saying because a later change could break them without anyone
@@ -89,7 +95,7 @@ noticing:
 | F4 | A header of `Text3d` buttons inside `Center3d` **disappeared**: centred in the 0.06-deep deck, it sat inside the slab. | Invisible header, no error | Yes: *A padded box has six faces* and *An explicit centre still means centre*. But the READMEs' first examples put `Center3d` around content. | Decision D3. |
 | F5 | Front-face alignment is the advice, but the named constants are incomplete: `frontCenter`, `topLeftFront` and `bottomRightBack` exist; `bottomLeftFront`, `centerLeftFront`, `bottomCenterFront` and the rest do not. The application writes `Alignment3d(-1, 1, -1)` by hand. **Second pass:** the same for a close button at a panel's top right, where `topRightFront` does not exist either, so it is `Alignment3d(1, -1, -1)`. | A compile error and a guess, twice | — | Decision D4. |
 | F6 | Custom-coloured keys came out **purple-tinted**: `Material3d` falls back to `theme.colorScheme.surfaceTint` when `surfaceTint` is null, and the keys have elevation. | A palette chase | The tint is documented as a feature, not as something a custom-coloured slab gets by default. **Second pass:** the catalogue controls (`SegmentedButton3d`, `Switch3d`) came out in Material's baseline purple next to a blue palette, because every first example (root README, Material README) passes `Theme3dData.dark`. `ColorScheme3d.fromSeed` is documented, further down. | Decision D5; step 5 also shows `fromSeed` beside the first `Theme3dData.dark`. |
-| F7 | **Scene lighting darkens panel colours**, so a palette taken from a design (the wireframe the application follows) came out muddy, keys merging into the deck. Labels are unlit, so their colours stay as stated. | Tuning the palette on the device | Partly: the Material README says labels are unlit and contrast has to be chosen against the lit panel. Nothing says how far a front-facing panel drifts from its stated colour, or how to aim for a colour. | Investigate (step 7). |
+| F7 | **Scene lighting darkens panel colours**, so a palette taken from a design (the wireframe the application follows) came out muddy, keys merging into the deck. Labels are unlit, so their colours stay as stated. | Tuning the palette on the device | Partly: the Material README says labels are unlit and contrast has to be chosen against the lit panel. Nothing says how far a front-facing panel drifts from its stated colour, or how to aim for a colour. | Investigate (step 7). **Fourth pass:** `PanelShading3d.unlit` (see [a frame a small GPU can afford](2026_11_11_a_frame_a_small_gpu_can_afford.md)) with the scene's tone mapping set to `ToneMappingMode.linear` draws a panel in exactly its colour, and a render probe pins it. Unlit alone is not enough: the default curve, `pbrNeutral`, took more than half of a mid blue's red. For a screen-filling surface like this one, that is the way to aim for a colour; the drift of a *lit* panel is still unmeasured. |
 | F8 | **Shipping without the CLI flag.** `--enable-flutter-gpu` is documented. An installed app instead needs `io.flutter.embedding.android.EnableFlutterGPU` = `true` as `<meta-data>` in `AndroidManifest.xml`, and `FLTEnableFlutterGPU` = `true` in macOS's `Info.plist`. | Searching Flutter's engine sources | No: no page mentions Android, the manifest or the plist. | Document it (step 6). |
 | F9 | A per-build closure for `textRendererFactory`. | Small: the trap was read first | Yes: *A text renderer is a resource, so the factory has to be one function*. | Nothing beyond D2's idea, if a debug check is cheap. |
 | F10 | The gallery on Android logs flutter_scene's **z-fighting diagnostic** for its own screens (`19 surface overlaps in one plane will flicker`, between list rows and their `Material3d content lift`, "placed 0.00 m apart"), and its first frame took **4.2 s** (`Davey! duration=4261ms`, `Skipped 254 frames`). | None to the application | — | Investigate (step 8). |

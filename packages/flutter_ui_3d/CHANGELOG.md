@@ -1,5 +1,21 @@
 ## Unreleased
 
+- **Panels can be drawn unlit, and on a small GPU that is most of the frame.**
+  `PanelShading3d` names the two compiled panel shaders the package now ships:
+  `lit`, the one there has always been, and `unlit`, the same shader drawing
+  each panel in its colour with no scene lighting. For that colour to reach
+  the screen exactly, the scene tone-maps linearly too, because the engine's
+  default curve moves dark colours; `PanelShading3d`'s dartdoc says how.
+  `PanelShading3d.unlit.materialSource` is the path `loadFmatMaterial` takes.
+  On an Android tablet with a Mali-G57, lighting was about three quarters of
+  the raster time of a screen-filling keyboard. The unlit shader is for a
+  surface that fills the screen and faces the camera, where only front faces
+  show; a panel that turns keeps the lit one, whose sides the light tells
+  apart. The build hook compiles both. The unlit file is generated from the lit
+  one by `tool/generate_unlit_panel_material.dart`, and a test fails when the
+  two drift. `docs/performance.md` has the measurements and the engine
+  settings that paid beside it.
+
 - **An anchor and its followers meet at an `AnchorLink3d`.** `Anchor3d` used to
   hand its render object up through `onCreated`, and `Follower3d` took that
   object as a parameter, so a `build` method kept a `RenderAnchor3d` in a field.

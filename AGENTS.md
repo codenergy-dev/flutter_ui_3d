@@ -89,7 +89,7 @@ Everything below runs from the repository root unless stated otherwise.
 
 ```sh
 flutter pub get
-cd packages/flutter_ui_3d && flutter test            # 1336 today
+cd packages/flutter_ui_3d && flutter test            # 1340 today
 cd packages/material_ui_3d && flutter test           # 852 today
 cd examples/flutter_ui_3d_gallery && flutter test    # 13 today
 dart analyze                                         # must be clean, everywhere

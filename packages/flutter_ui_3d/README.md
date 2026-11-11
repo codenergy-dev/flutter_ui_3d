@@ -1072,6 +1072,29 @@ out, and `initializeMaterial3d()` is the one call an application depending on
 the catalogue makes instead of any of this. Keep the shared form only for a
 surface whose panels really are alike.
 
+**There are two panel shaders, and the second is about cost.** The one above
+is lit: the scene's lights shade every panel, which is what makes the sides of
+a turning slab read as sides. `PanelShading3d.unlit.materialSource` is the
+same shader drawing each panel in its colour, with no lighting:
+
+```dart
+final material = await loadFmatMaterial(PanelShading3d.unlit.materialSource);
+```
+
+Corners, borders, gradients, pictures, state layers, ripples, clips and fades
+are unchanged; only the light is gone. On a small GPU the light was most of
+the frame: on an Android tablet with a Mali-G57, a screen-filling keyboard
+spent about three quarters of its raster time lighting panels that only ever
+showed their front faces. So a surface that fills the screen and faces the
+camera wants the unlit one, and a panel that turns wants the lit one. An
+unlit panel still goes through the scene's tone mapping, whose default curve
+moves dark colours. Set `scene.toneMapping = ToneMappingMode.linear` too, and
+the panel lands on the colour it was given.
+[docs/performance.md](../../docs/performance.md) has the measurements and the
+engine settings that paid beside it. The unlit file is generated from the lit
+one by `tool/generate_unlit_panel_material.dart`, so edit the lit shader and
+run the tool; a test fails until you do.
+
 Keep `buildEngineAssets` separate in your head from all of this. It is what
 makes `Scene.initializeStaticResources()` resolve, without which nothing in a
 scene renders at all — and `flutter_scene`'s own hook already builds those

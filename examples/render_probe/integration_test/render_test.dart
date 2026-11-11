@@ -829,6 +829,61 @@ void main() {
       );
     });
 
+    testWidgets('an unlit panel draws the colour it is given', (tester) async {
+      // PanelShading3d.unlit is chosen for what it costs, and what it
+      // promises in exchange is the colour. Both of the first two scenes
+      // tone-map linearly, so the light is the only difference between them.
+      // The lit panel is the control: without it, "the unlit panel is near
+      // its colour" could mean the engine's default lights happen to leave
+      // this blue alone, and the unlit shader would be unchecked.
+      Future<Color> centreOf(String id) async {
+        final capture = await _draw(tester, kProbeScenes.byId(id));
+        expect(
+          capture.frame.coverageAt(capture.centerOf('panel'), radius: 20),
+          greaterThan(0.95),
+          reason:
+              '$id did not draw. If it is unlit, either '
+              'box_decoration3d_unlit.fmat did not compile, or '
+              'flutter_ui_3d\'s build hook did not list it.',
+        );
+        return capture.frame.meanColorAt(capture.centerOf('panel'), radius: 8)!;
+      }
+
+      final unlit = await centreOf('unlit_panel');
+      final lit = await centreOf('lit_panel');
+      final defaultTone = await centreOf('unlit_panel_default_tone');
+
+      double errorOf(Color c) =>
+          FrameProbe.colorDistance(c, kShadingProbeColor);
+      expect(
+        errorOf(unlit),
+        lessThan(0.03),
+        reason:
+            'an unlit panel under linear tone mapping should land on its '
+            'stated colour $kShadingProbeColor, and drew $unlit',
+      );
+      expect(
+        errorOf(lit),
+        greaterThan(errorOf(unlit) + 0.05),
+        reason:
+            'the lit control drew $lit, as near the stated colour as the '
+            'unlit panel ($unlit): either the lights stopped changing a lit '
+            'panel, or both scenes drew the same shader',
+      );
+      // The half the documentation depends on: unlit is not enough on its
+      // own, because the default curve still moves a colour. If this starts
+      // failing, the engine's default stopped doing that, and
+      // docs/performance.md and PanelShading3d's dartdoc say otherwise.
+      expect(
+        errorOf(defaultTone),
+        greaterThan(0.05),
+        reason:
+            'under the default tone mapping the unlit panel drew $defaultTone, '
+            'on its stated colour: the advice to tone-map linearly for exact '
+            'colours is out of date',
+      );
+    });
+
     testWidgets('elevation lifts the panel toward the viewer', (tester) async {
       // Material's elevation is a painted shadow standing in for a height.
       // Here the height is real, and "real" has a consequence a frame can

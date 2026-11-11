@@ -17,6 +17,66 @@ import 'box_decoration.dart';
 import 'decoration.dart';
 import 'decoration_image.dart';
 
+/// Whether panels are lit by the scene, and which compiled `.fmat` draws
+/// them.
+///
+/// The package ships the panel shader twice, identical but for this: the
+/// [lit] one shades every panel with the scene's lights and environment, and
+/// the [unlit] one draws each panel in its colour, with no lighting.
+/// [materialSource] is the path `loadFmatMaterial` takes for each.
+///
+/// **Lighting is most of what a panel costs.** On the entry-level Mali GPUs
+/// the first outside application ran on, a screen of about eighty keys took
+/// 185ms of raster a frame lit and 41ms unlit on a tablet, and the signed
+/// distance field, the gradients and the blend together were not measurable
+/// next to it. The measurements are in `docs/performance.md`.
+///
+/// So the choice is about what the surface is:
+///
+/// - A panel that **turns**, or stands in a scene a person walks around, is
+///   [lit]. Its sides come out darker than its face, which is how a slab
+///   reads as a slab.
+/// - A surface that **fills the screen and faces the camera** — an
+///   application's whole interface, laid on a plane — is [unlit]. Every face
+///   it shows is the front one, so lighting buys nothing visible.
+///
+/// **Unlit is half of an exact colour; tone mapping is the other half.** The
+/// scene still tone-maps what an unlit panel draws, and `flutter_scene`'s
+/// default curve, `ToneMappingMode.pbrNeutral`, takes from a colour's darkest
+/// channel: `Color(0xFF3A7BD5)` lost more than half its red. An application
+/// that wants its design's colours on the screen sets
+/// `scene.toneMapping = ToneMappingMode.linear` as well, and then an unlit
+/// panel lands on its colour. `examples/render_probe` checks both halves.
+///
+/// The choice is made once, when the material is loaded, not per panel:
+/// `material_ui_3d`'s `initializeMaterial3d(shading: PanelShading3d.unlit)`
+/// for a Material application, or the path below for one that installs
+/// [BoxDecoration3d.painterFactory] itself:
+///
+/// ```dart
+/// final material = await loadFmatMaterial(
+///   PanelShading3d.unlit.materialSource,
+/// );
+/// ```
+///
+/// An unlit panel ignores `metallic`, `roughness` and the scene's lights,
+/// and is otherwise the same shader: corners, borders, gradients, pictures,
+/// state layers, ripples, clipping and fading all behave identically.
+enum PanelShading3d {
+  /// Shaded by the scene's lights and environment. The default.
+  lit('assets/box_decoration3d.fmat'),
+
+  /// Drawn in the colour given, with no lighting, at a fraction of the cost.
+  unlit('assets/box_decoration3d_unlit.fmat');
+
+  const PanelShading3d(this.materialSource);
+
+  /// The `.fmat` this shading is drawn with, named the way
+  /// `loadFmatMaterial` wants it: relative to the root of this package,
+  /// whose build hook compiles both.
+  final String materialSource;
+}
+
 /// Draws every [BoxDecoration3d] in a tree with one mesh and one material per
 /// box.
 ///

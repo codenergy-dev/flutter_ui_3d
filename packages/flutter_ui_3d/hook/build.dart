@@ -9,6 +9,12 @@ import 'package:hooks/hooks.dart';
 /// symlink — so an application that added this package got panels that drew
 /// nothing and no error saying why.
 ///
+/// `assets/box_decoration3d_unlit.fmat` is the same shader with
+/// `shading_model: unlit`, generated from the lit one by
+/// `tool/generate_unlit_panel_material.dart`, for an application that chooses
+/// `PanelShading3d.unlit`. Both are compiled, so the choice is a path at
+/// startup rather than a build setting.
+///
 /// `assets/text_glyph3d.fmat` is the one a line of type is drawn with, and
 /// `assets/text_glyph_wall3d.fmat` the one the side of a letter is drawn
 /// with. Both are here rather than in an application because the reason they
@@ -37,6 +43,7 @@ void main(List<String> args) {
       buildOutput: output,
       materials: [
         'assets/box_decoration3d.fmat',
+        'assets/box_decoration3d_unlit.fmat',
         'assets/text_glyph3d.fmat',
         'assets/text_glyph_wall3d.fmat',
       ],

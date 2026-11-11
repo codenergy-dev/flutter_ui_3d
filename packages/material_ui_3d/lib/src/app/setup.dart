@@ -2,7 +2,11 @@ import 'package:flutter/services.dart' show AssetBundle;
 import 'package:flutter_scene/scene.dart'
     show PreprocessedMaterial, Scene, loadFmatMaterial;
 import 'package:flutter_ui_3d/rendering.dart'
-    show BoxDecoration3d, BoxDecoration3dPainter, installGlyphMaterial3d;
+    show
+        BoxDecoration3d,
+        BoxDecoration3dPainter,
+        PanelShading3d,
+        installGlyphMaterial3d;
 
 /// The `.fmat` every Material surface is drawn with, named the way
 /// `loadFmatMaterial` wants it: relative to the root of the package that
@@ -12,6 +16,10 @@ import 'package:flutter_ui_3d/rendering.dart'
 /// hook for whatever application depends on it, so this path resolves through
 /// *that* package's generated manifest and an application's own hook needs
 /// nothing in it about panels.
+///
+/// It is the lit one, [PanelShading3d.lit]'s. The unlit one is
+/// [PanelShading3d.unlit]'s `materialSource`, and [initializeMaterial3d]'s
+/// `shading` is how an application picks it.
 const String kPanelMaterialSource = 'assets/box_decoration3d.fmat';
 
 /// Makes new instances of the panel material, synchronously, once
@@ -64,9 +72,33 @@ typedef PanelMaterialFactory = PreprocessedMaterial Function();
 /// Pass [bundle] to load the shader from somewhere other than the root
 /// bundle. Awaiting this twice is free: the second call sees the painter
 /// already installed and returns.
-Future<void> initializeMaterial3d({AssetBundle? bundle}) async {
+///
+/// ## Lit or unlit panels
+///
+/// [shading] picks which compiled panel shader every surface is drawn with,
+/// and it is the largest single setting for how much a frame costs the GPU.
+/// [PanelShading3d.lit], the default, shades each panel with the scene's
+/// lights, which is what lets a panel that turns show its sides as sides.
+/// [PanelShading3d.unlit] draws each panel with no lighting and, on the Mali
+/// GPUs an Android tablet and phone carried, cut the panels' share of a frame
+/// by about three quarters. An application whose surface fills the screen
+/// and faces the camera wants it. For the token colours to reach the screen
+/// exactly, its scene also tone-maps linearly; see [PanelShading3d]:
+///
+/// ```dart
+/// await initializeMaterial3d(shading: PanelShading3d.unlit);
+/// ```
+///
+/// The choice holds for the life of the application: like the rest of this
+/// call, it does nothing once a painter is installed. The other settings that
+/// paid on those devices belong to the engine and the application, not to
+/// this call; `docs/performance.md` has them, with the numbers.
+Future<void> initializeMaterial3d({
+  AssetBundle? bundle,
+  PanelShading3d shading = PanelShading3d.lit,
+}) async {
   await Scene.initializeStaticResources();
-  await installPanelPainter3d(bundle: bundle);
+  await installPanelPainter3d(bundle: bundle, shading: shading);
   await installGlyphMaterial3d(bundle: bundle);
 }
 
@@ -79,7 +111,9 @@ Future<void> initializeMaterial3d({AssetBundle? bundle}) async {
 ///
 /// Returns without doing anything when a painter is already installed, so an
 /// application that installs its own painter — a different shader, a mesh of
-/// its own — keeps it.
+/// its own — keeps it. The same is true of [shading]: the first painter
+/// installed decides whether panels are lit, and a later call with the other
+/// value changes nothing.
 ///
 /// ## Why this is not the one-liner the layout package's README shows
 ///
@@ -107,14 +141,21 @@ Future<void> initializeMaterial3d({AssetBundle? bundle}) async {
 /// one asynchronous load can capture what it takes to build any number of
 /// further instances synchronously. [loadPanelMaterialFactory] is that, and
 /// it is the whole trick.
-Future<void> installPanelPainter3d({AssetBundle? bundle}) async {
+Future<void> installPanelPainter3d({
+  AssetBundle? bundle,
+  PanelShading3d shading = PanelShading3d.lit,
+}) async {
   if (BoxDecoration3d.painterFactory != null) return;
-  final factory = await loadPanelMaterialFactory(bundle: bundle);
+  final factory = await loadPanelMaterialFactory(
+    bundle: bundle,
+    shading: shading,
+  );
   BoxDecoration3d.painterFactory = (_) =>
       BoxDecoration3dPainter(createMaterial: factory);
 }
 
-/// Loads the panel shader and returns a synchronous factory for it.
+/// Loads the panel shader [shading] names and returns a synchronous factory
+/// for it.
 ///
 /// Public because a caller building its own `Decoration3dPainter` — a
 /// nine-slice, a mesh with the same object-space vertex colours — needs the
@@ -135,12 +176,16 @@ Future<void> installPanelPainter3d({AssetBundle? bundle}) async {
 /// factory makes is given the prototype's variant through the constructor,
 /// which is the only way in: the setter that attaches it is `@internal`, and
 /// this package is a consumer of the engine rather than a fork of it.
+///
+/// The unlit shader has no such variant, so for it `like` carries none and
+/// nothing is threaded through.
 Future<PanelMaterialFactory> loadPanelMaterialFactory({
   AssetBundle? bundle,
+  PanelShading3d shading = PanelShading3d.lit,
 }) async {
   PreprocessedMaterial Function(PreprocessedMaterial? like)? build;
   final prototype = await loadFmatMaterial(
-    kPanelMaterialSource,
+    shading.materialSource,
     bundle: bundle,
     factory: ({required fragmentShader, required metadata, vertexShaders}) {
       // The closure captures the three typed values the registry resolved,

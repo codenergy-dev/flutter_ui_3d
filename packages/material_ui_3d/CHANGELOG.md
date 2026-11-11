@@ -1,5 +1,16 @@
 ## Unreleased
 
+- **`initializeMaterial3d` takes a `shading`, and `PanelShading3d.unlit` draws
+  panels with no lighting at a fraction of the cost.** The default is still
+  lit. An application whose surface fills the screen and faces the camera
+  passes `shading: PanelShading3d.unlit`, and its panels cost about a quarter
+  of the GPU time on the Mali tablet it was measured on, with no light
+  darkening the palette. With the scene tone-mapping linearly as well, they
+  draw exactly the colours their tokens state. `installPanelPainter3d` and
+  `loadPanelMaterialFactory` take the same parameter. Like the rest of the
+  setup, the first painter installed decides, and a later call changes
+  nothing.
+
 - **`showMenu3d` takes the `AnchorLink3d` an anchor is on.** Its `anchor:`
   parameter, a `RenderAnchor3d`, is `link:` now, because the widgets that make
   an anchor no longer hand one over. Put the same link on an `Anchor3d` around

@@ -18,6 +18,7 @@ several files, guidance for using the engine underneath.
 | Work in this repository as a coding agent | [AGENTS.md](../AGENTS.md) — conventions, plans, commits, how to run things |
 | Avoid the sharp edges of this package | [traps.md](traps.md) |
 | Use `flutter_scene` correctly | [engine-rules.md](engine-rules.md) |
+| Make an application smooth on an inexpensive Android device | [performance.md](performance.md) |
 | See it running, or write a demo | [examples/flutter_ui_3d_gallery](../examples/flutter_ui_3d_gallery/README.md) |
 | Test a screen you built: find a box, press it through the camera, ask whether it is hidden | *Testing a screen* in the [layout package README](../packages/flutter_ui_3d/README.md#testing-a-screen), with the gallery's `test/screens_test.dart` as the worked example |
 | Verify something actually draws, or look at a photograph of the gallery | [examples/render_probe](../examples/render_probe/README.md) |
@@ -40,6 +41,11 @@ several files, guidance for using the engine underneath.
   build failure or a silent wrong result. It also opens with **which version of
   the engine this workspace is on**, what a bump has to change, and how to tell
   when Flutter's fix for the hollow letters has reached stable.
+- **[performance.md](performance.md)** — drawing on a small GPU. How to read
+  the frame rate a person actually sees, which backend a release build gets on
+  Android and why the manifest cannot change it, and the three settings that
+  took an Android tablet from 2 new images a second to 40: unlit panels, two
+  frames in flight, and a lower render scale.
 
 ## The diagrams
 
@@ -80,6 +86,10 @@ The entry points:
 - [What the first outside application ran into](../packages/flutter_ui_3d/plans/2026_11_10_what_the_first_outside_application_ran_into.md)
   is **pending**: what the first outside application, on an Android tablet
   and phone, lost time to, with a decision and a step for each.
+- [A frame a small GPU can afford](../packages/flutter_ui_3d/plans/2026_11_11_a_frame_a_small_gpu_can_afford.md)
+  is **in progress**: the same application measured on the same devices,
+  with unlit panels and the engine settings done, and drawing only when
+  something changed still open.
 - [The Material catalogue plan](../packages/material_ui_3d/plans/2026_09_01_flutter_scene_material3d.md)
   is **completed**, all ten phases of it, and its closing section is the thing
   to read before extending any of the catalogue: what the whole thing proved,

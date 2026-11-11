@@ -7,7 +7,9 @@ import 'package:flutter_scene/scene.dart'
         Node,
         PerspectiveCamera,
         PhysicallyBasedMaterial,
-        SphereGeometry;
+        Scene,
+        SphereGeometry,
+        ToneMappingMode;
 import 'dart:async' show Completer;
 import 'dart:math' as math;
 import 'dart:typed_data' show Uint8List;
@@ -61,7 +63,50 @@ import 'probe_scene.dart';
 /// that ships it, and `loadFmatMaterial` resolves it through that package's
 /// generated manifest. This app used to compile it through a symlink, and no
 /// longer has to.
-Future<void> installPanelPainter() => initializeMaterial3d();
+Future<void> installPanelPainter() async {
+  await initializeMaterial3d();
+  // The painter that call installed is the lit one, and it is put back before
+  // every scene: `unlit_panel` swaps the factory while it builds, and a scene
+  // after it must not inherit the wrong shader.
+  final lit = _litPainterFactory ??= BoxDecoration3d.painterFactory;
+  BoxDecoration3d.painterFactory = lit;
+}
+
+Decoration3dPainter? Function(BoxDecoration3d decoration)? _litPainterFactory;
+PanelMaterialFactory? _unlitMaterials;
+
+/// Installs the lit painter as [installPanelPainter] does, and loads the
+/// unlit panel material beside it for [_withUnlitPanels].
+///
+/// `initializeMaterial3d(shading: PanelShading3d.unlit)` is what an
+/// application calls, and it cannot be called here: it decides once per
+/// process, and every other scene in this app draws lit panels. So the probe
+/// loads the same factory that call loads, through the same public function,
+/// and the claim it checks is the shader's rather than the setup's.
+Future<void> installUnlitPanelMaterial() async {
+  await installPanelPainter();
+  _unlitMaterials ??= await loadPanelMaterialFactory(
+    shading: PanelShading3d.unlit,
+  );
+}
+
+/// Lays [surface] out with unlit panels, then puts the lit painter back.
+///
+/// A decorated box asks for its painter when it is first laid out, and keeps
+/// it, so swapping the factory around one `flush` is enough to make every
+/// panel on this surface unlit and none anywhere else.
+RenderSurface3d _withUnlitPanels(RenderSurface3d surface) {
+  final previous = BoxDecoration3d.painterFactory;
+  final unlit = _unlitMaterials!;
+  BoxDecoration3d.painterFactory = (_) =>
+      BoxDecoration3dPainter(createMaterial: unlit);
+  try {
+    surface.flush();
+  } finally {
+    BoxDecoration3d.painterFactory = previous;
+  }
+  return surface;
+}
 
 /// The picture the image scenes are drawn from: a square, red on its left
 /// half and blue on its right.
@@ -72,6 +117,32 @@ Future<void> installPanelPainter() => initializeMaterial3d();
 /// a claim about a picture a *direction* — which colour is on which side —
 /// rather than a distance, and they are chosen so no exposure or tone mapping
 /// can reorder the channels.
+/// No tone curve: the scene's colour is exposed and clamped, so an unlit
+/// colour reaches the frame as it was stated.
+void _toneMapLinearly(Scene scene) =>
+    scene.toneMapping = ToneMappingMode.linear;
+
+/// One panel in [kShadingProbeColor], unlit or lit.
+ProbeSceneContent _shadingProbe({required bool unlit}) {
+  final panel = RenderDecoratedBox3d(
+    decoration: const BoxDecoration3d(color: kShadingProbeColor),
+    name: 'panel',
+  );
+  final surface = RenderSurface3d(
+    constraints: Constraints3d.tight(const Size3d(3.6, 1.8, 0.2)),
+    child: panel,
+  );
+  return ProbeSceneContent(
+    surfaces: [if (unlit) _withUnlitPanels(surface) else surface],
+    probes: {'panel': panel},
+  );
+}
+
+/// The colour the shading scenes are all given: a mid blue, far
+/// enough from the clear colour and from white that neither the lights nor
+/// tone mapping can push it onto either.
+const Color kShadingProbeColor = Color(0xFF3A7BD5);
+
 ImageProvider get kHalvesPicture => _halvesPicture!;
 ImageProvider? _halvesPicture;
 
@@ -856,6 +927,35 @@ final List<ProbeScene> kProbeScenes = <ProbeScene>[
       probes: {'panel': panel},
     );
   }, preload: installPanelPainter),
+
+  // ── Lit and unlit: the same panel, and what the lights do to it ──────
+  //
+  // `PanelShading3d.unlit` exists because lighting is most of what a panel
+  // costs on a small GPU, and what it promises in exchange is the colour. Two
+  // things stand between a stated colour and the screen, and each scene here
+  // removes one. `unlit_panel` and `lit_panel` both tone-map linearly, so the
+  // only difference between them is the light. `unlit_panel_default_tone` is
+  // unlit under the engine's default tone mapping, and pins that the curve
+  // alone still moves a colour: the first version of this check expected an
+  // unlit panel to land on its colour, and the default curve took more than
+  // half its red away.
+  ProbeScene(
+    'unlit_panel',
+    () => _shadingProbe(unlit: true),
+    preload: installUnlitPanelMaterial,
+    configureScene: _toneMapLinearly,
+  ),
+  ProbeScene(
+    'lit_panel',
+    () => _shadingProbe(unlit: false),
+    preload: installPanelPainter,
+    configureScene: _toneMapLinearly,
+  ),
+  ProbeScene(
+    'unlit_panel_default_tone',
+    () => _shadingProbe(unlit: true),
+    preload: installUnlitPanelMaterial,
+  ),
 
   ProbeScene('square_panel', () {
     // The same panel with no radius, which is what makes the rounded one

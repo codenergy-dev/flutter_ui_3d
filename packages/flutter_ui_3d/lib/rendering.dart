@@ -215,7 +215,8 @@ export 'src/debug/wireframe.dart'
 export 'src/clip.dart' show RenderClipBox3d, Clip3dRegion, ClipPlane3d;
 export 'src/decoration/box_decoration.dart'
     show Border3d, BoxDecoration3d, BoxDecoration3dUniforms;
-export 'src/decoration/box_decoration_painter.dart' show BoxDecoration3dPainter;
+export 'src/decoration/box_decoration_painter.dart'
+    show BoxDecoration3dPainter, PanelShading3d;
 export 'src/decoration/decorated_box.dart' show RenderDecoratedBox3d;
 export 'src/decoration/decoration.dart'
     show

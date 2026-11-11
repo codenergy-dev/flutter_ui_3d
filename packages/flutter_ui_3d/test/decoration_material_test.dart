@@ -14,6 +14,8 @@ import 'package:flutter_scene/src/fmat/fmat.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart';
 
+import 'support/unlit_panel_material.dart';
+
 void main() {
   late FmatCompilation compiled;
 
@@ -112,5 +114,63 @@ void main() {
   test('it blends, so a corner that is discarded is not a hole', () {
     expect(compiled.material.blending, isNot(FmatBlending.opaque));
     expect(compiled.material.depthWrite, isTrue);
+  });
+
+  group('the unlit panel', () {
+    late String litSource;
+    late String unlitSource;
+    late FmatCompilation unlit;
+
+    setUpAll(() {
+      litSource = File(PanelShading3d.lit.materialSource).readAsStringSync();
+      unlitSource = File(
+        PanelShading3d.unlit.materialSource,
+      ).readAsStringSync();
+      unlit = compileFmat(unlitSource, fileName: 'box_decoration3d_unlit.fmat');
+    });
+
+    test('is the lit shader with nothing but its name and shading changed', () {
+      // The file is generated, because nothing lets two .fmat files share a
+      // fragment block. This is the guard that keeps it generated: edit the
+      // lit shader without rerunning the tool and this fails, rather than
+      // an unlit application quietly drawing last month's panel.
+      expect(
+        unlitSource,
+        unlitPanelMaterialFrom(litSource),
+        reason:
+            'assets/box_decoration3d_unlit.fmat is stale. From '
+            'packages/flutter_ui_3d, run '
+            '`dart run tool/generate_unlit_panel_material.dart`.',
+      );
+    });
+
+    test('parses, under a name of its own, unlit', () {
+      expect(compiled.material.shadingModel, FmatShadingModel.lit);
+      expect(unlit.material.name, 'BoxDecoration3dUnlit');
+      expect(unlit.material.shadingModel, FmatShadingModel.unlit);
+      expect(unlit.glsl, contains('Surface'));
+    });
+
+    test('declares the same parameters, so the same uniforms drive it', () {
+      // BoxDecoration3dPainter does not know which of the two it was handed,
+      // so every name it writes has to mean the same thing in both.
+      List<(String, FmatType)> shape(FmatCompilation c) => [
+        for (final parameter in c.material.parameters)
+          (parameter.name, parameter.type),
+      ];
+      expect(shape(unlit), shape(compiled));
+      expect(unlit.material.blending, compiled.material.blending);
+      expect(unlit.material.depthWrite, compiled.material.depthWrite);
+      expect(unlit.material.culling, compiled.material.culling);
+    });
+
+    test('both are compiled by the package\'s own build hook', () {
+      // An application cannot compile them itself: it would put a second
+      // copy under the same source path, and loadFmatMaterial throws.
+      final hook = File('hook/build.dart').readAsStringSync();
+      for (final shading in PanelShading3d.values) {
+        expect(hook, contains("'${shading.materialSource}'"));
+      }
+    });
   });
 }

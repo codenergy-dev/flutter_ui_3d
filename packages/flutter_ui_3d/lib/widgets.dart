@@ -88,7 +88,8 @@ export 'src/camera_binding.dart' show Layout3dCameraBinding;
 export 'src/clip.dart' show Clip3dRegion, ClipPlane3d;
 export 'src/decoration/box_decoration.dart'
     show Border3d, BoxDecoration3d, BoxDecoration3dUniforms;
-export 'src/decoration/box_decoration_painter.dart' show BoxDecoration3dPainter;
+export 'src/decoration/box_decoration_painter.dart'
+    show BoxDecoration3dPainter, PanelShading3d;
 export 'src/decoration/decoration.dart'
     show
         Decoration3d,

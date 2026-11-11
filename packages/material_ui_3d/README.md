@@ -239,6 +239,45 @@ Theme3d(
 )
 ```
 
+### Lit panels, or unlit ones
+
+The call takes one choice, and on a small GPU it is the one that matters most:
+whether panels are lit by the scene.
+
+```dart
+await initializeMaterial3d(shading: PanelShading3d.unlit);
+```
+
+`PanelShading3d` comes from `flutter_ui_3d`, where the shader lives. The
+default, `PanelShading3d.lit`, shades every panel with the scene's lights, and
+that is what makes a panel that turns read as a slab: its sides come out
+darker than its face. `PanelShading3d.unlit` draws each panel in the colour
+its tokens give it, with no lighting and everything else unchanged. Corners,
+borders, gradients, pictures, state layers, ripples, clipping and fades all
+behave the same.
+
+Choose unlit when the surface **fills the screen and faces the camera**. An
+application whose whole interface is laid on a plane shows only front faces,
+so lighting buys nothing you can see. It costs the most of anything in the
+frame: on an Android tablet with a Mali-G57, a keyboard of eighty keys spent
+185ms of GPU time a frame lit and 41ms unlit. The other settings that paid on
+that tablet belong to the engine and the application, and
+[docs/performance.md](../../docs/performance.md) has them with the numbers.
+
+Unlit also stops the lights from darkening the palette, but that is only half
+of what stands between a token and the screen. The scene still tone-maps the
+result, and the engine's default curve, `ToneMappingMode.pbrNeutral`, takes
+from a colour's darkest channel; a mid blue lost more than half its red. To see
+the palette exactly as the tokens state it, set the scene's tone mapping to
+linear as well:
+
+```dart
+final scene = Scene()..toneMapping = ToneMappingMode.linear;
+```
+
+The choice is made once. Like the rest of the call, it does nothing once a
+painter is installed, so the first call decides.
+
 ### Why it is not the two lines the layout package's README shows
 
 That form installs one material and hands it to every box, which is right
