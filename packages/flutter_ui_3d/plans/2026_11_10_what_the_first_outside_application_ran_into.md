@@ -1,7 +1,7 @@
 ---
 status: pending
 created_at: 2026-11-10T21:20:50Z
-updated_at: 2026-11-11T01:47:36Z
+updated_at: 2026-11-11T17:42:07Z
 commit: cad596bd443b60770a7f4dc7245ba82f2314f567
 ---
 
@@ -28,6 +28,7 @@ another paragraph.
 | What | Detail |
 | --- | --- |
 | Device | XPPen MDP1221 tablet, Android 14 (API 34), MediaTek mt6789, Mali-G57. Impeller picks **OpenGLES**, not Vulkan, and Flutter GPU works there. Also launched on macOS. |
+| Second device (third pass) | Samsung Galaxy A14 phone, Android 15 (API 35), Exynos 1330, Mali-G68, OpenGLES 3.2. 856 × 384dp in landscape. |
 | Scene | One `SceneView`, one `Surface3d` with `Layout3dCameraBinding.screenFilling(distance: 2)` and a depth of `0.06`. The surface *is* the screen. |
 | Content | About 80 keys, each a `Material3d` slab (thickness 6, elevation 7 resting and 1.5 pressed) under a `Listener3d`; a trackpad slab; a header row of `Text3d` buttons. `Theme3d` with `AtlasText3dRenderer(resolution: 2.5)`. |
 | Input | `Input3d` around the view, raw per-pointer events through `Listener3d`. Up to ten fingers at once: several held keys, two- and three-finger trackpad gestures. |
@@ -39,6 +40,14 @@ settings panels raised over the keyboard and the trackpad. It built them from
 and made each peripheral draggable to a new place on the deck
 (`AnimatedPositioned3d`, `NodeTransform3d`, `GestureDetector3d`). It still
 pins this plan's commit.
+
+A third pass, recorded on 2026-11-11 (later the same day), added F15 and F16
+and new evidence for F14. In that pass the application also ran on the phone
+above, where its settings panels grow to fill the screen. Its labels now
+change text while their panel stays open, and many more of them are drawn at
+full size. The numbers below come from a debug build with
+`debugReportGlyphAtlasRepacks` on and a timer printing
+`GlyphAtlasCache3d.shared.atlases`. It still pins this plan's commit.
 
 ## What worked, for the record
 
@@ -87,7 +96,9 @@ noticing:
 | F11 | A settings panel, a `Material3d` with `thickness: 3` stacked over the key caps as a non-positioned child of a `Stack3d(fit: StackFit3d.expand)`, **did not show at all**. The panel was selected and its touches were caught, but nothing was drawn. `StackFit3d.expand` hands children `Constraints3d.tight(constraints.biggest)`, depth included (`boxes/stack.dart`). `RenderDecoratedBox3d` takes its child's size, and the slab painter scales the unit slab to the box's full depth, centred (`slabTransformFor`). So `thickness` is overridden, and the panel becomes a slab as deep as the stack. Why that slab ends up hidden behind keys that are lifted less than it is was not isolated. Pinning it with `Positioned3d(left: 0, top: 0, right: 0, bottom: 0, front: 0)`, so that its depth comes from its own thickness, fixed it. | An invisible panel, no message | The reverse is: *A `Material3d` gives its child a tight depth, so a thicker child is silently clamped to it.* Nothing says that a `Material3d` under a tight parent loses its own `thickness`, or that `StackFit3d.expand` is tight in depth. | Decision D6; step 9. |
 | F12 | A `SegmentedButton3d` in a panel row shorter than 48dp was **squeezed below its 48dp slot and drawn cut off, with no overflow report**. `SizedBox3d(height: tapTargetHeight)` is clamped by the shorter parent (`Constraints3d.enforce`), and the fixed 4dp insets then cut into the 40dp outline. | Found by looking at a screenshot | The 48dp slot is (*the centre of a control made of parts is one of its parts*). What happens below it is not. | Step 10: a debug report when a catalogue control is laid out shorter than its token height, naming `FittedBox3d(fit: BoxFit3d.scaleDown)` as the remedy. |
 | F13 | Dragging a peripheral needed a **hand-written `Animation<Offset3d>`** (an `Animation` with the listener mixins) only to feed a value to `NodeTransform3d`, because its `offset` takes nothing else. `RenderNodeTransform3d` only calls `addListener` and reads `value`. | Small: a 20-line class | — | Step 11: type `offset` and `transform` as `ValueListenable`. `Animation` already is one, so the change is not breaking, and a `ValueNotifier` driven by a drag then works as is. |
-| F14 | On the tablet, **a panel's labels appear one to two seconds after the panel**, blank until then, the first time the panel shows after a launch. The cause is not isolated; the glyph atlas preparing new strings is the guess. | A panel that looks broken for a moment | — | Investigate with F10 (step 8). |
+| F14 | On the tablet, **a panel's labels appear one to two seconds after the panel**, blank until then, the first time the panel shows after a launch. The cause is not isolated; the glyph atlas preparing new strings is the guess. | A panel that looks broken for a moment | — | Investigate with F10 (step 8). **Third pass:** the guess holds. On the phone, each repack's picture landed 311–2203ms after the repack, and the first ones after launch took 1.5–2.2s, which is the blank window. A second form of it: a note whose text changed while its panel stayed open, to a string with letters its atlas had not drawn yet (`x`, `g`), drew without them (`ne t key`, `let  o`) for at least a second. The panel was static, so nothing else redrew it. Reopening the panel showed the whole text. |
+| F15 | **Labels speckled after a repack, and they stayed speckled.** On the phone, after the first full-size panels of a launch, two labels in the header came out with dark speckles in and around their letters: a host name, and a battery percentage that changed (58% to 57%) about then. They stayed that way through deselecting and later captures, until the next relayout. It happened once in five cold starts with the same steps. | A header that looks corrupted, intermittently | Yes, as fixed: *A mesh and an atlas texture are a pair, and a repack separates them* describes this symptom (*a dark speckled block the size of the letter*) and the wait that is meant to prevent it. | Step 12. Starting every atlas at 1024 texels (`GlyphAtlasCache3d(initialSize: 1024)`), so none of them repacks, made it go away. It also took the application's GL memory on the phone from 186MB to 432MB (`dumpsys meminfo`, `GL mtrack`), because of F16, so the application did not keep it. |
+| F16 | **One atlas per font size, and an application that scales type has dozens.** The application scales key legends with their key's height (font size × height / 64dp, never above 1), so a phone's smaller keys draw at fractional sizes. The atlas cache keys by style, so each size gets its own atlas. That gives 21 atlases for 20 font sizes at launch, and 44 for 39 after two settings panels have opened, all at scale 2.5 and 128 or 256 texels on a side. Each repacks on its own, with its own window of up to two seconds, and anything sized per atlas is multiplied by the count (the 1024-texel test in F15 is 44 × 4MB). | The memory cost of F15's workaround; more windows for F14 and F15 | No. The traps say the raster scale is `resolution` and nothing else, but not that every distinct `fontSize` is a separate atlas. | Decision D7; step 13. |
 
 One open question rather than a finding: the application's `hook/build.dart`
 calls `buildEngineAssets`, which the root README says is usually unnecessary.
@@ -169,6 +180,18 @@ name-for-name rule as D3.
 was hidden. B makes `thickness` mean what it says, which is the
 name-for-name rule again: Flutter's `Material` has no depth to lose.
 
+### D7. Type drawn at many sizes (F16)
+
+| Option | Effect | Trade-off |
+| --- | --- | --- |
+| A. Document it | A trap entry: each distinct `fontSize` (and weight) is its own atlas, with its own repacks. To shrink type continuously, scale the geometry (`FittedBox3d`, a node transform) rather than the font size. | No code change; an application that fits legends to keys still has to find out. |
+| B. Bucket font sizes | The cache rasterizes at the nearest of a few sizes (for example, a quarter-step scale on top of `resolution`, as `glyphAtlasScaleFor` already does) and scales the quad to the size asked for. | Far fewer atlases and repacks. A glyph drawn from a bucket a little larger than asked is resampled, which the atlas's no-mip-chain rule says must be checked on a probe. |
+| C. Let an application share atlases | The cache takes a rule from size to bucket, so an application that knows its sizes can merge them. | Moves the problem to every application that hits it. |
+
+**Recommendation: A now, then B** if step 13 shows the resampled glyphs hold
+up. The count is what turns every per-atlas cost, a repack window, a memory
+figure or an initial size, into a cost per font size.
+
 ## Steps
 
 Each step is done when its criterion holds **and** the *Before you call it
@@ -234,8 +257,24 @@ notice, the describing page changed in the same commit.
     `offset` and `transform` to `ValueListenable`. *Done when* a test drives
     the offset from a `ValueNotifier` and the existing suites pass unchanged.
 
+12. **Speckled labels that stay (F15).** Rebuild the case in
+    `examples/render_probe`: two labels sharing an atlas, one of which changes
+    its text (as a battery percentage does) while that atlas's repack picture
+    is still in flight, then the scene stops redrawing. Say whether the
+    changed label, or its neighbour, bakes against the old picture, and fix
+    the wait that *A mesh and an atlas texture are a pair* describes. *Done
+    when* the probe shows both labels clean once the picture lands, on a
+    repeated run, without growing the atlas's initial size.
+13. **How many atlases an application makes (F16, D7).** Implement the chosen
+    option. If it is B, photograph a label drawn from a bucket against one
+    drawn at its own size in `examples/render_probe`. *Done when* the trap
+    entry exists and, for B, the cache's atlas count for a range of sizes is
+    pinned by a test.
+
 The steps are independent. 1, 5 and 6 are documentation-heavy and cheap; 2
 and 3 are the ones that would have saved the most time, with 9 close behind.
+12 is the only finding that leaves a screen wrong until something else
+happens to lay it out again.
 
 ## Out of scope
 

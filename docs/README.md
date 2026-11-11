@@ -78,8 +78,8 @@ The entry points:
   is **completed**: `Anchor3d` and `Follower3d` moved here from Material and
   meet at an `AnchorLink3d`.
 - [What the first outside application ran into](../packages/flutter_ui_3d/plans/2026_11_10_what_the_first_outside_application_ran_into.md)
-  is **pending**: what the first outside application, on an Android tablet,
-  lost time to, with a decision and a step for each.
+  is **pending**: what the first outside application, on an Android tablet
+  and phone, lost time to, with a decision and a step for each.
 - [The Material catalogue plan](../packages/material_ui_3d/plans/2026_09_01_flutter_scene_material3d.md)
   is **completed**, all ten phases of it, and its closing section is the thing
   to read before extending any of the catalogue: what the whole thing proved,
