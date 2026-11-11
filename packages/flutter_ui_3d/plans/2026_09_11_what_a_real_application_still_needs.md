@@ -118,6 +118,12 @@ completed, renamed the packages and then the classes, and
 [anchoring in the base package](2026_11_09_anchoring_in_the_base_package.md),
 completed, moved the anchoring widgets out of Material.
 
+Nor is
+[what the first outside application ran into](2026_11_10_what_the_first_outside_application_ran_into.md),
+pending: the findings of the first application built on these packages
+outside this repository, sorted into guards, documentation and
+measurements.
+
 ## The order, and why
 
 ~~**[An application that does not wire its own rays](#an-application-that-does-not-wire-its-own-rays)
