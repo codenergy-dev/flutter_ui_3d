@@ -1,8 +1,8 @@
 ---
 status: in progress
-reason: steps 1 and 2 are done; render on demand (step 3), the draw count (step 4) and the upstream report on pacing (step 5) are open
+reason: steps 1 and 2 are done; render on demand (step 3) and the draw count (step 4) are open, and the upstream proposal on pacing (step 5) is written and waits on the user opening it
 created_at: 2026-11-11T20:23:25Z
-updated_at: 2026-11-11T20:55:17Z
+updated_at: 2026-11-11T21:14:12Z
 commit: 14ee12ae09764a691516c4af4edbca4b93cac75d
 ---
 
@@ -230,10 +230,12 @@ in flight, and the palette reached the screen exactly.
    can merge. *Done when* the count per key is written down with what each
    draw is, and whatever can be merged is.
 5. [ ] **Report the pacing cost upstream (F3).** The measurement contradicts
-   `maxGpuFramesInFlight`'s dartdoc on these devices. Opening an issue on
-   `flutter_scene` is outward-facing, so it is the user's call; the numbers
-   are in this plan. *Done when* the issue exists and its link is here, or
-   the user decides against it.
+   `maxGpuFramesInFlight`'s dartdoc on these devices. The user decided to
+   propose a change rather than only report it, so this step became its own
+   plan, [two GPU frames in flight, proposed upstream](2026_11_11_two_gpu_frames_in_flight_proposed_upstream.md).
+   That plan's text is the pull request's description, and it is `blocked` on
+   the engine's maintainer. *Done when* that plan is closed, whichever way
+   the answer goes.
 
 ## Out of scope
 

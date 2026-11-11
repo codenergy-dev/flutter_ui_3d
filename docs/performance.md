@@ -140,7 +140,10 @@ GPU queue. Its dartdoc puts the cost at about a tenth of GPU throughput.
 **Here it cost a third of the frames on the tablet's OpenGLES and two thirds
 on Vulkan**, even at half resolution, where the GPU had time to spare. The
 likely reason is that the completion callback reaches the UI thread a frame
-late, so a frame that finished in time still counts as in flight.
+late, so a frame that finished in time still counts as in flight. That is a
+reading of the code, not a trace, and changing the engine's default is
+proposed upstream in
+[two GPU frames in flight](../packages/flutter_ui_3d/plans/2026_11_11_two_gpu_frames_in_flight_proposed_upstream.md).
 
 ```dart
 final scene = Scene()..maxGpuFramesInFlight = 2;

@@ -90,6 +90,10 @@ The entry points:
   is **in progress**: the same application measured on the same devices,
   with unlit panels and the engine settings done, and drawing only when
   something changed still open.
+- [Two GPU frames in flight, proposed upstream](../packages/flutter_ui_3d/plans/2026_11_11_two_gpu_frames_in_flight_proposed_upstream.md)
+  is **blocked** on `flutter_scene`'s maintainer: the pacing cost that plan
+  measured, written as the pull request that would change the engine's
+  default.
 - [The Material catalogue plan](../packages/material_ui_3d/plans/2026_09_01_flutter_scene_material3d.md)
   is **completed**, all ten phases of it, and its closing section is the thing
   to read before extending any of the catalogue: what the whole thing proved,
