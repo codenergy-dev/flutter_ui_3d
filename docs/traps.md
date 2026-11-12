@@ -796,7 +796,10 @@ widget hears about almost every change without being told:
 
 What it cannot hear is a node moved, a camera turned or a material changed
 by code that runs outside a frame: a timer, a stream listener, the callback
-of a future. That change sits in the scene graph, and the screen keeps the
+of a future. A *box* written that way is heard: its `nodeOffset`,
+`nodeTransform` or opacity goes through the surface, so a drag needs no
+request. The raw scene nodes, cameras and materials an application owns are
+the ones that do. That change sits in the scene graph, and the screen keeps the
 last frame until something else happens to draw. On a busy screen that is a
 moment; on a still one it is for ever. Call `SceneRedraw3d.request(context)`
 or a `SceneRedraw3dController`'s `requestRedraw` after the change. A

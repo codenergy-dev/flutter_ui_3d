@@ -1487,7 +1487,8 @@ It goes **directly** around the view, with the view's ticking off. It draws
 a frame when one is needed, and needed covers more than it sounds:
 - anything a layout tree below it does, in the frame it happens: a layout, a
   scroll, a box animating, a decoration or focus changing, an overlay
-  arriving;
+  arriving, a box's `nodeOffset`, `nodeTransform` or opacity written from a
+  pointer event (a drag needs nothing more);
 - a glyph atlas or a paragraph's wall arriving up to a second later;
 - any Flutter frame that did not draw the scene, so a rebuild that moved a
   `Surface3d` is drawn on the next frame;
@@ -1497,8 +1498,9 @@ a frame when one is needed, and needed covers more than it sounds:
 While nothing happens, Flutter schedules no frames and the scene is not
 encoded at all.
 
-What it cannot see is a change made **outside any frame**: a node moved from
-a timer or a stream. Ask for that one:
+What it cannot see is a change to the scene made **outside any frame** and
+outside any layout tree: a raw scene node moved from a timer or a stream.
+Ask for that one:
 
 ```dart
 pointer.position = next;

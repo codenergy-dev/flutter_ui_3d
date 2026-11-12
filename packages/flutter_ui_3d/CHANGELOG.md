@@ -28,7 +28,11 @@
   thread a frame on an idle screen, and enough heat that the same work later
   took 19ms. These ask for a frame without any wiring:
   - a layout, scroll, animation, decoration, focus change or overlay in a
-    layout tree below it;
+    layout tree below it, or a box's `nodeOffset`, `nodeTransform` or
+    opacity written from a pointer event, all in the frame they happen.
+    The first version of this drew each of those a frame late under a real
+    `SceneView`, whose children are never painted, so a drag ran at half
+    rate; the surface's host now marks the scope itself after it lays out;
   - a glyph atlas or a paragraph's wall arriving after its layout;
   - any Flutter frame that did not draw the scene;
   - any running `Ticker`.

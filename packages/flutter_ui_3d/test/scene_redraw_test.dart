@@ -5,15 +5,29 @@
 // was drawn" is the scope's own layer being painted, which is exactly what
 // repaints the `SceneView` inside it on a device (the render probe checks
 // that half). `redrawCount` counts those paints.
+//
+// The surfaces are mounted the way a `SceneView` mounts its children: under
+// a `SceneSubtree`, whose box paints none of them. That matters. A box that
+// is never painted keeps Flutter's needs-paint flag set, so paint dirt raised
+// below it never climbs to the scope, and a harness that hosts the surface in
+// a plain `Stack` passes tests a device fails: every change in the tree was
+// drawn a frame late there, and a drag on every other frame.
 
-import 'package:flutter/widgets.dart';
-import 'package:flutter_scene/scene.dart' show Node, PerspectiveCamera;
+import 'package:flutter/widgets.dart' hide Matrix4;
+import 'package:flutter_scene/scene.dart'
+    show Node, PerspectiveCamera, SceneSubtree;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart';
 import 'package:flutter_ui_3d/widgets.dart';
-import 'package:vector_math/vector_math.dart' show Vector3;
+import 'package:vector_math/vector_math.dart' show Matrix4, Vector3;
+
+import 'support.dart' show RenderTestBox, rayAt;
 
 /// [child] on a surface, under a scope counting into [redraw].
+///
+/// Shaped like a `SceneView`: something that fills the view where the scene
+/// is painted, and the surface beside it under a [SceneSubtree], which lays
+/// its children out and paints none of them.
 Widget scoped(
   SceneRedraw3dController redraw,
   Widget child, {
@@ -28,17 +42,42 @@ Widget scoped(
       child: Stack(
         alignment: Alignment.topLeft,
         children: [
-          Surface3d(
+          const SizedBox.expand(),
+          SceneSubtree(
             parent: Node(),
-            controller: surface,
-            size: const Size3d(4, 3, 1),
-            child: child,
+            children: [
+              Surface3d(
+                parent: Node(),
+                controller: surface,
+                size: const Size3d(4, 3, 1),
+                child: child,
+              ),
+            ],
           ),
         ],
       ),
     ),
   ),
 );
+
+/// Writes [steps] values into [drive] between frames, the way a pointer
+/// event does, and says how many redraws each frame after one drew.
+Future<List<int>> drawnPerWrite(
+  WidgetTester tester,
+  SceneRedraw3dController redraw,
+  void Function(int step) drive, {
+  int steps = 4,
+}) async {
+  final drawn = <int>[];
+  for (var i = 1; i <= steps; i++) {
+    final before = redraw.redrawCount;
+    drive(i);
+    expect(tester.binding.hasScheduledFrame, isTrue);
+    await tester.pump();
+    drawn.add(redraw.redrawCount - before);
+  }
+  return drawn;
+}
 
 /// Settles, and says whether anything is left to wake the application.
 Future<void> settle(WidgetTester tester) async {
@@ -158,6 +197,132 @@ void main() {
       scroll.jumpTo(2.0);
       await tester.pump();
       expect(redraw.redrawCount, before + 1);
+      await settle(tester);
+    });
+  });
+
+  group('a node written directly, between frames', () {
+    // Written from outside any frame, as a pointer event writes it. None of
+    // these is a layout of the box itself; each reaches the scene through
+    // the surface's host being laid out again.
+    testWidgets('a nodeOffset is drawn in the very next frame', (tester) async {
+      final redraw = SceneRedraw3dController();
+      final slide = AnimationController(vsync: const TestVSync());
+      addTearDown(slide.dispose);
+      await tester.pumpWidget(
+        scoped(
+          redraw,
+          NodeTransform3d(
+            offset: slide.drive(
+              Offset3dTween(begin: Offset3d.zero, end: const Offset3d(1, 0, 0)),
+            ),
+            child: const SizedBox3d.cube(0.5),
+          ),
+          // A controller moved by hand is not a ticker; nothing else draws.
+          followTickers: false,
+        ),
+      );
+      await settle(tester);
+
+      final drawn = await drawnPerWrite(
+        tester,
+        redraw,
+        (i) => slide.value = i / 4,
+      );
+      expect(drawn, [1, 1, 1, 1], reason: 'each write, in its own frame');
+      await settle(tester);
+    });
+
+    testWidgets('a nodeTransform is drawn in the very next frame', (
+      tester,
+    ) async {
+      final redraw = SceneRedraw3dController();
+      final tip = AnimationController(vsync: const TestVSync());
+      addTearDown(tip.dispose);
+      await tester.pumpWidget(
+        scoped(
+          redraw,
+          NodeTransform3d(
+            transform: _Tipped(tip),
+            child: const SizedBox3d.cube(0.5),
+          ),
+          followTickers: false,
+        ),
+      );
+      await settle(tester);
+
+      final drawn = await drawnPerWrite(
+        tester,
+        redraw,
+        (i) => tip.value = i / 4,
+      );
+      expect(drawn, [1, 1, 1, 1]);
+      await settle(tester);
+    });
+
+    testWidgets('an opacity is drawn in the very next frame', (tester) async {
+      final redraw = SceneRedraw3dController();
+      final fade = AnimationController(vsync: const TestVSync());
+      addTearDown(fade.dispose);
+      await tester.pumpWidget(
+        scoped(
+          redraw,
+          FadeTransition3d(opacity: fade, child: const SizedBox3d.cube(0.5)),
+          followTickers: false,
+        ),
+      );
+      await settle(tester);
+
+      final drawn = await drawnPerWrite(
+        tester,
+        redraw,
+        (i) => fade.value = i / 4,
+      );
+      expect(drawn, [1, 1, 1, 1]);
+      await settle(tester);
+    });
+
+    testWidgets('a Draggable3d draws on every frame of a drag', (tester) async {
+      final redraw = SceneRedraw3dController();
+      final surface = Layout3dController();
+      await tester.pumpWidget(
+        scoped(
+          redraw,
+          Overlay3d(
+            child: Row3d(
+              children: <Widget>[
+                Draggable3d<String>(
+                  data: 'card',
+                  feedbackBuilder: (_) =>
+                      RenderTestBox(const Size3d(0.4, 0.4, 0.4)),
+                  child: const SizedBox3d(width: 2, height: 2),
+                ),
+                const SizedBox3d(width: 2, height: 2),
+              ],
+            ),
+          ),
+          surface: surface,
+          followTickers: false,
+        ),
+      );
+      await settle(tester);
+      final layout = surface.surface!;
+      final pointer = Layout3dPointer(layout);
+
+      pointer.down(rayAt(layout, const Offset3d(1.0, 1.0, 0)));
+      // The first move recognizes the drag and puts the feedback into the
+      // overlay, which is a layout; the moves after it write the feedback's
+      // nodeOffset and nothing else.
+      pointer.move(rayAt(layout, const Offset3d(1.2, 1.0, 0)));
+      await tester.pump();
+      final drawn = await drawnPerWrite(
+        tester,
+        redraw,
+        (i) => pointer.move(rayAt(layout, Offset3d(1.2 + i * 0.3, 1.0, 0))),
+        steps: 6,
+      );
+      expect(drawn, [1, 1, 1, 1, 1, 1], reason: 'a drag draws every frame');
+      pointer.up();
       await settle(tester);
     });
   });
@@ -405,4 +570,18 @@ void main() {
       await settle(tester);
     });
   });
+}
+
+/// A turn about the depth axis, by half a radian at [parent]'s end.
+///
+/// Flutter's `Matrix4Tween` is in `vector_math_64`, and the engine's matrices
+/// are not.
+class _Tipped extends Animation<Matrix4> with AnimationWithParentMixin<double> {
+  _Tipped(this.parent);
+
+  @override
+  final Animation<double> parent;
+
+  @override
+  Matrix4 get value => Matrix4.rotationZ(0.5 * parent.value);
 }

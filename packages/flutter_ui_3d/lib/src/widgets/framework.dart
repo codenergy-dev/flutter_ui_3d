@@ -38,6 +38,7 @@ import 'package:flutter/widgets.dart'
 import '../built_children.dart';
 import '../rendering/object.dart';
 import '../surface.dart';
+import 'scene_redraw.dart' show markSceneRedrawAbove3d;
 
 /// Hosts one [RenderObject3d] inside the Flutter element tree.
 ///
@@ -327,6 +328,10 @@ class RenderObject3dRootHost extends RenderObject3dHost {
     } finally {
       _flushing = false;
     }
+    // Something in the surface changed, or this box would not have been laid
+    // out: a layout, or a node written directly (`nodeOffset`, a decoration,
+    // an opacity). Draw it in this frame. See `markSceneRedrawAbove3d`.
+    markSceneRedrawAbove3d(this);
   }
 
   @override

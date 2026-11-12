@@ -1,7 +1,7 @@
 ---
 status: completed
 created_at: 2026-11-11T21:24:33Z
-updated_at: 2026-11-11T21:46:59Z
+updated_at: 2026-11-12T12:57:16Z
 commit: 257b74a9486c1c9530703b3f8814604b067941f0
 ---
 
@@ -24,8 +24,14 @@ the only way. The view paints through a `CustomPainter` (`_ScenePainter`),
 and in `flutter_scene` 0.24.3 there is no `RepaintBoundary` between the view
 and that painter. So anything that marks a render object in the same paint
 layer for painting repaints the scene. That includes a widget wrapped around
-the view, and the zero-sized hosts its declarative children mount. The
-painter's `paint` calls `Scene.render` unconditionally.
+the view. The painter's `paint` calls `Scene.render` unconditionally.
+
+*Corrected after adoption:* this first said the zero-sized hosts the view's
+declarative children mount repaint it too. They do not, reliably. The view
+mounts them under a `SceneSubtree`, whose box paints none of its children,
+and a render object that is never painted keeps its needs-paint flag set, so
+every `markNeedsPaint` after the first stops at it and never climbs to the
+layer. See F7.
 
 **F2. The engine already repaints for its own reasons, ticking or not.** The
 view listens to `Scene.repaintRequested`, so it repaints in three cases:
@@ -41,7 +47,9 @@ dirt, a node offset or node transform written by an animation, a decoration's
 uniforms, opacity, semantics and heroes all go through it. A surface's root
 host answers it with `markNeedsLayout`, and a relaid-out render object is
 marked for paint. So that change repaints the host's paint layer in the same
-frame, and by F1 the scene with it. This covers:
+frame, and by F1 the scene with it. (Under a real `SceneView` that last step
+does not happen on its own; F7 is why, and what does it instead.) This
+covers:
 - scrolling and its ballistics;
 - focus;
 - overlays arriving;
@@ -78,6 +86,28 @@ stopping when nothing does, fails its second start. The view has to be left
 at `autoTick: false` and repainted from outside. This is worth reporting
 upstream; it is not this plan's to fix.
 
+**F7. Under a real `SceneView`, layout dirt never reached the scope's layer
+by itself.** Found by the first outside application on its tablet: dragging
+a peripheral, whose `nodeOffset` is written from each pointer event, ran at
+60 Flutter frames a second and 31 new scene images. Every frame the pointer
+started laid the surface out and drew nothing, and the scene was drawn by
+the missed-frame rule (D2, source 3) on the frame after. The cause is the one
+F1's correction gives: the surface's root host sits under `SceneSubtree`'s
+box, which paints nothing, so the host is never painted, its needs-paint flag
+stays set from the first frame on, and the paint dirt its relayout raises
+stops there. It held for every change in a layout tree, not only a node
+written from a pointer: a layout, a scroll and a fade were all a frame late,
+and anything moving every frame was drawn on every other one. The headless
+tests had passed because their harness hosted the surface in a plain
+`Stack`, which does paint it.
+
+The fix does not lean on Flutter's paint propagation at all. After a root
+host flushes its surface, which it does only when something in the surface
+asked for it, it walks up the render tree to the nearest `SceneRedraw3d` and
+marks that box for paint (`markSceneRedrawAbove3d`). That is legal during
+layout, and the layer is painted in the same frame. With no scope alive it
+returns at once.
+
 ## Decisions
 
 ### D1. A widget around the view, not a change to the view
@@ -100,8 +130,10 @@ when asked, and draws nothing when not.
 
 Five sources, from the most precise to the most conservative:
 
-1. **The layout tree's own dirt** (F3), which repaints in the same frame
-   with nothing added.
+1. **The layout tree's own dirt** (F3), drawn in the same frame by the
+   surface's host marking the scope after its flush (F7). A box's
+   `nodeOffset`, `nodeTransform` or opacity written from a pointer event is
+   this case, not case 5.
 2. **The asynchronous arrivals** (F4). An atlas change calls a process-wide
    request, because an atlas is shared across surfaces and scenes. A
    paragraph's wall calls its owner's `requestVisualUpdate`, which is then
@@ -171,6 +203,14 @@ like a bug, so it can be fixed where it is.
 4. [x] **Written down.** `docs/performance.md` replaces "not solved yet",
    with the README, the dartdoc, a trap if one was found, the changelog, and
    the indexes.
+5. [x] **The frame late under a real view** (F7), found on a device after
+   the steps above were done. The root host marks the scope after its flush.
+   `test/scene_redraw_test.dart` now mounts its surfaces under a
+   `SceneSubtree`, the way a `SceneView` does, and adds four tests: a
+   `nodeOffset`, a `nodeTransform` and an opacity written between frames are
+   each drawn in the very next frame, and a `Draggable3d` drag draws on every
+   frame. With the fix removed, those four fail, and so do three of the
+   layout-tree tests that had passed on the old harness.
 
 ## What was measured
 
@@ -187,6 +227,14 @@ first outside application, and measuring it on that tablet, belongs to the
 application's own repository.
 
 ## What the original reasoning got wrong
+
+- **F1 said the declarative children's hosts repaint the scene.** They are
+  laid out and never painted, so they repaint nothing after the first frame,
+  and the promise that a layout tree's changes are drawn in the frame they
+  happen in was false under every real `SceneView` until F7's fix. A harness
+  that hosted the surface in a `Stack` could not see it. The lesson is the
+  one this repository keeps relearning: a headless harness has to be shaped
+  like the thing it stands in for, down to which box paints.
 
 - **The small-GPU plan's D3 thought a redraw needed a rebuild.** It read
   `SceneView`'s dartdoc ("repaint when the app rebuilds the view") and that

@@ -47,8 +47,10 @@ import '../scene_redraw.dart';
 /// **What asks for a frame**, without any wiring:
 ///
 /// * Anything in a layout tree below it: a layout, a scroll, an animation of
-///   a box, a decoration, focus, an overlay arriving. Those reach Flutter as
-///   a layout and are drawn in the frame they happen in.
+///   a box, a decoration, focus, an overlay arriving, a box's `nodeOffset`,
+///   `nodeTransform` or opacity written from a pointer event. Each lays the
+///   surface out, and the surface's host marks this scope after it does, so
+///   the change is drawn in the frame it happens in.
 /// * A glyph atlas or a paragraph's extruded wall arriving after its layout,
 ///   which happens up to a second later.
 /// * Any Flutter frame that did not draw the scene. A rebuild that moved a
@@ -353,6 +355,32 @@ class _SceneRedraw3dState extends State<SceneRedraw3d>
     scope: this,
     child: _SceneRedrawBoundary(state: this, child: widget.child),
   );
+}
+
+/// Marks the [SceneRedraw3d] above [descendant], if there is one, to be drawn
+/// in the frame under way.
+///
+/// For a surface's hosting box once its surface has been laid out. Flutter's
+/// own paint propagation cannot be relied on to get there: a `SceneView`
+/// mounts its children under a box that paints none of them, and a child
+/// that is never painted keeps its needs-paint flag set for ever, so every
+/// `markNeedsPaint` after the first stops at it. Left to that, each change in
+/// a layout tree would reach the screen only through the frame check, a
+/// frame late, and a drag would be drawn on every other frame.
+///
+/// Legal during layout, which is when it is called: the scope's layer is then
+/// painted in the paint phase of this same frame. Costs nothing while no
+/// scope exists, and a walk up the render tree otherwise.
+void markSceneRedrawAbove3d(RenderObject descendant) {
+  if (_SceneRedraw3dState._live.isEmpty) return;
+  RenderObject? node = descendant.parent;
+  while (node != null) {
+    if (node is _RenderSceneRedraw3d) {
+      node.markNeedsPaint();
+      return;
+    }
+    node = node.parent;
+  }
 }
 
 class _SceneRedrawMarker extends InheritedWidget {
