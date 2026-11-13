@@ -1390,6 +1390,17 @@ remains a reservation of space and `glyphDepth` is the figure that draws.
   are not scroll views swipes as Flutter's does; one whose pages are lists
   turns from its tabs. Choosing a view by the direction of the first movement
   is a change to `Layout3dPointer`, and not yet made.
+- **A widget beside a scroll view hears it through the controller, and a
+  person's hold begins at the press.** Flutter's scrollbar and refresh
+  indicator listen to notifications bubbling up from the view; there are none
+  here, so `Scroll3dController` delivers the start, overscroll and end of a
+  drag itself — `addNotificationListener` — and records which way the view
+  runs. Hand the view's own controller to whatever sits beside it. The start
+  comes on the *down*, because taking hold is what stops a fling, before the
+  arena knows whether the press is a tap: a tap on a list sends a start and an
+  end at rest. Anything that wants a drag waits for the position to move or
+  for an overscroll; `RefreshIndicator3d` reports no status until a pull moves
+  it, for exactly that reason.
 - **A picked-up card is only as far in front as its layer's lift.**
   `RenderDraggable3d` corrects the feedback's position on the *plane* so it
   covers the box the drag started on, and deliberately leaves depth to
@@ -1649,6 +1660,13 @@ The clip is one plane across the scroll axis, cross-axis-wide, so it shows
 where the bar does *not* cover — beside a narrow bar, through a translucent
 one — and `examples/render_probe`'s `sliver_app_bar_clip` scene is built
 around a half-width bar for that reason.
+
+**And a clip does not follow the node tier.** The planes are in a box's
+layout frame, and a node-tier offset moves the drawing out of it, so a box
+travelling on its node is cut where it rests and not where it is drawn. Phase
+5's progress bar left a stroke of its fill outside a window that way, and
+`RefreshIndicator3d`'s disc, which comes down from above the view's edge on
+its node, is faded in rather than cut at the edge for the same reason.
 
 **A depth clip cuts the box's *layout* depth, not the drawn geometry.** The
 planes are expressed in the box's own frame, and `BoxDecoration3d.elevation`

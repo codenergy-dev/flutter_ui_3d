@@ -130,6 +130,14 @@ class _MaterialScreenState extends State<MaterialScreen> {
 
   int get _unread => _messages.length - _opened.length;
 
+  /// The inbox's position, shared by the list, its scrollbar and its pull to
+  /// refresh: there is no notification tier for the two beside the list to
+  /// hear it through, so the controller is what all three hold.
+  final Scroll3dController _inboxScroll = Scroll3dController();
+
+  /// The wallpaper chosen from the carousel on the settings screen.
+  int _wallpaper = 0;
+
   // The settings.
   bool _notify = true;
   double _volume = 0.65;
@@ -163,6 +171,7 @@ class _MaterialScreenState extends State<MaterialScreen> {
   @override
   void dispose() {
     _saving?.cancel();
+    _inboxScroll.dispose();
     super.dispose();
   }
 
@@ -497,66 +506,83 @@ class _MaterialScreenState extends State<MaterialScreen> {
           ),
         ),
         Expanded3d(
-          child: ListView3d(
-            spacing: _dp(context, 8),
-            children: <Widget>[
-              for (final index in _inboxOrder)
-                Padding3d(
-                  key: ValueKey<int>(index),
-                  padding: _insets(
-                    context,
-                    const EdgeInsets3d.symmetric(horizontal: 12),
-                  ),
-                  child: ElevatedCard3d(
-                    onTap: () => _openMessage(context, index),
-                    semanticLabel: _messages[index].$1,
-                    child: ListTile3d(
-                      // A photograph, cut to a circle by the panel that draws
-                      // it. There is no rounded clip in this package — a clip
-                      // region is an intersection of planes, and so convex —
-                      // so the only thing that can round a picture is the
-                      // signed distance field it is sampled inside, which is
-                      // why a picture is a decoration here.
-                      //
-                      // And it is a hero: pressing the row flies this circle
-                      // to the big one in the dialog. Nothing is reparented,
-                      // so `_avatar` below is what flies and this is what
-                      // stands here, which is why both are one function.
-                      leading: Hero3d(
-                        tag: index,
-                        flightBuilder: (_) => _avatar(index),
-                        child: SizedBox3d(
-                          width: _dp(context, 40),
-                          height: _dp(context, 40),
-                          child: Image3d(
-                            image: GalleryAvatar(index),
-                            fit: BoxFit.cover,
-                            borderRadius: const BorderRadius3d.circular(20),
-                          ),
-                        ),
-                      ),
-                      title: Text3d(_messages[index].$1),
-                      subtitle: Text3d(_messages[index].$2),
-                      trailing: Checkbox3d(
-                        value: _starred.contains(index),
-                        semanticLabel: 'Star',
-                        onChanged: (value) => setState(() {
-                          if (value!) {
-                            _starred.add(index);
-                          } else {
-                            _starred.remove(index);
-                          }
-                        }),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+          // A thumb along the right of the list, and a pull past its top
+          // that fetches the mail again: Flutter's two, beside the list
+          // rather than inside it, and both holding the list's controller.
+          child: RefreshIndicator3d(
+            controller: _inboxScroll,
+            semanticsLabel: 'Refresh',
+            onRefresh: () async {
+              await Future<void>.delayed(const Duration(milliseconds: 900));
+              if (context.mounted) _say(context, 'Inbox up to date');
+            },
+            child: Scrollbar3d(
+              controller: _inboxScroll,
+              child: _inboxList(context),
+            ),
           ),
         ),
       ],
     );
   }
+
+  Widget _inboxList(BuildContext context) => ListView3d(
+    controller: _inboxScroll,
+    spacing: _dp(context, 8),
+    children: <Widget>[
+      for (final index in _inboxOrder)
+        Padding3d(
+          key: ValueKey<int>(index),
+          padding: _insets(
+            context,
+            const EdgeInsets3d.symmetric(horizontal: 12),
+          ),
+          child: ElevatedCard3d(
+            onTap: () => _openMessage(context, index),
+            semanticLabel: _messages[index].$1,
+            child: ListTile3d(
+              // A photograph, cut to a circle by the panel that draws
+              // it. There is no rounded clip in this package — a clip
+              // region is an intersection of planes, and so convex —
+              // so the only thing that can round a picture is the
+              // signed distance field it is sampled inside, which is
+              // why a picture is a decoration here.
+              //
+              // And it is a hero: pressing the row flies this circle
+              // to the big one in the dialog. Nothing is reparented,
+              // so `_avatar` below is what flies and this is what
+              // stands here, which is why both are one function.
+              leading: Hero3d(
+                tag: index,
+                flightBuilder: (_) => _avatar(index),
+                child: SizedBox3d(
+                  width: _dp(context, 40),
+                  height: _dp(context, 40),
+                  child: Image3d(
+                    image: GalleryAvatar(index),
+                    fit: BoxFit.cover,
+                    borderRadius: const BorderRadius3d.circular(20),
+                  ),
+                ),
+              ),
+              title: Text3d(_messages[index].$1),
+              subtitle: Text3d(_messages[index].$2),
+              trailing: Checkbox3d(
+                value: _starred.contains(index),
+                semanticLabel: 'Star',
+                onChanged: (value) => setState(() {
+                  if (value!) {
+                    _starred.add(index);
+                  } else {
+                    _starred.remove(index);
+                  }
+                }),
+              ),
+            ),
+          ),
+        ),
+    ],
+  );
 
   /// The controls, each one a real state that a press actually changes.
   /// One colour the gallery can be generated from.
@@ -608,34 +634,120 @@ class _MaterialScreenState extends State<MaterialScreen> {
     );
   }
 
-  /// The settings, on two tabs.
+  /// The settings, on four tabs that scroll.
   ///
   /// The tabs are Flutter's own `DefaultTabController` handing a
   /// `TabController` to a `TabBar3d` and a `TabBarView3d` — a press on a tab
-  /// slides the indicator on the node tier and turns the pages under it.
-  /// **A sideways swipe does not turn them here**, and that is a finding
-  /// rather than an omission: both pages are lists, and a drag takes hold of
-  /// the nearest scrolling view whatever way the finger goes. See
+  /// slides the indicator on the node tier and turns the pages under it. Four
+  /// are more than the bar is wide, so it scrolls, and centres the one
+  /// chosen. **A sideways swipe does not turn the pages here**, and that is a
+  /// finding rather than an omission: the pages are lists, and a drag takes
+  /// hold of the nearest scrolling view whatever way the finger goes. See
   /// `TabBarView3d`.
   Widget _settings(BuildContext context) => DefaultTabController(
-    length: 2,
+    length: 4,
     child: Column3d(
       crossAxisAlignment: CrossAxisAlignment3d.stretch,
       children: <Widget>[
         const TabBar3d(
+          isScrollable: true,
           tabs: <Tab3d>[
             Tab3d(text: 'General'),
             Tab3d(text: 'Display'),
+            Tab3d(text: 'Wallpaper'),
+            Tab3d(text: 'About'),
           ],
         ),
         Expanded3d(
           child: TabBarView3d(
-            children: <Widget>[_general(context), _display(context)],
+            children: <Widget>[
+              _general(context),
+              _display(context),
+              _wallpapers(context),
+              _aboutPage(context),
+            ],
           ),
         ),
       ],
     ),
   );
+
+  static const List<(String, Color, Color)> _wallpaperColours =
+      <(String, Color, Color)>[
+        ('Dawn', Color(0xFFFFB199), Color(0xFFFF0844)),
+        ('Lagoon', Color(0xFF13547A), Color(0xFF80D0C7)),
+        ('Meadow', Color(0xFF96E6A1), Color(0xFFD4FC79)),
+        ('Dusk', Color(0xFF30CFD0), Color(0xFF330867)),
+        ('Ember', Color(0xFFF6D365), Color(0xFFFDA085)),
+        ('Night', Color(0xFF09203F), Color(0xFF537895)),
+      ];
+
+  /// A carousel of gradient cards to choose a wallpaper from.
+  ///
+  /// Each card's gradient carries the item's own 28dp corner, because a
+  /// corner radius is not a clip here: the item cannot round what is drawn on
+  /// it, so what is drawn on it rounds itself. The two at the edges are
+  /// squeezed as they leave and arrive, which is a size — they are laid out
+  /// again on each frame of a scroll, and the rest are only placed.
+  Widget _wallpapers(BuildContext context) {
+    final theme = Theme3d.of(context);
+    return _page(context, <Widget>[
+      SizedBox3d(
+        key: const ValueKey<String>('carousel'),
+        height: _dp(context, 180),
+        child: Carousel3d(
+          itemExtent: 160,
+          shrinkExtent: 56,
+          itemSnapping: true,
+          onTap: (index) {
+            setState(() => _wallpaper = index);
+            _say(context, 'Wallpaper: ${_wallpaperColours[index].$1}');
+          },
+          children: <Widget>[
+            for (final (name, from, to) in _wallpaperColours)
+              DecoratedBox3d(
+                key: ValueKey<String>(name),
+                decoration: BoxDecoration3d(
+                  borderRadius: const BorderRadius3d.circular(28),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: <Color>[from, to],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+      ListTile3d.text(
+        key: const ValueKey<String>('chosen'),
+        title: 'Chosen',
+        subtitle: _wallpaperColours[_wallpaper].$1,
+      ),
+      Text3d(
+        'Press a card to choose it.',
+        style: theme.textStyle(
+          Typography3dToken.bodySmall,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      ),
+    ]);
+  }
+
+  Widget _aboutPage(BuildContext context) => _page(context, <Widget>[
+    FilledCard3d(
+      key: const ValueKey<String>('about'),
+      child: Column3d(
+        crossAxisAlignment: CrossAxisAlignment3d.stretch,
+        mainAxisSize: MainAxisSize3d.min,
+        children: <Widget>[
+          ListTile3d.text(title: 'Layout', subtitle: 'flutter_ui_3d'),
+          ListTile3d.text(title: 'Catalogue', subtitle: 'material_ui_3d'),
+          ListTile3d.text(title: 'Engine', subtitle: 'flutter_scene'),
+        ],
+      ),
+    ),
+  ]);
 
   /// A page of the settings: a padded list, for the reason the first one
   /// was a list — a settings screen with one more row than fits is an

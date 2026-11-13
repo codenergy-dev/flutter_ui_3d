@@ -68,7 +68,7 @@ goes in the changelog and the plans. This file stays a contract.**
 | Package | What it is |
 | --- | --- |
 | `packages/flutter_ui_3d` | The layout protocol. Constraints, intrinsics, baselines, flex, stack, wrap, reading direction, slivers, scrolling, text measurement and geometry, decoration with pictures and gradients, clipping, pointer dispatch, wheel and trackpad scrolling, focus and key bindings, overlays, animation, diagnostics, the unit contract and the screen a surface stands in for — and `testing.dart`, the library an application tests its screens with. |
-| `packages/material_ui_3d` | Material Design 3 on that protocol: seven token families, a theme both layers read, and the catalogue over one `Material3d` primitive — buttons and the segmented button, cards, rows, chips, badges and banners, the structure, its drawers and its tabs, the overlays that arrive rather than appear, the selection controls, the progress indicators and the press ripple. |
+| `packages/material_ui_3d` | Material Design 3 on that protocol: seven token families, a theme both layers read, and the catalogue over one `Material3d` primitive — buttons and the segmented button, cards, rows, chips, badges and banners, the structure, its drawers and its tabs, the overlays that arrive rather than appear, the selection controls, the progress indicators, the scrollbar, the pull to refresh and the carousel, and the press ripple. |
 | `examples/flutter_ui_3d_gallery` | The example app, and the only place a person sees any of this drawn. A Material screen on an upright panel that turns — with a gradient header, a circular avatar on every row, and an overflow menu that opens a dialog and a sheet so that an arrival has somewhere to be looked at — the same catalogue flat on the ground, and a scrolling list of raw meshes beside them: all hit-testable, through one `Input3d` around the view. |
 | `examples/render_probe` | Render tests. Draws the layout on a GPU and probes the frame at the pixels layout says to check, and photographs the gallery. Commits its platform scaffolding, unlike the gallery. |
 
@@ -89,9 +89,9 @@ Everything below runs from the repository root unless stated otherwise.
 
 ```sh
 flutter pub get
-cd packages/flutter_ui_3d && flutter test            # 1401 today
-cd packages/material_ui_3d && flutter test           # 856 today
-cd examples/flutter_ui_3d_gallery && flutter test    # 13 today
+cd packages/flutter_ui_3d && flutter test            # 1419 today
+cd packages/material_ui_3d && flutter test           # 901 today
+cd examples/flutter_ui_3d_gallery && flutter test    # 15 today
 dart analyze                                         # must be clean, everywhere
 dart format .                                        # before every commit
 ```

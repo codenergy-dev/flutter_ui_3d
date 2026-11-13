@@ -84,6 +84,7 @@ class RenderViewport3d extends RenderSingleChild3d
     final child = this.child;
     final axis = _axis;
     final bounded = constraints.hasBoundedAlong(axis);
+    controller.applyViewportAxis(axis: axis, reverse: _reverse);
     if (child == null) {
       size = constraints.constrain(Size3d.zero);
       controller.applyViewportMetrics(

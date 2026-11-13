@@ -328,7 +328,13 @@ export 'src/scroll/list_view.dart' show RenderListView3d;
 export 'src/scroll/page_view.dart' show RenderPageView3d;
 export 'src/scroll/reorderable_list.dart' show RenderReorderableList3d;
 export 'src/scroll/scroll_controller.dart'
-    show ScrollDirection3d, Scroll3dController;
+    show
+        ScrollDirection3d,
+        Scroll3dController,
+        Scroll3dEndNotification,
+        Scroll3dNotification,
+        Scroll3dOverscrollNotification,
+        Scroll3dStartNotification;
 export 'src/scroll/scroll_physics.dart'
     show
         BouncingScroll3dPhysics,

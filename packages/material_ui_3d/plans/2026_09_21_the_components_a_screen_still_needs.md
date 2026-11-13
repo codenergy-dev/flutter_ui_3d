@@ -1,8 +1,8 @@
 ---
 status: in progress
-reason: phases 1 to 5 have landed — the last the segmented button, the tabs and the radio group; phase 6's change to the layout package, reverse, has landed and its components have not; phase 7 is open, and phase 2's safe area has no lane that draws it
+reason: phases 1 to 6 have landed — the last the scrollbar, the refresh indicator, the carousel and a tab bar that scrolls; phase 7 is open, and phase 2's safe area has no lane that draws it
 created_at: 2026-09-21T15:46:07Z
-updated_at: 2026-11-13T15:36:52Z
+updated_at: 2026-11-13T16:21:46Z
 commit: 763e3dff41a1c75ac35997cf9244e101bb7250bf
 ---
 
@@ -40,7 +40,7 @@ written by hand here today.
 | 3 | the node tier, with a clock | `LinearProgressIndicator3d`, `CircularProgressIndicator3d`, the switch's growing thumb, the chip's press lift — **landed** |
 | 4 | nothing, but more of it | `Badge3d`, `MaterialBanner3d`, `BottomAppBar3d`, `NavigationDrawer3d`, `ExpansionTile3d`, a snack bar's second line — **landed** |
 | 5 | one choice over many options | `SegmentedButton3d`, `TabBar3d` and `TabBarView3d`, `RadioGroup3d` — **landed** |
-| 6 | a scroll view that runs backwards | `reverse` in the layout package — **landed** — then `Carousel3d`, `Scrollbar3d`, `RefreshIndicator3d` |
+| 6 | a scroll view that runs backwards, and a position that says what is happening to it | `reverse` and the controller's notifications in the layout package, then `Carousel3d`, `Scrollbar3d`, `RefreshIndicator3d`, a scrolling `TabBar3d` — **landed** |
 | 7 | a second arena, or a design answer | `RangeSlider3d`, `DataTable3d`, `Stepper3d`, the slider's ticks and value indicator, a tooltip on long press, a draggable sheet |
 
 Each phase is written in full when it is picked up, below its predecessor's
@@ -1200,25 +1200,288 @@ says about a depth clip and an elevation. A slider's fill would do the same.
 - Nobody has run the gallery in a window and *used* the tabs; the photographs
   are the lane that looked.
 
-## Phases 6 and 7
+## Phase 6: beside a scroll view, and a scroll view of its own
 
-Written when each is picked up. What the map already knows about each, so
-that writing it is an afternoon:
+*Written when the phase was picked up, against `a507c14`.*
+
+Four things, and two shapes between them. A **scrollbar** and a **refresh
+indicator** sit beside a scroll view and answer what is happening to it; a
+**carousel** and a **scrolling tab bar** are scroll views of their own, of
+content that is not a set of equal pages. Every figure is Flutter's, read off
+`flutter/lib/src/material` at 3.47.1, as phases 4 and 5's are.
+
+The table said this phase needs `reverse`, and it has landed. **It needed one
+more thing underneath it**, found while writing this: the two components
+beside a view have nothing to hear the view through. Flutter's wrap the view
+and listen to `ScrollNotification`s bubbling up past them, and there is no
+notification tier here. The one thing they can share with the view is its
+`Scroll3dController`, and the controller did not say which way the view runs,
+that a person took hold of it, or how far a drag pulled past its start. That
+is a change to the layout package, so it is a plan there:
+[a position that says what is happening to it](../../flutter_ui_3d/plans/2026_11_13_a_position_that_says_what_is_happening_to_it.md)
+— the axis as a metric, and Flutter's start, overscroll and end notifications
+delivered at the controller.
+
+**So both take the controller**, where Flutter's take only a child. A ported
+`RefreshIndicator(child: ListView(...))` becomes the same with one
+`Scroll3dController` handed to both, and the dartdoc says why.
+
+### `Scrollbar3d`, and what a scrollbar is beside a plane
+
+The plan left one design question open: what a scrollbar is beside a plane
+the viewer may be looking at edge-on. **It is part of the plane**, which is
+the answer Flutter's already gives — its thumb is painted over the view, in
+the view's own rectangle, at its trailing edge. Here that is a slab in front
+of the content, a depth step forward, inside the view's own box, so it turns
+with the panel and goes edge-on with the content it measures. Off the edge,
+facing the viewer whatever the panel does, is the *off the edge* question the
+map excludes by name, and it would answer a question nobody looking at the
+content is asking.
+
+The desktop figures, which are Flutter's on every platform but Android: an
+8dp thumb 2dp in from the edge, rounded 8dp, at least 48dp long, in
+`onSurface` at 10% resting, 50% under the pointer and 60% held — 30%, 65% and
+75% in a dark scheme. **The thumb moves on the node tier**: its length is laid
+out when the scrollbar lays out, and every frame of a scroll after that is one
+translation written from the controller's listener. A lazy list whose length
+estimate moves between layouts gets its thumb's length corrected by a stretch
+on the same tier until the next layout, which is the price `Switch3d`'s thumb
+pays. It shows while the position moves and fades 600ms after it stops, over
+300ms, through a `FadeTransition3d`; `thumbVisibility` keeps it up.
+
+Flutter's thumb can be dragged on desktop, and so can this one: a pan on the
+thumb moves the position by the drag times the ratio of the scroll range to
+the track's free length, as `RawScrollbar` does. The vertical bar is on the
+right, and on the left in right to left; a horizontal one is along the
+bottom; a depth view gets none, because a scroll toward the viewer has no edge
+on the panel to run along.
+
+What it does not do, each in its dartdoc: **Android's variant** — a 4dp square
+thumb in `highlightColor`, which `Theme3dData` has no token for; the **track**
+Flutter draws on hover when asked; and **a press on the track** paging the
+view.
+
+### `RefreshIndicator3d`
+
+Flutter's `RefreshIndicator`, transcribed from `_handleScrollNotification`:
+armed by a hold at the leading edge, driven by the overscroll a pull sends —
+and, under bouncing physics, by the position going past the start — and
+decided at the release, when a pull past a quarter of the window refreshes and
+anything less is cancelled. Flutter's `RefreshIndicatorStatus` and
+`RefreshIndicatorTriggerMode` are used unchanged, for `TabController`'s
+reason: they have no render object in them, and a port keeps them.
+
+The indicator is Flutter's `RefreshProgressIndicator`: a 41dp disc in
+`surface`, lifted, with a 2.5dp arc on it — determinate while it is pulled,
+indeterminate while the callback runs. **It travels on the node tier**: laid
+out once at its resting place, 40dp below the leading edge, and moved by
+Flutter's own arithmetic — `SizeTransition` over a padded child comes to
+`(factor − 1) × (displacement + 41dp)` — then shrunk to nothing about its
+centre when the refresh is done.
+
+**It fades in whole, where Flutter's clips its disc and fades its arc.** Above
+the view's leading edge the indicator is outside the view, and Flutter's
+`SizeTransition` cuts it off there. A clip here is expressed in the box's
+layout frame, which a node-tier offset is outside of — phase 5's last finding
+about the progress bar — so a clipped indicator would be cut where it rests
+and not where it is drawn. Faded in over the same interval Flutter fades its
+arc, it is nearly invisible while it crosses the edge, and that is the
+answer.
+
+What it does not do: **a horizontal view**, which Flutter refuses too; the
+**arrowhead** on the arc; and Flutter's `adaptive` and `noSpinner`
+constructors. The hold here is the press, so the indicator arms on every tap
+at the top of a list — and reports no status until a pull actually moves it,
+which is the difference stated in its dartdoc.
+
+### `Carousel3d`
+
+Flutter's `CarouselView` — the uncontained layout: items `itemExtent` long
+side by side, the ones at the window's two edges squeezed down toward
+`shrinkExtent` as they leave and arrive, each one a padded `Material3d`
+rounded 28dp in `surface` with an ink well over it. **The squeeze is a size,
+not a scale**, because Flutter's is — the item's contents are laid out at the
+narrower extent — so the two items at the edges are laid out again on every
+frame of a scroll, and the rest are only placed. A private sliver does the
+arithmetic, transcribed from `_RenderSliverFixedExtentCarousel`, and places
+its children through `placeChild`, so a reversed carousel — and every
+horizontal one in right to left — mirrors with no arithmetic of its own.
+`itemSnapping` is a `PageScroll3dPhysics` whose page is one item.
+
+**The ink well is in front of the contents**, as Flutter's is: a transparent
+slab of its own a step forward, so a photograph filling the item does not
+hide the wash. **And the item does not clip its contents to its corners**:
+a corner radius is not a clip here, so a picture that fills an item is given
+the item's 28dp itself, which `Image3d.borderRadius` and a decoration's
+radius both take.
+
+What it does not do: **`CarouselView.weighted`**, the multi-browse and hero
+layouts, which are a different sliver with a different arithmetic and the
+next thing a carousel would want; and Flutter's **`infinite`**, which needs a
+view of unbounded length, which the layout package does not offer.
+
+### A tab bar that scrolls
+
+Phase 5 left `isScrollable` here because it needed `reverse`. A scrolling bar
+is Flutter's: each tab as wide as its label plus 16dp each side, the row
+starting 52dp in — `TabAlignment.startOffset`, Material 3's default for a
+scrolling bar — in a horizontal scroll view that resolves right to left into
+`reverse` on its own, and the rule under it across the bar's whole width.
+**The indicator rides in the row**, so it scrolls with the tabs for free and
+slides under them exactly as it does in a fixed bar. A change of tab animates
+the view to centre the chosen one over 300ms on `Curves.ease`, and a swipe of
+the pages keeps it centred as it goes, both transcribed from
+`_TabBarState`.
+
+### Tests
+
+- The scrollbar: its thumb's length and position against the controller,
+  reversed and right to left; **nothing laid out and nothing built across a
+  scroll**; the fade and `thumbVisibility`; a drag of the thumb moving the
+  view; no thumb on content that does not scroll; the colours against
+  Flutter's.
+- The refresh indicator: a pull past a quarter of the window refreshing and
+  one short of it cancelling; the indicator's travel; the statuses in
+  Flutter's order; `show()`; the bouncing path; a tap at the top reporting
+  nothing.
+- The carousel: the extents and positions against Flutter's arithmetic at
+  several offsets, mirrored in right to left; only the edge items laid out
+  across a scroll; snapping; a tap reporting its index.
+- The tab bar: scrollable widths and the 52dp start, the view centring the
+  chosen tab, right to left.
+
+### The gallery
+
+The inbox gets a scrollbar and a pull to refresh. The ground plane's
+catalogue gets a carousel of gradient cards. The settings screen's tabs
+become four, scrolling.
+
+## What phase 6 found
+
+All four shipped: `Scrollbar3d`, `RefreshIndicator3d`, `Carousel3d` and
+`TabBar3d.isScrollable`, with their styles, and the change underneath them,
+[a position that says what is happening to it](../../flutter_ui_3d/plans/2026_11_13_a_position_that_says_what_is_happening_to_it.md).
+The Material suite is **901**, up from 856; the layout suite **1419**; the
+gallery's **15**, up from 13.
+
+### 1. The table named one thing underneath, and there were two
+
+The table said phase 6 needed `reverse`. It also needed the scroll view to be
+*heard* by something beside it, and that was found writing the phase rather
+than building it: Flutter's scrollbar and refresh indicator are notification
+listeners, and the only thing here a widget beside a view can share with it
+is the controller, which did not say which way the view runs, that someone
+took hold, or what a pull past the top was refused. That became a plan in
+the layout package before any component was written, which is the rule
+working as intended — and it is why both components take a controller where
+Flutter's take only a child.
+
+### 2. A bouncing list had never been laid out above its top
+
+The refresh indicator's test under bouncing physics was the first thing in
+the repository to pull a list past its start *and pump a frame*, and the
+custom scroll view asserted: its cache origin came out after the window's
+leading edge. Every bouncing list here, pulled down at its top, had been a
+debug assertion. The fix is in the layout package — Flutter's viewport
+arithmetic, the run pushed into the window by the overscroll — and its plan
+says so. It is the phase-3 finding again in another place: the check that
+could not fail was the one nobody had made run.
+
+### 3. A thumb follows the pointer from the press, not from the recognizer
+
+The first drag of the scrollbar's thumb moved the view a fraction of what it
+should, because a pan recognizer reports nothing until the slop is passed, and
+the travel inside the slop is part of where the person put the thumb. Flutter's
+`RawScrollbar` measures from the press, and so does this: the press is read
+off a `Listener3d` in world units, and the pan's positions are measured
+against it. Both are in the thumb's own frame, which is where it *rests* — a
+frame undoes the node tier — so the frame does not move under the drag that
+moves the thumb.
+
+### 4. A clip does not follow the node tier, so the disc fades
+
+Phase 5 saw a progress bar's fill drawn outside its window for this reason.
+The refresh indicator would have been the same thing on purpose: Flutter's
+disc is cut by a `SizeTransition` at the view's edge as it comes down, and a
+disc travelling on its node here would be cut where it rests. It fades in over
+the interval Flutter fades its arc instead, and `docs/traps.md` now says that a
+clip does not follow the node tier at all.
+
+### 5. The squeeze lays out two items, and the test says which
+
+The carousel's edge items are laid out at their squeezed extent on every
+frame of a scroll. That is the price stated in the plan, and the test counts
+it: across a scroll, the content of the first and the last item showing is
+laid out once each, and the two between are not laid out at all. The first
+version of that test scrolled by too little for the last item to leave its
+floor, and so expected a layout that, correctly, did not happen.
+
+### 6. The gallery put the carousel on a tab, which gave the tabs a reason
+
+The plan put the carousel on the ground plane. It went on a third settings
+tab, a wallpaper picker, with an *About* page as the fourth — which is what
+made four tabs, and four tabs are what made the bar scroll in a way anyone
+would notice. Under the test font the third tab starts past the bar's edge
+and cannot be pressed, which is the honest state of a scrolling bar: the
+gallery's test chooses the second tab first, the bar centres it, and that is
+what brings the third one in.
+
+A carousel inside a page that is a list is the phase-5 finding about drags
+once more: a vertical drag on the carousel takes the carousel, the nearest
+scroll view, and moves it sideways, so the page scrolls only from outside the
+carousel.
+
+### What phase 6 did not do
+
+- **A scrollbar** has no Android variant, no track, and does not page on a
+  press of the track; a depth view gets no thumb.
+- **A refresh indicator** refuses a horizontal view, has no arrowhead, and
+  none of Flutter's `adaptive` or `noSpinner` forms; it announces nothing by
+  default, because Flutter's "Refresh" is a localized string.
+- **A carousel** has no `CarouselView.weighted` and no `infinite`, and an item
+  does not clip its contents to its corners.
+- **A scrolling tab bar** has no `tabAlignment`: it always starts 52dp in.
+- **No render probe** asks a question of any of them; the photographs are the
+  lane that looked, and the next finding is what they said.
+- **Nobody has run the gallery in a window and pulled the inbox** or dragged
+  a scrollbar's thumb with a mouse; both are pressed through the camera
+  headlessly, and neither is in a photograph, because a held pull and a
+  fading thumb are not still frames.
+
+### 7. What the photographs showed, and one thing they did not settle
+
+The photograph lane gained `gallery_carousel` and
+`gallery_carousel_scrolled`, and both came out as the arithmetic says: at rest
+the trailing card squeezed to its floor and cut by the window, and part way
+through a scroll the leading card squeezed as well, the gradient cards
+rounded by their own decoration, and the tab bar scrolled so that the chosen
+*Wallpaper* tab sits in the middle with *General* half past the leading edge.
+The pale band along the top of each card is the top face of the item's slabs
+seen from above, which every card in the gallery has.
+
+**The engine flags two new coplanar groups on the carousel**, beside the ones
+it already flagged on every frame before this phase: the gradient card
+against the item's own panel, which it fills and stands off by
+`Material3d.contentLift` — two large opaque panels a fifth of a logical pixel
+apart, which the catalogue's design says the depth buffer resolves and
+`flutter_scene`'s check says it does not — and the item's panel against the
+transparent ink slab a `stepOver` in front of it, which is the segmented
+button's arrangement and is not flagged there. Neither photograph shows a
+stripe. Which of the engine's heuristic and the catalogue's figure is right
+is not settled here; it is a question for a render probe that looks for the
+flicker the check predicts, and until one does, a carousel of pictures is the
+first place to look if a person sees one.
+
+## Phase 7
+
+Written when it is picked up. What the map already knows about it, so that
+writing it is an afternoon:
 
 - **Phase 1's second finding moves `scrollable`** for `AlertDialog3d` out of
-  phase 7 and into the next phase that touches a dialog. Phase 4 did not, and
-  neither did phase 5.
-- **Phase 6**'s change to the layout package is done:
-  [a scroll view that runs backwards](../../flutter_ui_3d/plans/2026_11_13_a_scroll_view_that_runs_backwards.md)
-  gave every scroll view `reverse`, and the widgets resolve right to left into
-  it, as Flutter's do, so a horizontal list starts at the right there.
-  `TabBarView3d` dropped its renumbering on the way, because its page view
-  now does that itself. What is left is the components — the carousel, the
-  scrollbar and the refresh indicator — and `isScrollable` on the tab bar.
-  `Scrollbar3d` still owes a design answer: what a scrollbar is beside a
-  plane the viewer may be looking at edge-on.
-- **Phase 7**'s `RangeSlider3d` is two thumbs competing for one pointer, which
-  is an arena problem rather than a second thumb.
+  phase 7 and into the next phase that touches a dialog. Phases 4, 5 and 6
+  did not.
+- **`RangeSlider3d`** is two thumbs competing for one pointer, which is an
+  arena problem rather than a second thumb.
 
 Two things on the map's list are **not** phases here, and on purpose.
 `CircleAvatar3d` was closed by the picture: a circular avatar is an

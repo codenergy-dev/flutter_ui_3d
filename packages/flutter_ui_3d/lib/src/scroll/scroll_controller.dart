@@ -2,10 +2,12 @@ import 'dart:async' show Completer;
 import 'dart:math' as math;
 
 import 'package:flutter/animation.dart' show Curve, Curves;
-import 'package:flutter/foundation.dart' show ChangeNotifier;
+import 'package:flutter/foundation.dart'
+    show ChangeNotifier, ObserverList, ValueChanged;
 import 'package:flutter/physics.dart' show Simulation, Tolerance;
 import 'package:flutter/scheduler.dart' show Ticker, TickerProvider;
 
+import '../geometry/offset3d.dart' show Axis3d;
 import '../metrics.dart';
 import 'scroll_physics.dart';
 
@@ -28,6 +30,95 @@ enum ScrollDirection3d {
   /// The offset is increasing: the content is moving toward the start of the
   /// window, which is a drag further into the list.
   reverse,
+}
+
+/// Something that happened to a [Scroll3dController] that its offset alone
+/// does not say, the 3D analogue of Flutter's `ScrollNotification`.
+///
+/// Flutter's notifications bubble up the element tree from the view, and a
+/// widget wrapped around the view — a scrollbar, a refresh indicator — hears
+/// them with a `NotificationListener`. **There is no tree to bubble through
+/// here**, so they are delivered at the controller instead, to whoever called
+/// [Scroll3dController.addNotificationListener]. A listener therefore hears
+/// the one position it registered with, which is what Flutter's default
+/// `depth == 0` predicate asks for.
+///
+/// Three kinds, named as Flutter names them, because they carry the facts
+/// Flutter's do and a port is written against those names:
+///
+///  * [Scroll3dStartNotification] — a person took hold of the position;
+///  * [Scroll3dOverscrollNotification] — a drag pulled past an end and the
+///    physics refused that part of it;
+///  * [Scroll3dEndNotification] — the person let go.
+///
+/// There is no update notification, because [Scroll3dController.addListener]
+/// already hears every movement and [Scroll3dController.isDragging] says
+/// whether a person is causing it.
+sealed class Scroll3dNotification {
+  const Scroll3dNotification(this.controller);
+
+  /// The position this happened to, with its metrics.
+  final Scroll3dController controller;
+}
+
+/// A person took hold of the position, Flutter's `ScrollStartNotification`
+/// from a drag.
+///
+/// **The hold here is the press**, which is earlier than Flutter's: the
+/// pointer takes hold of a view on the down, before the gesture arena has
+/// decided anything, so that a finger landing on a flinging list stops it.
+/// So a tap on a list sends a start and then a [Scroll3dEndNotification] at
+/// zero velocity, where Flutter's sends neither. A listener that wants a
+/// *drag* waits for the position to move, or for an overscroll, before it
+/// believes one.
+final class Scroll3dStartNotification extends Scroll3dNotification {
+  /// Creates the notification for [controller].
+  const Scroll3dStartNotification(super.controller);
+
+  @override
+  String toString() => 'Scroll3dStartNotification(${controller.offset})';
+}
+
+/// Part of a drag the physics refused, Flutter's `OverscrollNotification`.
+///
+/// Under clamping physics — the default here, and Android's in Flutter — a
+/// pull past the start of a list moves nothing, and this is the only place
+/// the pull is visible at all. It is what a refresh indicator measures.
+/// Under a physics that lets the position past its end, the position moves
+/// instead and nothing is refused, so nothing is sent.
+///
+/// Only a drag's. A wheel is clamped to the range by design and refuses
+/// nothing, and a fling that runs into an end is the position settling rather
+/// than a person pulling — Flutter's refresh indicator ignores the overscroll
+/// it sends there too.
+final class Scroll3dOverscrollNotification extends Scroll3dNotification {
+  /// Creates the notification for [controller].
+  const Scroll3dOverscrollNotification(super.controller, this.overscroll);
+
+  /// How far the drag asked to go past the end and was refused, in layout
+  /// units, signed as the offset is: negative past the start, positive past
+  /// the end.
+  final double overscroll;
+
+  @override
+  String toString() => 'Scroll3dOverscrollNotification($overscroll)';
+}
+
+/// The person let go, Flutter's `ScrollEndNotification` at the end of a
+/// drag.
+///
+/// Sent whatever the gesture arena decided: a tap that won the pointer ends
+/// the hold at rest, with a [velocity] of zero.
+final class Scroll3dEndNotification extends Scroll3dNotification {
+  /// Creates the notification for [controller].
+  const Scroll3dEndNotification(super.controller, {this.velocity = 0.0});
+
+  /// The velocity the position was let go at, in layout units per second,
+  /// signed as the offset moves.
+  final double velocity;
+
+  @override
+  String toString() => 'Scroll3dEndNotification($velocity)';
 }
 
 /// The scroll offset of a [RenderViewport3d] or [RenderListView3d], the metrics
@@ -146,6 +237,28 @@ class Scroll3dController extends ChangeNotifier {
   /// layout unit is worth before it can run. See [Scroll3dPhysics].
   double get unitsPerLogicalPixel => _unitsPerLogicalPixel;
 
+  Axis3d _axis = Axis3d.vertical;
+
+  /// The axis the view holding this position scrolls along, recorded by the
+  /// view when it lays out.
+  ///
+  /// Flutter's `ScrollMetrics.axisDirection`, in two halves — this and
+  /// [reverse] — because the axis here is one of three. A widget beside the
+  /// view rather than inside it reads it here: a scrollbar is drawn along it,
+  /// and a refresh indicator refuses any axis but the vertical one. Vertical
+  /// until a view has laid out once.
+  Axis3d get axis => _axis;
+
+  bool _reverse = false;
+
+  /// Whether the view holding this position starts at the far end of [axis],
+  /// recorded by the view with it.
+  ///
+  /// The half of Flutter's `axisDirection` that says where offset zero is: a
+  /// reversed vertical view shows its start at the bottom, so its scrollbar's
+  /// thumb starts there and its refresh indicator comes up from there.
+  bool get reverse => _reverse;
+
   /// Whether the content is longer than the window.
   bool get canScroll => _maxScrollExtent > 0.0;
 
@@ -249,6 +362,43 @@ class Scroll3dController extends ChangeNotifier {
     }
   }
 
+  /// Records the axis the view runs along and which way, silently.
+  ///
+  /// Called by the view during layout, beside [applyViewportMetrics]. A
+  /// separate call rather than two more parameters there, because that method
+  /// is overridden and a new parameter would break every override.
+  void applyViewportAxis({required Axis3d axis, required bool reverse}) {
+    _axis = axis;
+    _reverse = reverse;
+  }
+
+  // -------------------------------------------------------- notifications
+
+  final ObserverList<ValueChanged<Scroll3dNotification>>
+  _notificationListeners = ObserverList<ValueChanged<Scroll3dNotification>>();
+
+  /// Calls [listener] with every [Scroll3dNotification] this position sends.
+  ///
+  /// The channel a widget beside the view listens on, in place of Flutter's
+  /// `NotificationListener<ScrollNotification>` around it: see
+  /// [Scroll3dNotification] for why it is here and not in the tree.
+  void addNotificationListener(ValueChanged<Scroll3dNotification> listener) =>
+      _notificationListeners.add(listener);
+
+  /// Stops calling [listener].
+  void removeNotificationListener(
+    ValueChanged<Scroll3dNotification> listener,
+  ) => _notificationListeners.remove(listener);
+
+  void _notify(Scroll3dNotification notification) {
+    if (_notificationListeners.isEmpty) return;
+    for (final listener in List<ValueChanged<Scroll3dNotification>>.of(
+      _notificationListeners,
+    )) {
+      if (_notificationListeners.contains(listener)) listener(notification);
+    }
+  }
+
   // ------------------------------------------------------------ user input
 
   /// Takes hold of the position for a drag, stopping anything that was
@@ -258,6 +408,7 @@ class Scroll3dController extends ChangeNotifier {
   void beginUserScroll() {
     stopAnimation();
     _dragging = true;
+    _notify(Scroll3dStartNotification(this));
   }
 
   /// Moves the position by [delta] layout units of finger travel.
@@ -268,7 +419,10 @@ class Scroll3dController extends ChangeNotifier {
   /// and further out.
   void applyUserOffset(double delta) {
     if (delta == 0.0) return;
-    _setOffset(_offset + _physics.applyPhysicsToUserOffset(this, delta));
+    final refused = _setOffset(
+      _offset + _physics.applyPhysicsToUserOffset(this, delta),
+    );
+    if (refused != 0.0) _notify(Scroll3dOverscrollNotification(this, refused));
   }
 
   /// Releases the position at [velocity] layout units per second, letting the
@@ -279,6 +433,7 @@ class Scroll3dController extends ChangeNotifier {
   /// that was not a fling.
   void endUserScroll({double velocity = 0.0}) {
     _dragging = false;
+    _notify(Scroll3dEndNotification(this, velocity: velocity));
     final simulation = _physics.createBallisticSimulation(this, velocity);
     if (simulation == null) {
       _userScrollDirection = ScrollDirection3d.idle;
@@ -455,6 +610,7 @@ class Scroll3dController extends ChangeNotifier {
   @override
   void dispose() {
     stopAnimation();
+    _notificationListeners.clear();
     super.dispose();
   }
 }

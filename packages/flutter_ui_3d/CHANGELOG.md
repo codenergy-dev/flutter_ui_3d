@@ -1,5 +1,27 @@
 ## Unreleased
 
+- **A scroll controller says which way its view runs.**
+  `Scroll3dController.axis` and `.reverse` are recorded by the view as it lays
+  out, through `applyViewportAxis` — Flutter's `ScrollMetrics.axisDirection`
+  in two halves. A widget beside a view, which holds the controller and not
+  the view, reads them there. Vertical and forward until a view has laid out.
+
+- **A scroll controller sends Flutter's drag notifications.**
+  `Scroll3dStartNotification` when a person takes hold,
+  `Scroll3dOverscrollNotification` with the part of a drag the physics
+  refused past an end, and `Scroll3dEndNotification` with the release
+  velocity, to listeners added with `addNotificationListener`. Delivered at
+  the controller rather than up a tree, because there is no notification tier
+  here; it is what a scrollbar or a refresh indicator beside a view listens
+  to. The hold is the press, so a tap sends a start and an end at rest; a
+  wheel and a fling send nothing.
+
+- **A sliver view laid out before its start no longer asserts.** A bouncing
+  pull past the top of a list leaves the offset negative, and the view's cache
+  origin came out after the leading edge, which an assertion refused. The
+  slivers are now laid out from their own start and pushed into the window by
+  the overscroll, as Flutter's viewport does.
+
 - **A scroll view can run backwards.** `reverse` puts the start of the
   content at the far end of the axis: the bottom of a vertical view, the
   right of a horizontal one. `RenderViewport3d`, `RenderCustomScrollView3d`,

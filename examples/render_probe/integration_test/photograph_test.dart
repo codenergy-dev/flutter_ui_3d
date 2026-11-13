@@ -16,7 +16,13 @@
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_ui_3d/rendering.dart'
-    show GlyphAtlasCache3d, RenderObject3d, RenderModalBarrier3d, Navigator3d;
+    show
+        GlyphAtlasCache3d,
+        RenderObject3d,
+        RenderModalBarrier3d,
+        RenderSliver3d,
+        Navigator3d,
+        Scrollable3d;
 import 'package:flutter_ui_3d/testing.dart';
 import 'package:flutter_ui_3d_gallery/main.dart' show Gallery3dApp;
 import 'package:integration_test/integration_test.dart';
@@ -153,7 +159,8 @@ void main() {
 
     await tester.tap3d(find3d.bySemanticsLabel('Settings'));
     await pumpFrames(tester, 40);
-    // Phase 5: the settings are on two tabs now, under a primary tab bar.
+    // Phase 5: the settings are on tabs now, under a primary tab bar.
+    // Phase 6: four of them, in a bar that scrolls.
     final settings = await photographAgain(tester, name: 'gallery_settings');
     keep(settings);
     expectAFrame(settings);
@@ -179,6 +186,21 @@ void main() {
     final reseeded = await photographAgain(tester, name: 'gallery_reseeded');
     keep(reseeded);
     expectAFrame(reseeded);
+
+    // Phase 6: the third tab, which choosing the second scrolled into the
+    // bar, and the carousel on it — gradient cards rounded by their own
+    // decoration, the one at the trailing edge squeezed. Then one scrolled
+    // part way, so the leading card is squeezed as well.
+    await tester.tap3d(find3d.bySemanticsLabel('Wallpaper'));
+    await pumpFrames(tester, 40);
+    final carousel = await photographAgain(tester, name: 'gallery_carousel');
+    keep(carousel);
+    expectAFrame(carousel);
+    final sliver =
+        tester.layout3d<RenderObject3d>(find3d.byName('Carousel3d'))
+            as RenderSliver3d;
+    (sliver.parent! as Scrollable3d).controller.jumpTo(sliver.size.width * 0.3);
+    keep(await photographAgain(tester, name: 'gallery_carousel_scrolled'));
 
     // Phase 4 of the components a screen still needs, in the states a person
     // would have to put the gallery into to see them. The badge on the inbox

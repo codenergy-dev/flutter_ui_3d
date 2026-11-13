@@ -329,6 +329,59 @@ void main() {
     );
   });
 
+  group('phase 6 of the components a screen still needs', () {
+    /// Every label on [surface], in tree order.
+    List<String> labels(RenderSurface3d surface) {
+      final found = <String>[];
+      void walk(RenderObject3d box) {
+        if (box is RenderText3d) found.add(box.data);
+        box.visitChildren(walk);
+      }
+
+      walk(surface);
+      return found;
+    }
+
+    testWidgets('the inbox is pulled past its top through the camera, and '
+        'refreshes', (tester) async {
+      final surface = await pumpScreen(tester, const MaterialScreen());
+      await tester.drag3d(
+        find3d.bySemanticsLabel('Ada Lovelace'),
+        const Offset(0, 240),
+      );
+      // Not settled: the indicator spins until the refresh is done.
+      for (var i = 0; i < 20; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.pumpAndSettle();
+      expect(labels(surface), contains('Inbox up to date'));
+    });
+
+    testWidgets('the settings tabs scroll to a carousel, and a card there '
+        'chooses a wallpaper', (tester) async {
+      await pumpScreen(tester, const MaterialScreen());
+      await tester.tap3d(find3d.bySemanticsLabel('Settings'));
+      await tester.pumpAndSettle();
+      // Four tabs are more than the bar is wide: the third starts past its
+      // edge, and choosing the second centres that one, which brings the
+      // third in.
+      expect(find3d.bySemanticsLabel('Wallpaper'), isNot(isReachable3d));
+      await tester.tap3d(find3d.bySemanticsLabel('Display'));
+      await tester.pumpAndSettle();
+      expect(find3d.bySemanticsLabel('Wallpaper'), isReachable3d);
+      await tester.tap3d(find3d.bySemanticsLabel('Wallpaper'));
+      await tester.pumpAndSettle();
+      expect(find3d.bySemanticsLabel('Chosen, Dawn'), isReachable3d);
+
+      final carousel =
+          tester.layout3d<RenderObject3d>(find3d.byName('Carousel3d'))
+              as RenderSliverMultiBoxAdaptor3d;
+      await tester.tap3d(find3d.byLayout(carousel.childAt(1)));
+      await tester.pumpAndSettle();
+      expect(find3d.bySemanticsLabel('Chosen, Lagoon'), isReachable3d);
+    });
+  });
+
   group('phase 5 of the components a screen still needs', () {
     /// How far down the inbox the card announcing [name] is.
     double down(WidgetTester tester, String name) => tester

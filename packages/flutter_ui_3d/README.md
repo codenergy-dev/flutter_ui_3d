@@ -1332,6 +1332,7 @@ asserts in debug when it is inside a faded subtree without one.
 | `Layout3dPointerGroup` | routing a ray across surfaces, which a screen does not need |
 | `Input3d`, `Input3dHost` | the `Listener` an application would otherwise write, with the rays and the surfaces owned for it |
 | `PointerScroll3d`, `Scroll3dController.pointerScroll` | `Scrollable`'s pointer-signal handling and `ScrollPosition.pointerScroll` |
+| `Scroll3dNotification` and its start, overscroll and end kinds, `Scroll3dController.axis` and `.reverse` | `ScrollStartNotification`, `OverscrollNotification`, `ScrollEndNotification` and `ScrollMetrics.axisDirection`, delivered at the controller rather than up the tree |
 | `RenderNodeBox3d` | the leaf that holds content |
 | `RenderText3d`, `TextMeasurement3d` | `Text`, and the `TextPainter` behind it |
 | `AtlasText3dRenderer`, `RenderRichText3d` | the two halves of `RenderParagraph.paint`: glyphs from an atlas, or Flutter's own raster |
@@ -1863,6 +1864,40 @@ node-only path described under *Animation*. `userScrollDirection` is which way
 the viewer is moving it, idle for a programmatic jump; that is what stops a
 floating header unrolling because a spring, rather than a finger, carried the
 offset backwards.
+
+**A widget beside a view hears it through the controller.** Flutter's
+scrollbar and refresh indicator are wrapped round a list and listen to the
+`ScrollNotification`s bubbling up past them. There is no notification tier
+here, so the controller is what they share with the view, and it carries the
+two things Flutter's notifications add to a position. It records which way the
+view runs — `axis` and `reverse`, Flutter's `ScrollMetrics.axisDirection` in
+two halves, written by the view as it lays out — and it delivers Flutter's
+three drag notifications to whoever asked for them:
+
+```dart
+final scroll = Scroll3dController();
+
+scroll.addNotificationListener((notification) {
+  switch (notification) {
+    case Scroll3dStartNotification():
+      // A person took hold of the view.
+    case Scroll3dOverscrollNotification(:final overscroll):
+      // A drag pulled past an end, and clamping refused this much of it.
+    case Scroll3dEndNotification(:final velocity):
+      // They let go.
+  }
+});
+```
+
+Two things about them are not what Flutter's do. **The hold is the press**:
+the pointer takes hold of a view on the down, so a finger landing on a
+flinging list stops it, which means a tap on a list sends a start and an end at
+rest where Flutter's sends nothing — wait for the position to move, or for an
+overscroll, before believing in a drag. And **overscroll is only a drag's**: a
+wheel is clamped to the range and refuses nothing, and a fling that runs into
+an end is the position settling rather than a person pulling. Every movement is
+still `addListener`'s, as it always was; `isDragging` says whether a person is
+causing it.
 
 A wheel has a method of its own, `pointerScroll`, because a wheel is not a
 finger: it jumps rather than dragging, stops at the ends whatever the physics

@@ -1,8 +1,8 @@
 ---
 status: in progress
-reason: five of the seventeen items are open; the motion lane is closed and so is the colour generator, so what is left is the catalogue batch — planned in seven phases, five landed and the sixth's layout change done — more than one screen, more than one language, and the letter someone can type with the keyboard controls behind it
+reason: five of the seventeen items are open; the motion lane is closed and so is the colour generator, so what is left is the catalogue batch — planned in seven phases, six landed — more than one screen, more than one language, and the letter someone can type with the keyboard controls behind it
 created_at: 2026-09-11T21:20:18Z
-updated_at: 2026-11-13T15:36:52Z
+updated_at: 2026-11-13T16:21:46Z
 commit: abc2469ce5c4ec4c41e2738fc5acf55bcf40640a
 ---
 
@@ -106,7 +106,7 @@ plan, which is the rule phase 0 established and every phase since has obeyed.
 | [An application with more than one screen](#an-application-with-more-than-one-screen) | layout3d | named routes, deep links, the system back button |
 | ~~[A way to test a screen someone else built](#a-way-to-test-a-screen-someone-else-built)~~ | layout3d | **done** — anyone building on this, including us |
 | ~~[The motion tokens](#the-motion-tokens)~~ | material3d | **done** — every overlay in the catalogue arrives instead of appearing |
-| [The components a screen still needs](#the-components-a-screen-still-needs) | material3d | **in progress** — [its plan](../../material_ui_3d/plans/2026_09_21_the_components_a_screen_still_needs.md) is seven phases; five have landed — the alert dialog, the tristate box and the labelled tiles; the safe area and type that grows; the switch's thumb, the chip's lift and both progress indicators; the badge, the banner, the bottom app bar, the drawer, the expansion tile and the snack bar's second line; the segmented button, the tabs and the radio group. Phase 6's change here, [`reverse`](2026_11_13_a_scroll_view_that_runs_backwards.md), has landed; its components have not |
+| [The components a screen still needs](#the-components-a-screen-still-needs) | material3d | **in progress** — [its plan](../../material_ui_3d/plans/2026_09_21_the_components_a_screen_still_needs.md) is seven phases; five have landed — the alert dialog, the tristate box and the labelled tiles; the safe area and type that grows; the switch's thumb, the chip's lift and both progress indicators; the badge, the banner, the bottom app bar, the drawer, the expansion tile and the snack bar's second line; the segmented button, the tabs and the radio group; the scrollbar, the refresh indicator, the carousel and a tab bar that scrolls, over two changes here — [`reverse`](2026_11_13_a_scroll_view_that_runs_backwards.md) and [a position that says what is happening to it](2026_11_13_a_position_that_says_what_is_happening_to_it.md). Phase 7 is next |
 | ~~[A scheme from one colour](#a-scheme-from-one-colour)~~ | material3d | **done** — any application with a brand |
 | [The controls that wait on a keyboard](#the-controls-that-wait-on-a-keyboard) | material3d | search, dropdowns, date and time entry |
 | [A catalogue that speaks more than one language](#a-catalogue-that-speaks-more-than-one-language) | material3d | every locale, and the strings the catalogue invents |
@@ -247,15 +247,22 @@ Phase 4 found on the way that every button, chip and tile in the
 catalogue had been swallowing a press on its padding; phase 5 found that **a
 drag here takes the nearest scroll view whatever its axis**, so a tab view
 whose pages are lists does not swipe — an item for `Layout3dPointer`, which
-nothing on this map owns yet. **Phase 6 is next**, and its plan here is
-done:
-[a scroll view that runs backwards](2026_11_13_a_scroll_view_that_runs_backwards.md)
+nothing on this map owns yet. **Phase 6 has landed** — the scrollbar, the
+refresh indicator, the carousel and a tab bar that scrolls — over two plans
+here.
+[A scroll view that runs backwards](2026_11_13_a_scroll_view_that_runs_backwards.md)
 gave every scroll view `reverse`, and the widgets resolve right to left into
-it, so a horizontal list starts at the right there, as Flutter's does. That
+it, so a horizontal list starts at the right there, as Flutter's does; that
 closes the absence
 [a row that reads right to left](2026_09_15_a_row_that_reads_right_to_left.md)
-recorded. What phase 6 has left is the carousel, the scrollbar and the
-refresh indicator, which are the catalogue's.
+recorded.
+[A position that says what is happening to it](2026_11_13_a_position_that_says_what_is_happening_to_it.md)
+was the one the phase table did not name: a scrollbar and a refresh indicator
+sit beside a view and hear it through notifications in Flutter, there is no
+notification tier here, so the controller now records which way its view runs
+and sends Flutter's start, overscroll and end of a drag itself. Building on it
+found that a bouncing list pulled past its top had never been laid out, and
+asserted. **Phase 7 is next** — a second arena, or a design answer.
 
 **[A letter someone can type](#a-letter-someone-can-type) last of the large
 items, and it is much larger than anything above it.** It gates
@@ -968,6 +975,9 @@ closed `Badge3d`, `MaterialBanner3d`, `BottomAppBar3d`, `NavigationDrawer3d`,
 `ExpansionTile3d` and a snack bar's second line, with no change to this
 package, and phase 5 `SegmentedButton3d`, `TabBar3d` with `TabBarView3d`, and
 `RadioGroup3d`, with one: a label wholly outside its window draws nothing.
+Phase 6 closed `Scrollbar3d`, `RefreshIndicator3d` and `Carousel3d`, and gave
+the tab bar `isScrollable`, with two: `reverse`, and a controller that says
+what is happening to its position.
 The entry below is what the plan was reasoned
 from.
 
@@ -1002,12 +1012,20 @@ should be grouped by what they actually need:
   scroll view with `reverse`, which none here has: Flutter starts a
   horizontal `ListView` at the right in right to left by reversing its axis.
   [Right to left](2026_09_15_a_row_that_reads_right_to_left.md) found it and
-  left it, because there was no direction to thread.
+  left it, because there was no direction to thread. *Since closed, by phase
+  6:* [`reverse`](2026_11_13_a_scroll_view_that_runs_backwards.md) was the
+  whole of what the carousel needed underneath, and its squeeze is Flutter's,
+  a size, laid out at the two edges of the window.
 - `Scrollbar3d` wants
   [the wheel plan](#a-wheel-a-trackpad-and-a-key-that-reach-a-box) and, more
   interestingly, a design answer: what *is* a scrollbar beside a surface in a
   room, when the thing it measures is a plane the viewer may be looking at
-  edge-on.
+  edge-on. *Since closed, by phase 6:* part of the plane, as Flutter's is
+  painted in the view's own rectangle — a slab a step in front of the content,
+  turning with it. The design answer was the easy half; the hard one was that
+  a widget *beside* a view had nothing to hear it through, which became
+  [a position that says what is happening to it](2026_11_13_a_position_that_says_what_is_happening_to_it.md)
+  — and the refresh indicator needed the same.
 - `CircleAvatar3d` and `DataTable3d` wanted
   [a picture on a panel](#a-picture-on-a-panel), which is **done**: a circular
   avatar is an `Image3d` with a radius on it, and the gallery's inbox has five

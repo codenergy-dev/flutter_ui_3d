@@ -76,6 +76,8 @@ export 'src/components/button_style.dart'
 export 'src/components/card.dart'
     show Card3d, ElevatedCard3d, FilledCard3d, OutlinedCard3d;
 export 'src/components/card_style.dart' show CardStyle3d, CardVariant3d;
+export 'src/components/carousel.dart' show Carousel3d;
+export 'src/components/carousel_style.dart' show CarouselStyle3d;
 export 'src/components/chip.dart'
     show AssistChip3d, Chip3d, FilterChip3d, InputChip3d, SuggestionChip3d;
 export 'src/components/chip_style.dart'
@@ -144,7 +146,11 @@ export 'src/components/progress_indicator_style.dart'
     show ProgressIndicatorStyle3d;
 export 'src/components/radio_group.dart'
     show RadioGroup3d, RadioGroupRegistry3d;
+export 'src/components/refresh_indicator.dart'
+    show RefreshIndicator3d, RefreshIndicator3dState;
 export 'src/components/scaffold.dart' show Scaffold3d, Scaffold3dSlot;
+export 'src/components/scrollbar.dart' show Scrollbar3d;
+export 'src/components/scrollbar_style.dart' show ScrollbarStyle3d;
 export 'src/components/segmented_button.dart'
     show ButtonSegment3d, SegmentedButton3d;
 export 'src/components/segmented_button_style.dart' show SegmentedButtonStyle3d;

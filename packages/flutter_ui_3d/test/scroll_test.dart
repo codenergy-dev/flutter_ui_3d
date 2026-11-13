@@ -209,6 +209,56 @@ void main() {
       surface.flush();
       expect(items[1].offset.x, 0);
     });
+
+    // A bouncing pull past the start leaves the offset negative. Nothing laid
+    // a sliver view out there until a refresh indicator was pulled under
+    // bouncing physics, and the window's cache asserted it was after the
+    // leading edge.
+    for (final reverse in <bool>[false, true]) {
+      testWidgets('lays out before its start, pushed in by the overscroll, '
+          'reverse $reverse', (tester) async {
+        final items = List.generate(
+          5,
+          (_) => RenderTestBox(const Size3d(1, 1, 0)),
+        );
+        final controller = Scroll3dController(
+          physics: BouncingScroll3dPhysics(),
+        );
+        addTearDown(controller.dispose);
+        final list = RenderListView3d(
+          controller: controller,
+          reverse: reverse,
+          children: items,
+        );
+        final surface = laidOut(
+          list,
+          constraints: Constraints3d.tight(const Size3d(1, 3, 0)),
+        );
+        controller.jumpTo(-0.5);
+        surface.flush();
+        expect(controller.offset, -0.5);
+        // Measured from the window's leading edge, which a reversed view
+        // keeps at the bottom.
+        double lead(RenderObject3d box) {
+          var y = 0.0;
+          for (
+            RenderObject3d? node = box;
+            node != null && !identical(node, list);
+            node = node.parent
+          ) {
+            y += node.offset.y;
+          }
+          return reverse ? 3 - y - box.size.height : y;
+        }
+
+        expect(lead(items[0]), closeTo(0.5, 1e-9));
+        expect(lead(items[1]), closeTo(1.5, 1e-9));
+        expect(items[0].node.visible, isTrue);
+        // The spring that would bring it back, stopped: this is about the
+        // layout at one instant.
+        controller.stopAnimation();
+      });
+    }
   });
 
   // What the class is underneath: a viewport over one sliver, the shape

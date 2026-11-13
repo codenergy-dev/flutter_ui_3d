@@ -592,4 +592,114 @@ void main() {
       );
     });
   });
+
+  group('a scrolling TabBar3d', () {
+    const tabs = <Tab3d>[
+      Tab3d(text: 'Inbox'),
+      Tab3d(text: 'Starred'),
+      Tab3d(text: 'Snoozed'),
+      Tab3d(text: 'Sent'),
+      Tab3d(text: 'Drafts'),
+      Tab3d(text: 'Spam'),
+      Tab3d(text: 'Trash'),
+      Tab3d(text: 'Archive'),
+      Tab3d(text: 'Later'),
+      Tab3d(text: 'Notes'),
+    ];
+
+    /// Where [box]'s left edge is on the surface, scrolled where it is.
+    double xOnSurface(RenderObject3d box) {
+      var x = 0.0;
+      for (
+        RenderObject3d? walk = box;
+        walk != null && walk.parent != null;
+        walk = walk.parent
+      ) {
+        x += walk.offset.x;
+      }
+      return x;
+    }
+
+    Future<PumpedSurface> pumpScrolling(
+      WidgetTester tester,
+      TabController controller, {
+      TextDirection? textDirection,
+    }) => pumpComponent(
+      tester,
+      () => _bar(
+        TabBar3d(controller: controller, tabs: tabs, isScrollable: true),
+      ),
+      textDirection: textDirection,
+    );
+
+    testWidgets('makes each tab its label plus 16dp each side', (tester) async {
+      final controller = _controller(length: tabs.length);
+      addTearDown(controller.dispose);
+      final pumped = await pumpScrolling(tester, controller);
+      for (var i = 0; i < 3; i++) {
+        expect(
+          _slot(pumped.surface, i).size.width,
+          closeTo(_label(pumped.surface, i).size.width + 32 * _dp, 1e-6),
+        );
+      }
+    });
+
+    testWidgets('starts its row 52dp in, at the right in right to left', (
+      tester,
+    ) async {
+      final controller = _controller(length: tabs.length);
+      addTearDown(controller.dispose);
+      var pumped = await pumpScrolling(tester, controller);
+      // The bar is three units wide, centred on a surface four units wide.
+      expect(xOnSurface(_slot(pumped.surface, 0)), closeTo(0.5 + 0.52, 1e-6));
+
+      pumped = await pumpScrolling(
+        tester,
+        controller,
+        textDirection: TextDirection.rtl,
+      );
+      final first = _slot(pumped.surface, 0);
+      expect(xOnSurface(first) + first.size.width, closeTo(3.5 - 0.52, 1e-6));
+    });
+
+    testWidgets('centres a newly chosen tab', (tester) async {
+      final controller = _controller(length: tabs.length);
+      addTearDown(controller.dispose);
+      final pumped = await pumpScrolling(tester, controller);
+      controller.animateTo(4);
+      await tester.pumpAndSettle();
+      final chosen = _slot(pumped.surface, 4);
+      expect(xOnSurface(chosen) + chosen.size.width / 2, closeTo(2.0, 1e-6));
+      // The indicator rides in the row, under it.
+      final indicator = _indicator(pumped.surface);
+      expect(
+        xOnSurface(indicator),
+        greaterThanOrEqualTo(xOnSurface(chosen) - 1e-6),
+      );
+      expect(
+        xOnSurface(indicator) + indicator.size.width,
+        lessThanOrEqualTo(xOnSurface(chosen) + chosen.size.width + 1e-6),
+      );
+    });
+
+    testWidgets('opens with its tab centred', (tester) async {
+      final controller = _controller(length: tabs.length, initialIndex: 5);
+      addTearDown(controller.dispose);
+      final pumped = await pumpScrolling(tester, controller);
+      await tester.pump();
+      final chosen = _slot(pumped.surface, 5);
+      expect(xOnSurface(chosen) + chosen.size.width / 2, closeTo(2.0, 1e-6));
+    });
+
+    testWidgets('draws its rule across the whole bar', (tester) async {
+      final controller = _controller(length: tabs.length);
+      addTearDown(controller.dispose);
+      final pumped = await pumpScrolling(tester, controller);
+      final rules = boxesOf<RenderDecoratedBox3d>(
+        pumped.surface,
+      ).where((box) => (box.size.height - _dp).abs() < 1e-9);
+      expect(rules, hasLength(1));
+      expect(rules.single.size.width, closeTo(3.0, 1e-9));
+    });
+  });
 }

@@ -1,5 +1,41 @@
 ## Unreleased
 
+- **`Scrollbar3d` puts a thumb along the trailing edge of a scroll view.**
+  Flutter's Material scrollbar with the figures it uses off Android, over a
+  `ScrollbarStyle3d`: 8dp, 2dp in, rounded, at least 48dp long, fading 600ms
+  after the position stops unless `thumbVisibility` keeps it up, and
+  draggable. It takes the view's `Scroll3dController`, because there are no
+  scroll notifications to hear the view through; the controller says which
+  way the view runs. The thumb is part of the plane — a slab a step in front
+  of the content, inside the view's box — and a scroll moves it on the node
+  tier without building anything.
+
+- **`RefreshIndicator3d` refreshes a scroll view pulled past its top.**
+  Flutter's state machine, on Flutter's own `RefreshIndicatorStatus` and
+  `RefreshIndicatorTriggerMode`, driven by the start, overscroll and end
+  notifications the view's controller now sends: a pull past a quarter of the
+  window snaps the disc 40dp down and calls `onRefresh`, and
+  `RefreshIndicator3dState.show` does it without a pull. It takes the
+  controller for the scrollbar's reason. The disc travels on the node tier
+  and fades in whole, where Flutter's clips it at the view's edge, because a
+  clip does not follow the node tier.
+
+- **`Carousel3d` is Flutter's `CarouselView`, uncontained.** Items
+  `itemExtent` long, the ones at the window's edges squeezed toward
+  `shrinkExtent` by being laid out narrower, as Flutter's are — so the two
+  edge items are laid out again on each frame of a scroll and the rest are
+  only placed. Each is a padded `Material3d` rounded 28dp with an ink well in
+  front of its contents, over a `CarouselStyle3d`; `itemSnapping` rests on an
+  item; `Carousel3d.builder` builds unwrapped items as the window reaches
+  them, as Flutter's builder does. An item does not clip what is on it to its
+  corners: a picture carries the radius itself.
+
+- **`TabBar3d.isScrollable` makes a tab bar scroll.** Each tab as wide as its
+  label plus its padding, the row starting 52dp in — Material 3's start
+  offset — in a horizontal scroll view that starts at the right in right to
+  left, under a rule across the whole bar. Choosing a tab centres it, and a
+  swipe of the pages keeps the tab under them centred.
+
 - **`TabBarView3d` reads right to left through its page view.** The page view
   under it now reverses its axis in right to left by itself, so the view no
   longer renumbers its pages: tab one is page one in either direction, laid

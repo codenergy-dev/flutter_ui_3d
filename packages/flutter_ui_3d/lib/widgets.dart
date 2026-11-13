@@ -190,7 +190,13 @@ export 'src/scroll/grid_delegate.dart'
         Grid3dLayout;
 export 'src/sliver/sliver_reorderable_list.dart' show Reorder3dCallback;
 export 'src/scroll/scroll_controller.dart'
-    show ScrollDirection3d, Scroll3dController;
+    show
+        ScrollDirection3d,
+        Scroll3dController,
+        Scroll3dEndNotification,
+        Scroll3dNotification,
+        Scroll3dOverscrollNotification,
+        Scroll3dStartNotification;
 export 'src/scroll/scroll_physics.dart'
     show
         BouncingScroll3dPhysics,

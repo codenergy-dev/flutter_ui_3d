@@ -17,13 +17,15 @@ import 'package:flutter/widgets.dart'
         StatelessWidget,
         TextDirection,
         TickerProviderStateMixin,
-        Widget;
+        Widget,
+        WidgetsBinding;
 import 'package:flutter_ui_3d/rendering.dart'
     show
         Alignment3d,
         Axis3d,
         Constraints3d,
         EdgeInsets3d,
+        EdgeInsetsDirectional3d,
         RenderObject3d,
         MainAxisAlignment3d,
         MainAxisSize3d,
@@ -46,12 +48,15 @@ import 'package:flutter_ui_3d/widgets.dart'
         IgnorePointer3d,
         Padding3d,
         PageView3d,
+        Positioned3d,
         Row3d,
         Semantics3d,
         SizedBox3d,
+        Stack3d,
         TapTarget3d,
         Text3d,
-        SingleChildRenderObjectWidget3d;
+        SingleChildRenderObjectWidget3d,
+        Viewport3d;
 import 'package:vector_math/vector_math.dart' show Matrix4;
 
 import '../theme/theme.dart';
@@ -212,10 +217,8 @@ class Tab3d extends StatelessWidget {
 ///  * **An unchosen tab washes in `onSurface`** whatever the state, where a
 ///    primary bar's pressed one washes `primary`: a wash here is one colour
 ///    per surface.
-///  * **No `isScrollable`.** A scrolling bar is a horizontal scroll view
-///    that starts at the right in right to left, which the layout package's
-///    `reverse` now allows, and which phase 6 of the catalogue plan has not
-///    built yet.
+///  * **A scrolling bar has no `tabAlignment`.** [isScrollable] always
+///    starts its row [scrollableStartOffset] in, Material 3's default.
 ///  * **No "Tab 1 of 3".** Flutter appends a localized position to each
 ///    tab's announcement; a string the catalogue would have to invent is the
 ///    language item's.
@@ -237,6 +240,7 @@ class TabBar3d extends StatefulWidget {
     this.onTap,
     this.style,
     this.textDirection,
+    this.isScrollable = false,
   }) : variant = TabBarVariant3d.primary;
 
   /// Creates a secondary tab bar, for the subsections of one section.
@@ -247,6 +251,7 @@ class TabBar3d extends StatefulWidget {
     this.onTap,
     this.style,
     this.textDirection,
+    this.isScrollable = false,
   }) : variant = TabBarVariant3d.secondary;
 
   /// Why a bar whose controller counts a different number of tabs is
@@ -278,12 +283,41 @@ class TabBar3d extends StatefulWidget {
   /// The direction the tabs' labels are announced in.
   final TextDirection? textDirection;
 
+  /// Whether the tabs are as wide as their labels and scroll, rather than
+  /// sharing the bar's width.
+  ///
+  /// Flutter's scrolling bar with Material 3's `TabAlignment.startOffset`:
+  /// each tab its label plus [TabBarStyle3d.labelPadding], the row starting
+  /// [scrollableStartOffset] in from the bar's leading edge, in a horizontal
+  /// scroll view — which starts at the right in right to left — under a rule
+  /// across the bar's whole width. The indicator rides in the row and scrolls
+  /// with it. A change of tab animates the view to centre the chosen one, and
+  /// a swipe of the pages keeps it centred as they go.
+  final bool isScrollable;
+
+  /// How far in from its leading edge a scrolling bar's first tab starts, in
+  /// logical pixels: Flutter's `_kStartOffset`.
+  static const double scrollableStartOffset = 52.0;
+
+  /// How long a scrolling bar takes to centre a newly chosen tab: Flutter's
+  /// `kTabScrollDuration`.
+  static const Duration scrollDuration = Duration(milliseconds: 300);
+
   @override
   State<TabBar3d> createState() => _TabBar3dState();
 }
 
 class _TabBar3dState extends State<TabBar3d> {
   TabController? _controller;
+
+  /// The position of a scrolling bar's row. Owned, and unused by a fixed one.
+  final Scroll3dController _scroll = Scroll3dController();
+
+  /// The tab a scrolling bar last centred.
+  int? _centredIndex;
+
+  /// The bar's own box, for where its tabs ended up.
+  _RenderTabBarLayout3d? _layout;
 
   /// Where each tab and each label ended up, written by the boxes that
   /// measure them and read by the box that places the indicator.
@@ -304,6 +338,8 @@ class _TabBar3dState extends State<TabBar3d> {
   @override
   void dispose() {
     _controller?.removeListener(_changed);
+    _controller?.animation?.removeListener(_ticked);
+    _scroll.dispose();
     super.dispose();
   }
 
@@ -312,13 +348,86 @@ class _TabBar3dState extends State<TabBar3d> {
     assert(next != null, TabBar3d.noController);
     if (identical(next, _controller)) return;
     _controller?.removeListener(_changed);
+    _controller?.animation?.removeListener(_ticked);
     _controller = next?..addListener(_changed);
+    next?.animation?.addListener(_ticked);
   }
 
   /// The controller says the index moved, or a change started or ended:
-  /// rebuild, for the labels' colours. Flutter's bar does the same.
+  /// rebuild, for the labels' colours. Flutter's bar does the same. A
+  /// scrolling bar centres a newly chosen tab, as `_handleTabControllerTick`
+  /// does.
   void _changed() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    final index = _controller!.index;
+    if (widget.isScrollable && index != _centredIndex) {
+      _centredIndex = index;
+      final to = _centredOffset(index);
+      if (to != null) {
+        _scroll.animateTo(
+          to,
+          duration: TabBar3d.scrollDuration,
+          curve: Curves.ease,
+        );
+      }
+    }
+    setState(() {});
+  }
+
+  /// A swipe of the pages moves the controller's animation without a change
+  /// of index being under way: keep the tab under it centred, as
+  /// `_scrollToControllerValue` does — a straight interpolation between the
+  /// offsets that centre its neighbours.
+  void _ticked() {
+    final controller = _controller;
+    if (controller == null || !widget.isScrollable) return;
+    if (controller.indexIsChanging) return;
+    final value = controller.animation?.value;
+    if (value == null) return;
+    final index = controller.index;
+    _centredIndex = index;
+    final middle = _centredOffset(index);
+    if (middle == null) return;
+    final offset = value - index;
+    final double to;
+    if (offset == 0.0) {
+      to = middle;
+    } else {
+      final neighbour = _centredOffset(offset < 0.0 ? index - 1 : index + 1);
+      to = neighbour == null
+          ? middle
+          : lerpDouble(middle, neighbour, offset.abs().clamp(0.0, 1.0))!;
+    }
+    if (to != _scroll.offset) _scroll.jumpTo(to);
+  }
+
+  /// The offset that puts tab [index]'s centre in the middle of a scrolling
+  /// bar, clamped to what it can scroll: Flutter's `_tabScrollOffset`. Null
+  /// until the bar has laid out.
+  double? _centredOffset(int index) {
+    final layout = _layout;
+    if (layout == null || !layout.hasSize) return null;
+    final centre = layout.tabCentre(index);
+    if (centre == null) return null;
+    final start = layout.metrics.dp(TabBar3d.scrollableStartOffset);
+    // Measured from the row's leading edge: the left, or the right in right
+    // to left, where the start offset is too.
+    final lead = layout.direction == TextDirection.rtl
+        ? layout.size.width - centre + start
+        : start + centre;
+    final to = lead - _scroll.viewportExtent / 2.0;
+    return to.clamp(_scroll.minScrollExtent, _scroll.maxScrollExtent);
+  }
+
+  /// A scrolling bar opens with its tab centred, once it knows where that
+  /// is: Flutter's `_initialScrollOffset`.
+  void _centreInitially() {
+    if (!mounted || !widget.isScrollable || _centredIndex != null) return;
+    final index = _controller!.index;
+    final to = _centredOffset(index);
+    if (to == null) return;
+    _centredIndex = index;
+    _scroll.jumpTo(to);
   }
 
   void _pressed(int index) {
@@ -339,20 +448,23 @@ class _TabBar3dState extends State<TabBar3d> {
     final anyTall = widget.tabs.any((tab) => tab.hasTextAndIcon);
     final lift = (resolved.textAndIconTabHeight - resolved.tabHeight) / 2.0;
 
+    Widget tabAt(int i) => _tab(
+      context,
+      resolved,
+      index: i,
+      chosen: i == controller.index,
+      // A tab with only one of the two, in a bar where another has both, is
+      // padded to the same height, as Flutter's is.
+      raise: anyTall && !widget.tabs[i].hasTextAndIcon ? lift : 0.0,
+    );
+    final scrolls = widget.isScrollable;
     final row = Row3d(
+      mainAxisSize: scrolls ? MainAxisSize3d.min : MainAxisSize3d.max,
       children: <Widget>[
         for (var i = 0; i < widget.tabs.length; i++)
-          Expanded3d(
-            child: _tab(
-              context,
-              resolved,
-              index: i,
-              chosen: i == controller.index,
-              // A tab with only one of the two, in a bar where another has
-              // both, is padded to the same height, as Flutter's is.
-              raise: anyTall && !widget.tabs[i].hasTextAndIcon ? lift : 0.0,
-            ),
-          ),
+          // A scrolling bar's tab is as wide as its label; a fixed bar's
+          // share the width.
+          scrolls ? tabAt(i) : Expanded3d(child: tabAt(i)),
       ],
     );
 
@@ -382,16 +494,55 @@ class _TabBar3dState extends State<TabBar3d> {
     // has no children in that tree, so the node read as an empty bar and the
     // frame would not build. The gallery found it with a screen reader's
     // semantics on; no headless test turns them on through a scene.
-    return _TabBarLayout3d(
+    final bar = _TabBarLayout3d(
       controller: controller,
       geometry: _geometry,
       labelSized: resolved.indicatorSize == TabBarIndicatorSize3d.label,
       animation: resolved.indicatorAnimation,
       direction: direction,
       indicatorWeight: metrics.dp(resolved.indicatorWeight),
-      dividerHeight: metrics.dp(resolved.dividerHeight),
+      // A scrolling bar's rule is across the bar, not the row: it is drawn
+      // outside the scroll view, below.
+      dividerHeight: scrolls ? 0.0 : metrics.dp(resolved.dividerHeight),
       depthStep: metrics.dp(resolved.depthStep),
-      children: <Widget>[row, divider, indicator],
+      onLaidOut: (layout) {
+        _layout = layout;
+        if (scrolls && _centredIndex == null) {
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => _centreInitially(),
+          );
+        }
+      },
+      children: <Widget>[
+        row,
+        scrolls ? const SizedBox3d() : divider,
+        indicator,
+      ],
+    );
+    if (!scrolls) return bar;
+
+    // The row in a horizontal scroll view, which resolves right to left into
+    // starting at the right on its own, cut at the bar's edges; the rule
+    // across the whole bar, a step in front of the tabs as a fixed bar's is.
+    return Stack3d(
+      depthStep: metrics.dp(resolved.depthStep),
+      children: <Widget>[
+        ClipBox3d(
+          child: Viewport3d(
+            axis: Axis3d.horizontal,
+            controller: _scroll,
+            child: Padding3d(
+              padding: metrics.dpInsets(
+                const EdgeInsetsDirectional3d.only(
+                  start: TabBar3d.scrollableStartOffset,
+                ),
+              ),
+              child: bar,
+            ),
+          ),
+        ),
+        Positioned3d(left: 0.0, right: 0.0, bottom: 0.0, child: divider),
+      ],
     );
   }
 
@@ -630,6 +781,20 @@ class _RenderTabBarLayout3d extends RenderMultiChild3d<ParentData3d> {
   /// Where the indicator rests: its left edge and its width.
   (double, double)? _rest;
 
+  /// Told after every layout, so a scrolling bar can find where its tabs
+  /// ended up.
+  void Function(_RenderTabBarLayout3d layout)? onLaidOut;
+
+  /// The centre of tab [index]'s slot, from this box's left edge, or null
+  /// before the tabs have been laid out.
+  double? tabCentre(int index) {
+    final row = _row;
+    if (row == null) return null;
+    final spans = geometry.spansIn(row, labelSized: false);
+    if (spans == null || index < 0 || index >= spans.length) return null;
+    return row.offset.x + (spans[index].$1 + spans[index].$2) / 2.0;
+  }
+
   TabController get controller => _controller;
 
   set controller(TabController value) {
@@ -740,6 +905,7 @@ class _RenderTabBarLayout3d extends RenderMultiChild3d<ParentData3d> {
       );
       _applyNode();
     }
+    onLaidOut?.call(this);
   }
 
   /// Moves the indicator from where it rests to where the animation has it,
@@ -785,8 +951,11 @@ class _TabBarLayout3d extends MultiChildRenderObjectWidget3d {
     required this.indicatorWeight,
     required this.dividerHeight,
     required this.depthStep,
+    required this.onLaidOut,
     super.children,
   });
+
+  final void Function(_RenderTabBarLayout3d layout) onLaidOut;
 
   final TabController controller;
   final _TabGeometry3d geometry;
@@ -808,10 +977,11 @@ class _TabBarLayout3d extends MultiChildRenderObjectWidget3d {
         indicatorWeight: indicatorWeight,
         dividerHeight: dividerHeight,
         depthStep: depthStep,
-      );
+      )..onLaidOut = onLaidOut;
 
   @override
   void updateLayout(BuildContext context, _RenderTabBarLayout3d layout) {
+    layout.onLaidOut = onLaidOut;
     layout.controller = controller;
     if (layout.labelSized != labelSized ||
         layout.indicatorWeight != indicatorWeight ||

@@ -22,7 +22,9 @@ rows (`Card3d`, `ListTile3d`, `ExpansionTile3d`, `Divider3d`, `Chip3d`,
 `Badge3d`, `MaterialBanner3d`); the structure (`Scaffold3d`, `AppBar3d`,
 `SliverAppBar3d`, `BottomAppBar3d`, `NavigationBar3d`, `NavigationRail3d`,
 `Drawer3d` and `NavigationDrawer3d`, and the tabs — `TabBar3d` and
-`TabBarView3d`, on Flutter's own `TabController`); the overlays (`Dialog3d` and `AlertDialog3d`,
+`TabBarView3d`, on Flutter's own `TabController`); two things that sit
+beside a scroll view (`Scrollbar3d`, `RefreshIndicator3d`) and one that is a
+scroll view of its own (`Carousel3d`); the overlays (`Dialog3d` and `AlertDialog3d`,
 `Menu3d`, `SnackBar3d`, `Tooltip3d`, `BottomSheet3d`); the selection controls
 (`Checkbox3d`, `Radio3d`, `Switch3d`, `Slider3d`), the rows that are one
 (`CheckboxListTile3d`, `SwitchListTile3d`, `RadioListTile3d`) and the group
@@ -1176,6 +1178,15 @@ does by default. Two things to know:
 - **The labels change colour at once**, where Flutter cross-fades them over
   the slide — the switch's decision, for the switch's reason.
 
+`isScrollable: true` is Flutter's scrolling bar, with Material 3's start
+offset: each tab as wide as its label plus 16dp either side, the first one
+52dp in from the leading edge, in a horizontal scroll view under a rule
+across the whole bar. The scroll view resolves right to left on its own, so
+the row starts at the right there. The indicator rides in the row and scrolls
+with it, and choosing a tab animates the bar to centre it over 300ms — a press
+on a half-hidden tab brings it in, and a swipe of the pages keeps the tab
+under them centred as they go.
+
 ## The overlays: dialogs, menus, snack bars, tooltips and sheets
 
 Everything that goes *in front* of a screen goes through `RenderOverlay3d`,
@@ -1740,6 +1751,96 @@ motion is checked against Flutter's own: `test/progress_indicator_test.dart`
 draws a real `LinearProgressIndicator` and `CircularProgressIndicator` and
 asks their painters where the lines and the arc went.
 
+## Beside a scroll view: a scrollbar and a pull to refresh
+
+`Scrollbar3d` and `RefreshIndicator3d` are Flutter's two widgets that wrap a
+scroll view and answer what is happening to it. **Both take the view's
+controller**, where Flutter's take only a child: Flutter's hear the view
+through the `ScrollNotification`s that bubble up past them, there is no
+notification tier here, and the controller is the one thing a widget beside
+the view can share with it. Hand the same one to all three:
+
+```dart
+final scroll = Scroll3dController();
+
+RefreshIndicator3d(
+  controller: scroll,
+  onRefresh: () => inbox.fetch(),
+  child: Scrollbar3d(
+    controller: scroll,
+    child: ListView3d.builder(
+      controller: scroll,
+      itemCount: inbox.length,
+      itemBuilder: (context, index) => MessageRow(inbox[index]),
+    ),
+  ),
+)
+```
+
+The controller says which way the view runs and delivers Flutter's start,
+overscroll and end notifications; the layout package's README says how.
+
+**A scrollbar is part of the plane.** The thumb is a slab a depth step in
+front of the content, inside the view's own box — along the right of a
+vertical view, the left in right to left, the bottom of a horizontal one — so
+it turns with the panel and goes edge-on with the content it measures, as
+Flutter's is painted in the view's own rectangle. Its figures are Flutter's
+off Android: 8dp thick, 2dp in, rounded, at least 48dp long, in `onSurface` at
+10% resting, 50% under the pointer and 60% held. It shows while the position
+moves and fades 600ms after it stops; `thumbVisibility` keeps it up, and it
+can be dragged. **A scroll moves the thumb on the node tier** — one
+translation from the controller's listener, nothing built — and a lazy list
+whose length estimate changes between layouts has the thumb's length
+corrected by a stretch until the next one.
+
+**A pull to refresh is Flutter's state machine on a controller.** A hold at
+the top arms it, the overscroll the drag sends pulls it down — or the position
+itself under a bouncing physics — and the release decides: past a quarter of
+the window it snaps 40dp below the edge and calls `onRefresh`, short of that it
+goes back. Flutter's `RefreshIndicatorStatus` and `RefreshIndicatorTriggerMode`
+are used as they are. The disc travels on the node tier, by the arithmetic
+Flutter's `SizeTransition` comes to, and **it fades in whole** where Flutter's
+clips its disc at the view's edge: a clip here is in the box's layout frame,
+which a node-tier offset is outside of, so a clipped disc would be cut where it
+rests and not where it is drawn. Two more things to know: the hold is the
+press, so the indicator arms on every tap at the top of a list and says
+nothing until a pull moves it; and a refreshing indicator spins until its
+future completes, so `pumpAndSettle` waits that long.
+
+### A carousel, squeezed at its edges
+
+`Carousel3d` is Flutter's `CarouselView` in its uncontained layout: items
+`itemExtent` long side by side, the ones at the window's edges squeezed toward
+`shrinkExtent` as they leave and arrive, each a padded `Material3d` rounded
+28dp with an ink well in front of it.
+
+```dart
+Carousel3d(
+  itemExtent: 160,
+  shrinkExtent: 56,
+  itemSnapping: true,
+  onTap: (index) => choose(index),
+  children: <Widget>[
+    for (final album in albums)
+      Image3d(
+        image: AssetImage(album.cover),
+        fit: BoxFit.cover,
+        borderRadius: const BorderRadius3d.circular(28),
+      ),
+  ],
+)
+```
+
+**The squeeze is a size**, as Flutter's is: an item's contents are laid out at
+the narrower extent. So the two items at the edges are laid out again on every
+frame of a scroll and the rest are only placed. **And an item does not round
+what is on it** — a corner radius is not a clip — so a picture filling an item
+carries the item's 28dp itself, as the one above does. The ink well is a
+transparent slab of its own a step in front of the contents, so a picture
+does not hide the wash. The arithmetic is a private sliver placing through
+`placeChild`, so a reversed carousel, and every horizontal one in right to
+left, mirrors with nothing of its own to get wrong.
+
 ## Icons are a font, and it was checked rather than assumed
 
 `Icon3d` is one code point of an icon font drawn as a one-character
@@ -2072,10 +2173,8 @@ ornament on the component whose design question here was the drag. And a slider 
 filling its parent, because the thumb's position is written before layout
 rather than after it.
 
-Three the tabs left, and one the segmented button. A tab bar has no
-**`isScrollable`**: a scrolling bar is a horizontal scroll view that starts
-at the right in right to left, which the layout package's `reverse` now
-allows and which phase 6 of the catalogue plan has not built yet. A tab announces no localized **"Tab 1 of 3"**, a string the
+Three the tabs left, and one the segmented button. A scrolling tab bar
+always starts 52dp in — there is no **`tabAlignment`**. A tab announces no localized **"Tab 1 of 3"**, a string the
 catalogue would have to invent. A press two tabs away **slides across the page
 between**, where Flutter swaps it out of the way. And a segmented button has no
 **vertical direction**, and draws a disabled segment's stretch of outline in
@@ -2093,6 +2192,16 @@ half. And the two ends of an arc are a hard stop in a ramp, so they are **not
 anti-aliased** the way the ring's edges are: at a 4dp stroke that is a few
 stair steps, and feathering them wants the shader to know which gradients want
 it.
+
+What the scroll view's neighbours left. A scrollbar has no **Android
+variant** — a thinner, square thumb in a highlight colour `Theme3dData` has no
+token for — no **track** under a hovered thumb, and a press on the track does
+not page the view. A refresh indicator refuses a **horizontal view**, as
+Flutter's does, draws no **arrowhead** on its arc, and has neither of
+Flutter's `adaptive` and `noSpinner` forms. A carousel has no
+**`CarouselView.weighted`** — the multi-browse and hero layouts, a different
+sliver with a different arithmetic — and no **`infinite`**, which needs a view
+of unbounded length.
 
 Text input is not planned at all: there is no `EditableText3d`, no selection,
 no cursor and no text-input client anywhere in the stack — the keyboard

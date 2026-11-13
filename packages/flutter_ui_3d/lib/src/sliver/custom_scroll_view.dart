@@ -264,6 +264,7 @@ class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
     // still a laid-out view. The pass below replaces it.
     size = sizeFor(bounded ? windowExtent : 0.0);
 
+    controller.applyViewportAxis(axis: axis, reverse: _reverse);
     var cycles = 0;
     while (true) {
       final total = _layoutSliverSequence(
@@ -375,15 +376,23 @@ class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
     // What is left of the window as the slivers eat into it, in the same
     // bookkeeping Flutter's viewport keeps.
     var remainingScroll = scrollOffset;
-    var layoutOffset = 0.0;
+    // A position before the start — a bouncing pull past it — lays the
+    // slivers out from their own start and pushes the whole run that far into
+    // the window, as Flutter's viewport does: its `centerOffset` is the
+    // offset negated, and the first sliver is laid out there.
+    var layoutOffset = scrollOffset < 0.0
+        ? math.min(-scrollOffset, mainExtent)
+        : 0.0;
     // How far down the window anything laid out so far still reaches. It runs
     // ahead of [layoutOffset] exactly when a sliver holds its place — a
     // pinned header whose layout extent has shrunk to nothing but which is
     // still sitting on the leading edge — and the gap between the two is the
     // `overlap` the next sliver is told about.
-    var maxPaintOffset = 0.0;
+    var maxPaintOffset = layoutOffset;
     var precedingScrollExtent = 0.0;
-    var cacheOrigin = math.max(-_cacheExtent, -scrollOffset);
+    // Never after the leading edge: a pull past the start has nothing before
+    // it to keep alive.
+    var cacheOrigin = math.min(0.0, math.max(-_cacheExtent, -scrollOffset));
     var remainingCache =
         mainExtent +
         2 * _cacheExtent -
