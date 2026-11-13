@@ -1,5 +1,36 @@
 ## Unreleased
 
+- **A scroll view can run backwards.** `reverse` puts the start of the
+  content at the far end of the axis: the bottom of a vertical view, the
+  right of a horizontal one. `RenderViewport3d`, `RenderCustomScrollView3d`,
+  `RenderListView3d`, `RenderGridView3d`, `RenderPageView3d` and
+  `RenderReorderableList3d` take it, and so do `Viewport3d`, `ListView3d`,
+  `GridView3d`, `PageView3d`, `CustomScrollView3d` and `ReorderableList3d`.
+  The offset still counts from the start of the content, so the range and
+  `offsetToReveal3d` answer the same either way. A drag, a fling, a wheel, a
+  scroll key and autoscroll all move the content the way the viewer moved it,
+  and a reorder finds its slot and slides its gap the right way.
+
+- **A horizontal scroll widget starts at the right in right to left.** The
+  widgets above resolve `reverse` against the ambient `Directionality`, as
+  Flutter's do. A horizontal list in a right-to-left subtree used to start at
+  the left, and now does not; `reverse: true` sends it back. Vertical views
+  are not affected, and the render views read no direction.
+
+- **A sliver places its children with `RenderSliver3d.placeChild`.** It is
+  how the protocol reverses: a sliver does its arithmetic forward, and
+  `placeChild` holds each placement until the sliver knows its extent, then
+  mirrors it once. Every built-in sliver uses it. A custom sliver that still
+  calls `child.place` lays out as before in a forward view and the wrong way
+  round in a reversed one. `childMainAxisPosition` and `mainAxisPositionOf`
+  read a position back from the leading edge, whichever way the view runs.
+  `SliverConstraints3d.reverse` carries the flag down, and
+  `RenderSliverPadding3d` leads with the inset at the leading edge.
+
+- **`Scrollable3d` has `reverse`.** It is how input knows which way the
+  content runs. Because `Scrollable3d` is an interface, a class outside this
+  package that implements it has to add the getter.
+
 - **Type can be painted on its surface instead of extruded.**
   `TextRelief3d.flat` draws a label's letters as one face with no wall, on
   the plane an extruded letter's back face occupies, so nothing in layout,

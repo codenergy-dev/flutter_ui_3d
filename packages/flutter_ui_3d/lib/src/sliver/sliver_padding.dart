@@ -110,8 +110,15 @@ class RenderSliverPadding3d extends RenderSliver3d
     final axis = constraints.axis;
     final (crossAxis, depthAxis) = constraints.crossAxes;
     final padding = _padding.resolve(_textDirection);
-    final before = padding.lowAlong(axis);
     final mainAxisPadding = padding.alongAxis(axis);
+    // The inset scrolled through first is the one at the leading edge, which
+    // on a reversed axis is the high one: the bottom of a list that starts at
+    // the bottom. Flutter's `beforePadding` makes the same choice from the
+    // axis direction. Everything below is measured from the leading edge, and
+    // [placeChild] mirrors the result.
+    final before = constraints.reverse
+        ? mainAxisPadding - padding.lowAlong(axis)
+        : padding.lowAlong(axis);
     final crossAxisPadding = padding.alongAxis(crossAxis);
     final depthPadding = padding.alongAxis(depthAxis);
 
@@ -207,7 +214,8 @@ class RenderSliverPadding3d extends RenderSliver3d
       paintOrigin: childGeometry.paintOrigin,
     );
 
-    child.place(
+    placeChild(
+      child,
       Offset3d.zero
           .withAxis(axis, beforePaintExtent)
           .withAxis(crossAxis, padding.lowAlong(crossAxis))

@@ -1,8 +1,8 @@
 ---
 status: in progress
-reason: phases 1 to 5 have landed — the last the segmented button, the tabs and the radio group; phases 6 and 7 are open, and phase 2's safe area has no lane that draws it
+reason: phases 1 to 5 have landed — the last the segmented button, the tabs and the radio group; phase 6's change to the layout package, reverse, has landed and its components have not; phase 7 is open, and phase 2's safe area has no lane that draws it
 created_at: 2026-09-21T15:46:07Z
-updated_at: 2026-10-01T22:55:00Z
+updated_at: 2026-11-13T15:36:52Z
 commit: 763e3dff41a1c75ac35997cf9244e101bb7250bf
 ---
 
@@ -40,7 +40,7 @@ written by hand here today.
 | 3 | the node tier, with a clock | `LinearProgressIndicator3d`, `CircularProgressIndicator3d`, the switch's growing thumb, the chip's press lift — **landed** |
 | 4 | nothing, but more of it | `Badge3d`, `MaterialBanner3d`, `BottomAppBar3d`, `NavigationDrawer3d`, `ExpansionTile3d`, a snack bar's second line — **landed** |
 | 5 | one choice over many options | `SegmentedButton3d`, `TabBar3d` and `TabBarView3d`, `RadioGroup3d` — **landed** |
-| 6 | a scroll view that runs backwards | `reverse` in the layout package, `Carousel3d`, `Scrollbar3d`, `RefreshIndicator3d` |
+| 6 | a scroll view that runs backwards | `reverse` in the layout package — **landed** — then `Carousel3d`, `Scrollbar3d`, `RefreshIndicator3d` |
 | 7 | a second arena, or a design answer | `RangeSlider3d`, `DataTable3d`, `Stepper3d`, the slider's ticks and value indicator, a tooltip on long press, a draggable sheet |
 
 Each phase is written in full when it is picked up, below its predecessor's
@@ -1208,10 +1208,15 @@ that writing it is an afternoon:
 - **Phase 1's second finding moves `scrollable`** for `AlertDialog3d` out of
   phase 7 and into the next phase that touches a dialog. Phase 4 did not, and
   neither did phase 5.
-- **Phase 6** needs a plan in the layout package first: no scroll view here
-  has `reverse`, and Flutter starts a horizontal list at the right in right to
-  left by reversing its axis. `Scrollbar3d` also owes a design answer — what a
-  scrollbar is beside a plane the viewer may be looking at edge-on.
+- **Phase 6**'s change to the layout package is done:
+  [a scroll view that runs backwards](../../flutter_ui_3d/plans/2026_11_13_a_scroll_view_that_runs_backwards.md)
+  gave every scroll view `reverse`, and the widgets resolve right to left into
+  it, as Flutter's do, so a horizontal list starts at the right there.
+  `TabBarView3d` dropped its renumbering on the way, because its page view
+  now does that itself. What is left is the components — the carousel, the
+  scrollbar and the refresh indicator — and `isScrollable` on the tab bar.
+  `Scrollbar3d` still owes a design answer: what a scrollbar is beside a
+  plane the viewer may be looking at edge-on.
 - **Phase 7**'s `RangeSlider3d` is two thumbs competing for one pointer, which
   is an arena problem rather than a second thumb.
 

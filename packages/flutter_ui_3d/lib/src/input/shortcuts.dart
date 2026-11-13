@@ -431,10 +431,14 @@ class _ScrollAction extends Action<ScrollIntent> {
         _lineLogicalPixels * controller.unitsPerLogicalPixel,
       ScrollIncrementType.page => _pageFraction * controller.viewportExtent,
     };
-    final sign = switch (intent.direction) {
+    final towardsFarEnd = switch (intent.direction) {
       AxisDirection.up || AxisDirection.left => -1.0,
       AxisDirection.down || AxisDirection.right => 1.0,
     };
+    // Taken against the view's own direction, as Flutter's `ScrollAction`
+    // is: the down arrow on a list that starts at the bottom scrolls back
+    // towards that start, which is what reveals what is below.
+    final sign = view.reverse ? -towardsFarEnd : towardsFarEnd;
     controller.animateTo(
       controller.pointerScrollTarget(sign * increment),
       duration: _duration,

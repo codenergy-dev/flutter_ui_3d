@@ -300,7 +300,7 @@ class RenderSliverPersistentHeader3d extends RenderSliver3d
 
     final child = this.child;
     if (child != null) {
-      child.place(Offset3d.along(constraints.axis, _childPosition));
+      placeChild(child, Offset3d.along(constraints.axis, _childPosition));
       child.node.visible = geometry.visible;
     }
     _applyLift(obstructedExtent > 0.0 ? effectiveLift : 0.0);

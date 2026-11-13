@@ -213,8 +213,9 @@ class Tab3d extends StatelessWidget {
 ///    primary bar's pressed one washes `primary`: a wash here is one colour
 ///    per surface.
 ///  * **No `isScrollable`.** A scrolling bar is a horizontal scroll view
-///    that has to start at the right in right to left, which needs the
-///    `reverse` phase 6 of the catalogue plan is for.
+///    that starts at the right in right to left, which the layout package's
+///    `reverse` now allows, and which phase 6 of the catalogue plan has not
+///    built yet.
 ///  * **No "Tab 1 of 3".** Flutter appends a localized position to each
 ///    tab's announcement; a string the catalogue would have to invent is the
 ///    language item's.
@@ -939,11 +940,10 @@ class _TabBarLayout3d extends MultiChildRenderObjectWidget3d {
 ///
 /// ## Right to left reads the pages backwards
 ///
-/// A horizontal page view here starts at the left in every language, because
-/// no scroll view has `reverse`. Flutter reverses the axis; for a view whose
-/// length is known the same thing is a renumbering, so in right to left the
-/// first page is laid out last, the view opens at its far end, and a swipe
-/// toward the right brings the next tab in from the left.
+/// The page view resolves the reading direction as Flutter's does: in right
+/// to left its axis is reversed, so the first tab's page is at the right, the
+/// view opens there, and a swipe toward the right brings the next tab in from
+/// the left. The tabs and the pages keep the same numbers in both.
 ///
 /// ## A list in a page takes the swipe
 ///
@@ -989,19 +989,11 @@ class _TabBarView3dState extends State<TabBarView3d>
   /// are not read as a press.
   bool _syncing = false;
 
-  bool get _rightToLeft =>
-      (Directionality.maybeOf(context) ?? TextDirection.ltr) ==
-      TextDirection.rtl;
-
-  /// The position in the view of the page for tab [index].
-  int _positionOf(int index) =>
-      _rightToLeft ? widget.children.length - 1 - index : index;
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _updateController();
-    _pages.page = _positionOf(_currentIndex).toDouble();
+    _pages.page = _currentIndex.toDouble();
   }
 
   @override
@@ -1034,7 +1026,7 @@ class _TabBarView3dState extends State<TabBarView3d>
     next.animation?.addListener(_animated);
     _pages.addListener(_scrolled);
     _currentIndex = next.index;
-    _pages.jumpToPage(_positionOf(_currentIndex));
+    _pages.jumpToPage(_currentIndex);
   }
 
   /// The controller is animating to a tab a press chose: follow it.
@@ -1047,7 +1039,7 @@ class _TabBarView3dState extends State<TabBarView3d>
   }
 
   Future<void> _warp(TabController controller) async {
-    final target = _positionOf(_currentIndex);
+    final target = _currentIndex;
     _warping++;
     try {
       if (controller.animationDuration == Duration.zero) {
@@ -1064,12 +1056,15 @@ class _TabBarView3dState extends State<TabBarView3d>
     }
   }
 
-  /// Where the pages are, counted in tabs rather than in positions.
+  /// Where the pages are, counted in tabs.
+  ///
+  /// A position and a tab are the same number in either reading direction:
+  /// the page view starts at the right in right to left on its own, so tab
+  /// one is still page one, and it is simply laid out at the other end.
   double? get _page {
     final extent = _pages.viewportExtent;
     if (extent <= 0.0) return null;
-    final position = _pages.offset / extent;
-    return _rightToLeft ? widget.children.length - 1 - position : position;
+    return _pages.offset / extent;
   }
 
   /// A finger, or the settle after one, moved the pages: tell the controller.
@@ -1118,7 +1113,6 @@ class _TabBarView3dState extends State<TabBarView3d>
       'has pages.',
     );
     final count = widget.children.length;
-    final rightToLeft = _rightToLeft;
     // Clipped to its own window, as Flutter's `TabBarView` is by default: a
     // scroll view here does not clip on its own, and a page half across it
     // would otherwise draw its panels and its labels outside the view.
@@ -1126,9 +1120,9 @@ class _TabBarView3dState extends State<TabBarView3d>
       child: PageView3d.builder(
         controller: _pages,
         itemCount: count,
-        itemBuilder: (context, position) => Semantics3d(
+        itemBuilder: (context, index) => Semantics3d(
           properties: const SemanticsProperties(role: SemanticsRole.tabPanel),
-          child: widget.children[rightToLeft ? count - 1 - position : position],
+          child: widget.children[index],
         ),
       ),
     );

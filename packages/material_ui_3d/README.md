@@ -1165,8 +1165,9 @@ Flutter's elastic effect transcribed; the secondary one moves straight across.
 
 The pages turn when a tab is pressed, and a swipe moves the controller with
 the finger and chooses the tab it settles on. Right to left reads them
-backwards, as Flutter's reversed axis does, and the view clips its pages to
-its own window, as Flutter's does by default. Two things to know:
+backwards, because the page view underneath reverses its axis there as
+Flutter's does, and the view clips its pages to its own window, as Flutter's
+does by default. Two things to know:
 
 - **A page that is a list does not swipe.** A drag here takes hold of the
   nearest scrolling view on its path, whatever way the finger then goes, so a
@@ -2072,9 +2073,9 @@ filling its parent, because the thumb's position is written before layout
 rather than after it.
 
 Three the tabs left, and one the segmented button. A tab bar has no
-**`isScrollable`**: a scrolling bar is a horizontal scroll view that has to
-start at the right in right to left, and no scroll view here can run
-backwards yet. A tab announces no localized **"Tab 1 of 3"**, a string the
+**`isScrollable`**: a scrolling bar is a horizontal scroll view that starts
+at the right in right to left, which the layout package's `reverse` now
+allows and which phase 6 of the catalogue plan has not built yet. A tab announces no localized **"Tab 1 of 3"**, a string the
 catalogue would have to invent. A press two tabs away **slides across the page
 between**, where Flutter swaps it out of the way. And a segmented button has no
 **vertical direction**, and draws a disabled segment's stretch of outline in

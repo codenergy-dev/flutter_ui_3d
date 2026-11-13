@@ -39,6 +39,7 @@ class RenderGridView3d extends RenderBoxScrollView3d<RenderSliverGrid3d> {
     required Grid3dDelegate gridDelegate,
     Axis3d scrollDirection = Axis3d.vertical,
     Scroll3dController? controller,
+    bool reverse = false,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
     double cacheExtent = 0.0,
     List<RenderObject3d> children = const <RenderObject3d>[],
@@ -51,6 +52,7 @@ class RenderGridView3d extends RenderBoxScrollView3d<RenderSliverGrid3d> {
          ),
          scrollDirection: scrollDirection,
          controller: controller,
+         reverse: reverse,
          cacheExtent: cacheExtent,
          name: name,
        );
@@ -62,6 +64,7 @@ class RenderGridView3d extends RenderBoxScrollView3d<RenderSliverGrid3d> {
     required RenderObject3dItemBuilder itemBuilder,
     Axis3d scrollDirection = Axis3d.vertical,
     Scroll3dController? controller,
+    bool reverse = false,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
     double cacheExtent = 0.0,
     String? name,
@@ -74,6 +77,7 @@ class RenderGridView3d extends RenderBoxScrollView3d<RenderSliverGrid3d> {
          ),
          scrollDirection: scrollDirection,
          controller: controller,
+         reverse: reverse,
          cacheExtent: cacheExtent,
          name: name,
        );
@@ -86,12 +90,14 @@ class RenderGridView3d extends RenderBoxScrollView3d<RenderSliverGrid3d> {
     RenderSliverGrid3d sliver, {
     required Axis3d scrollDirection,
     required Scroll3dController? controller,
+    required bool reverse,
     required double cacheExtent,
     required String? name,
   }) : super(
          sliver: sliver,
          scrollDirection: scrollDirection,
          controller: controller,
+         reverse: reverse,
          cacheExtent: cacheExtent,
          name: name,
        );

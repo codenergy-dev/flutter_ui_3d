@@ -267,7 +267,8 @@ class RenderSliverList3d extends RenderSliverMultiBoxAdaptor3d
       final start = offsetOfIndex(index, itemExtent);
       final childSize = child.size;
       final extent = itemExtent ?? childSize.alongAxis(axis);
-      child.place(
+      placeChild(
+        child,
         Offset3d.zero
             .withAxis(axis, start - constraints.scrollOffset)
             .withAxis(

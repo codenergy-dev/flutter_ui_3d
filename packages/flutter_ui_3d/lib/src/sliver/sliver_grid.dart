@@ -153,7 +153,8 @@ class RenderSliverGrid3d extends RenderSliverMultiBoxAdaptor3d {
     final depthExtent = depthLimit.isFinite ? depthLimit : 0.0;
     for (final (index, child) in positionedChildren()) {
       final start = grid.mainAxisOffsetOf(index);
-      child.place(
+      placeChild(
+        child,
         Offset3d.zero
             .withAxis(axis, start - constraints.scrollOffset)
             .withAxis(crossAxis, grid.crossAxisOffsetOf(index))

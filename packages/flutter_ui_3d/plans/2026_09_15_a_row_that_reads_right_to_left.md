@@ -1,7 +1,7 @@
 ---
 status: completed
 created_at: 2026-09-15T19:50:41Z
-updated_at: 2026-09-21T16:25:00Z
+updated_at: 2026-11-13T15:36:52Z
 commit: af086f9de841081071e99089ea8b0d91e220ccf9
 ---
 
@@ -142,7 +142,10 @@ order is the direction, always relayout.
 - **A horizontal scroll view.** Flutter starts a horizontal `ListView` at the
   right in right to left, by reversing its axis direction. No view here has
   `reverse` at all, so that is an absence of its own rather than a direction
-  to thread, and it is recorded on the map rather than taken here.
+  to thread, and it is recorded on the map rather than taken here. *Since
+  done*, in
+  [a scroll view that runs backwards](2026_11_13_a_scroll_view_that_runs_backwards.md):
+  the scroll widgets resolve the direction into `reverse`.
 - **`BorderRadius3d`.** There is no `BorderRadiusDirectional3d`; a panel's
   corners are painted by the shader against physical corners, and nothing in
   the catalogue rounds one side only except the side sheet, whose edge is

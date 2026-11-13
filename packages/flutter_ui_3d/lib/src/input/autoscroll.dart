@@ -284,8 +284,12 @@ class Drag3dAutoscroller {
       return null;
     }
     // In world units a second: the settings are in dp, the offset is not.
+    // The bands are physical, and a reversed view starts at the far one, so
+    // the band nearest the origin is the one that scrolls it forward.
     final velocity =
-        sign * settings.velocityAt(t) * metrics.unitsPerLogicalPixel;
+        (view.reverse ? -sign : sign) *
+        settings.velocityAt(t) *
+        metrics.unitsPerLogicalPixel;
     if (velocity < 0.0 && controller.offset <= controller.minScrollExtent) {
       return null;
     }

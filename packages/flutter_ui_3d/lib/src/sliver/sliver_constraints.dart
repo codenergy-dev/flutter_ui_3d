@@ -32,11 +32,29 @@ class SliverConstraints3d {
     required this.cacheOrigin,
     this.overlap = 0.0,
     this.userScrollDirection = ScrollDirection3d.idle,
+    this.reverse = false,
   }) : assert(scrollOffset >= 0.0),
        assert(cacheOrigin <= 0.0);
 
   /// The axis the viewport scrolls along.
   final Axis3d axis;
+
+  /// Whether the leading edge is at the far end of [axis]: the bottom of a
+  /// vertical window, the right of a horizontal one, the back of a depth one.
+  ///
+  /// The 3D form of Flutter's `axisDirection`, as a flag beside the axis
+  /// rather than a direction in place of it, because an axis here is one of
+  /// three and a direction would need six values to say what an axis and a
+  /// bool already do.
+  ///
+  /// **A sliver does its arithmetic forward whatever this says.** Every
+  /// quantity in these constraints and in the geometry it reports is measured
+  /// from the leading edge, so a sliver that places its children through
+  /// [RenderSliver3d.placeChild] is mirrored without knowing it, the way a
+  /// Flutter sliver's paint is. A sliver reads this only to hand it down to a
+  /// sliver it holds, which [copyWith] does by default, and to read a
+  /// position back forward, which [RenderSliver3d.childMainAxisPosition] does.
+  final bool reverse;
 
   /// Which way the viewer is moving the scroll position, or
   /// [ScrollDirection3d.idle] when nothing is.
@@ -154,6 +172,7 @@ class SliverConstraints3d {
     double? cacheOrigin,
     double? overlap,
     ScrollDirection3d? userScrollDirection,
+    bool? reverse,
   }) => SliverConstraints3d(
     axis: axis ?? this.axis,
     scrollOffset: scrollOffset ?? this.scrollOffset,
@@ -167,6 +186,7 @@ class SliverConstraints3d {
     cacheOrigin: cacheOrigin ?? this.cacheOrigin,
     overlap: overlap ?? this.overlap,
     userScrollDirection: userScrollDirection ?? this.userScrollDirection,
+    reverse: reverse ?? this.reverse,
   );
 
   @override
@@ -182,7 +202,8 @@ class SliverConstraints3d {
       other.remainingCacheExtent == remainingCacheExtent &&
       other.cacheOrigin == cacheOrigin &&
       other.overlap == overlap &&
-      other.userScrollDirection == userScrollDirection;
+      other.userScrollDirection == userScrollDirection &&
+      other.reverse == reverse;
 
   @override
   int get hashCode => Object.hash(
@@ -197,11 +218,13 @@ class SliverConstraints3d {
     cacheOrigin,
     overlap,
     userScrollDirection,
+    reverse,
   );
 
   @override
   String toString() =>
-      'SliverConstraints3d(${axis.name}, scrollOffset: $scrollOffset, '
+      'SliverConstraints3d(${axis.name}${reverse ? ' reversed' : ''}, '
+      'scrollOffset: $scrollOffset, '
       'remainingPaint: $remainingPaintExtent, cross: $crossAxisExtent)';
 }
 

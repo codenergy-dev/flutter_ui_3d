@@ -1781,6 +1781,18 @@ class PositionedDirectional3d extends SingleChildRenderObjectWidget3d {
   }
 }
 
+/// The physical flag a render view takes, from a widget's `reverse` and the
+/// reading direction around it.
+///
+/// Flutter's `getAxisDirectionFromAxisReverseAndDirectionality`, for an axis
+/// and a flag: a horizontal axis in right to left flips once, and `reverse`
+/// flips it again. Vertical and depth axes do not read the direction.
+bool _resolveReverse(BuildContext context, Axis3d axis, bool reverse) {
+  if (axis != Axis3d.horizontal) return reverse;
+  final rightToLeft = Directionality.maybeOf(context) == TextDirection.rtl;
+  return rightToLeft ? !reverse : reverse;
+}
+
 /// A scrolling window onto a taller child, the widget form of
 /// [RenderViewport3d].
 class Viewport3d extends SingleChildRenderObjectWidget3d {
@@ -1789,6 +1801,7 @@ class Viewport3d extends SingleChildRenderObjectWidget3d {
     super.key,
     this.axis = Axis3d.vertical,
     this.controller,
+    this.reverse = false,
     super.child,
   });
 
@@ -1798,13 +1811,26 @@ class Viewport3d extends SingleChildRenderObjectWidget3d {
   /// The scroll position. One is created and owned when this is null.
   final Scroll3dController? controller;
 
+  /// Whether the view starts at the far end of its axis: the bottom of a
+  /// vertical view, the right of a horizontal one.
+  ///
+  /// Resolved against the ambient `Directionality`, as Flutter's `reverse`
+  /// is: a horizontal view in right to left already starts at the right, and
+  /// `reverse` sends it back to the left. A vertical or depth view is not
+  /// affected by the reading direction.
+  final bool reverse;
+
   @override
-  RenderViewport3d createLayout(BuildContext context) =>
-      RenderViewport3d(axis: axis, controller: controller);
+  RenderViewport3d createLayout(BuildContext context) => RenderViewport3d(
+    axis: axis,
+    controller: controller,
+    reverse: _resolveReverse(context, axis, reverse),
+  );
 
   @override
   void updateLayout(BuildContext context, RenderViewport3d layout) {
     layout.axis = axis;
+    layout.reverse = _resolveReverse(context, axis, reverse);
     layout.controller = controller;
   }
 }
@@ -1848,6 +1874,7 @@ class ListView3d extends LazyRenderObjectWidget3d {
     super.key,
     this.scrollDirection = Axis3d.vertical,
     this.controller,
+    this.reverse = false,
     this.spacing = 0.0,
     this.itemExtent,
     this.crossAxisAlignment = CrossAxisAlignment3d.center,
@@ -1863,6 +1890,7 @@ class ListView3d extends LazyRenderObjectWidget3d {
     required IndexedWidgetBuilder itemBuilder,
     this.scrollDirection = Axis3d.vertical,
     this.controller,
+    this.reverse = false,
     this.spacing = 0.0,
     this.itemExtent,
     this.crossAxisAlignment = CrossAxisAlignment3d.center,
@@ -1875,6 +1903,15 @@ class ListView3d extends LazyRenderObjectWidget3d {
 
   /// The scroll position. One is created and owned when this is null.
   final Scroll3dController? controller;
+
+  /// Whether the view starts at the far end of its axis: the bottom of a
+  /// vertical view, the right of a horizontal one.
+  ///
+  /// Resolved against the ambient `Directionality`, as Flutter's `reverse`
+  /// is: a horizontal view in right to left already starts at the right, and
+  /// `reverse` sends it back to the left. A vertical or depth view is not
+  /// affected by the reading direction.
+  final bool reverse;
 
   /// The gap between adjacent items.
   final double spacing;
@@ -1895,6 +1932,7 @@ class ListView3d extends LazyRenderObjectWidget3d {
   RenderListView3d createLayout(BuildContext context) => RenderListView3d(
     scrollDirection: scrollDirection,
     controller: controller,
+    reverse: _resolveReverse(context, scrollDirection, reverse),
     spacing: spacing,
     itemExtent: itemExtent,
     crossAxisAlignment: crossAxisAlignment,
@@ -1911,6 +1949,7 @@ class ListView3d extends LazyRenderObjectWidget3d {
       ..crossAxisAlignment = crossAxisAlignment
       ..depthAxisAlignment = depthAxisAlignment
       ..cacheExtent = cacheExtent;
+    layout.reverse = _resolveReverse(context, scrollDirection, reverse);
     layout.controller = controller;
   }
 }
@@ -1974,6 +2013,7 @@ class ReorderableList3d extends LazyRenderObjectWidget3d {
     this.vsync,
     this.scrollDirection = Axis3d.vertical,
     this.controller,
+    this.reverse = false,
     this.spacing = 0.0,
     this.itemExtent,
     this.crossAxisAlignment = CrossAxisAlignment3d.center,
@@ -2009,6 +2049,15 @@ class ReorderableList3d extends LazyRenderObjectWidget3d {
   /// The scroll position. One is created and owned when this is null.
   final Scroll3dController? controller;
 
+  /// Whether the view starts at the far end of its axis: the bottom of a
+  /// vertical view, the right of a horizontal one.
+  ///
+  /// Resolved against the ambient `Directionality`, as Flutter's `reverse`
+  /// is: a horizontal view in right to left already starts at the right, and
+  /// `reverse` sends it back to the left. A vertical or depth view is not
+  /// affected by the reading direction.
+  final bool reverse;
+
   /// The gap between adjacent items.
   final double spacing;
 
@@ -2036,6 +2085,7 @@ class ReorderableList3d extends LazyRenderObjectWidget3d {
         vsync: vsync,
         scrollDirection: scrollDirection,
         controller: controller,
+        reverse: _resolveReverse(context, scrollDirection, reverse),
         spacing: spacing,
         itemExtent: itemExtent,
         crossAxisAlignment: crossAxisAlignment,
@@ -2059,6 +2109,7 @@ class ReorderableList3d extends LazyRenderObjectWidget3d {
       ..crossAxisAlignment = crossAxisAlignment
       ..depthAxisAlignment = depthAxisAlignment
       ..cacheExtent = cacheExtent;
+    layout.reverse = _resolveReverse(context, scrollDirection, reverse);
     layout.controller = controller;
   }
 }
@@ -2151,6 +2202,7 @@ class GridView3d extends LazyRenderObjectWidget3d {
     required this.gridDelegate,
     this.scrollDirection = Axis3d.vertical,
     this.controller,
+    this.reverse = false,
     this.depthAxisAlignment = CrossAxisAlignment3d.center,
     this.cacheExtent = 0.0,
     super.children,
@@ -2164,6 +2216,7 @@ class GridView3d extends LazyRenderObjectWidget3d {
     required IndexedWidgetBuilder itemBuilder,
     this.scrollDirection = Axis3d.vertical,
     this.controller,
+    this.reverse = false,
     this.depthAxisAlignment = CrossAxisAlignment3d.center,
     this.cacheExtent = 0.0,
   }) : super(itemCount: itemCount, itemBuilder: itemBuilder);
@@ -2177,6 +2230,15 @@ class GridView3d extends LazyRenderObjectWidget3d {
   /// The scroll position. One is created and owned when this is null.
   final Scroll3dController? controller;
 
+  /// Whether the view starts at the far end of its axis: the bottom of a
+  /// vertical view, the right of a horizontal one.
+  ///
+  /// Resolved against the ambient `Directionality`, as Flutter's `reverse`
+  /// is: a horizontal view in right to left already starts at the right, and
+  /// `reverse` sends it back to the left. A vertical or depth view is not
+  /// affected by the reading direction.
+  final bool reverse;
+
   /// How a cell's child sits on the depth axis.
   final CrossAxisAlignment3d depthAxisAlignment;
 
@@ -2188,6 +2250,7 @@ class GridView3d extends LazyRenderObjectWidget3d {
     gridDelegate: gridDelegate,
     scrollDirection: scrollDirection,
     controller: controller,
+    reverse: _resolveReverse(context, scrollDirection, reverse),
     depthAxisAlignment: depthAxisAlignment,
     cacheExtent: cacheExtent,
   );
@@ -2199,6 +2262,7 @@ class GridView3d extends LazyRenderObjectWidget3d {
       ..scrollDirection = scrollDirection
       ..depthAxisAlignment = depthAxisAlignment
       ..cacheExtent = cacheExtent;
+    layout.reverse = _resolveReverse(context, scrollDirection, reverse);
     layout.controller = controller;
   }
 }
@@ -2214,6 +2278,7 @@ class CustomScrollView3d extends MultiChildRenderObjectWidget3d {
     super.key,
     this.scrollDirection = Axis3d.vertical,
     this.controller,
+    this.reverse = false,
     this.cacheExtent = 0.0,
     List<Widget> slivers = const <Widget>[],
   }) : super(children: slivers);
@@ -2225,6 +2290,15 @@ class CustomScrollView3d extends MultiChildRenderObjectWidget3d {
   /// when this is null.
   final Scroll3dController? controller;
 
+  /// Whether the view starts at the far end of its axis: the bottom of a
+  /// vertical view, the right of a horizontal one.
+  ///
+  /// Resolved against the ambient `Directionality`, as Flutter's `reverse`
+  /// is: a horizontal view in right to left already starts at the right, and
+  /// `reverse` sends it back to the left. A vertical or depth view is not
+  /// affected by the reading direction.
+  final bool reverse;
+
   /// How far beyond the window slivers stay alive.
   final double cacheExtent;
 
@@ -2233,6 +2307,7 @@ class CustomScrollView3d extends MultiChildRenderObjectWidget3d {
       RenderCustomScrollView3d(
         scrollDirection: scrollDirection,
         controller: controller,
+        reverse: _resolveReverse(context, scrollDirection, reverse),
         cacheExtent: cacheExtent,
       );
 
@@ -2241,6 +2316,7 @@ class CustomScrollView3d extends MultiChildRenderObjectWidget3d {
     layout
       ..scrollDirection = scrollDirection
       ..cacheExtent = cacheExtent;
+    layout.reverse = _resolveReverse(context, scrollDirection, reverse);
     layout.controller = controller;
   }
 }
@@ -3422,6 +3498,7 @@ class PageView3d extends LazyRenderObjectWidget3d {
     super.key,
     this.scrollDirection = Axis3d.horizontal,
     this.controller,
+    this.reverse = false,
     this.crossAxisAlignment = CrossAxisAlignment3d.stretch,
     this.depthAxisAlignment = CrossAxisAlignment3d.center,
     super.children,
@@ -3434,6 +3511,7 @@ class PageView3d extends LazyRenderObjectWidget3d {
     required IndexedWidgetBuilder itemBuilder,
     this.scrollDirection = Axis3d.horizontal,
     this.controller,
+    this.reverse = false,
     this.crossAxisAlignment = CrossAxisAlignment3d.stretch,
     this.depthAxisAlignment = CrossAxisAlignment3d.center,
   }) : super(itemCount: itemCount, itemBuilder: itemBuilder);
@@ -3445,6 +3523,15 @@ class PageView3d extends LazyRenderObjectWidget3d {
   /// this is null.
   final Scroll3dController? controller;
 
+  /// Whether the view starts at the far end of its axis: the bottom of a
+  /// vertical view, the right of a horizontal one.
+  ///
+  /// Resolved against the ambient `Directionality`, as Flutter's `reverse`
+  /// is: a horizontal view in right to left already starts at the right, and
+  /// `reverse` sends it back to the left. A vertical or depth view is not
+  /// affected by the reading direction.
+  final bool reverse;
+
   /// How pages are positioned on the first cross axis.
   final CrossAxisAlignment3d crossAxisAlignment;
 
@@ -3455,6 +3542,7 @@ class PageView3d extends LazyRenderObjectWidget3d {
   RenderPageView3d createLayout(BuildContext context) => RenderPageView3d(
     scrollDirection: scrollDirection,
     controller: controller,
+    reverse: _resolveReverse(context, scrollDirection, reverse),
     crossAxisAlignment: crossAxisAlignment,
     depthAxisAlignment: depthAxisAlignment,
   );
@@ -3465,6 +3553,7 @@ class PageView3d extends LazyRenderObjectWidget3d {
       ..scrollDirection = scrollDirection
       ..crossAxisAlignment = crossAxisAlignment
       ..depthAxisAlignment = depthAxisAlignment;
+    layout.reverse = _resolveReverse(context, scrollDirection, reverse);
     layout.controller = controller;
   }
 }

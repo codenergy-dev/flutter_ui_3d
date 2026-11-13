@@ -23,6 +23,16 @@ abstract interface class Scrollable3d {
   /// The axis the content moves along, in the view's own layout space.
   Axis3d get scrollAxis;
 
+  /// Whether the view's leading edge is at the far end of [scrollAxis] — the
+  /// bottom of a vertical view, the right of a horizontal one.
+  ///
+  /// Input has to know, because every consumer of the axis is a sign. A
+  /// finger dragging a reversed view's content down moves the offset *up*,
+  /// a wheel's delta is negated so the content still moves the way the wheel
+  /// turned, and the down arrow scrolls towards a reversed view's start,
+  /// which is what reveals what is below.
+  bool get reverse;
+
   /// The position, and the metrics the view measured for it.
   Scroll3dController get controller;
 
@@ -55,6 +65,11 @@ abstract interface class Scrollable3d {
 /// from Flutter's `RenderAbstractViewport.getOffsetToReveal`, which has no
 /// such mode and takes 0.0.
 ///
+/// A [Scrollable3d.reverse] view is measured from the far end of its window,
+/// where its content starts, so the same alignments mean the same thing in
+/// scroll terms: `0.0` still puts the target at the start of the content
+/// that is showing, which on a reversed vertical view is the bottom.
+///
 /// The walk sums the layout offsets between the two, so a
 /// [RenderObject3d.localTransform] in between (a `RenderTransform3d`, a rotated
 /// container) is not accounted for: the answer is where the target is on the
@@ -76,12 +91,15 @@ double? offsetToReveal3d(
     node = node.parent;
   }
   if (node == null || !target.hasSize) return null;
+  final extent = target.size.alongAxis(axis);
+  final window = controller.viewportExtent;
+  // Measured from the window's leading edge, which a reversed view keeps at
+  // its far end.
+  if (view.reverse) along = window - along - extent;
   // The view places its content at minus the scroll offset, however many
   // boxes deep, so undoing that turns a position in the window into a
   // position in the content.
   final leading = along + controller.offset;
-  final extent = target.size.alongAxis(axis);
-  final window = controller.viewportExtent;
   if (alignment != null) return leading - alignment * (window - extent);
   final trailing = leading + extent;
   if (leading < controller.offset) return leading;

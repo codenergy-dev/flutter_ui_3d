@@ -1540,13 +1540,20 @@ remains a reservation of space and `glyphDepth` is the figure that draws.
   `AlignmentGeometry3d`, which may be directional and so have no left until a
   direction is known. A test that reads what a box laid out with writes
   `box.padding.resolve(box.textDirection).left`.
-- **A horizontal scroll view does not start at the right.** Flutter reverses a
-  horizontal `ListView`'s axis in right to left; no view here has `reverse`,
-  so a carousel's first item stays at the left in every language. A view
-  whose length is known can be read backwards instead — `TabBarView3d` lays
-  its pages out last to first in right to left and opens at the far end,
-  which is what the reversed axis amounts to — but that is a renumbering of
-  one view's items, not a direction the scroll view knows.
+- **A horizontal scroll *widget* starts at the right; a render view does
+  not.** `ListView3d` and its siblings resolve the ambient direction into
+  `reverse`, as Flutter's do, so a horizontal one in right to left starts at
+  the right and `reverse: true` sends it back. `RenderListView3d` and the
+  other render views take `reverse` as a physical fact and read no
+  direction, as Flutter's `RenderViewport` does: an imperative tree in right
+  to left has to say `reverse: true` itself.
+- **A sliver that calls `place` lands the wrong way round in a reversed
+  view.** The built-in slivers place their children with
+  `RenderSliver3d.placeChild`, which holds the placement until the sliver's
+  extent is known and then mirrors it. A custom sliver that calls
+  `child.place` keeps its forward position, and one that reads
+  `child.offset` back reads it from the wrong end; `childMainAxisPosition`
+  and `mainAxisPositionOf` read it forward whichever way the view runs.
 
 ## Semantics
 

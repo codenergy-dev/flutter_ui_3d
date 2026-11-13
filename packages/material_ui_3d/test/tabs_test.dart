@@ -507,15 +507,41 @@ void main() {
         () => _barOverPages(controller, pages()),
         textDirection: TextDirection.rtl,
       );
-      // The first tab's page is the last in the view, and the view opens on
-      // it.
-      expect(pageOf(pumped.surface), closeTo(2.0, 1e-9));
+      final view = boxesOf<RenderPageView3d>(pumped.surface).single;
+      final window = view.controller.viewportExtent;
+      // Where a page's label starts, measured across the view from its left.
+      double leftOf(String text) {
+        RenderObject3d? node = boxesOf<RenderText3d>(
+          pumped.surface,
+        ).firstWhere((box) => box.data == text);
+        var x = 0.0;
+        while (node != null && !identical(node, view)) {
+          x += node.offset.x;
+          node = node.parent;
+        }
+        return x;
+      }
+
+      // The page view resolves the reading direction itself, so the tabs and
+      // the pages keep one numbering: the first tab's page is page zero, at
+      // the right, and the view opens on it.
+      expect(view.reverse, isTrue);
+      expect(pageOf(pumped.surface), closeTo(0.0, 1e-9));
+      expect(leftOf('Page 0'), inInclusiveRange(0.0, window));
       controller.animateTo(1);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      // Mid-turn both pages are built, and the second tab's is coming in
+      // from the left of the first's.
+      expect(leftOf('Page 1'), lessThan(leftOf('Page 0')));
+      expect(leftOf('Page 0'), greaterThan(0.0));
       await tester.pumpAndSettle();
       expect(pageOf(pumped.surface), closeTo(1.0, 1e-9));
+      expect(leftOf('Page 1'), inInclusiveRange(0.0, window));
       controller.animateTo(2);
       await tester.pumpAndSettle();
-      expect(pageOf(pumped.surface), closeTo(0.0, 1e-9));
+      expect(pageOf(pumped.surface), closeTo(2.0, 1e-9));
+      expect(leftOf('Page 2'), inInclusiveRange(0.0, window));
     });
 
     testWidgets('mid-turn, a label that has left the window draws nothing', (

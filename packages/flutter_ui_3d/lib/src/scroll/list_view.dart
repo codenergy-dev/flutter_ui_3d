@@ -44,6 +44,7 @@ class RenderListView3d extends RenderBoxScrollView3d<RenderSliverList3d> {
   RenderListView3d({
     Axis3d scrollDirection = Axis3d.vertical,
     Scroll3dController? controller,
+    bool reverse = false,
     double spacing = 0.0,
     double? itemExtent,
     RenderObject3dPrototypeBuilder? prototypeItem,
@@ -65,6 +66,7 @@ class RenderListView3d extends RenderBoxScrollView3d<RenderSliverList3d> {
          ),
          scrollDirection: scrollDirection,
          controller: controller,
+         reverse: reverse,
          cacheExtent: cacheExtent,
          name: name,
        );
@@ -75,6 +77,7 @@ class RenderListView3d extends RenderBoxScrollView3d<RenderSliverList3d> {
     required RenderObject3dItemBuilder itemBuilder,
     Axis3d scrollDirection = Axis3d.vertical,
     Scroll3dController? controller,
+    bool reverse = false,
     double spacing = 0.0,
     double? itemExtent,
     RenderObject3dPrototypeBuilder? prototypeItem,
@@ -96,6 +99,7 @@ class RenderListView3d extends RenderBoxScrollView3d<RenderSliverList3d> {
          ),
          scrollDirection: scrollDirection,
          controller: controller,
+         reverse: reverse,
          cacheExtent: cacheExtent,
          name: name,
        );
@@ -108,12 +112,14 @@ class RenderListView3d extends RenderBoxScrollView3d<RenderSliverList3d> {
     RenderSliverList3d sliver, {
     required Axis3d scrollDirection,
     required Scroll3dController? controller,
+    required bool reverse,
     required double cacheExtent,
     required String? name,
   }) : super(
          sliver: sliver,
          scrollDirection: scrollDirection,
          controller: controller,
+         reverse: reverse,
          cacheExtent: cacheExtent,
          name: name,
        );

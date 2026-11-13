@@ -338,10 +338,10 @@ class RenderSliverReorderableList3d extends RenderSliverList3d
   /// [RenderObject3d.nodeOffset], so the point that arrives here is measured
   /// against the items where layout put them rather than where the gap
   /// animation has slid them — which is exactly the frame [insertIndexAt]
-  /// reasons in.
+  /// reasons in. On a reversed axis the point is measured from the far end,
+  /// where the list starts; [mainAxisPositionOf] does that.
   double scrollOffsetOf(Offset3d localPosition) =>
-      localPosition.alongAxis(sliverConstraints.axis) +
-      sliverConstraints.scrollOffset;
+      mainAxisPositionOf(localPosition) + sliverConstraints.scrollOffset;
 
   /// The index whose place an item let go at [scrollOffset] would take.
   ///
@@ -357,14 +357,13 @@ class RenderSliverReorderableList3d extends RenderSliverList3d
   int insertIndexAt(double scrollOffset) {
     final count = itemCount;
     if (count == 0) return 0;
-    final axis = sliverConstraints.axis;
     final origin = sliverConstraints.scrollOffset;
     int? best;
     var bestStart = double.negativeInfinity;
     int? first;
     var firstStart = double.infinity;
     for (final (index, child) in positionedChildren()) {
-      final start = child.offset.alongAxis(axis) + origin;
+      final start = childMainAxisPosition(child) + origin;
       if (start < firstStart) {
         firstStart = start;
         first = index;
@@ -450,15 +449,22 @@ class RenderSliverReorderableList3d extends RenderSliverList3d
     return 0.0;
   }
 
+  /// Which way a shift towards the end of the list moves a node: along the
+  /// axis, or against it on a reversed one.
+  double get _towardsEnd => sliverConstraints.reverse ? -1.0 : 1.0;
+
   void _moveGapTo(int index) {
     if (index == _insertIndex || _dragIndex == null) return;
     if (!hasSliverConstraints) return;
     final axis = sliverConstraints.axis;
+    // Kept in the list's own sense, towards the end, so that [_shiftOf] and
+    // what an interrupted slide starts from are measured the same way.
+    final sign = _towardsEnd;
     _slideFrom
       ..clear()
       ..addEntries(<MapEntry<int, double>>[
         for (final (i, child) in positionedChildren())
-          MapEntry<int, double>(i, child.nodeOffset.alongAxis(axis)),
+          MapEntry<int, double>(i, sign * child.nodeOffset.alongAxis(axis)),
       ]);
     _insertIndex = index;
     if (gapDuration <= Duration.zero) {
@@ -476,6 +482,7 @@ class RenderSliverReorderableList3d extends RenderSliverList3d
     final drag = _dragIndex;
     if (drag == null || !hasSliverConstraints) return;
     final axis = sliverConstraints.axis;
+    final sign = _towardsEnd;
     final t = gapCurve.transform(_slideT);
     for (final (index, child) in positionedChildren()) {
       if (index == drag) {
@@ -485,7 +492,7 @@ class RenderSliverReorderableList3d extends RenderSliverList3d
       }
       final to = _shiftOf(index, drag);
       final from = _slideFrom[index] ?? to;
-      child.nodeOffset = Offset3d.along(axis, from + (to - from) * t);
+      child.nodeOffset = Offset3d.along(axis, sign * (from + (to - from) * t));
     }
   }
 

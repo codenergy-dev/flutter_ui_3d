@@ -1,5 +1,12 @@
 ## Unreleased
 
+- **`TabBarView3d` reads right to left through its page view.** The page view
+  under it now reverses its axis in right to left by itself, so the view no
+  longer renumbers its pages: tab one is page one in either direction, laid
+  out at the right. What a person sees is unchanged. A test that reads the
+  page view's scroll offset in right to left now reads the tab's index rather
+  than its mirror.
+
 - **`Theme3d.textRelief` paints every label and icon on its surface.** Null,
   the default, installs nothing, and type stays extruded. `TextRelief3d.flat`
   wraps the subtree in a `DefaultTextRelief3d`, so each `Text3d` and `Icon3d`

@@ -645,7 +645,10 @@ class Layout3dPointer {
 /// far away and at whatever angle the plane is seen. It does not change sign
 /// for a plane seen from behind: a wheel is about moving further into a list,
 /// and "further in" is a property of the layout, not of where the viewer
-/// stands. A depth-axis view takes no wheel at all.
+/// stands. It does change sign for a [Scrollable3d.reverse] view, as
+/// Flutter's does for a reversed axis direction: the wheel moves the content
+/// the same way on screen whichever end the view starts at. A depth-axis view
+/// takes no wheel at all.
 class PointerScroll3d {
   const PointerScroll3d._(this.scrollable, this.delta);
 
@@ -681,7 +684,8 @@ class PointerScroll3d {
         Axis3d.depth => 0.0,
       };
       if (pixels == 0.0) continue;
-      final delta = pixels * unitsPerLogicalPixel;
+      final delta =
+          (scrollable.reverse ? -pixels : pixels) * unitsPerLogicalPixel;
       final controller = scrollable.controller;
       if (controller.pointerScrollTarget(delta) == controller.offset) continue;
       return PointerScroll3d._(scrollable, delta);
@@ -989,16 +993,18 @@ class _Sequence implements PointerSequence3d, GestureArenaMember {
   /// Moves the grabbed view by [delta], measured on its own plane.
   ///
   /// Dragging the content one way moves the window the other way, the same
-  /// sense as a finger on a Flutter list.
+  /// sense as a finger on a Flutter list. On a reversed view the content
+  /// runs the other way along the axis, so the offset follows the finger.
   bool _apply(double delta) {
     if (delta == 0.0) return false;
-    final controller = _scrollable?.controller;
-    if (controller == null) return false;
+    final scrollable = _scrollable;
+    final controller = scrollable?.controller;
+    if (scrollable == null || controller == null) return false;
     final before = controller.offset;
     // Through the physics rather than straight onto the offset, so a
     // bouncing view drags less and less the further past its end it is
     // pulled.
-    controller.applyUserOffset(-delta);
+    controller.applyUserOffset(scrollable.reverse ? delta : -delta);
     return controller.offset != before;
   }
 
@@ -1040,8 +1046,9 @@ class _Sequence implements PointerSequence3d, GestureArenaMember {
     if (pixels.abs() < kMinFlingVelocity) return 0.0;
     final clamped = pixels.clamp(-kMaxFlingVelocity, kMaxFlingVelocity);
     // Dragging the content one way throws the window the other way, the same
-    // inversion `_apply` makes.
-    return -clamped * owner.surface.metrics.unitsPerLogicalPixel;
+    // inversion `_apply` makes, and the same exception for a reversed view.
+    final sign = (_scrollable?.reverse ?? false) ? 1.0 : -1.0;
+    return sign * clamped * owner.surface.metrics.unitsPerLogicalPixel;
   }
 
   void _releaseDrag() {

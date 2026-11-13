@@ -77,9 +77,67 @@ abstract class RenderSliver3d extends RenderObject3d {
   @protected
   void performSliverLayout();
 
+  /// The placements [placeChild] is holding back until this sliver knows its
+  /// extent. Empty unless the axis is reversed.
+  final List<(RenderObject3d, Offset3d)> _heldPlacements =
+      <(RenderObject3d, Offset3d)>[];
+
+  /// Places [child] at [offset], measured from this sliver's leading edge.
+  ///
+  /// **A sliver places its children through this rather than through
+  /// [RenderObject3d.place]**, and it is the whole of what a sliver does about
+  /// a reversed axis. With [SliverConstraints3d.reverse] false it is `place`.
+  /// With it true the leading edge is at the far end of the axis, so a child
+  /// at `a` with an extent of `e` belongs at `S - a - e`, where `S` is this
+  /// sliver's own extent — and that is only known once
+  /// [performSliverLayout] has reported its geometry. So the placement is
+  /// held, and made mirrored once the size is in.
+  ///
+  /// Held rather than made twice, forward and then mirrored, because `place`
+  /// republishes the clip of a subtree that moved: a reversed list would pay
+  /// that twice for every row on every frame of a scroll.
+  ///
+  /// Only the scroll axis is mirrored. Where a child sits across the axis is
+  /// a fact about the cross axes, which a reversed scroll does not touch.
+  @protected
+  void placeChild(RenderObject3d child, Offset3d offset) {
+    if (!sliverConstraints.reverse) {
+      child.place(offset);
+      return;
+    }
+    _heldPlacements.add((child, offset));
+  }
+
+  /// Where [child] starts, measured from this sliver's leading edge along the
+  /// scroll axis, whichever way the axis runs.
+  ///
+  /// Flutter's name for the same question. A sliver that reads a position
+  /// back — which slot a pointer is over, where an item starts — reads it
+  /// here rather than off [RenderObject3d.offset], which in a reversed
+  /// window is measured from the other end.
+  double childMainAxisPosition(RenderObject3d child) {
+    final constraints = sliverConstraints;
+    final along = child.offset.alongAxis(constraints.axis);
+    if (!constraints.reverse) return along;
+    final extent = child.hasSize ? child.size.alongAxis(constraints.axis) : 0.0;
+    return size.alongAxis(constraints.axis) - along - extent;
+  }
+
+  /// How far [localPosition], a point in this sliver's own frame, is from its
+  /// leading edge along the scroll axis, whichever way the axis runs.
+  ///
+  /// The point form of [childMainAxisPosition], for a pointer.
+  double mainAxisPositionOf(Offset3d localPosition) {
+    final constraints = sliverConstraints;
+    final along = localPosition.alongAxis(constraints.axis);
+    if (!constraints.reverse) return along;
+    return size.alongAxis(constraints.axis) - along;
+  }
+
   @override
   void performLayout() {
     geometry = SliverGeometry3d.zero;
+    _heldPlacements.clear();
     performSliverLayout();
     final constraints = sliverConstraints;
     final (crossAxis, depthAxis) = constraints.crossAxes;
@@ -101,6 +159,20 @@ abstract class RenderSliver3d extends RenderObject3d {
           depthAxis,
           constraints.depthExtent.isFinite ? constraints.depthExtent : 0.0,
         );
+    if (_heldPlacements.isNotEmpty) _placeHeld(constraints.axis);
+  }
+
+  /// Makes the placements [placeChild] held, mirrored across this sliver's
+  /// extent now that there is one.
+  void _placeHeld(Axis3d axis) {
+    final extent = size.alongAxis(axis);
+    for (final (child, offset) in _heldPlacements) {
+      final childExtent = child.hasSize ? child.size.alongAxis(axis) : 0.0;
+      child.place(
+        offset.withAxis(axis, extent - offset.alongAxis(axis) - childExtent),
+      );
+    }
+    _heldPlacements.clear();
   }
 
   @override
@@ -147,7 +219,10 @@ class RenderSliverToBoxAdapter3d extends RenderSliver3d
       maxPaintExtent: extent,
       cacheExtent: constraints.cachePortion(from: 0.0, to: extent),
     );
-    child.place(Offset3d.along(constraints.axis, -constraints.scrollOffset));
+    placeChild(
+      child,
+      Offset3d.along(constraints.axis, -constraints.scrollOffset),
+    );
     child.node.visible = geometry.visible;
   }
 }

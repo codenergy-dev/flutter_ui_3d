@@ -46,6 +46,7 @@ class RenderPageView3d extends RenderBoxScrollView3d<RenderSliverList3d> {
   RenderPageView3d({
     Axis3d scrollDirection = Axis3d.horizontal,
     Scroll3dController? controller,
+    bool reverse = false,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.stretch,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
     List<RenderObject3d> children = const <RenderObject3d>[],
@@ -58,6 +59,7 @@ class RenderPageView3d extends RenderBoxScrollView3d<RenderSliverList3d> {
          ),
          scrollDirection: scrollDirection,
          controller: controller,
+         reverse: reverse,
          name: name,
        );
 
@@ -71,6 +73,7 @@ class RenderPageView3d extends RenderBoxScrollView3d<RenderSliverList3d> {
     required RenderObject3dItemBuilder itemBuilder,
     Axis3d scrollDirection = Axis3d.horizontal,
     Scroll3dController? controller,
+    bool reverse = false,
     CrossAxisAlignment3d crossAxisAlignment = CrossAxisAlignment3d.stretch,
     CrossAxisAlignment3d depthAxisAlignment = CrossAxisAlignment3d.center,
     String? name,
@@ -83,6 +86,7 @@ class RenderPageView3d extends RenderBoxScrollView3d<RenderSliverList3d> {
          ),
          scrollDirection: scrollDirection,
          controller: controller,
+         reverse: reverse,
          name: name,
        );
 
@@ -91,11 +95,13 @@ class RenderPageView3d extends RenderBoxScrollView3d<RenderSliverList3d> {
     RenderSliverList3d sliver, {
     required Axis3d scrollDirection,
     required Scroll3dController? controller,
+    required bool reverse,
     required String? name,
   }) : super(
          sliver: sliver,
          scrollDirection: scrollDirection,
          controller: controller,
+         reverse: reverse,
          name: name,
        ) {
     if (controller == null) this.controller.physics = PageScroll3dPhysics();

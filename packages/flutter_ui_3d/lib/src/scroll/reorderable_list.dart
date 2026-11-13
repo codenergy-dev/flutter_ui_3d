@@ -87,6 +87,7 @@ class RenderReorderableList3d
     TickerProvider? vsync,
     Axis3d scrollDirection = Axis3d.vertical,
     Scroll3dController? controller,
+    bool reverse = false,
     double spacing = 0.0,
     double? itemExtent,
     RenderObject3dPrototypeBuilder? prototypeItem,
@@ -115,6 +116,7 @@ class RenderReorderableList3d
          ),
          scrollDirection: scrollDirection,
          controller: controller,
+         reverse: reverse,
          cacheExtent: cacheExtent,
          name: name,
        );
@@ -136,6 +138,7 @@ class RenderReorderableList3d
     TickerProvider? vsync,
     Axis3d scrollDirection = Axis3d.vertical,
     Scroll3dController? controller,
+    bool reverse = false,
     double spacing = 0.0,
     double? itemExtent,
     RenderObject3dPrototypeBuilder? prototypeItem,
@@ -162,6 +165,7 @@ class RenderReorderableList3d
          ),
          scrollDirection: scrollDirection,
          controller: controller,
+         reverse: reverse,
          cacheExtent: cacheExtent,
          name: name,
        );

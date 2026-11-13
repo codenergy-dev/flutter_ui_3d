@@ -1613,9 +1613,10 @@ Three things about it that are this package's own:
   nothing, so the imperative layer resolves null as left to right, which is
   also what `RenderText3d` falls back to.
 
-A horizontal `RenderListView3d` does not start at the right in right to left,
-which Flutter's does. That is not a direction nobody threaded: no scroll view
-here has `reverse` at all, and it will come with that.
+A horizontal `ListView3d` starts at the right in right to left, as Flutter's
+does, by reversing its axis. The render view does not read the direction
+itself, so a horizontal `RenderListView3d` built imperatively in right to left
+is told `reverse: true`; see *A view that runs backwards*.
 
 ## Building from the room you got
 
@@ -1882,6 +1883,43 @@ default, and stating one — `PageScroll3dPhysics(pageExtent: cardExtent +
 spacing)` — snaps a plain `RenderListView3d` to something that is not a whole
 page, which is how a carousel with peeking neighbours is built.
 
+### A view that runs backwards
+
+Every scroll view takes `reverse`, and with it the content starts at the far
+end of the axis: the bottom of a vertical view, the right of a horizontal one.
+A chat transcript is the usual reason — the newest message is item zero, at
+the bottom, and the list grows upwards from it:
+
+```dart
+ListView3d.builder(
+  reverse: true,
+  itemCount: messages.length,
+  itemBuilder: (context, index) => MessageRow(messages[index]),
+)
+```
+
+The offset still counts from the start of the content, so `jumpTo(0)` shows
+the newest message and the range is the same as it would be forwards. Only
+where things land changes. Input knows: a finger dragging the content down
+moves a reversed vertical list *on*, a wheel still moves the content the way
+it turned, the down arrow scrolls back towards the start (which is what
+reveals what is below), and autoscroll's edge bands swap ends.
+
+**The widgets read the reading direction, as Flutter's do.** A horizontal
+`ListView3d`, `GridView3d`, `PageView3d`, `CustomScrollView3d`,
+`ReorderableList3d` or `Viewport3d` in right to left starts at the right, and
+`reverse: true` sends it back to the left. A vertical view ignores the
+direction. The render views take `reverse` as a physical fact and read no
+direction at all, the way Flutter's `RenderViewport` takes a resolved axis
+direction, so an imperative tree in right to left says so itself.
+
+The reversal happens where a position becomes a place, and nowhere else.
+Every sliver does its arithmetic forward, as though the axis ran from the
+origin, and the viewport and each sliver mirror what they place across their
+own extent. A sliver of your own gets this for free by placing its children
+with `placeChild` rather than `place`, and reads a position back with
+`childMainAxisPosition` rather than off `offset`; see *Slivers*.
+
 ## Slivers
 
 The box protocol cannot answer the question a long list asks. A box is handed
@@ -1919,7 +1957,11 @@ viewport, and it is hit-tested like anything else; its box is the part of it
 the viewer can actually see, derived from the geometry it reported. Writing one
 means extending `RenderSliver3d` and setting `geometry` in
 `performSliverLayout`, where `constraints.paintPortion` and
-`constraints.cachePortion` do the arithmetic. `scrollOffsetCorrection` is
+`constraints.cachePortion` do the arithmetic, and placing each child with
+`placeChild(child, offset)`, measured from the sliver's leading edge. That one
+is not a nicety: in a view with `reverse` the leading edge is at the far end,
+and `placeChild` is what holds the placement until the sliver knows its
+extent and then mirrors it, once. `scrollOffsetCorrection` is
 honoured: a sliver that discovers mid-layout that the content is not where the
 offset assumed can move the viewport and have the pass run again.
 
@@ -3510,9 +3552,13 @@ photographs the gallery on a GPU for exactly that reason — see its README.
   `RenderWrap3d` aligns children rather than wrapping them.
 * **`RenderGridView3d` is exactly lazy**, because a grid's cell positions are
   arithmetic. It knows how long ten thousand cells are without building one.
-* **A sliver has no growth direction and no centre child.** Slivers run one
-  way from the start of the viewport; there is no reverse list and no
-  `center` key yet.
+* **A sliver places its children with `placeChild`, not `place`.** That is
+  how a view with `reverse` mirrors it: the sliver's arithmetic stays forward
+  and the placement is held until its extent is known. A custom sliver that
+  calls `place` directly lands the wrong way round in a reversed view.
+* **A view runs one way, and has no centre child.** `reverse` turns the whole
+  view round; there is no `center` key that grows slivers both ways from the
+  middle of it yet.
 * **A pinned header stands in front of the content, it does not paint over
   it.** Nothing paints here, so a row scrolling under a bar is geometry that
   is really there. A `RenderSliverPersistentHeader3d` answers with both a small
@@ -3658,8 +3704,8 @@ on top of it and `scrollOffsetCorrection` honoured, and
 `RenderListView3d` and `RenderGridView3d` are views of this kind over a single
 sliver, as Flutter's are, so placement is written once. See *Slivers* above.
 What is left of the protocol is small and independent: `SliverFillRemaining3d`,
-a reverse growth direction and a `center` sliver (`RenderSliverPadding3d` is
-here). Building **widgets** lazily is done: `ListView3d.builder` and its three
+and a `center` sliver that grows the view both ways (`RenderSliverPadding3d`
+is here, and so is `reverse`, which turns a whole view round). Building **widgets** lazily is done: `ListView3d.builder` and its three
 siblings inflate an item as the window reaches it, through a
 `RenderObject3dChildManager` the view consults and a `RenderObjectElement` that
 implements it inside a build scope, the way `SliverMultiBoxAdaptorElement` does,

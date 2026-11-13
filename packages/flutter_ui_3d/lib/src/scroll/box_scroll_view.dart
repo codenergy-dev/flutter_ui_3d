@@ -41,6 +41,7 @@ abstract class RenderBoxScrollView3d<
     required this.sliver,
     super.scrollDirection,
     super.controller,
+    super.reverse,
     super.cacheExtent,
     super.name,
   }) {

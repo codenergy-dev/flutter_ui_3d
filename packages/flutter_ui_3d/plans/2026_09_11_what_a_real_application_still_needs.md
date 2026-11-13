@@ -1,8 +1,8 @@
 ---
 status: in progress
-reason: five of the seventeen items are open; the motion lane is closed and so is the colour generator, so what is left is the catalogue batch — planned in seven phases, five landed — more than one screen, more than one language, and the letter someone can type with the keyboard controls behind it
+reason: five of the seventeen items are open; the motion lane is closed and so is the colour generator, so what is left is the catalogue batch — planned in seven phases, five landed and the sixth's layout change done — more than one screen, more than one language, and the letter someone can type with the keyboard controls behind it
 created_at: 2026-09-11T21:20:18Z
-updated_at: 2026-11-11T22:10:20Z
+updated_at: 2026-11-13T15:36:52Z
 commit: abc2469ce5c4ec4c41e2738fc5acf55bcf40640a
 ---
 
@@ -106,7 +106,7 @@ plan, which is the rule phase 0 established and every phase since has obeyed.
 | [An application with more than one screen](#an-application-with-more-than-one-screen) | layout3d | named routes, deep links, the system back button |
 | ~~[A way to test a screen someone else built](#a-way-to-test-a-screen-someone-else-built)~~ | layout3d | **done** — anyone building on this, including us |
 | ~~[The motion tokens](#the-motion-tokens)~~ | material3d | **done** — every overlay in the catalogue arrives instead of appearing |
-| [The components a screen still needs](#the-components-a-screen-still-needs) | material3d | **in progress** — [its plan](../../material_ui_3d/plans/2026_09_21_the_components_a_screen_still_needs.md) is seven phases; five have landed — the alert dialog, the tristate box and the labelled tiles; the safe area and type that grows; the switch's thumb, the chip's lift and both progress indicators; the badge, the banner, the bottom app bar, the drawer, the expansion tile and the snack bar's second line; the segmented button, the tabs and the radio group |
+| [The components a screen still needs](#the-components-a-screen-still-needs) | material3d | **in progress** — [its plan](../../material_ui_3d/plans/2026_09_21_the_components_a_screen_still_needs.md) is seven phases; five have landed — the alert dialog, the tristate box and the labelled tiles; the safe area and type that grows; the switch's thumb, the chip's lift and both progress indicators; the badge, the banner, the bottom app bar, the drawer, the expansion tile and the snack bar's second line; the segmented button, the tabs and the radio group. Phase 6's change here, [`reverse`](2026_11_13_a_scroll_view_that_runs_backwards.md), has landed; its components have not |
 | ~~[A scheme from one colour](#a-scheme-from-one-colour)~~ | material3d | **done** — any application with a brand |
 | [The controls that wait on a keyboard](#the-controls-that-wait-on-a-keyboard) | material3d | search, dropdowns, date and time entry |
 | [A catalogue that speaks more than one language](#a-catalogue-that-speaks-more-than-one-language) | material3d | every locale, and the strings the catalogue invents |
@@ -247,8 +247,15 @@ Phase 4 found on the way that every button, chip and tile in the
 catalogue had been swallowing a press on its padding; phase 5 found that **a
 drag here takes the nearest scroll view whatever its axis**, so a tab view
 whose pages are lists does not swipe — an item for `Layout3dPointer`, which
-nothing on this map owns yet. **Phase 6 is next**, and needs a plan here
-first: `reverse`.
+nothing on this map owns yet. **Phase 6 is next**, and its plan here is
+done:
+[a scroll view that runs backwards](2026_11_13_a_scroll_view_that_runs_backwards.md)
+gave every scroll view `reverse`, and the widgets resolve right to left into
+it, so a horizontal list starts at the right there, as Flutter's does. That
+closes the absence
+[a row that reads right to left](2026_09_15_a_row_that_reads_right_to_left.md)
+recorded. What phase 6 has left is the carousel, the scrollbar and the
+refresh indicator, which are the catalogue's.
 
 **[A letter someone can type](#a-letter-someone-can-type) last of the large
 items, and it is much larger than anything above it.** It gates

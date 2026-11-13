@@ -1,7 +1,11 @@
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart'
-    show DiagnosticPropertiesBuilder, DoubleProperty, EnumProperty;
+    show
+        DiagnosticPropertiesBuilder,
+        DoubleProperty,
+        EnumProperty,
+        FlagProperty;
 
 import '../clip.dart';
 import '../geometry/offset3d.dart';
@@ -37,6 +41,12 @@ import 'sliver_constraints.dart';
 /// It is also what [RenderListView3d] and [RenderGridView3d] are underneath,
 /// each over a single sliver; see [RenderBoxScrollView3d].
 ///
+/// With [reverse], the leading edge is at the far end of the axis — the
+/// bottom of a vertical view, the right of a horizontal one — and the first
+/// sliver starts there. Every sliver still does its arithmetic forward: the
+/// view hands the flag down in [SliverConstraints3d.reverse], and the mirror
+/// happens where a position becomes a place. See [RenderSliver3d.placeChild].
+///
 /// The window must be bounded across the scroll axis, which is what the
 /// slivers are given to span. Along the scroll axis it need not be: with no
 /// edge to fill, the view shrink-wraps to however long its slivers came out,
@@ -47,10 +57,12 @@ class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
   RenderCustomScrollView3d({
     Axis3d scrollDirection = Axis3d.vertical,
     Scroll3dController? controller,
+    bool reverse = false,
     double cacheExtent = 0.0,
     List<RenderSliver3d> slivers = const <RenderSliver3d>[],
     super.name,
   }) : _axis = scrollDirection,
+       _reverse = reverse,
        _cacheExtent = cacheExtent,
        assert(cacheExtent >= 0.0),
        super(children: slivers) {
@@ -72,6 +84,25 @@ class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
   set scrollDirection(Axis3d value) {
     if (_axis == value) return;
     _axis = value;
+    markNeedsLayout();
+  }
+
+  bool _reverse;
+
+  /// Whether the leading edge is at the far end of [scrollDirection].
+  ///
+  /// Physical, like the axis: the bottom of a vertical view, the right of a
+  /// horizontal one, the back of a depth one. The view does not read a text
+  /// direction, as Flutter's `RenderViewport` takes a resolved axis direction
+  /// and does not either; `CustomScrollView3d` and the other widgets resolve
+  /// the ambient one, so a horizontal view in right to left starts at the
+  /// right.
+  @override
+  bool get reverse => _reverse;
+
+  set reverse(bool value) {
+    if (_reverse == value) return;
+    _reverse = value;
     markNeedsLayout();
   }
 
@@ -181,12 +212,15 @@ class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
     if (obstructed == null || obstructed <= 0.0) return base;
     // In the child's own frame, so no shift: the band is measured from the
     // child's leading edge, and `super` has already moved the inherited
-    // region there.
-    return base.intersect(
-      Clip3dRegion(<ClipPlane3d>[
-        ClipPlane3d(Offset3d.along(_axis, 1.0), -obstructed),
-      ]),
-    );
+    // region there. On a reversed axis the leading edge is the child's far
+    // end, so the plane faces the other way and stands that far back from it.
+    final plane = _reverse
+        ? ClipPlane3d(
+            Offset3d.along(_axis, -1.0),
+            (child.hasSize ? child.size.alongAxis(_axis) : 0.0) - obstructed,
+          )
+        : ClipPlane3d(Offset3d.along(_axis, 1.0), -obstructed);
+    return base.intersect(Clip3dRegion(<ClipPlane3d>[plane]));
   }
 
   @override
@@ -253,6 +287,7 @@ class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
         // Reporting the metrics can pull the offset back into range, and
         // then the pass that just ran was laid out at the wrong place.
         if (controller.offset == before) {
+          _placeHeld(mainExtent);
           _publishObstructionClips();
           return;
         }
@@ -266,6 +301,7 @@ class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
         'applied it.',
       );
       if (cycles >= _maxLayoutCycles) {
+        _placeHeld(size.alongAxis(axis));
         _publishObstructionClips();
         return;
       }
@@ -303,6 +339,27 @@ class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
       ..addAll(_obstructedTo);
   }
 
+  /// Where each sliver was laid out, from the window's leading edge, held
+  /// back on a reversed axis until the window's extent is settled.
+  ///
+  /// A shrink-wrapping view does not know how long its window is until every
+  /// sliver has reported, and the mirror is measured from the far end of it.
+  /// Held rather than placed twice, for the reason [RenderSliver3d.placeChild]
+  /// gives: a sliver that moves republishes the clip of everything in it.
+  final List<(RenderSliver3d, double)> _heldPlacements =
+      <(RenderSliver3d, double)>[];
+
+  /// Places the slivers a reversed pass held, mirrored across a window of
+  /// [windowExtent].
+  void _placeHeld(double windowExtent) {
+    if (_heldPlacements.isEmpty) return;
+    for (final (sliver, placement) in _heldPlacements) {
+      final extent = sliver.hasSize ? sliver.size.alongAxis(_axis) : 0.0;
+      sliver.place(Offset3d.along(_axis, windowExtent - placement - extent));
+    }
+    _heldPlacements.clear();
+  }
+
   /// Lays out every sliver in turn, and reports the total scroll extent, or
   /// the correction the first sliver to ask for one wants.
   ({double scrollExtent, double? correction}) _layoutSliverSequence({
@@ -312,7 +369,9 @@ class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
     required double depthExtent,
   }) {
     final axis = _axis;
+    final reverse = _reverse;
     _obstructedTo.clear();
+    _heldPlacements.clear();
     // What is left of the window as the slivers eat into it, in the same
     // bookkeeping Flutter's viewport keeps.
     var remainingScroll = scrollOffset;
@@ -349,6 +408,7 @@ class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
           cacheOrigin: correctedCacheOrigin,
           overlap: math.max(0.0, maxPaintOffset - layoutOffset),
           userScrollDirection: controller.userScrollDirection,
+          reverse: reverse,
         ),
       );
 
@@ -369,7 +429,11 @@ class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
       final placement = geometry.visible
           ? paintOffset
           : -sliverScrollOffset + layoutOffset;
-      sliver.place(Offset3d.along(axis, placement));
+      if (reverse) {
+        _heldPlacements.add((sliver, placement));
+      } else {
+        sliver.place(Offset3d.along(axis, placement));
+      }
       sliver.node.visible = geometry.visible;
       // What of this sliver is underneath something that came before it,
       // measured from its own leading edge; see [clipRegionForChild].
@@ -400,6 +464,7 @@ class RenderCustomScrollView3d extends RenderMultiChild3d<ParentData3d>
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties.add(EnumProperty<Axis3d>('scrollDirection', scrollDirection));
+    properties.add(FlagProperty('reverse', value: reverse, ifTrue: 'reversed'));
     properties.add(
       DoubleProperty('cacheExtent', cacheExtent, defaultValue: 0.0),
     );
